@@ -166,32 +166,24 @@ The implementation takes a modular approach to building a full Filecoin node in 
 <p>The Forest implementation of the Filecoin protocol is alpha software which should not yet be integrated into production workflows. The team is working to provide reliable, secure, and efficient interfaces to the Filecoin ecosystem. If you would like to chat, please reach out over Discord on the ChainSafe server linked above.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="basic-usage"><a class="header" href="#basic-usage">Basic Usage</a></h1>
 <h2 id="build"><a class="header" href="#build">Build</a></h2>
-<h3 id="toolchain"><a class="header" href="#toolchain">Toolchain</a></h3>
-<ul>
-<li><a href="https://www.rust-lang.org/tools/install">Rust</a></li>
-</ul>
 <h3 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h3>
-<p>The following commands will install the required dependencies for Forest:</p>
-<pre><code class="language-bash"># Install protoc
-PROTOC_ZIP=protoc-3.7.1-linux-x86_64.zip
-curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/$PROTOC_ZIP
-unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
-unzip -o $PROTOC_ZIP -d /usr/local 'include/*'
-rm -f $PROTOC_ZIP
+<ul>
+<li>Rust <code>rustc &gt;= 1.58.1</code></li>
+<li>Rust WASM target <code>wasm32-unknown-unknown</code></li>
+</ul>
+<pre><code class="language-shell">rustup install stable
+rustup target add wasm32-unknown-unknown
+</code></pre>
+<ul>
+<li>OS Base-Devel/Build-Essential</li>
+<li>Clang compiler</li>
+<li>OpenCL bindings</li>
+</ul>
+<pre><code class="language-shell"># Ubuntu
+sudo apt install build-essential clang ocl-icd-opencl-dev
 
-# Extra dependencies needed for rust-fil-proofs
-apt-get update &amp;&amp; \
-    apt-get install --no-install-recommends -y curl file gcc g++ hwloc libhwloc-dev git make openssh-client \
-    ca-certificates autoconf automake cmake libtool libcurl4 libcurl4-openssl-dev libssl-dev \
-    libelf-dev libdw-dev binutils-dev zlib1g-dev libiberty-dev wget \
-    xz-utils pkg-config python clang ocl-icd-opencl-dev
-
-# Install binary dependencies
-apt-get update &amp;&amp; \
-    apt-get install --no-install-recommends -y curl file gcc g++ hwloc libhwloc-dev make openssh-client \
-    autoconf automake cmake libtool libcurl4 libcurl4-openssl-dev libssl-dev \
-    libelf-dev libdw-dev binutils-dev zlib1g-dev libiberty-dev wget \
-    xz-utils pkg-config python clang ocl-icd-opencl-dev ca-certificates
+# Archlinux
+sudo pacman -S base-devel clang ocl-icd
 </code></pre>
 <h3 id="commands"><a class="header" href="#commands">Commands</a></h3>
 <pre><code class="language-bash">make release
