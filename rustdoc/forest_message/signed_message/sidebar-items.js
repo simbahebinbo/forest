@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["json",""]],"struct":[["SignedMessage","Represents a wrapped message with signature bytes."]]};

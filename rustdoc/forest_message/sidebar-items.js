@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["chain_message",""],["message",""],["message_receipt",""],["signed_message",""]],"trait":[["Message","Message interface to interact with Signed and unsigned messages in a generic context."]]};

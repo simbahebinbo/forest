@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"forest":[["impl StructOpt for <a class=\"struct\" href=\"forest/cli/struct.Cli.html\" title=\"struct forest::cli::Cli\">Cli</a>"],["impl StructOpt for <a class=\"enum\" href=\"forest/cli/enum.Subcommand.html\" title=\"enum forest::cli::Subcommand\">Subcommand</a>"],["impl StructOpt for <a class=\"struct\" href=\"forest/cli/struct.CliOpts.html\" title=\"struct forest::cli::CliOpts\">CliOpts</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

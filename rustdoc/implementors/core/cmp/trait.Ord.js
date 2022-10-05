@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"forest_blocks":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"struct\" href=\"forest_blocks/election_proof/struct.ElectionProof.html\" title=\"struct forest_blocks::election_proof::ElectionProof\">ElectionProof</a>"]],
+"forest_crypto":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"struct\" href=\"forest_crypto/vrf/struct.VRFProof.html\" title=\"struct forest_crypto::vrf::VRFProof\">VRFProof</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

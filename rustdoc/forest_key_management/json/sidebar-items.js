@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["deserialize",""],["serialize",""]],"struct":[["KeyInfoJson","Wrapper for serializing and de-serializing a `KeyInfo` from JSON."],["KeyInfoJsonRef","Wrapper for serializing a `KeyInfo` reference to JSON."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["deserialize","checked if `output > crate::ByteArrayMaxLen`"],["serialize","checked if `input > crate::BYTE_ARRAY_MAX_LEN`"]]};

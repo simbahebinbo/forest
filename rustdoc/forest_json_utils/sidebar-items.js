@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["go_vec_visitor",""]],"struct":[["GoVecVisitor","Helper visitor to match Go’s default behavior of serializing uninitialized slices as null. This will be able to de-serialize null as empty Vectors of the type."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["deserialize",""],["serialize",""]],"struct":[["IpldJson","Wrapper for serializing and de-serializing a IPLD from JSON."],["IpldJsonRef","Wrapper for serializing a IPLD reference to JSON."]]};

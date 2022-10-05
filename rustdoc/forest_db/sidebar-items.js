@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","Database error"]],"mod":[["rocks",""],["rocks_config",""]],"struct":[["MemoryDB","A thread-safe `HashMap` wrapper."]],"trait":[["Store","Store interface used as a KV store implementation"]]};

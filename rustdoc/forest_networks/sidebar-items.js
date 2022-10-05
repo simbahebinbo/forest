@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["NEWEST_NETWORK_VERSION","Newest network version for all networks"]],"enum":[["Height","Defines the meaningful heights of the protocol."]],"fn":[["default_network_version",""],["sort_by_epoch",""]],"mod":[["de_network_version",""]],"struct":[["ChainConfig","Defines all network configuration parameters."],["HeightInfo",""],["UpgradeInfo",""]]};

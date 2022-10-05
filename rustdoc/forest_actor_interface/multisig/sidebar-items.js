@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["State","Multisig actor state."]],"type":[["Method","Multisig actor method."]]};

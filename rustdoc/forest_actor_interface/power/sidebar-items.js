@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["ADDRESS","Power actor address."]],"enum":[["State","Power actor state."]],"fn":[["is_v8_power_cid",""]],"struct":[["Claim",""]],"type":[["Method","Power actor method."]]};

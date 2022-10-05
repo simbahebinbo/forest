@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["APIVersion","Represents the current version of the API."],["Version","Integer based value on version information. Highest order bits for Major, Mid order for Minor and lowest for Patch."]]};

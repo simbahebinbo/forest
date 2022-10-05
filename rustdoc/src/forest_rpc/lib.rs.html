@@ -1,0 +1,386 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/rpc/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../forest_rpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../forest_rpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../forest_rpc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
+// SPDX-License-Identifier: Apache-2.0, MIT
+
+</span><span class="kw">mod </span>auth_api;
+<span class="kw">mod </span>beacon_api;
+<span class="kw">mod </span>chain_api;
+<span class="kw">mod </span>common_api;
+<span class="kw">mod </span>gas_api;
+<span class="kw">mod </span>mpool_api;
+<span class="kw">mod </span>net_api;
+<span class="kw">mod </span>rpc_http_handler;
+<span class="kw">mod </span>rpc_util;
+<span class="kw">mod </span>rpc_ws_handler;
+<span class="kw">mod </span>state_api;
+<span class="kw">mod </span>sync_api;
+<span class="kw">mod </span>wallet_api;
+
+<span class="kw">use </span>async_std::net::TcpListener;
+<span class="kw">use </span>forest_chain::Scale;
+<span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JSONRPCError, Server};
+<span class="kw">use </span>log::info;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>tide_websockets::WebSocket;
+
+<span class="kw">use </span>forest_beacon::Beacon;
+<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
+<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_rpc_api::data_types::RPCState;
+
+<span class="kw">use </span><span class="kw">crate</span>::rpc_http_handler::rpc_http_handler;
+<span class="kw">use </span><span class="kw">crate</span>::rpc_ws_handler::rpc_ws_handler;
+<span class="kw">use crate</span>::{beacon_api::beacon_get_entry, common_api::version, state_api::<span class="kw-2">*</span>};
+
+<span class="kw">use </span>forest_rpc_api::{
+    auth_api::<span class="kw-2">*</span>, beacon_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, common_api::<span class="kw-2">*</span>, gas_api::<span class="kw-2">*</span>, mpool_api::<span class="kw-2">*</span>, net_api::<span class="kw-2">*</span>,
+    state_api::<span class="kw-2">*</span>, sync_api::<span class="kw-2">*</span>, wallet_api::<span class="kw-2">*</span>,
+};
+
+<span class="kw">pub async fn </span>start_rpc&lt;DB, B, V, S&gt;(
+    state: Arc&lt;RPCState&lt;DB, B&gt;&gt;,
+    rpc_endpoint: TcpListener,
+    forest_version: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), JSONRPCError&gt;
+<span class="kw">where
+    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    V: ProofVerifier + Send + Sync + <span class="lifetime">&#39;static</span>,
+    S: Scale + <span class="lifetime">&#39;static</span>,
+{
+    <span class="kw">use </span>auth_api::<span class="kw-2">*</span>;
+    <span class="kw">use </span>chain_api::<span class="kw-2">*</span>;
+    <span class="kw">use </span>gas_api::<span class="kw-2">*</span>;
+    <span class="kw">use </span>mpool_api::<span class="kw-2">*</span>;
+    <span class="kw">use </span>sync_api::<span class="kw-2">*</span>;
+    <span class="kw">use </span>wallet_api::<span class="kw-2">*</span>;
+
+    <span class="kw">let </span>block_delay = state.state_manager.chain_config().block_delay_secs;
+    <span class="kw">let </span>rpc_server = Arc::new(
+        Server::new()
+            .with_data(Data(state))
+            <span class="comment">// Auth API
+            </span>.with_method(AUTH_NEW, auth_new::&lt;DB, B&gt;)
+            .with_method(AUTH_VERIFY, auth_verify::&lt;DB, B&gt;)
+            <span class="comment">// Beacon API
+            </span>.with_method(BEACON_GET_ENTRY, beacon_get_entry::&lt;DB, B&gt;)
+            <span class="comment">// Chain API
+            </span>.with_method(CHAIN_GET_MESSAGE, chain_api::chain_get_message::&lt;DB, B&gt;)
+            .with_method(CHAIN_EXPORT, chain_api::chain_export::&lt;DB, B&gt;)
+            .with_method(CHAIN_READ_OBJ, chain_read_obj::&lt;DB, B&gt;)
+            .with_method(CHAIN_HAS_OBJ, chain_has_obj::&lt;DB, B&gt;)
+            .with_method(CHAIN_GET_BLOCK_MESSAGES, chain_get_block_messages::&lt;DB, B&gt;)
+            .with_method(
+                CHAIN_GET_TIPSET_BY_HEIGHT,
+                chain_get_tipset_by_height::&lt;DB, B&gt;,
+            )
+            .with_method(CHAIN_GET_GENESIS, chain_get_genesis::&lt;DB, B&gt;)
+            .with_method(CHAIN_TIPSET_WEIGHT, chain_tipset_weight::&lt;DB, B&gt;)
+            .with_method(CHAIN_GET_TIPSET, chain_get_tipset::&lt;DB, B&gt;)
+            .with_method(CHAIN_HEAD, chain_head::&lt;DB, B&gt;)
+            <span class="comment">// XXX: CHAIN_HEAD_SUBSCRIPTION disabled since it is unsed
+            // .with_method(CHAIN_HEAD_SUBSCRIPTION, chain_head_subscription::&lt;DB, B&gt;)
+            // * Filecoin.ChainNotify is handled specifically in middleware for streaming
+            // XXX: CHAIN_NOTIFY disabled since it is unsed
+            // .with_method(CHAIN_NOTIFY, chain_notify::&lt;DB, B&gt;)
+            // Tracking issue for unused RPC endpoints: https://github.com/ChainSafe/forest/issues/1976
+            </span>.with_method(
+                CHAIN_GET_RANDOMNESS_FROM_TICKETS,
+                chain_get_randomness_from_tickets::&lt;DB, B&gt;,
+            )
+            .with_method(
+                CHAIN_GET_RANDOMNESS_FROM_BEACON,
+                chain_get_randomness_from_beacon::&lt;DB, B&gt;,
+            )
+            .with_method(CHAIN_GET_BLOCK, chain_api::chain_get_block::&lt;DB, B&gt;)
+            .with_method(CHAIN_GET_NAME, chain_api::chain_get_name::&lt;DB, B&gt;)
+            <span class="comment">// Message Pool API
+            </span>.with_method(MPOOL_ESTIMATE_GAS_PRICE, estimate_gas_premium::&lt;DB, B&gt;)
+            .with_method(MPOOL_GET_NONCE, mpool_get_sequence::&lt;DB, B&gt;)
+            .with_method(MPOOL_PENDING, mpool_pending::&lt;DB, B&gt;)
+            .with_method(MPOOL_PUSH, mpool_push::&lt;DB, B&gt;)
+            .with_method(MPOOL_PUSH_MESSAGE, mpool_push_message::&lt;DB, B&gt;)
+            .with_method(MPOOL_SELECT, mpool_select::&lt;DB, B&gt;)
+            <span class="comment">// Sync API
+            </span>.with_method(SYNC_CHECK_BAD, sync_check_bad::&lt;DB, B&gt;)
+            .with_method(SYNC_MARK_BAD, sync_mark_bad::&lt;DB, B&gt;)
+            .with_method(SYNC_STATE, sync_state::&lt;DB, B&gt;)
+            .with_method(SYNC_SUBMIT_BLOCK, sync_submit_block::&lt;DB, B&gt;)
+            <span class="comment">// Wallet API
+            </span>.with_method(WALLET_BALANCE, wallet_balance::&lt;DB, B&gt;)
+            .with_method(WALLET_DEFAULT_ADDRESS, wallet_default_address::&lt;DB, B&gt;)
+            .with_method(WALLET_EXPORT, wallet_export::&lt;DB, B&gt;)
+            .with_method(WALLET_HAS, wallet_has::&lt;DB, B&gt;)
+            .with_method(WALLET_IMPORT, wallet_import::&lt;DB, B&gt;)
+            .with_method(WALLET_LIST, wallet_list::&lt;DB, B&gt;)
+            .with_method(WALLET_NEW, wallet_new::&lt;DB, B&gt;)
+            .with_method(WALLET_SET_DEFAULT, wallet_set_default::&lt;DB, B&gt;)
+            .with_method(WALLET_SIGN, wallet_sign::&lt;DB, B&gt;)
+            .with_method(WALLET_SIGN_MESSAGE, wallet_sign_message::&lt;DB, B&gt;)
+            .with_method(WALLET_VERIFY, wallet_verify::&lt;DB, B&gt;)
+            <span class="comment">// State API
+            </span>.with_method(STATE_MINER_SECTORS, state_miner_sectors::&lt;DB, B&gt;)
+            .with_method(STATE_CALL, state_call::&lt;DB, B&gt;)
+            .with_method(STATE_MINER_DEADLINES, state_miner_deadlines::&lt;DB, B&gt;)
+            .with_method(
+                STATE_SECTOR_PRECOMMIT_INFO,
+                state_sector_precommit_info::&lt;DB, B&gt;,
+            )
+            .with_method(STATE_MINER_INFO, state_miner_info::&lt;DB, B&gt;)
+            .with_method(STATE_SECTOR_GET_INFO, state_sector_info::&lt;DB, B&gt;)
+            .with_method(
+                STATE_MINER_PROVING_DEADLINE,
+                state_miner_proving_deadline::&lt;DB, B&gt;,
+            )
+            .with_method(STATE_MINER_FAULTS, state_miner_faults::&lt;DB, B&gt;)
+            .with_method(STATE_ALL_MINER_FAULTS, state_all_miner_faults::&lt;DB, B&gt;)
+            .with_method(STATE_MINER_RECOVERIES, state_miner_recoveries::&lt;DB, B&gt;)
+            .with_method(STATE_MINER_PARTITIONS, state_miner_partitions::&lt;DB, B&gt;)
+            .with_method(STATE_REPLAY, state_replay::&lt;DB, B&gt;)
+            .with_method(STATE_NETWORK_NAME, state_network_name::&lt;DB, B&gt;)
+            .with_method(STATE_NETWORK_VERSION, state_get_network_version::&lt;DB, B&gt;)
+            .with_method(STATE_REPLAY, state_replay::&lt;DB, B&gt;)
+            .with_method(STATE_GET_ACTOR, state_get_actor::&lt;DB, B&gt;)
+            .with_method(STATE_LIST_ACTORS, state_list_actors::&lt;DB, B&gt;)
+            .with_method(STATE_ACCOUNT_KEY, state_account_key::&lt;DB, B&gt;)
+            .with_method(STATE_LOOKUP_ID, state_lookup_id::&lt;DB, B&gt;)
+            .with_method(STATE_MARKET_BALANCE, state_market_balance::&lt;DB, B&gt;)
+            .with_method(STATE_MARKET_DEALS, state_market_deals::&lt;DB, B&gt;)
+            .with_method(STATE_GET_RECEIPT, state_get_receipt::&lt;DB, B&gt;)
+            .with_method(STATE_WAIT_MSG, state_wait_msg::&lt;DB, B&gt;)
+            .with_method(MINER_CREATE_BLOCK, miner_create_block::&lt;DB, B, S&gt;)
+            .with_method(
+                STATE_MINER_SECTOR_ALLOCATED,
+                state_miner_sector_allocated::&lt;DB, B&gt;,
+            )
+            .with_method(STATE_MINER_POWER, state_miner_power::&lt;DB, B&gt;)
+            .with_method(
+                STATE_MINER_PRE_COMMIT_DEPOSIT_FOR_POWER,
+                state_miner_pre_commit_deposit_for_power::&lt;DB, B&gt;,
+            )
+            .with_method(
+                STATE_MINER_INITIAL_PLEDGE_COLLATERAL,
+                state_miner_initial_pledge_collateral::&lt;DB, B&gt;,
+            )
+            .with_method(MINER_GET_BASE_INFO, miner_get_base_info::&lt;DB, B, V&gt;)
+            <span class="comment">// Gas API
+            </span>.with_method(GAS_ESTIMATE_FEE_CAP, gas_estimate_fee_cap::&lt;DB, B&gt;)
+            .with_method(GAS_ESTIMATE_GAS_LIMIT, gas_estimate_gas_limit::&lt;DB, B&gt;)
+            .with_method(GAS_ESTIMATE_GAS_PREMIUM, gas_estimate_gas_premium::&lt;DB, B&gt;)
+            .with_method(GAS_ESTIMATE_MESSAGE_GAS, gas_estimate_message_gas::&lt;DB, B&gt;)
+            <span class="comment">// Common API
+            </span>.with_method(VERSION, <span class="kw">move </span>|| version(block_delay, forest_version))
+            <span class="comment">// Net API
+            </span>.with_method(NET_ADDRS_LISTEN, net_api::net_addrs_listen::&lt;DB, B&gt;)
+            .with_method(NET_PEERS, net_api::net_peers::&lt;DB, B&gt;)
+            .with_method(NET_CONNECT, net_api::net_connect::&lt;DB, B&gt;)
+            .with_method(NET_DISCONNECT, net_api::net_disconnect::&lt;DB, B&gt;)
+            .finish_unwrapped(),
+    );
+
+    <span class="kw">let </span><span class="kw-2">mut </span>app = tide::with_state(Arc::clone(<span class="kw-2">&amp;</span>rpc_server));
+
+    app.at(<span class="string">&quot;/rpc/v0&quot;</span>)
+        .get(WebSocket::new(rpc_ws_handler::&lt;DB, B&gt;))
+        .post(rpc_http_handler::&lt;DB, B&gt;);
+
+    <span class="macro">info!</span>(<span class="string">&quot;Ready for RPC connections&quot;</span>);
+    app.listen(rpc_endpoint).<span class="kw">await</span><span class="question-mark">?</span>;
+
+    <span class="macro">info!</span>(<span class="string">&quot;Stopped accepting RPC connections&quot;</span>);
+
+    <span class="prelude-val">Ok</span>(())
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>

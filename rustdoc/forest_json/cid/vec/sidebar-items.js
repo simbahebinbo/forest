@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["deserialize",""],["serialize",""]],"struct":[["CidJsonSlice","Wrapper for serializing a CID slice to JSON."],["CidJsonVec","Wrapper for serializing and de-serializing a Cid vector from JSON."]]};

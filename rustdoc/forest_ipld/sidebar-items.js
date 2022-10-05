@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","IPLD error"],["Ipld","Ipld"]],"fn":[["from_ipld","Deserialize instances of [`crate::ipld::Ipld`]."],["to_ipld","Serialize into instances of [`crate::ipld::Ipld`]."]],"mod":[["json","Differences between serializers"],["selector",""],["util",""]],"struct":[["Path","Represents a path in an ipld dag."]]};

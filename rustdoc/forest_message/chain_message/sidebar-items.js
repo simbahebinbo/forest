@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ChainMessage","`Enum` to encapsulate signed and unsigned messages. Useful when working with both types"]]};

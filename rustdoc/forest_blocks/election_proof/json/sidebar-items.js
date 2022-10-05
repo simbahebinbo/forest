@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["deserialize",""],["serialize",""]],"mod":[["opt",""]],"struct":[["ElectionProofJson","Wrapper for serializing and de-serializing a `ElectionProof` from JSON."],["ElectionProofJsonRef","Wrapper for serializing a `ElectionProof` reference to JSON."]]};

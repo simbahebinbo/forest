@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["BEACON_GET_ENTRY",""]],"type":[["BeaconGetEntryParams",""],["BeaconGetEntryResult",""]]};

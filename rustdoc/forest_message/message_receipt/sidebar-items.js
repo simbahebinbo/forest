@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["json",""]],"type":[["MessageReceipt","Result of a state transition from a message"]]};

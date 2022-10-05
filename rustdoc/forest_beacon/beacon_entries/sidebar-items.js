@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["json",""]],"struct":[["BeaconEntry","The result from getting an entry from `Drand`. The entry contains the round, or epoch as well as the BLS signature for that round of randomness. This beacon entry is stored on chain in the block header."]]};
