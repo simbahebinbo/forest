@@ -75,9 +75,9 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::fvm::externs::ForestExterns;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_ipld_blockstore::BlockStore;
-<span class="kw">use </span>forest_vm::TokenAmount;
 <span class="kw">use </span>fvm::machine::{Machine, MachineContext};
 <span class="kw">use </span>fvm::state_tree::ActorState;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::ActorID;
 
 <span class="kw">pub struct </span>ForestMachine&lt;DB: <span class="lifetime">&#39;static</span>&gt; {

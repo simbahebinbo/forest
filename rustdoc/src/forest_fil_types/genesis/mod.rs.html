@@ -68,15 +68,13 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
-<span id="71">71</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_json::address::json <span class="kw">as </span>addr_json;
 <span class="kw">use </span>forest_json::bigint::json <span class="kw">as </span>bigint_json;
-<span class="kw">use </span>forest_vm::TokenAmount;
-<span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::sector::SectorSize;
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>time::OffsetDateTime;
 

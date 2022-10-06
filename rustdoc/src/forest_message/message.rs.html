@@ -171,6 +171,7 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -229,8 +230,9 @@
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_json::address::json::AddressJson;
     <span class="kw">use </span>forest_json::bigint;
-    <span class="kw">use </span>forest_vm::{Serialized, TokenAmount};
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
+    <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
+    <span class="kw">use </span>fvm_shared::econ::TokenAmount;
     <span class="kw">use </span>fvm_shared::message::Message;
     <span class="kw">use </span>serde::{de, ser};
     <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -314,7 +316,7 @@
             gas_fee_cap: m.gas_fee_cap,
             gas_premium: m.gas_premium,
             method_num: m.method_num,
-            params: Serialized::new(
+            params: RawBytes::new(
                 base64::decode(<span class="kw-2">&amp;</span>m.params.unwrap_or_default()).map_err(de::Error::custom)<span class="question-mark">?</span>,
             ),
         })

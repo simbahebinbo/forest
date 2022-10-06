@@ -44,6 +44,8 @@
 <span id="44">44</span>
 <span id="45">45</span>
 <span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -53,11 +55,13 @@
 <span class="kw">pub mod </span>signed_message;
 
 <span class="kw">pub use </span>chain_message::ChainMessage;
+<span class="kw">use </span>fvm_ipld_encoding::RawBytes;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">pub use </span>message_receipt::MessageReceipt;
 <span class="kw">pub use </span>signed_message::SignedMessage;
 
-<span class="kw">use </span>forest_vm::{MethodNum, Serialized, TokenAmount};
 <span class="kw">use </span>fvm_shared::address::Address;
+<span class="kw">use </span>fvm_shared::MethodNum;
 
 <span class="doccomment">/// Message interface to interact with Signed and unsigned messages in a generic context.
 </span><span class="kw">pub trait </span>Message {
@@ -72,7 +76,7 @@
     <span class="doccomment">/// Returns the method number to be called.
     </span><span class="kw">fn </span>method_num(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MethodNum;
     <span class="doccomment">/// Returns the encoded parameters for the method call.
-    </span><span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Serialized;
+    </span><span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBytes;
     <span class="doccomment">/// sets the gas limit for the message.
     </span><span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amount: i64);
     <span class="doccomment">/// sets a new sequence to the message.

@@ -287,7 +287,6 @@
 </span><span class="kw">use </span><span class="kw">super</span>::ForestMachine;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_ipld_blockstore::BlockStore;
-<span class="kw">use </span>forest_vm::TokenAmount;
 <span class="kw">use </span>fvm::call_manager::<span class="kw-2">*</span>;
 <span class="kw">use </span>fvm::gas::{Gas, PriceList};
 <span class="kw">use </span>fvm::kernel::BlockRegistry;
@@ -300,6 +299,7 @@
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::consensus::ConsensusFault;
 <span class="kw">use </span>fvm_shared::crypto::signature::SignatureType;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::piece::PieceInfo;
 <span class="kw">use </span>fvm_shared::randomness::RANDOMNESS_LENGTH;
 <span class="kw">use </span>fvm_shared::sector::<span class="kw-2">*</span>;

@@ -449,15 +449,15 @@
 <span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_message::{ChainMessage, MessageReceipt};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
-<span class="kw">use </span>forest_vm::{Serialized, TokenAmount};
 <span class="kw">use </span>fvm::executor::ApplyRet;
 <span class="kw">use </span>fvm::externs::Rand;
 <span class="kw">use </span>fvm::machine::{Engine, Machine, NetworkConfig};
 <span class="kw">use </span>fvm::state_tree::StateTree;
-<span class="kw">use </span>fvm_ipld_encoding::Cbor;
+<span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::error::ExitCode;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
@@ -809,7 +809,7 @@
         penalty: BigInt,
         gas_reward: BigInt,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
-        <span class="kw">let </span>params = Serialized::serialize(AwardBlockRewardParams {
+        <span class="kw">let </span>params = RawBytes::serialize(AwardBlockRewardParams {
             miner,
             penalty,
             gas_reward,

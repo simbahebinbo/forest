@@ -1493,7 +1493,6 @@
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::{message_receipt, ChainMessage, Message <span class="kw">as </span>MessageTrait, MessageReceipt};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
-<span class="kw">use </span>forest_vm::TokenAmount;
 <span class="kw">use </span>futures::{channel::oneshot, select, FutureExt};
 <span class="kw">use </span>fvm::executor::ApplyRet;
 <span class="kw">use </span>fvm::externs::Rand;
@@ -1503,6 +1502,7 @@
 <span class="kw">use </span>fvm_shared::address::{Address, Payload, Protocol, BLS_PUB_LEN};
 <span class="kw">use </span>fvm_shared::bigint::{bigint_ser, BigInt};
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;

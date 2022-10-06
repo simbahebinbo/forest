@@ -259,17 +259,19 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
+<span id="262">262</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::Message <span class="kw">as </span>MessageTrait;
 <span class="kw">use </span>forest_crypto::Signer;
 <span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
-<span class="kw">use </span>forest_vm::{MethodNum, Serialized, TokenAmount};
-<span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError};
+<span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError, RawBytes};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::crypto::signature::{Error <span class="kw">as </span>CryptoError, Signature, SignatureType};
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
+<span class="kw">use </span>fvm_shared::MethodNum;
 
 <span class="doccomment">/// Represents a wrapped message with signature bytes.
 </span><span class="attribute">#[derive(PartialEq, Clone, Debug, Serialize_tuple, Deserialize_tuple, Hash, Eq)]
@@ -344,7 +346,7 @@
     <span class="kw">fn </span>method_num(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MethodNum {
         <span class="self">self</span>.message.method_num
     }
-    <span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Serialized {
+    <span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBytes {
         <span class="kw-2">&amp;</span><span class="self">self</span>.message.params
     }
     <span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {

@@ -301,7 +301,6 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
-<span id="304">304</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -313,11 +312,12 @@
 <span class="kw">use </span>forest_interpreter::CircSupplyCalc;
 <span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
-<span class="kw">use </span>forest_vm::TokenAmount;
 <span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
+<span class="kw">use </span>fvm_shared::bigint::Integer;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::FILECOIN_PRECISION;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 
@@ -594,8 +594,6 @@
     initial_balance: <span class="kw-2">&amp;</span>TokenAmount,
     elapsed_epoch: ChainEpoch,
 ) -&gt; TokenAmount {
-    <span class="kw">use </span>fvm_shared::bigint::Integer;
-
     <span class="kw">if </span>elapsed_epoch &gt;= unlock_duration {
         <span class="kw">return </span>TokenAmount::from(<span class="number">0</span>);
     }

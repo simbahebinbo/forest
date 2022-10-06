@@ -378,13 +378,13 @@
 <span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_json_utils::go_vec_visitor;
-<span class="kw">use </span>forest_vm::{DealID, TokenAmount};
 <span class="kw">use </span>fvm::state_tree::ActorState;
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_encoding::BytesDe;
-<span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::deal::DealID;
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>libp2p::PeerId;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::borrow::Cow;

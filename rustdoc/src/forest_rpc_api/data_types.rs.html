@@ -271,12 +271,12 @@
 };
 <span class="kw">use </span>forest_message_pool::{MessagePool, MpoolRpcProvider};
 <span class="kw">use </span>forest_state_manager::{MiningBaseInfo, StateManager};
-<span class="kw">use </span>forest_vm::TokenAmount;
 <span class="kw">use </span>fvm::state_tree::ActorState;
 <span class="kw">use </span>fvm_ipld_bitfield::json::BitFieldJson;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>jsonrpc_v2::{MapRouter <span class="kw">as </span>JsonRpcMapRouter, Server <span class="kw">as </span>JsonRpcServer};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -435,9 +435,9 @@
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>MiningBaseInfoJson {
     <span class="attribute">#[serde(with = <span class="string">&quot;json::option&quot;</span>)]
-    </span><span class="kw">pub </span>miner_power: <span class="prelude-ty">Option</span>&lt;BigInt&gt;,
+    </span><span class="kw">pub </span>miner_power: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
     <span class="attribute">#[serde(with = <span class="string">&quot;json::option&quot;</span>)]
-    </span><span class="kw">pub </span>network_power: <span class="prelude-ty">Option</span>&lt;BigInt&gt;,
+    </span><span class="kw">pub </span>network_power: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
     <span class="kw">pub </span>sectors: Vec&lt;SectorInfoJson&gt;,
     <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::address::json&quot;</span>)]
     </span><span class="kw">pub </span>worker_key: Address,

@@ -268,13 +268,13 @@
     chain_head, chain_read_obj, state_account_key, state_get_actor, state_list_actors,
     state_lookup, state_miner_power,
 };
-<span class="kw">use </span>forest_vm::TokenAmount;
 <span class="kw">use </span>fvm::state_tree::ActorState;
 <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::bigint_ser;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>num_traits::cast::FromPrimitive;
 <span class="kw">use </span>structopt::StructOpt;
 
