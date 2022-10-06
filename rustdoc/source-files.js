@@ -36,7 +36,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\
 "forest_test_utils":["",[],["chain_structures.rs","lib.rs"]],\
-"forest_utils":["",[],["lib.rs"]],\
+"forest_utils":["",[["io",[],["mod.rs","writer_checksum.rs"]]],["lib.rs"]],\
 "forest_vm":["",[],["actor_state.rs","deal_id.rs","error.rs","lib.rs","method.rs","token.rs"]],\
 "serialization_tests":["",[],["lib.rs"]]\
 }');

@@ -69,10 +69,14 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::fs::{create_dir_all, File};
+</span><span class="kw">pub mod </span>io;
+
+<span class="kw">use </span>std::fs::{create_dir_all, File};
 <span class="kw">use </span>std::io::{prelude::<span class="kw-2">*</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use </span>std::path::Path;
 

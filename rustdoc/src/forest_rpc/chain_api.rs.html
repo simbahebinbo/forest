@@ -357,10 +357,42 @@
 <span id="357">357</span>
 <span id="358">358</span>
 <span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>::forest_message::message::json::MessageJson;
+<span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_blocks::{
@@ -375,13 +407,19 @@
     chain_api::<span class="kw-2">*</span>,
     data_types::{BlockMessages, RPCState},
 };
+<span class="kw">use </span>forest_utils::io::AsyncWriterWithChecksum;
 <span class="kw">use </span>fvm_shared::message::Message <span class="kw">as </span>FVMMessage;
+<span class="kw">use </span>hex::ToHex;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>log::{debug, error};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::{path::PathBuf, sync::Arc};
+<span class="kw">use </span>sha2::{digest::Output, Sha256};
+<span class="kw">use </span>std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+<span class="kw">use </span>tokio::io::AsyncWriteExt;
 <span class="kw">use </span>tokio::{fs::File, io::BufWriter};
-<span class="kw">use </span>tokio_util::compat::TokioAsyncWriteCompatExt;
 
 <span class="attribute">#[derive(Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
@@ -417,7 +455,7 @@
     </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">let </span>(epoch, recent_roots, include_olds_msgs, out, TipsetKeysJson(tsk)) = params;
+    <span class="kw">let </span>(epoch, recent_roots, include_olds_msgs, out, TipsetKeysJson(tsk), skip_checksum) = params;
     <span class="kw">let </span>skip_old_msgs = !include_olds_msgs;
 
     <span class="kw">let </span>chain_finality = data.state_manager.chain_config().policy.chain_finality;
@@ -429,32 +467,56 @@
     }
 
     <span class="kw">let </span>file = File::create(<span class="kw-2">&amp;</span>out).<span class="kw">await</span>.map_err(JsonRpcError::from)<span class="question-mark">?</span>;
-    <span class="kw">let </span>writer = BufWriter::new(file);
+    <span class="kw">let </span>writer = AsyncWriterWithChecksum::&lt;Sha256, <span class="kw">_</span>&gt;::new(BufWriter::new(file));
 
     <span class="kw">let </span>head = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let </span>start_ts = data.chain_store.tipset_by_height(epoch, head, <span class="bool-val">true</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = data
+    <span class="kw">match </span>data
         .chain_store
-        .export(
-            <span class="kw-2">&amp;</span>start_ts,
-            recent_roots,
-            skip_old_msgs,
-            writer.compat_write(),
-        )
+        .export(<span class="kw-2">&amp;</span>start_ts, recent_roots, skip_old_msgs, writer)
         .<span class="kw">await
     </span>{
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = std::fs::remove_file(<span class="kw-2">&amp;</span>out) {
-            <span class="macro">error!</span>(<span class="string">&quot;failed to remove incomplete export file at {out}: {e}&quot;</span>);
-        } <span class="kw">else </span>{
-            <span class="macro">debug!</span>(<span class="string">&quot;incomplete export file at {out} removed&quot;</span>);
+        <span class="prelude-val">Ok</span>(checksum) =&gt; {
+            <span class="kw">if </span>!skip_checksum {
+                save_checksum(<span class="kw-2">&amp;</span>out, checksum).<span class="kw">await</span><span class="question-mark">?</span>;
+            }
         }
+        <span class="prelude-val">Err</span>(e) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = std::fs::remove_file(<span class="kw-2">&amp;</span>out) {
+                <span class="macro">error!</span>(
+                    <span class="string">&quot;failed to remove incomplete export file at {}: {e}&quot;</span>,
+                    out.display()
+                );
+            } <span class="kw">else </span>{
+                <span class="macro">debug!</span>(<span class="string">&quot;incomplete export file at {} removed&quot;</span>, out.display());
+            }
 
-        <span class="kw">return </span><span class="prelude-val">Err</span>(JsonRpcError::from(e));
-    }
+            <span class="kw">return </span><span class="prelude-val">Err</span>(JsonRpcError::from(e));
+        }
+    };
 
-    <span class="prelude-val">Ok</span>(PathBuf::from(out))
+    <span class="prelude-val">Ok</span>(out)
+}
+
+<span class="doccomment">/// Prints hex-encoded representation of SHA-256 checksum and saves it to a file with the same
+/// name but with a `.sha256sum` extension.
+</span><span class="kw">async fn </span>save_checksum(source: <span class="kw-2">&amp;</span>Path, hash: Output&lt;Sha256&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+    <span class="kw">let </span>encoded_hash = hash.encode_hex::&lt;String&gt;();
+
+    <span class="kw">let </span><span class="kw-2">mut </span>checksum_path = PathBuf::from(source);
+    checksum_path.set_extension(<span class="string">&quot;sha256sum&quot;</span>);
+
+    <span class="kw">let </span><span class="kw-2">mut </span>checksum_file = File::create(<span class="kw-2">&amp;</span>checksum_path).<span class="kw">await</span><span class="question-mark">?</span>;
+    checksum_file.write_all(encoded_hash.as_bytes()).<span class="kw">await</span><span class="question-mark">?</span>;
+    checksum_file.flush().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="macro">log::info!</span>(
+        <span class="string">&quot;Snapshot checksum: {encoded_hash} saved to {}&quot;</span>,
+        checksum_path.display()
+    );
+
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>chain_read_obj&lt;DB, B&gt;(

@@ -732,7 +732,7 @@
     <span class="kw">pub type </span>ChainGetMessageResult = MessageJson;
 
     <span class="kw">pub const </span>CHAIN_EXPORT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainExport&quot;</span>;
-    <span class="kw">pub type </span>ChainExportParams = (ChainEpoch, i64, bool, String, TipsetKeysJson);
+    <span class="kw">pub type </span>ChainExportParams = (ChainEpoch, i64, bool, PathBuf, TipsetKeysJson, bool);
     <span class="kw">pub type </span>ChainExportResult = PathBuf;
 
     <span class="kw">pub const </span>CHAIN_READ_OBJ: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainReadObj&quot;</span>;

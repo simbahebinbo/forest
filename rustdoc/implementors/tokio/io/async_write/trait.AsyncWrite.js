@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"forest_utils":[["impl&lt;D:&nbsp;Digest, W:&nbsp;AsyncWrite + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html\" title=\"trait core::marker::Unpin\">Unpin</a>&gt; AsyncWrite for <a class=\"struct\" href=\"forest_utils/io/struct.AsyncWriterWithChecksum.html\" title=\"struct forest_utils::io::AsyncWriterWithChecksum\">AsyncWriterWithChecksum</a>&lt;D, W&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -163,6 +163,11 @@
 <span id="163">163</span>
 <span id="164">164</span>
 <span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -210,7 +215,10 @@
         ///  - day
         ///  - height - the epoch
         </span><span class="attribute">#[structopt(short, default_value = OUTPUT_PATH_DEFAULT_FORMAT, verbatim_doc_comment)]
-        </span>output_path: String,
+        </span>output_path: PathBuf,
+        <span class="doccomment">/// Skip creating the checksum file.
+        </span><span class="attribute">#[structopt(long)]
+        </span>skip_checksum: bool,
     },
 
     <span class="doccomment">/// Prints out the genesis tipset
@@ -256,6 +264,7 @@
                 recent_stateroots,
                 output_path,
                 include_old_messages,
+                skip_checksum,
             } =&gt; {
                 <span class="kw">let </span>chain_head = <span class="kw">match </span>chain_head().<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(head) =&gt; head.<span class="number">0</span>,
@@ -278,8 +287,8 @@
                     (<span class="string">&quot;chain&quot;</span>.to_string(), chain_name),
                     (<span class="string">&quot;height&quot;</span>.to_string(), epoch.to_string()),
                 ]);
-                <span class="kw">let </span>output_path = <span class="kw">match </span>strfmt(output_path, <span class="kw-2">&amp;</span>vars) {
-                    <span class="prelude-val">Ok</span>(path) =&gt; path,
+                <span class="kw">let </span>output_path = <span class="kw">match </span>strfmt(<span class="kw-2">&amp;</span>output_path.display().to_string(), <span class="kw-2">&amp;</span>vars) {
+                    <span class="prelude-val">Ok</span>(path) =&gt; path.into(),
                     <span class="prelude-val">Err</span>(e) =&gt; {
                         cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Unparsable string error: {}&quot;</span>, e), <span class="number">1</span>);
                     }
@@ -291,6 +300,7 @@
                     <span class="kw-2">*</span>include_old_messages,
                     output_path,
                     TipsetKeysJson(chain_head.key().clone()),
+                    <span class="kw-2">*</span>skip_checksum,
                 );
 
                 <span class="comment">// infallible unwrap

@@ -1035,6 +1035,15 @@
 <span id="1035">1035</span>
 <span id="1036">1036</span>
 <span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1045,6 +1054,7 @@
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
+<span class="kw">use </span>digest::Digest;
 <span class="kw">use </span>forest_actor_interface::{miner, EPOCHS_IN_DAY};
 <span class="kw">use </span>forest_beacon::{BeaconEntry, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, TipsetKeys, TxMeta};
@@ -1055,7 +1065,7 @@
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
 <span class="kw">use </span>forest_message::{ChainMessage, MessageReceipt, SignedMessage};
-<span class="kw">use </span>futures::AsyncWrite;
+<span class="kw">use </span>forest_utils::io::Checksum;
 <span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_car::CarHeader;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, Cbor};
@@ -1073,9 +1083,11 @@
     collections::{HashMap, HashSet, VecDeque},
     time::SystemTime,
 };
+<span class="kw">use </span>tokio::io::AsyncWrite;
 <span class="kw">use </span>tokio::sync::broadcast::{<span class="self">self</span>, Sender <span class="kw">as </span>Publisher};
 <span class="kw">use </span>tokio::sync::mpsc;
-<span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>tokio::sync::{Mutex, RwLock};
+<span class="kw">use </span>tokio_util::compat::TokioAsyncWriteCompatExt;
 
 <span class="kw">const </span>GENESIS_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;gen_block&quot;</span>;
 <span class="kw">const </span>HEAD_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;head&quot;</span>;
@@ -1481,26 +1493,31 @@
     }
 
     <span class="doccomment">/// Exports a range of tipsets, as well as the state roots based on the `recent_roots`.
-    </span><span class="kw">pub async fn </span>export&lt;W&gt;(
+    </span><span class="kw">pub async fn </span>export&lt;W, D&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tipset: <span class="kw-2">&amp;</span>Tipset,
         recent_roots: ChainEpoch,
         skip_old_msgs: bool,
-        <span class="kw-2">mut </span>writer: W,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
+        writer: W,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;digest::Output&lt;D&gt;, Error&gt;
     <span class="kw">where
-        </span>W: AsyncWrite + Send + Unpin + <span class="lifetime">&#39;static</span>,
+        </span>D: Digest,
+        W: AsyncWrite + Checksum&lt;D&gt; + Send + Unpin + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// Channel cap is equal to buffered write size
         </span><span class="kw">const </span>CHANNEL_CAP: usize = <span class="number">1000</span>;
         <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = mpsc::channel(CHANNEL_CAP);
         <span class="kw">let </span>header = CarHeader::from(tipset.key().cids().to_vec());
 
+        <span class="kw">let </span>writer = Arc::new(Mutex::new(writer.compat_write()));
+        <span class="kw">let </span>writer_clone = writer.clone();
+
         <span class="comment">// Spawns task which receives blocks to write to the car writer.
         </span><span class="kw">let </span>write_task = task::spawn(<span class="kw">async move </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>writer = writer_clone.lock().<span class="kw">await</span>;
             header
                 .write_stream_async(
-                    <span class="kw-2">&amp;mut </span>writer,
+                    <span class="kw-2">&amp;mut *</span>writer,
                     <span class="kw-2">&amp;mut </span>Box::pin(<span class="macro">stream! </span>{
                         <span class="kw">while let </span><span class="prelude-val">Some</span>(val) = rx.recv().<span class="kw">await </span>{
                             <span class="kw">yield </span>val;
@@ -1547,7 +1564,8 @@
             .expect(<span class="string">&quot;time cannot go backwards&quot;</span>);
         <span class="macro">info!</span>(<span class="string">&quot;export finished, took {} seconds&quot;</span>, time.as_secs());
 
-        <span class="prelude-val">Ok</span>(())
+        <span class="kw">let </span>digest = writer.lock().<span class="kw">await</span>.get_mut().finalize();
+        <span class="prelude-val">Ok</span>(digest)
     }
 
     <span class="comment">// XXX: &#39;sub_head_changes&#39; disabled since it is unsed.
