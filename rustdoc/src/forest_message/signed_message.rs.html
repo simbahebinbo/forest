@@ -251,15 +251,6 @@
 <span id="251">251</span>
 <span id="252">252</span>
 <span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -387,34 +378,6 @@
     }
 }
 
-<span class="attribute">#[cfg(test)]
-</span><span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>SignedMessage {
-    <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-        <span class="kw">const </span>DUMMY_SIG: [u8; <span class="number">1</span>] = [<span class="number">0u8</span>];
-
-        <span class="kw">struct </span>DummySigner;
-        <span class="kw">impl </span>Signer <span class="kw">for </span>DummySigner {
-            <span class="kw">fn </span>sign_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8], <span class="kw">_</span>: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, anyhow::Error&gt; {
-                <span class="prelude-val">Ok</span>(Signature::new_secp256k1(DUMMY_SIG.to_vec()))
-            }
-        }
-
-        <span class="kw">let </span>msg = Message {
-            to: Address::new_id(u64::arbitrary(g)),
-            from: Address::new_id(u64::arbitrary(g)),
-            version: i64::arbitrary(g),
-            sequence: u64::arbitrary(g),
-            value: TokenAmount::from(i64::arbitrary(g)),
-            method_num: u64::arbitrary(g),
-            params: fvm_ipld_encoding::RawBytes::new(Vec::arbitrary(g)),
-            gas_limit: i64::arbitrary(g),
-            gas_fee_cap: TokenAmount::from(i64::arbitrary(g)),
-            gas_premium: TokenAmount::from(i64::arbitrary(g)),
-        };
-        SignedMessage::new(msg, <span class="kw-2">&amp;</span>DummySigner).unwrap()
-    }
-}
-
 <span class="kw">pub mod </span>json {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::message;
@@ -514,6 +477,25 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
+
+    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>SignedMessage {
+        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+            <span class="kw">const </span>DUMMY_SIG: [u8; <span class="number">1</span>] = [<span class="number">0u8</span>];
+
+            <span class="kw">struct </span>DummySigner;
+            <span class="kw">impl </span>Signer <span class="kw">for </span>DummySigner {
+                <span class="kw">fn </span>sign_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8], <span class="kw">_</span>: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, anyhow::Error&gt; {
+                    <span class="prelude-val">Ok</span>(Signature::new_secp256k1(DUMMY_SIG.to_vec()))
+                }
+            }
+
+            SignedMessage::new(
+                <span class="kw">crate</span>::message::tests::MessageWrapper::arbitrary(g).message,
+                <span class="kw-2">&amp;</span>DummySigner,
+            )
+            .unwrap()
+        }
+    }
 
     <span class="attribute">#[quickcheck]
     </span><span class="kw">fn </span>signed_message_roundtrip(message: SignedMessage) {

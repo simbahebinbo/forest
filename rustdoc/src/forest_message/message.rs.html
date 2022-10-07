@@ -172,6 +172,46 @@
 <span id="172">172</span>
 <span id="173">173</span>
 <span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -344,6 +384,46 @@
         {
             deserializer.deserialize_any(GoVecVisitor::&lt;Message, MessageJson&gt;::new())
         }
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">pub mod </span>tests {
+    <span class="kw">use </span><span class="kw">super</span>::json::{MessageJson, MessageJsonRef};
+    <span class="kw">use </span>fvm_shared::address::Address;
+    <span class="kw">use </span>fvm_shared::econ::TokenAmount;
+    <span class="kw">use </span>fvm_shared::message::Message;
+    <span class="kw">use </span>quickcheck_macros::quickcheck;
+    <span class="kw">use </span>serde_json;
+
+    <span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+    </span><span class="kw">pub struct </span>MessageWrapper {
+        <span class="kw">pub </span>message: Message,
+    }
+
+    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>MessageWrapper {
+        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>msg = Message {
+                to: Address::new_id(u64::arbitrary(g)),
+                from: Address::new_id(u64::arbitrary(g)),
+                version: i64::arbitrary(g),
+                sequence: u64::arbitrary(g),
+                value: TokenAmount::from(i64::arbitrary(g)),
+                method_num: u64::arbitrary(g),
+                params: fvm_ipld_encoding::RawBytes::new(Vec::arbitrary(g)),
+                gas_limit: i64::arbitrary(g),
+                gas_fee_cap: TokenAmount::from(i64::arbitrary(g)),
+                gas_premium: TokenAmount::from(i64::arbitrary(g)),
+            };
+            MessageWrapper { message: msg }
+        }
+    }
+
+    <span class="attribute">#[quickcheck]
+    </span><span class="kw">fn </span>message_roundtrip(message: MessageWrapper) {
+        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>MessageJsonRef(<span class="kw-2">&amp;</span>message.message)).unwrap();
+        <span class="kw">let </span>parsed: MessageJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
+        <span class="macro">assert_eq!</span>(message.message, parsed.<span class="number">0</span>);
     }
 }
 </code></pre></div>
