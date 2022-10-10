@@ -116,10 +116,37 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
-
-// use data_encoding::Encoding;
 
 </span><span class="kw">use </span>fvm_shared::address::Address;
 
@@ -232,6 +259,37 @@
                 Address::from_str(<span class="kw-2">&amp;</span>address_as_string).map_err(de::Error::custom)<span class="question-mark">?</span>,
             ))
         }
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>quickcheck_macros::quickcheck;
+    <span class="kw">use </span>serde_json;
+
+    <span class="attribute">#[cfg(test)]
+    #[derive(Clone, Debug, PartialEq)]
+    </span><span class="kw">struct </span>AddressWrapper {
+        address: Address,
+    }
+
+    <span class="attribute">#[cfg(test)]
+    </span><span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>AddressWrapper {
+        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>address = arbitrary::Arbitrary::arbitrary(<span class="kw-2">&amp;mut </span>arbitrary::Unstructured::new(
+                <span class="kw-2">&amp;</span>Vec::arbitrary(g),
+            ))
+            .unwrap();
+            AddressWrapper { address }
+        }
+    }
+
+    <span class="attribute">#[quickcheck]
+    </span><span class="kw">fn </span>address_roundtrip(address: AddressWrapper) {
+        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>json::AddressJsonRef(<span class="kw-2">&amp;</span>address.address)).unwrap();
+        <span class="kw">let </span>parsed: json::AddressJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
+        <span class="macro">assert_eq!</span>(address.address, parsed.<span class="number">0</span>);
     }
 }
 </code></pre></div>
