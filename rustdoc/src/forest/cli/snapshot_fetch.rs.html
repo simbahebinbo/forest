@@ -347,6 +347,24 @@
 <span id="347">347</span>
 <span id="348">348</span>
 <span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>anyhow::bail;
@@ -410,7 +428,7 @@
         .ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Couldn&#39;t list bucket&quot;</span>))<span class="question-mark">?
         </span>.contents
         .iter()
-        .filter(|obj| obj.size &gt; <span class="number">0</span>)
+        .filter(|obj| obj.size &gt; <span class="number">0 </span>&amp;&amp; obj.key.rsplit_once(<span class="string">&#39;.&#39;</span>).unwrap_or_default().<span class="number">1 </span>== <span class="string">&quot;car&quot;</span>)
         .max_by_key(|obj| DateTime::parse_from_rfc3339(<span class="kw-2">&amp;</span>obj.last_modified).unwrap_or_default())
         .ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Couldn&#39;t retrieve bucket contents&quot;</span>))<span class="question-mark">?
         </span>.to_owned();
@@ -429,14 +447,13 @@
     <span class="kw">let </span>calibnet_path = <span class="kw-2">&amp;</span>snapshot_fetch_config.calibnet.path;
     <span class="kw">let </span>url = snapshot_spaces_url.join(calibnet_path)<span class="question-mark">?</span>.join(filename)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>snapshot_response = client.get(url).send().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>snapshot_response = client.get(url.clone()).send().<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>total_size = last_modified.size;
-    <span class="kw">let </span>snapshot_digest =
+    <span class="kw">let </span>snapshot_checksum =
         download_snapshot_to_file(<span class="kw-2">&amp;</span>snapshot_path, snapshot_response, total_size).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="macro">info!</span>(
-        <span class="string">&quot;Snapshot checksum is {}. Validation is not yet available.&quot;</span>,
-        snapshot_digest.encode_hex::&lt;String&gt;()
-    );
+
+    fetch_checksum_and_validate(client, url, <span class="kw-2">&amp;</span>snapshot_checksum).<span class="kw">await</span><span class="question-mark">?</span>;
+
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
 
@@ -474,19 +491,7 @@
     <span class="kw">let </span>snapshot_checksum =
         download_snapshot_to_file(<span class="kw-2">&amp;</span>snapshot_path, snapshot_response, total_size).<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="macro">info!</span>(<span class="string">&quot;Validating checksum...&quot;</span>);
-    <span class="kw">let </span>checksum_url = replace_extension_url(snapshot_url, <span class="string">&quot;sha256sum&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>checksum_expected_file = client.get(checksum_url).send().<span class="kw">await</span><span class="question-mark">?</span>.bytes().<span class="kw">await</span><span class="question-mark">?</span>;
-
-    <span class="comment">// checksum file is hex-encoded with trailing `- ` at the end. Take only what&#39;s needed, i.e.
-    // encoded digest, for SHA256 it&#39;s 32 bytes * 2.
-    </span><span class="kw">let </span>checksum_expected = checksum_from_file(<span class="kw-2">&amp;</span>checksum_expected_file, Sha256::output_size())<span class="question-mark">?</span>;
-
-    validate_checksum(<span class="kw-2">&amp;</span>checksum_expected, <span class="kw-2">&amp;</span>snapshot_checksum)<span class="question-mark">?</span>;
-    <span class="macro">info!</span>(
-        <span class="string">&quot;Snapshot checksum correct. {}&quot;</span>,
-        snapshot_checksum.encode_hex::&lt;String&gt;()
-    );
+    fetch_checksum_and_validate(client, snapshot_url, <span class="kw-2">&amp;</span>snapshot_checksum).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
@@ -570,6 +575,37 @@
         .push(<span class="kw-2">&amp;</span>new_filename);
 
     <span class="prelude-val">Ok</span>(url)
+}
+
+<span class="doccomment">/// Fetches the relevant checksum for the snapshot, compares it with the result one. Fails if they
+/// don&#39;t match. The checksum is expected to be located in the same location as the snapshot but
+/// with a `.sha256sum` extension.
+</span><span class="kw">async fn </span>fetch_checksum_and_validate(
+    client: Client,
+    url: Url,
+    snapshot_checksum: <span class="kw-2">&amp;</span>[u8],
+) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="macro">info!</span>(<span class="string">&quot;Validating checksum...&quot;</span>);
+    <span class="kw">let </span>checksum_url = replace_extension_url(url, <span class="string">&quot;sha256sum&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>checksum_expected_file = client.get(checksum_url).send().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">if </span>!checksum_expected_file.status().is_success() {
+        <span class="macro">bail!</span>(<span class="string">&quot;Unable to get the checksum file. Snapshot downloaded but not verified.&quot;</span>);
+    }
+
+    <span class="comment">// checksum file is hex-encoded with optionally trailing `- ` at the end. Take only what&#39;s needed, i.e.
+    // encoded digest, for SHA256 it&#39;s 32 bytes.
+    </span><span class="kw">let </span>checksum_expected = checksum_from_file(
+        <span class="kw-2">&amp;</span>checksum_expected_file.bytes().<span class="kw">await</span><span class="question-mark">?</span>,
+        Sha256::output_size(),
+    )<span class="question-mark">?</span>;
+
+    validate_checksum(<span class="kw-2">&amp;</span>checksum_expected, snapshot_checksum)<span class="question-mark">?</span>;
+    <span class="macro">info!</span>(
+        <span class="string">&quot;Snapshot checksum correct. {}&quot;</span>,
+        snapshot_checksum.encode_hex::&lt;String&gt;()
+    );
+
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Creates regular checksum (raw bytes) from a checksum file with format:
