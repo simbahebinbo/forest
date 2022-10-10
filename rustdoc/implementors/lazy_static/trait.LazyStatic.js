@@ -1,3 +1,4 @@
 (function() {var implementors = {
+"forest":[["impl <a class=\"trait\" href=\"https://docs.rs/lazy_static/1.4.0/lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"forest/struct.IPC_PATH.html\" title=\"struct forest::IPC_PATH\">IPC_PATH</a>"]],
 "forest_chain":[["impl <a class=\"trait\" href=\"https://docs.rs/lazy_static/1.4.0/lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"forest_chain/base_fee/struct.MINIMUM_BASE_FEE.html\" title=\"struct forest_chain::base_fee::MINIMUM_BASE_FEE\">MINIMUM_BASE_FEE</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
