@@ -259,6 +259,11 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -274,6 +279,7 @@
 <span class="kw">mod </span>genesis_cmd;
 <span class="kw">mod </span>mpool_cmd;
 <span class="kw">mod </span>net_cmd;
+<span class="kw">mod </span>send_cmd;
 <span class="kw">mod </span>snapshot_fetch;
 <span class="kw">mod </span>state_cmd;
 <span class="kw">mod </span>sync_cmd;
@@ -285,6 +291,7 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::genesis_cmd::GenesisCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::mpool_cmd::MpoolCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::net_cmd::NetCommands;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::send_cmd::SendCommand;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::state_cmd::StateCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::sync_cmd::SyncCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::wallet_cmd::WalletCommands;
@@ -366,6 +373,9 @@
     <span class="doccomment">/// Manage node configuration
     </span><span class="attribute">#[structopt(name = <span class="string">&quot;config&quot;</span>)]
     </span>Config(ConfigCommands),
+
+    <span class="doccomment">/// Send funds between accounts
+    </span>Send(SendCommand),
 }
 
 <span class="doccomment">/// Pretty-print a JSON-RPC error and exit

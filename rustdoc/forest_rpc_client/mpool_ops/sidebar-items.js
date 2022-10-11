@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["mpool_pending",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["mpool_pending",""],["mpool_push_message",""]]};
