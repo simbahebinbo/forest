@@ -22,16 +22,12 @@
 <span id="22">22</span>
 <span id="23">23</span>
 <span id="24">24</span>
-<span id="25">25</span>
-<span id="26">26</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;test_constructors&quot;</span>)]
 </span><span class="kw">mod </span>chain_structures;
 
-<span class="attribute">#[cfg(feature = <span class="string">&quot;test_constructors&quot;</span>)]
-</span><span class="kw">pub use </span><span class="self">self</span>::chain_structures::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::chain_structures::<span class="kw-2">*</span>;
 
 <span class="comment">// Serialize macro used for testing
 </span><span class="attribute">#[macro_export]

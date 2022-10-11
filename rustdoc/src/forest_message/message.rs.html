@@ -209,19 +209,13 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;proofs&quot;</span>)]
 </span><span class="kw">use </span>fvm::gas::Gas;
-<span class="attribute">#[cfg(feature = <span class="string">&quot;proofs&quot;</span>)]
-</span><span class="kw">use </span>fvm_shared::message::Message;
+<span class="kw">use </span>fvm_shared::message::Message;
 
 <span class="doccomment">/// Semantic validation and validates the message has enough gas.
-</span><span class="attribute">#[cfg(feature = <span class="string">&quot;proofs&quot;</span>)]
 </span><span class="kw">pub fn </span>valid_for_block_inclusion(
     msg: <span class="kw-2">&amp;</span>Message,
     min_gas: Gas,

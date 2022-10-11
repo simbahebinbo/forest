@@ -1665,8 +1665,6 @@
 <span id="1665">1665</span>
 <span id="1666">1666</span>
 <span id="1667">1667</span>
-<span id="1668">1668</span>
-<span id="1669">1669</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2988,17 +2986,15 @@
             })<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="kw-2">&amp;</span>state_root != header.state_root() {
-            <span class="attribute">#[cfg(feature = <span class="string">&quot;statediff&quot;</span>)]
-            </span>{
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = forest_statediff::print_state_diff(
-                    v_state_manager.blockstore(),
-                    <span class="kw-2">&amp;</span>state_root,
-                    header.state_root(),
-                    <span class="prelude-val">Some</span>(<span class="number">1</span>),
-                ) {
-                    <span class="macro">eprintln!</span>(<span class="string">&quot;Failed to print state-diff: {}&quot;</span>, err);
-                }
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = forest_statediff::print_state_diff(
+                v_state_manager.blockstore(),
+                <span class="kw-2">&amp;</span>state_root,
+                header.state_root(),
+                <span class="prelude-val">Some</span>(<span class="number">1</span>),
+            ) {
+                <span class="macro">eprintln!</span>(<span class="string">&quot;Failed to print state-diff: {}&quot;</span>, err);
             }
+
             <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::&lt;C&gt;::Validation(<span class="macro">format!</span>(
                 <span class="string">&quot;Parent state root did not match computed state: {} (header), {} (computed)&quot;</span>,
                 header.state_root(),

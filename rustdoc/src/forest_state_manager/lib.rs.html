@@ -1464,7 +1464,6 @@
 <span id="1464">1464</span>
 <span id="1465">1465</span>
 <span id="1466">1466</span>
-<span id="1467">1467</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2827,8 +2826,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>last_receipt = <span class="kw-2">*</span>ts_chain.last().unwrap().blocks()[<span class="number">0</span>].message_receipts();
         <span class="kw">for </span>ts <span class="kw">in </span>ts_chain.iter().rev() {
             <span class="kw">if </span>ts.parent_state() != <span class="kw-2">&amp;</span>last_state {
-                <span class="attribute">#[cfg(feature = <span class="string">&quot;statediff&quot;</span>)]
-                </span>forest_statediff::print_state_diff(
+                forest_statediff::print_state_diff(
                     <span class="self">self</span>.blockstore(),
                     <span class="kw-2">&amp;</span>last_state,
                     ts.parent_state(),
