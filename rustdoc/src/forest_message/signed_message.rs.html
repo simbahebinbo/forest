@@ -448,7 +448,7 @@
 
     <span class="kw">pub mod </span>vec {
         <span class="kw">use super</span>::<span class="kw-2">*</span>;
-        <span class="kw">use </span>forest_json_utils::GoVecVisitor;
+        <span class="kw">use </span>forest_utils::json::GoVecVisitor;
         <span class="kw">use </span>serde::ser::SerializeSeq;
 
         <span class="kw">pub fn </span>serialize&lt;S&gt;(m: <span class="kw-2">&amp;</span>[SignedMessage], serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;

@@ -529,7 +529,7 @@
 <span class="kw">use </span>forest_rpc::start_rpc;
 <span class="kw">use </span>forest_rpc_api::data_types::RPCState;
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>forest_utils::write_to_file;
+<span class="kw">use </span>forest_utils::io::write_to_file;
 <span class="kw">use </span>futures::{select, FutureExt};
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
@@ -580,7 +580,7 @@
             <span class="prelude-val">Ok</span>(file) =&gt; {
                 <span class="comment">// Restrict permissions on files containing private keys
                 </span><span class="attribute">#[cfg(unix)]
-                </span>forest_utils::set_user_perm(<span class="kw-2">&amp;</span>file).expect(<span class="string">&quot;Set user perms on unix systems&quot;</span>);
+                </span>forest_utils::io::set_user_perm(<span class="kw-2">&amp;</span>file).expect(<span class="string">&quot;Set user perms on unix systems&quot;</span>);
             }
             <span class="prelude-val">Err</span>(e) =&gt; {
                 <span class="macro">info!</span>(<span class="string">&quot;Could not write keystore to disk!&quot;</span>);

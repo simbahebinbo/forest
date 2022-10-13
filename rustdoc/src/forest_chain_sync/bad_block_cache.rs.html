@@ -60,7 +60,7 @@
 
 <span class="kw">impl </span>Default <span class="kw">for </span>BadBlockCache {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(<span class="macro">forest_macros::const_option!</span>(NonZeroUsize::new(<span class="number">1 </span>&lt;&lt; <span class="number">15</span>)))
+        <span class="self">Self</span>::new(<span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">1 </span>&lt;&lt; <span class="number">15</span>)))
     }
 }
 

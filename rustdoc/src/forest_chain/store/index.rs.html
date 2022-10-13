@@ -201,7 +201,7 @@
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">const </span>DEFAULT_CHAIN_INDEX_CACHE_SIZE: NonZeroUsize =
-    <span class="macro">forest_macros::const_option!</span>(NonZeroUsize::new(<span class="number">32 </span>&lt;&lt; <span class="number">10</span>));
+    <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">32 </span>&lt;&lt; <span class="number">10</span>));
 
 <span class="doccomment">/// Configuration which sets the length of tipsets to skip in between each cached entry.
 </span><span class="kw">const </span>SKIP_LENGTH: ChainEpoch = <span class="number">20</span>;

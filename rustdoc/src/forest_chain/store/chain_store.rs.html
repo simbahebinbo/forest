@@ -1097,7 +1097,7 @@
 </span><span class="kw">const </span>SINK_CAP: usize = <span class="number">200</span>;
 
 <span class="kw">const </span>DEFAULT_TIPSET_CACHE_SIZE: NonZeroUsize =
-    <span class="macro">forest_macros::const_option!</span>(NonZeroUsize::new(<span class="number">8192</span>));
+    <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">8192</span>));
 
 <span class="doccomment">/// `Enum` for `pubsub` channel that defines message type variant and data contained in message type.
 </span><span class="attribute">#[derive(Clone, Debug)]

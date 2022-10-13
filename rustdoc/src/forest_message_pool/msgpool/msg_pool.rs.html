@@ -813,10 +813,10 @@
 <span class="kw">use </span>forest_chain::{HeadChange, MINIMUM_BASE_FEE};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
-<span class="kw">use </span>forest_macros::const_option;
 <span class="kw">use </span>forest_message::message::valid_for_block_inclusion;
 <span class="kw">use </span>forest_message::{ChainMessage, Message, SignedMessage};
 <span class="kw">use </span>forest_networks::{ChainConfig, NEWEST_NETWORK_VERSION};
+<span class="kw">use </span>forest_utils::const_option;
 <span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
