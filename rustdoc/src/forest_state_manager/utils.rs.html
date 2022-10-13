@@ -266,6 +266,7 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
+<span id="269">269</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -277,11 +278,12 @@
     power,
 };
 <span class="kw">use </span>forest_blocks::Tipset;
-<span class="kw">use </span>forest_fil_types::{verifier::ProofVerifier, RegisteredSealProof, SectorInfo, SectorNumber};
+<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
+<span class="kw">use </span>fvm_shared::sector::{RegisteredSealProof, SectorInfo, SectorNumber};
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>serde::Serialize;
 

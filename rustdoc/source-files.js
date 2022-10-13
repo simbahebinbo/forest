@@ -14,12 +14,12 @@ var sourcesIndex = JSON.parse('{\
 "forest_deleg_cns":["",[],["composition.rs","consensus.rs","lib.rs","proposer.rs","validation.rs"]],\
 "forest_encoding":["",[],["checked_serde_bytes.rs","hash.rs","lib.rs"]],\
 "forest_fil_cns":["",[],["composition.rs","lib.rs","validation.rs","weight.rs"]],\
-"forest_fil_types":["",[["build_version",[],["mod.rs"]],["deadlines",[],["mod.rs"]],["genesis",[],["mod.rs"]],["sector",[],["mod.rs","post.rs"]],["verifier",[],["mock.rs","mod.rs"]]],["lib.rs"]],\
+"forest_fil_types":["",[["deadlines",[],["mod.rs"]],["genesis",[],["mod.rs"]],["verifier",[],["mod.rs"]]],["lib.rs"]],\
 "forest_genesis":["",[],["lib.rs"]],\
 "forest_interpreter":["",[["fvm",[],["externs.rs","kernel.rs","machine.rs","mod.rs"]],["gas_tracker",[],["gas_charge.rs","mod.rs"]]],["default_runtime.rs","gas_block_store.rs","lib.rs","vm.rs"]],\
 "forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["error.rs","json.rs","lib.rs","util.rs"]],\
 "forest_ipld_blockstore":["",[],["lib.rs"]],\
-"forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs"]],\
+"forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","sector.rs"]],\
 "forest_key_management":["",[],["errors.rs","keystore.rs","lib.rs","wallet.rs","wallet_helpers.rs"]],\
 "forest_legacy_ipld_amt":["",[],["amt.rs","error.rs","lib.rs","node.rs","root.rs","value_mut.rs"]],\
 "forest_libp2p":["",[["chain_exchange",[],["message.rs","mod.rs","provider.rs"]],["hello",[],["message.rs","mod.rs"]],["rpc",[],["cbor_codec.rs","mod.rs"]]],["behaviour.rs","config.rs","discovery.rs","gossip_params.rs","lib.rs","service.rs"]],\

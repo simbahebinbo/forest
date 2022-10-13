@@ -236,21 +236,10 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">mod </span>mock;
-
-<span class="kw">pub use </span><span class="self">self</span>::mock::<span class="kw-2">*</span>;
-
-<span class="kw">use crate</span>::{
-    AggregateSealVerifyProofAndInfos, PoStProof, RegisteredPoStProof, SealVerifyInfo, SectorInfo,
-};
-<span class="kw">use </span>filecoin_proofs_api::{<span class="self">self </span><span class="kw">as </span>proofs, ProverId, SectorId};
+</span><span class="kw">use </span>filecoin_proofs_api::{<span class="self">self </span><span class="kw">as </span>proofs, ProverId, SectorId};
 <span class="kw">use </span>filecoin_proofs_api::{
     post, seal::verify_aggregate_seal_commit_proofs, seal::verify_seal <span class="kw">as </span>proofs_verify_seal,
     PublicReplicaInfo,
@@ -259,6 +248,9 @@
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::commcid::{cid_to_data_commitment_v1, cid_to_replica_commitment_v1};
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
+<span class="kw">use </span>fvm_shared::sector::{
+    AggregateSealVerifyProofAndInfos, PoStProof, RegisteredPoStProof, SealVerifyInfo, SectorInfo,
+};
 <span class="kw">use </span>proofs::seal;
 <span class="kw">use </span>rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 <span class="kw">use </span>std::collections::BTreeMap;

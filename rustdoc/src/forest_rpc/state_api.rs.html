@@ -885,8 +885,6 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -911,10 +909,7 @@
     gossip_block::json::GossipBlockJson <span class="kw">as </span>BlockMsgJson, BlockHeader, GossipBlock <span class="kw">as </span>BlockMsg,
     Tipset,
 };
-<span class="kw">use </span>forest_fil_types::{
-    verifier::{FullVerifier, ProofVerifier},
-    PoStProof,
-};
+<span class="kw">use </span>forest_fil_types::verifier::{FullVerifier, ProofVerifier};
 <span class="kw">use </span>forest_ipld::json::IpldJson;
 <span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_json::address::json::AddressJson;
@@ -930,6 +925,7 @@
 };
 <span class="kw">use </span>forest_state_manager::{InvocResult, StateManager};
 <span class="kw">use </span>fvm::state_tree::StateTree;
+<span class="kw">use </span>fvm_shared::sector::PoStProof;
 <span class="kw">use </span>fvm_shared::{address::Address, bigint::BigInt};
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 

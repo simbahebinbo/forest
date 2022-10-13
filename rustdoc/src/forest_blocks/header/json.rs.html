@@ -172,7 +172,7 @@
 <span class="kw">use crate</span>::{election_proof, ticket, tipset::tipset_keys_json};
 <span class="kw">use </span>forest_beacon::beacon_entries;
 <span class="kw">use </span>forest_crypto::signature;
-<span class="kw">use </span>forest_fil_types::sector::post;
+<span class="kw">use </span>forest_json::sector;
 <span class="kw">use </span>serde::{de, Deserialize, Serialize};
 
 <span class="comment">// Wrapper for serializing and deserializing a BlockHeader from JSON.
@@ -205,7 +205,7 @@
         </span>election_proof: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="prelude-ty">Option</span>&lt;ElectionProof&gt;,
         <span class="attribute">#[serde(with = <span class="string">&quot;beacon_entries::json::vec&quot;</span>)]
         </span>beacon_entries: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[BeaconEntry],
-        <span class="attribute">#[serde(rename = <span class="string">&quot;WinPoStProof&quot;</span>, with = <span class="string">&quot;post::json::vec&quot;</span>)]
+        <span class="attribute">#[serde(rename = <span class="string">&quot;WinPoStProof&quot;</span>, with = <span class="string">&quot;sector::json::vec&quot;</span>)]
         </span>winning_post_proof: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[PoStProof],
         <span class="attribute">#[serde(rename = <span class="string">&quot;Parents&quot;</span>, with = <span class="string">&quot;tipset_keys_json&quot;</span>)]
         </span>parents: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>TipsetKeys,
@@ -263,7 +263,7 @@
         </span>election_proof: <span class="prelude-ty">Option</span>&lt;ElectionProof&gt;,
         <span class="attribute">#[serde(default, with = <span class="string">&quot;beacon_entries::json::vec&quot;</span>)]
         </span>beacon_entries: Vec&lt;BeaconEntry&gt;,
-        <span class="attribute">#[serde(default, rename = <span class="string">&quot;WinPoStProof&quot;</span>, with = <span class="string">&quot;post::json::vec&quot;</span>)]
+        <span class="attribute">#[serde(default, rename = <span class="string">&quot;WinPoStProof&quot;</span>, with = <span class="string">&quot;sector::json::vec&quot;</span>)]
         </span>winning_post_proof: Vec&lt;PoStProof&gt;,
         <span class="attribute">#[serde(rename = <span class="string">&quot;Parents&quot;</span>, with = <span class="string">&quot;tipset_keys_json&quot;</span>)]
         </span>parents: TipsetKeys,

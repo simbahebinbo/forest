@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["json",""]],"type":[["PoStRandomness","Randomness type used for generating PoSt proof randomness."]]};

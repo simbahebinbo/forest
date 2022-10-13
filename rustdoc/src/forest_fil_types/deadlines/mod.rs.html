@@ -156,18 +156,12 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">pub use </span>fvm_shared::clock::QuantSpec;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-
-<span class="doccomment">/// Constant defining the `[QuantSpec]` which performs no quantization.
-</span><span class="kw">pub const </span>NO_QUANTIZATION: QuantSpec = QuantSpec { unit: <span class="number">1</span>, offset: <span class="number">0 </span>};
 
 <span class="doccomment">/// Deadline calculations with respect to a current epoch.
 /// &quot;Deadline&quot; refers to the window during which proofs may be submitted.

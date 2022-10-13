@@ -1464,6 +1464,7 @@
 <span id="1464">1464</span>
 <span id="1465">1465</span>
 <span id="1466">1466</span>
+<span id="1467">1467</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1483,7 +1484,7 @@
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconEntry, BeaconSchedule, DrandBeacon, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::{ChainStore, HeadChange};
-<span class="kw">use </span>forest_fil_types::{verifier::ProofVerifier, SectorInfo, SectorSize};
+<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_interpreter::{
     resolve_to_key_addr, BlockMessages, CircSupplyCalc, Heights, LookbackStateGetter, RewardCalc,
     VM,
@@ -1504,6 +1505,7 @@
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
+<span class="kw">use </span>fvm_shared::sector::{SectorInfo, SectorSize};
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>num_traits::identities::Zero;
