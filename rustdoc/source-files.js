@@ -6,7 +6,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_blocks":["",[["header",[],["json.rs","mod.rs"]]],["block.rs","election_proof.rs","errors.rs","gossip_block.rs","lib.rs","ticket.rs","tipset.rs"]],\
 "forest_chain":["",[["store",[],["base_fee.rs","chain_store.rs","errors.rs","index.rs","mod.rs","tipset_tracker.rs"]]],["lib.rs","weight.rs"]],\
 "forest_chain_sync":["",[],["bad_block_cache.rs","chain_muxer.rs","consensus.rs","lib.rs","metrics.rs","network_context.rs","peer_manager.rs","sync_state.rs","tipset_syncer.rs","validation.rs"]],\
-"forest_cli":["",[["cli",[],["auth_cmd.rs","chain_cmd.rs","config_cmd.rs","fetch_params_cmd.rs","genesis_cmd.rs","mod.rs","mpool_cmd.rs","net_cmd.rs","send_cmd.rs","snapshot_fetch.rs","state_cmd.rs","sync_cmd.rs","wallet_cmd.rs"]]],["lib.rs"]],\
+"forest_cli":["",[["cli",[],["auth_cmd.rs","chain_cmd.rs","config_cmd.rs","fetch_params_cmd.rs","genesis_cmd.rs","mod.rs","mpool_cmd.rs","net_cmd.rs","send_cmd.rs","snapshot_cmd.rs","snapshot_fetch.rs","state_cmd.rs","sync_cmd.rs","wallet_cmd.rs"]]],["lib.rs"]],\
 "forest_cli_shared":["",[["cli",[],["client.rs","config.rs","mod.rs"]],["logger",[],["mod.rs"]]],["lib.rs"]],\
 "forest_crypto":["",[],["errors.rs","lib.rs","signature.rs","signer.rs","vrf.rs"]],\
 "forest_daemon":["",[["cli",[],["mod.rs"]]],["lib.rs"]],\

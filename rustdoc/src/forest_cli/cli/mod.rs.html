@@ -260,10 +260,6 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -280,6 +276,7 @@
 <span class="kw">mod </span>mpool_cmd;
 <span class="kw">mod </span>net_cmd;
 <span class="kw">mod </span>send_cmd;
+<span class="kw">mod </span>snapshot_cmd;
 <span class="kw">mod </span>snapshot_fetch;
 <span class="kw">mod </span>state_cmd;
 <span class="kw">mod </span>sync_cmd;
@@ -292,6 +289,7 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::mpool_cmd::MpoolCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::net_cmd::NetCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::send_cmd::SendCommand;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::snapshot_cmd::{SnapshotCommands, OUTPUT_PATH_DEFAULT_FORMAT};
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::state_cmd::StateCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::sync_cmd::SyncCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::wallet_cmd::WalletCommands;
@@ -339,40 +337,34 @@
     </span>Fetch(FetchCommands),
 
     <span class="doccomment">/// Interact with Filecoin blockchain
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;chain&quot;</span>)]
     </span>Chain(ChainCommands),
 
     <span class="doccomment">/// Manage RPC permissions
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;auth&quot;</span>)]
     </span>Auth(AuthCommands),
 
     <span class="doccomment">/// Work with blockchain genesis
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;genesis&quot;</span>)]
     </span>Genesis(GenesisCommands),
 
     <span class="doccomment">/// Manage P2P network
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;net&quot;</span>)]
     </span>Net(NetCommands),
 
     <span class="doccomment">/// Manage wallet
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;wallet&quot;</span>)]
     </span>Wallet(WalletCommands),
 
     <span class="doccomment">/// Inspect or interact with the chain synchronizer
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;sync&quot;</span>)]
     </span>Sync(SyncCommands),
 
     <span class="doccomment">/// Interact with the message pool
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;mpool&quot;</span>)]
     </span>Mpool(MpoolCommands),
 
     <span class="doccomment">/// Interact with and query Filecoin chain state
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;state&quot;</span>)]
     </span>State(StateCommands),
 
     <span class="doccomment">/// Manage node configuration
-    </span><span class="attribute">#[structopt(name = <span class="string">&quot;config&quot;</span>)]
     </span>Config(ConfigCommands),
+
+    <span class="doccomment">/// Manage snapshots
+    </span>Snapshot(SnapshotCommands),
 
     <span class="doccomment">/// Send funds between accounts
     </span>Send(SendCommand),
