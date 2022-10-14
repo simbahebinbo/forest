@@ -16,7 +16,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_fil_cns":["",[],["composition.rs","lib.rs","validation.rs","weight.rs"]],\
 "forest_fil_types":["",[["deadlines",[],["mod.rs"]],["genesis",[],["mod.rs"]],["verifier",[],["mod.rs"]]],["lib.rs"]],\
 "forest_genesis":["",[],["lib.rs"]],\
-"forest_interpreter":["",[["fvm",[],["externs.rs","kernel.rs","machine.rs","mod.rs"]],["gas_tracker",[],["gas_charge.rs","mod.rs"]]],["default_runtime.rs","gas_block_store.rs","lib.rs","vm.rs"]],\
+"forest_interpreter":["",[["fvm",[],["externs.rs","kernel.rs","machine.rs","mod.rs"]]],["default_runtime.rs","gas_block_store.rs","lib.rs","vm.rs"]],\
 "forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["error.rs","json.rs","lib.rs","util.rs"]],\
 "forest_ipld_blockstore":["",[],["lib.rs"]],\
 "forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","sector.rs"]],\
