@@ -1464,7 +1464,6 @@
 <span id="1464">1464</span>
 <span id="1465">1465</span>
 <span id="1466">1466</span>
-<span id="1467">1467</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1509,7 +1508,6 @@
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>num_traits::identities::Zero;
-<span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::Arc;
@@ -2106,25 +2104,24 @@
         ts: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
         mcid: Cid,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Message, ApplyRet), Error&gt; {
+        <span class="kw">const </span>ERROR_MSG: <span class="kw-2">&amp;</span>str = <span class="string">&quot;replay_halt&quot;</span>;
+
         <span class="comment">// This isn&#39;t ideal to have, since the execution is syncronous, but this needs to be the
         // case because the state transition has to be in blocking thread to avoid starving executor
-        </span><span class="kw">let </span>outm: OnceCell&lt;Message&gt; = Default::default();
-        <span class="kw">let </span>outr: OnceCell&lt;ApplyRet&gt; = Default::default();
-        <span class="kw">let </span>m_clone = outm.clone();
-        <span class="kw">let </span>r_clone = outr.clone();
+        </span><span class="kw">let </span>(m_tx, m_rx) = std::sync::mpsc::channel();
+        <span class="kw">let </span>(r_tx, r_rx) = std::sync::mpsc::channel();
         <span class="kw">let </span>callback = <span class="kw">move </span>|cid: <span class="kw-2">&amp;</span>Cid, unsigned: <span class="kw-2">&amp;</span>ChainMessage, apply_ret: <span class="kw-2">&amp;</span>ApplyRet| {
             <span class="kw">if </span><span class="kw-2">*</span>cid == mcid {
-                <span class="kw">let _ </span>= m_clone.set(unsigned.message().clone());
-                <span class="kw">let _ </span>= r_clone.set(apply_ret.clone());
-                <span class="macro">anyhow::bail!</span>(<span class="string">&quot;halt&quot;</span>);
+                m_tx.send(unsigned.message().clone())<span class="question-mark">?</span>;
+                r_tx.send(apply_ret.clone())<span class="question-mark">?</span>;
+                <span class="macro">anyhow::bail!</span>(ERROR_MSG);
             }
-
             <span class="prelude-val">Ok</span>(())
         };
         <span class="kw">let </span>result = <span class="self">self</span>.compute_tipset_state(ts, <span class="prelude-val">Some</span>(callback)).<span class="kw">await</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Err</span>(error_message) = result {
-            <span class="kw">if </span>error_message.to_string() != <span class="string">&quot;halt&quot; </span>{
+            <span class="kw">if </span>error_message.to_string() != ERROR_MSG {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(
                     <span class="string">&quot;unexpected error during execution : {:}&quot;</span>,
                     error_message
@@ -2132,12 +2129,13 @@
             }
         }
 
-        <span class="kw">let </span>out_mes = outm
-            .into_inner()
-            .ok_or_else(|| Error::Other(<span class="string">&quot;given message not found in tipset&quot;</span>.to_string()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>out_ret = outr
-            .into_inner()
-            .ok_or_else(|| Error::Other(<span class="string">&quot;message did not have a return&quot;</span>.to_string()))<span class="question-mark">?</span>;
+        <span class="comment">// Use try_recv here assuming callback execution is syncronous
+        </span><span class="kw">let </span>out_mes = m_rx
+            .try_recv()
+            .map_err(|err| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;given message not found in tipset: {err}&quot;</span>)))<span class="question-mark">?</span>;
+        <span class="kw">let </span>out_ret = r_rx
+            .try_recv()
+            .map_err(|err| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;message did not have a return: {err}&quot;</span>)))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((out_mes, out_ret))
     }
 

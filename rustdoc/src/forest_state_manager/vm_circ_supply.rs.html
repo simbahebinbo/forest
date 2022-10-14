@@ -266,41 +266,6 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -319,7 +284,6 @@
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::FILECOIN_PRECISION;
-<span class="kw">use </span>once_cell::sync::OnceCell;
 
 <span class="kw">const </span>EPOCHS_IN_YEAR: ChainEpoch = <span class="number">365 </span>* EPOCHS_IN_DAY;
 <span class="kw">const </span>PRE_CALICO_VESTING: [(ChainEpoch, usize); <span class="number">5</span>] = [
@@ -344,13 +308,12 @@
     vesting: GenesisInfoVesting,
 
     <span class="doccomment">/// info about the Accounts in the genesis state
-    </span>genesis_pledge: OnceCell&lt;TokenAmount&gt;,
-    genesis_market_funds: OnceCell&lt;TokenAmount&gt;,
+    </span>genesis_pledge: TokenAmount,
+    genesis_market_funds: TokenAmount,
 
     <span class="doccomment">/// Heights epoch
     </span>ignition_height: ChainEpoch,
     actors_v2_height: ChainEpoch,
-    liftoff_height: ChainEpoch,
     calico_height: ChainEpoch,
 }
 
@@ -363,14 +326,10 @@
         <span class="self">Self </span>{
             ignition_height,
             actors_v2_height,
-            liftoff_height,
             calico_height,
+            vesting: GenesisInfoVesting::new(liftoff_height),
             ..GenesisInfo::default()
         }
-    }
-
-    <span class="kw">fn </span>init&lt;DB: BlockStore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _bs: <span class="kw-2">&amp;</span>DB) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
-        <span class="prelude-val">Ok</span>(())
     }
 }
 
@@ -378,9 +337,19 @@
 /// to calculate circulating supply.
 </span><span class="attribute">#[derive(Default, Clone)]
 </span><span class="kw">struct </span>GenesisInfoVesting {
-    genesis: OnceCell&lt;Vec&lt;(ChainEpoch, TokenAmount)&gt;&gt;,
-    ignition: OnceCell&lt;Vec&lt;(ChainEpoch, ChainEpoch, TokenAmount)&gt;&gt;,
-    calico: OnceCell&lt;Vec&lt;(ChainEpoch, ChainEpoch, TokenAmount)&gt;&gt;,
+    genesis: Vec&lt;(ChainEpoch, TokenAmount)&gt;,
+    ignition: Vec&lt;(ChainEpoch, ChainEpoch, TokenAmount)&gt;,
+    calico: Vec&lt;(ChainEpoch, ChainEpoch, TokenAmount)&gt;,
+}
+
+<span class="kw">impl </span>GenesisInfoVesting {
+    <span class="kw">fn </span>new(liftoff_height: i64) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            genesis: setup_genesis_vesting_schedule(),
+            ignition: setup_ignition_vesting_schedule(liftoff_height),
+            calico: setup_calico_vesting_schedule(liftoff_height),
+        }
+    }
 }
 
 <span class="kw">impl </span>CircSupplyCalc <span class="kw">for </span>GenesisInfo {
@@ -389,26 +358,6 @@
         height: ChainEpoch,
         state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
-        <span class="comment">// TODO investigate a better way to handle initializing the genesis actors rather than
-        // on first circ supply call. This is currently necessary because it is how Lotus does it
-        // but it&#39;s not ideal to have the side effect from the VM to modify the genesis info
-        // of the state manager. This isn&#39;t terrible because it&#39;s just caching to avoid
-        // recalculating using the store, and it avoids computing until circ_supply is called.
-        </span><span class="self">self</span>.vesting
-            .genesis
-            .get_or_try_init(|| -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, anyhow::Error&gt; {
-                <span class="self">self</span>.init(state_tree.store())<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(setup_genesis_vesting_schedule())
-            })<span class="question-mark">?</span>;
-
-        <span class="self">self</span>.vesting
-            .ignition
-            .get_or_init(|| setup_ignition_vesting_schedule(<span class="self">self</span>.liftoff_height));
-
-        <span class="self">self</span>.vesting
-            .calico
-            .get_or_init(|| setup_calico_vesting_schedule(<span class="self">self</span>.liftoff_height));
-
         get_circulating_supply(<span class="self">self</span>, height, state_tree)
     }
 }
@@ -425,21 +374,9 @@
 <span class="kw">fn </span>get_fil_vested(genesis_info: <span class="kw-2">&amp;</span>GenesisInfo, height: ChainEpoch) -&gt; TokenAmount {
     <span class="kw">let </span><span class="kw-2">mut </span>return_value = TokenAmount::default();
 
-    <span class="kw">let </span>pre_ignition = genesis_info
-        .vesting
-        .genesis
-        .get()
-        .expect(<span class="string">&quot;Pre ignition should be initialized&quot;</span>);
-    <span class="kw">let </span>post_ignition = genesis_info
-        .vesting
-        .ignition
-        .get()
-        .expect(<span class="string">&quot;Post ignition should be initialized&quot;</span>);
-    <span class="kw">let </span>calico_vesting = genesis_info
-        .vesting
-        .calico
-        .get()
-        .expect(<span class="string">&quot;calico vesting should be initialized&quot;</span>);
+    <span class="kw">let </span>pre_ignition = <span class="kw-2">&amp;</span>genesis_info.vesting.genesis;
+    <span class="kw">let </span>post_ignition = <span class="kw-2">&amp;</span>genesis_info.vesting.ignition;
+    <span class="kw">let </span>calico_vesting = <span class="kw-2">&amp;</span>genesis_info.vesting.calico;
 
     <span class="kw">if </span>height &lt;= genesis_info.ignition_height {
         <span class="kw">for </span>(unlock_duration, initial_balance) <span class="kw">in </span>pre_ignition {
@@ -459,14 +396,7 @@
     }
 
     <span class="kw">if </span>height &lt;= genesis_info.actors_v2_height {
-        return_value += genesis_info
-            .genesis_pledge
-            .get()
-            .expect(<span class="string">&quot;Genesis info should be initialized&quot;</span>)
-            + genesis_info
-                .genesis_market_funds
-                .get()
-                .expect(<span class="string">&quot;Genesis info should be initialized&quot;</span>);
+        return_value += <span class="kw-2">&amp;</span>genesis_info.genesis_pledge + <span class="kw-2">&amp;</span>genesis_info.genesis_market_funds;
     }
 
     return_value
