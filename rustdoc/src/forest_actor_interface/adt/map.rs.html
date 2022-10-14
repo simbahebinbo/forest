@@ -133,7 +133,7 @@
     V8(fil_actors_runtime_v8::fvm_ipld_hamt::Hamt&lt;BS, V, BytesKey&gt;),
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, BS, V&gt; Map&lt;BS, V&gt;
+<span class="kw">impl</span>&lt;BS, V&gt; Map&lt;BS, V&gt;
 <span class="kw">where
     </span>V: Serialize + DeserializeOwned + PartialEq,
     BS: BlockStore,
@@ -151,7 +151,7 @@
     }
 
     <span class="doccomment">/// Load map with root
-    </span><span class="kw">pub fn </span>load(cid: <span class="kw-2">&amp;</span>Cid, store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>BS, version: ActorVersion) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
+    </span><span class="kw">pub fn </span>load(cid: <span class="kw-2">&amp;</span>Cid, store: <span class="kw-2">&amp;</span>BS, version: ActorVersion) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
         <span class="kw">match </span>version {
             ActorVersion::V8 =&gt; <span class="prelude-val">Ok</span>(Map::V8(
                 fil_actors_runtime_v8::fvm_ipld_hamt::Hamt::load_with_bit_width(

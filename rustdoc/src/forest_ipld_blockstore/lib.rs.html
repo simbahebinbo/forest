@@ -74,11 +74,6 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -96,17 +91,12 @@
 
 <span class="doccomment">/// Extension methods for inserting and retrieving IPLD data with CIDs
 </span><span class="kw">pub trait </span>BlockStoreExt: BlockStore {
-    <span class="doccomment">/// Get bytes from block store by CID.
-    </span><span class="kw">fn </span>get_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt; {
-        <span class="self">self</span>.get(cid)
-    }
-
     <span class="doccomment">/// Get typed object from block store by CID
     </span><span class="kw">fn </span>get_obj&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;
     <span class="kw">where
         </span>T: DeserializeOwned,
     {
-        <span class="kw">match </span><span class="self">self</span>.get_bytes(cid)<span class="question-mark">? </span>{
+        <span class="kw">match </span><span class="self">self</span>.get(cid)<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>(bz) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(from_slice(<span class="kw-2">&amp;</span>bz)<span class="question-mark">?</span>)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }

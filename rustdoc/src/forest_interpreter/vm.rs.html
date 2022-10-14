@@ -564,7 +564,7 @@
         LB: LookbackStateGetter,
     {
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="kw-2">&amp;</span>store_arc, <span class="kw-2">&amp;</span>root)<span class="question-mark">?</span>;
-        <span class="kw">let </span>circ_supply = circ_supply_calc.get_supply(epoch, <span class="kw-2">&amp;</span>state).unwrap();
+        <span class="kw">let </span>circ_supply = circ_supply_calc.get_supply(epoch, <span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>context = NetworkConfig::new(network_version).for_epoch(epoch, root);
         context.set_base_fee(base_fee);

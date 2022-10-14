@@ -168,7 +168,7 @@
 <span class="kw">const </span>EVENT_TIMEOUT: Timeout = Timeout::Val(Duration::from_secs(<span class="number">20</span>));
 
 <span class="macro">lazy_static! </span>{
-    <span class="kw">pub static </span><span class="kw-2">ref </span>IPC_PATH: TempPath = Builder::new()
+    <span class="kw">static </span><span class="kw-2">ref </span>IPC_PATH: TempPath = Builder::new()
         .prefix(<span class="string">&quot;forest-ipc&quot;</span>)
         .tempfile()
         .expect(<span class="string">&quot;tempfile must succeed&quot;</span>)

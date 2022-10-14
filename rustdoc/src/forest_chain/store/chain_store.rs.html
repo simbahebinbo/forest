@@ -1532,7 +1532,7 @@
 
         <span class="comment">// Walks over tipset and historical data, sending all blocks visited into the car writer.
         </span><span class="self">Self</span>::walk_snapshot(tipset, recent_roots, skip_old_msgs, |cid| {
-            <span class="kw">let </span>block = <span class="self">self</span>.blockstore().get_bytes(<span class="kw-2">&amp;</span>cid)<span class="question-mark">?</span>.ok_or_else(|| {
+            <span class="kw">let </span>block = <span class="self">self</span>.blockstore().get(<span class="kw-2">&amp;</span>cid)<span class="question-mark">?</span>.ok_or_else(|| {
                 <span class="kw">if </span>skip_old_msgs {
                     <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Cid {cid} not found in blockstore&quot;</span>)
                 } <span class="kw">else </span>{
