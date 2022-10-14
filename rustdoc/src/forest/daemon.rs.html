@@ -508,6 +508,10 @@
 <span id="508">508</span>
 <span id="509">509</span>
 <span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -865,6 +869,10 @@
 
     <span class="comment">// Halt
     </span><span class="kw">if </span>config.client.halt_after_import {
+        <span class="comment">// Cancel all async services
+        </span><span class="kw">for </span>handle <span class="kw">in </span>services {
+            handle.cancel().<span class="kw">await</span>;
+        }
         <span class="macro">info!</span>(<span class="string">&quot;Forest finish shutdown&quot;</span>);
         <span class="kw">return</span>;
     }
