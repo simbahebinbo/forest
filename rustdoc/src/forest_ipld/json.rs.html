@@ -213,6 +213,77 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -240,6 +311,8 @@
 <span class="kw">use </span>std::fmt;
 
 <span class="kw">const </span>BYTES_JSON_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;bytes&quot;</span>;
+<span class="kw">const </span>INT_JSON_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;int&quot;</span>;
+<span class="kw">const </span>FLOAT_JSON_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;float&quot;</span>;
 
 <span class="doccomment">/// Wrapper for serializing and de-serializing a IPLD from JSON.
 </span><span class="attribute">#[derive(Deserialize, Serialize)]
@@ -258,8 +331,14 @@
     <span class="kw">match </span><span class="kw-2">&amp;</span>ipld {
         Ipld::Null =&gt; serializer.serialize_none(),
         Ipld::Bool(bool) =&gt; serializer.serialize_bool(<span class="kw-2">*</span>bool),
-        Ipld::Integer(i128) =&gt; serializer.serialize_i128(<span class="kw-2">*</span>i128),
-        Ipld::Float(f64) =&gt; serializer.serialize_f64(<span class="kw-2">*</span>f64),
+        Ipld::Integer(i128) =&gt; serialize(
+            <span class="kw-2">&amp;</span><span class="macro">ipld!</span>({ <span class="string">&quot;/&quot;</span>: { INT_JSON_KEY: i128.to_string() } }),
+            serializer,
+        ),
+        Ipld::Float(f64) =&gt; serialize(
+            <span class="kw-2">&amp;</span><span class="macro">ipld!</span>({ <span class="string">&quot;/&quot;</span>: { FLOAT_JSON_KEY: f64.to_string() } }),
+            serializer,
+        ),
         Ipld::String(string) =&gt; serializer.serialize_str(string),
         Ipld::Bytes(bytes) =&gt; serialize(
             <span class="kw-2">&amp;</span><span class="macro">ipld!</span>({ <span class="string">&quot;/&quot;</span>: { BYTES_JSON_KEY: multibase::encode(Base::Base64, bytes) } }),
@@ -411,6 +490,20 @@
                                 .map_err(|e| de::Error::custom(e.to_string()))<span class="question-mark">?</span>;
                             <span class="kw">return </span><span class="prelude-val">Ok</span>(Ipld::Bytes(bz));
                         }
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(Ipld::String(s)) = obj.get(INT_JSON_KEY) {
+                            <span class="comment">// { &quot;/&quot;: { &quot;int&quot;: &quot;i128&quot; } }
+                            </span><span class="kw">let </span>s = s
+                                .parse::&lt;i128&gt;()
+                                .map_err(|e| de::Error::custom(e.to_string()))<span class="question-mark">?</span>;
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(Ipld::Integer(s));
+                        }
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(Ipld::String(s)) = obj.get(FLOAT_JSON_KEY) {
+                            <span class="comment">// { &quot;/&quot;: { &quot;float&quot;: &quot;f64&quot; } }
+                            </span><span class="kw">let </span>s = s
+                                .parse::&lt;f64&gt;()
+                                .map_err(|e| de::Error::custom(e.to_string()))<span class="question-mark">?</span>;
+                            <span class="kw">return </span><span class="prelude-val">Ok</span>(Ipld::Float(s));
+                        }
                     }
                     <span class="kw">_ </span>=&gt; (),
                 }
@@ -426,6 +519,55 @@
         </span>E: de::Error,
     {
         <span class="prelude-val">Ok</span>(Ipld::Float(v))
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>cid::Cid;
+    <span class="kw">use </span>quickcheck_macros::quickcheck;
+    <span class="kw">use </span>serde_json;
+
+    <span class="attribute">#[derive(Clone, Debug, PartialEq)]
+    </span><span class="kw">struct </span>IpldWrapper {
+        ipld: libipld_macro::Ipld,
+    }
+
+    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>IpldWrapper {
+        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>bool_item = bool::arbitrary(g);
+            <span class="kw">let </span>int_item = i128::arbitrary(g);
+            <span class="kw">let </span>float_item = f64::arbitrary(g);
+            <span class="kw">let </span>string_item = String::arbitrary(g);
+            <span class="kw">let </span>bytes_item = Vec::arbitrary(g);
+            <span class="kw">let </span>list_item = Vec::new();
+            <span class="kw">let </span>map_item = BTreeMap::new();
+            <span class="kw">let </span>cid = Cid::new_v1(
+                u64::arbitrary(g),
+                cid::multihash::Multihash::wrap(u64::arbitrary(g), <span class="kw-2">&amp;</span>[u8::arbitrary(g)]).unwrap(),
+            );
+            <span class="kw">let </span>binding = [
+                Ipld::Null,
+                Ipld::Bool(bool_item),
+                Ipld::Integer(int_item),
+                Ipld::Float(float_item),
+                Ipld::String(string_item),
+                Ipld::Bytes(bytes_item),
+                Ipld::List(list_item),
+                Ipld::Map(map_item),
+                Ipld::Link(cid),
+            ];
+            <span class="kw">let </span>ipld = g.choose(<span class="kw-2">&amp;</span>binding).unwrap();
+            IpldWrapper { ipld: ipld.clone() }
+        }
+    }
+
+    <span class="attribute">#[quickcheck]
+    </span><span class="kw">fn </span>ipld_roundtrip(ipld: IpldWrapper) {
+        <span class="kw">let </span>serialized: String = serde_json::to_string(<span class="kw-2">&amp;</span>IpldJsonRef(<span class="kw-2">&amp;</span>ipld.ipld)).unwrap();
+        <span class="kw">let </span>parsed: IpldJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
+        <span class="macro">assert_eq!</span>(ipld.ipld, parsed.<span class="number">0</span>);
     }
 }
 </code></pre></div>
