@@ -284,6 +284,7 @@
 <span id="284">284</span>
 <span id="285">285</span>
 <span id="286">286</span>
+<span id="287">287</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -551,7 +552,8 @@
                 Ipld::Null,
                 Ipld::Bool(bool_item),
                 Ipld::Integer(int_item),
-                Ipld::Float(float_item),
+                <span class="comment">// Filter out problematic NaN values.
+                </span>Ipld::Float(<span class="kw">if </span>float_item.is_nan() { <span class="number">0.0 </span>} <span class="kw">else </span>{ float_item }),
                 Ipld::String(string_item),
                 Ipld::Bytes(bytes_item),
                 Ipld::List(list_item),
