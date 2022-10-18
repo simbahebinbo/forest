@@ -367,6 +367,7 @@
 <span id="367">367</span>
 <span id="368">368</span>
 <span id="369">369</span>
+<span id="370">370</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -377,6 +378,7 @@
 <span class="kw">use </span>forest_utils::json::go_vec_visitor;
 <span class="kw">use </span>fvm::state_tree::ActorState;
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::BytesDe;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -416,7 +418,7 @@
 <span class="kw">impl </span>State {
     <span class="kw">pub fn </span>load&lt;BS&gt;(store: <span class="kw-2">&amp;</span>BS, actor: <span class="kw-2">&amp;</span>ActorState) -&gt; anyhow::Result&lt;State&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="kw">if </span>is_v8_miner_cid(<span class="kw-2">&amp;</span>actor.code) {
             <span class="kw">return </span>store
@@ -427,7 +429,7 @@
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Unknown miner actor code {}&quot;</span>, actor.code))
     }
 
-    <span class="kw">pub fn </span>info&lt;BS: BlockStore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;</span>BS) -&gt; anyhow::Result&lt;MinerInfo&gt; {
+    <span class="kw">pub fn </span>info&lt;BS: Blockstore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;</span>BS) -&gt; anyhow::Result&lt;MinerInfo&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; {
                 <span class="kw">let </span>info = st.get_info(store)<span class="question-mark">?</span>;
@@ -456,7 +458,7 @@
     }
 
     <span class="doccomment">/// Loads deadlines for a miner&#39;s state
-    </span><span class="kw">pub fn </span>for_each_deadline&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>for_each_deadline&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         store: <span class="kw-2">&amp;</span>BS,
         <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(u64, Deadline) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;,
@@ -472,7 +474,7 @@
     }
 
     <span class="doccomment">/// Loads deadline at index for a miner&#39;s state
-    </span><span class="kw">pub fn </span>load_deadline&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>load_deadline&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _store: <span class="kw-2">&amp;</span>BS,
         _idx: u64,
@@ -481,7 +483,7 @@
     }
 
     <span class="doccomment">/// Loads sectors corresponding to the bitfield. If no bitfield is passed in, return all.
-    </span><span class="kw">pub fn </span>load_sectors&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>load_sectors&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         store: <span class="kw-2">&amp;</span>BS,
         sectors: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>BitField&gt;,
@@ -508,7 +510,7 @@
     }
 
     <span class="doccomment">/// Gets pre-committed on chain info
-    </span><span class="kw">pub fn </span>get_precommitted_sector&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>get_precommitted_sector&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _store: <span class="kw-2">&amp;</span>BS,
         _sector_num: SectorNumber,
@@ -517,7 +519,7 @@
     }
 
     <span class="doccomment">/// Loads a specific sector number
-    </span><span class="kw">pub fn </span>get_sector&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>get_sector&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _store: <span class="kw-2">&amp;</span>BS,
         _sector_num: u64,

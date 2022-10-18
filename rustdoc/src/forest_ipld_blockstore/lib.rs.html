@@ -90,7 +90,7 @@
 <span class="kw">impl</span>&lt;T: Blockstore + Store + Clone&gt; BlockStore <span class="kw">for </span>T {}
 
 <span class="doccomment">/// Extension methods for inserting and retrieving IPLD data with CIDs
-</span><span class="kw">pub trait </span>BlockStoreExt: BlockStore {
+</span><span class="kw">pub trait </span>BlockStoreExt: Blockstore {
     <span class="doccomment">/// Get typed object from block store by CID
     </span><span class="kw">fn </span>get_obj&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;T&gt;&gt;
     <span class="kw">where
@@ -149,6 +149,6 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T: BlockStore&gt; BlockStoreExt <span class="kw">for </span>T {}
+<span class="kw">impl</span>&lt;T: fvm_ipld_blockstore::Blockstore&gt; BlockStoreExt <span class="kw">for </span>T {}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_ipld_blockstore" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>
