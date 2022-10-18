@@ -433,13 +433,6 @@
 <span id="433">433</span>
 <span id="434">434</span>
 <span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -503,12 +496,6 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt;;
 }
 
-<span class="doccomment">/// Trait to allow VM to retrieve state at an old epoch.
-</span><span class="kw">pub trait </span>LookbackStateGetter {
-    <span class="doccomment">/// Returns the root CID for a given `ChainEpoch`
-    </span><span class="kw">fn </span>chain_epoch_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;;
-}
-
 <span class="attribute">#[derive(Clone, Copy)]
 </span><span class="kw">pub struct </span>Heights {
     <span class="kw">pub </span>calico: ChainEpoch,
@@ -543,7 +530,7 @@
     P: NetworkParams,
 {
     <span class="attribute">#[allow(clippy::too_many_arguments)]
-    </span><span class="kw">pub fn </span>new&lt;R, C, LB&gt;(
+    </span><span class="kw">pub fn </span>new&lt;R, C&gt;(
         root: Cid,
         store_arc: DB,
         epoch: ChainEpoch,
@@ -553,7 +540,7 @@
         circ_supply_calc: C,
         reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
         override_circ_supply: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
-        lb_state: <span class="kw-2">&amp;</span>LB,
+        lb_fn: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
         engine: Engine,
         heights: Heights,
         chain_finality: i64,
@@ -561,7 +548,6 @@
     <span class="kw">where
         </span>R: Rand + Clone + <span class="lifetime">&#39;static</span>,
         C: CircSupplyCalc,
-        LB: LookbackStateGetter,
     {
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="kw-2">&amp;</span>store_arc, <span class="kw-2">&amp;</span>root)<span class="question-mark">?</span>;
         <span class="kw">let </span>circ_supply = circ_supply_calc.get_supply(epoch, <span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
@@ -579,7 +565,7 @@
                     rand.clone(),
                     epoch,
                     root,
-                    lb_state.chain_epoch_root(),
+                    lb_fn,
                     store_arc,
                     network_version,
                     chain_finality,

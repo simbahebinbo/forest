@@ -1444,26 +1444,6 @@
 <span id="1444">1444</span>
 <span id="1445">1445</span>
 <span id="1446">1446</span>
-<span id="1447">1447</span>
-<span id="1448">1448</span>
-<span id="1449">1449</span>
-<span id="1450">1450</span>
-<span id="1451">1451</span>
-<span id="1452">1452</span>
-<span id="1453">1453</span>
-<span id="1454">1454</span>
-<span id="1455">1455</span>
-<span id="1456">1456</span>
-<span id="1457">1457</span>
-<span id="1458">1458</span>
-<span id="1459">1459</span>
-<span id="1460">1460</span>
-<span id="1461">1461</span>
-<span id="1462">1462</span>
-<span id="1463">1463</span>
-<span id="1464">1464</span>
-<span id="1465">1465</span>
-<span id="1466">1466</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1485,8 +1465,7 @@
 <span class="kw">use </span>forest_chain::{ChainStore, HeadChange};
 <span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_interpreter::{
-    resolve_to_key_addr, BlockMessages, CircSupplyCalc, Heights, LookbackStateGetter, RewardCalc,
-    VM,
+    resolve_to_key_addr, BlockMessages, CircSupplyCalc, Heights, RewardCalc, VM,
 };
 <span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
@@ -1815,10 +1794,6 @@
         CB: FnMut(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;,
     {
         <span class="kw">let </span>db = <span class="self">self</span>.blockstore_cloned();
-        <span class="kw">let </span>lb_wrapper = SMLookbackWrapper {
-            sm: Arc::clone(<span class="self">self</span>),
-            tipset: Arc::clone(tipset),
-        };
 
         <span class="kw">let </span>turbo_height = <span class="self">self</span>.chain_config.epoch(Height::Turbo);
         <span class="kw">let </span>rand_clone = rand.clone();
@@ -1835,7 +1810,7 @@
                 <span class="self">self</span>.genesis_info.clone(),
                 <span class="self">self</span>.reward_calc.clone(),
                 <span class="prelude-val">None</span>,
-                <span class="kw-2">&amp;</span>lb_wrapper,
+                chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
                     .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
                     .unwrap(),
@@ -1957,11 +1932,6 @@
             <span class="kw">let </span>bstate = tipset.parent_state();
             <span class="kw">let </span>bheight = tipset.epoch();
 
-            <span class="kw">let </span>lb_wrapper = SMLookbackWrapper {
-                sm: Arc::clone(<span class="self">self</span>),
-                tipset: Arc::clone(tipset),
-            };
-
             <span class="kw">let </span>store_arc = <span class="self">self</span>.blockstore_cloned();
 
             <span class="kw">let </span>heights = Heights::new(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config);
@@ -1976,7 +1946,7 @@
                 <span class="self">self</span>.genesis_info.clone(),
                 <span class="self">self</span>.reward_calc.clone(),
                 <span class="prelude-val">None</span>,
-                <span class="kw-2">&amp;</span>lb_wrapper,
+                chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
                     .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
                     .unwrap(),
@@ -2053,11 +2023,7 @@
 
         <span class="comment">// TODO investigate: this doesn&#39;t use a buffered store in any way, and can lead to
         // state bloat potentially?
-        </span><span class="kw">let </span>lb_wrapper = SMLookbackWrapper {
-            sm: Arc::clone(<span class="self">self</span>),
-            tipset: Arc::clone(<span class="kw-2">&amp;</span>ts),
-        };
-        <span class="kw">let </span>store_arc = <span class="self">self</span>.blockstore_cloned();
+        </span><span class="kw">let </span>store_arc = <span class="self">self</span>.blockstore_cloned();
         <span class="kw">let </span>heights = Heights::new(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config);
         <span class="comment">// Since we&#39;re simulating a future message, pretend we&#39;re applying it in the &quot;next&quot; tipset
         </span><span class="kw">let </span>network_version = <span class="self">self</span>.get_network_version(ts.epoch() + <span class="number">1</span>);
@@ -2071,7 +2037,7 @@
             <span class="self">self</span>.genesis_info.clone(),
             <span class="self">self</span>.reward_calc.clone(),
             <span class="prelude-val">None</span>,
-            <span class="kw-2">&amp;</span>lb_wrapper,
+            chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts)),
             <span class="self">self</span>.engine
                 .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
                 .unwrap(),
@@ -2906,29 +2872,23 @@
     <span class="kw">pub </span>eligible_for_mining: bool,
 }
 
-<span class="kw">struct </span>SMLookbackWrapper&lt;DB&gt; {
+<span class="kw">fn </span>chain_epoch_root&lt;DB&gt;(
     sm: Arc&lt;StateManager&lt;DB&gt;&gt;,
     tipset: Arc&lt;Tipset&gt;,
-}
-
-<span class="kw">impl</span>&lt;DB&gt; LookbackStateGetter <span class="kw">for </span>SMLookbackWrapper&lt;DB&gt;
+) -&gt; Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;
 <span class="kw">where
     </span><span class="comment">// Yes, both are needed, because the VM should only use the buffered store
     </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn </span>chain_epoch_root(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt; {
-        <span class="kw">let </span>sm = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.sm);
-        <span class="kw">let </span>tipset = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.tipset);
-        Box::new(<span class="kw">move </span>|round| {
-            <span class="comment">// XXX: This `block_on` can be removed by passing in a runtime Handle or (preferably) by
-            //      refactoring the lookback code completely.
-            </span><span class="kw">let </span>(<span class="kw">_</span>, st) = task::block_on(sm.get_lookback_tipset_for_round(tipset.clone(), round))
-                .unwrap_or_else(|err| {
-                    <span class="macro">panic!</span>(<span class="string">&quot;Internal Error. Failed to find root CID for epoch {round}: {err}&quot;</span>)
-                });
-            st
-        })
-    }
+    Box::new(<span class="kw">move </span>|round| {
+        <span class="comment">// XXX: This `block_on` can be removed by passing in a runtime Handle or (preferably) by
+        //      refactoring the lookback code completely.
+        </span><span class="kw">let </span>(<span class="kw">_</span>, st) = task::block_on(sm.get_lookback_tipset_for_round(tipset.clone(), round))
+            .unwrap_or_else(|err| {
+                <span class="macro">panic!</span>(<span class="string">&quot;Internal Error. Failed to find root CID for epoch {round}: {err}&quot;</span>)
+            });
+        st
+    })
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_state_manager" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>
