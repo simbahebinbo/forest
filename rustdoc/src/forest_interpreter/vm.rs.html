@@ -431,21 +431,21 @@
 <span id="431">431</span>
 <span id="432">432</span>
 <span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::fvm::{ForestExterns, ForestKernel, ForestMachine};
+</span><span class="kw">use </span><span class="kw">crate</span>::fvm::ForestExterns;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
 <span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_message::{ChainMessage, MessageReceipt};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
-<span class="kw">use </span>fvm::executor::ApplyRet;
+<span class="kw">use </span>fvm::call_manager::DefaultCallManager;
+<span class="kw">use </span>fvm::executor::{ApplyRet, DefaultExecutor};
 <span class="kw">use </span>fvm::externs::Rand;
-<span class="kw">use </span>fvm::machine::{Engine, Machine, NetworkConfig};
+<span class="kw">use </span>fvm::machine::{DefaultMachine, Engine, Machine, NetworkConfig};
 <span class="kw">use </span>fvm::state_tree::StateTree;
+<span class="kw">use </span>fvm::DefaultKernel;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
@@ -459,10 +459,11 @@
 <span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="comment">// const GAS_OVERUSE_NUM: i64 = 11;
-// const GAS_OVERUSE_DENOM: i64 = 10;
+<span class="kw">type </span>ForestMachine&lt;DB&gt; = DefaultMachine&lt;DB, ForestExterns&lt;DB&gt;&gt;;
+<span class="kw">type </span>ForestKernel&lt;DB&gt; = DefaultKernel&lt;DefaultCallManager&lt;ForestMachine&lt;DB&gt;&gt;&gt;;
+<span class="kw">type </span>ForestExecutor&lt;DB&gt; = DefaultExecutor&lt;ForestKernel&lt;DB&gt;&gt;;
 
-</span><span class="doccomment">/// Contains all messages to process through the VM as well as miner information for block rewards.
+<span class="doccomment">/// Contains all messages to process through the VM as well as miner information for block rewards.
 </span><span class="attribute">#[derive(Debug)]
 </span><span class="kw">pub struct </span>BlockMessages {
     <span class="kw">pub </span>miner: Address,
@@ -518,7 +519,7 @@
 <span class="doccomment">/// Interpreter which handles execution of state transitioning messages and returns receipts
 /// from the VM execution.
 </span><span class="kw">pub struct </span>VM&lt;DB: BlockStore + <span class="lifetime">&#39;static</span>, P = DefaultNetworkParams&gt; {
-    fvm_executor: fvm::executor::DefaultExecutor&lt;ForestKernel&lt;DB&gt;&gt;,
+    fvm_executor: ForestExecutor&lt;DB&gt;,
     params: PhantomData&lt;P&gt;,
     reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
     heights: Heights,
@@ -539,7 +540,6 @@
         network_version: NetworkVersion,
         circ_supply_calc: C,
         reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
-        override_circ_supply: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
         lb_fn: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
         engine: Engine,
         heights: Heights,
@@ -571,11 +571,7 @@
                     chain_finality,
                 ),
             )<span class="question-mark">?</span>;
-        <span class="kw">let </span>exec: fvm::executor::DefaultExecutor&lt;ForestKernel&lt;DB&gt;&gt; =
-            fvm::executor::DefaultExecutor::new(ForestMachine {
-                machine: fvm,
-                circ_supply: override_circ_supply,
-            });
+        <span class="kw">let </span>exec: ForestExecutor&lt;DB&gt; = DefaultExecutor::new(fvm);
         <span class="prelude-val">Ok</span>(VM {
             fvm_executor: exec,
             params: PhantomData,

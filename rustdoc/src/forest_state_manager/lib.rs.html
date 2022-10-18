@@ -1441,9 +1441,6 @@
 <span id="1441">1441</span>
 <span id="1442">1442</span>
 <span id="1443">1443</span>
-<span id="1444">1444</span>
-<span id="1445">1445</span>
-<span id="1446">1446</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1809,7 +1806,6 @@
                 network_version,
                 <span class="self">self</span>.genesis_info.clone(),
                 <span class="self">self</span>.reward_calc.clone(),
-                <span class="prelude-val">None</span>,
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
                     .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
@@ -1945,7 +1941,6 @@
                 network_version,
                 <span class="self">self</span>.genesis_info.clone(),
                 <span class="self">self</span>.reward_calc.clone(),
-                <span class="prelude-val">None</span>,
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
                     .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
@@ -2036,7 +2031,6 @@
             network_version,
             <span class="self">self</span>.genesis_info.clone(),
             <span class="self">self</span>.reward_calc.clone(),
-            <span class="prelude-val">None</span>,
             chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts)),
             <span class="self">self</span>.engine
                 .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
