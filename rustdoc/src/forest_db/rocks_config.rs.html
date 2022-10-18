@@ -120,6 +120,15 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>anyhow::anyhow;
@@ -136,13 +145,17 @@
 </span><span class="kw">pub struct </span>RocksDbConfig {
     <span class="kw">pub </span>create_if_missing: bool,
     <span class="kw">pub </span>parallelism: i32,
-    <span class="kw">pub </span>write_buffer_size: usize,
+    <span class="doccomment">/// This is the `memtable` size in bytes.
+    </span><span class="kw">pub </span>write_buffer_size: usize,
     <span class="kw">pub </span>max_open_files: i32,
     <span class="kw">pub </span>max_background_jobs: <span class="prelude-ty">Option</span>&lt;i32&gt;,
-    <span class="kw">pub </span>compression_type: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    <span class="kw">pub </span>compaction_style: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>compaction_style: String,
+    <span class="kw">pub </span>compression_type: String,
     <span class="kw">pub </span>enable_statistics: bool,
+    <span class="kw">pub </span>stats_dump_period_sec: u32,
     <span class="kw">pub </span>log_level: String,
+    <span class="kw">pub </span>optimize_filters_for_hits: bool,
+    <span class="kw">pub </span>optimize_for_point_lookup: i32,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>RocksDbConfig {
@@ -153,20 +166,24 @@
             write_buffer_size: <span class="number">256 </span>* <span class="number">1024 </span>* <span class="number">1024</span>,
             max_open_files: <span class="number">1024</span>,
             max_background_jobs: <span class="prelude-val">None</span>,
-            compaction_style: <span class="prelude-val">Some</span>(<span class="string">&quot;level&quot;</span>.into()),
-            compression_type: <span class="prelude-val">Some</span>(<span class="string">&quot;lz4&quot;</span>.into()),
+            compaction_style: <span class="string">&quot;level&quot;</span>.into(),
+            compression_type: <span class="string">&quot;lz4&quot;</span>.into(),
             enable_statistics: <span class="bool-val">false</span>,
+            stats_dump_period_sec: <span class="number">600</span>,
             log_level: <span class="string">&quot;warn&quot;</span>.into(),
+            optimize_filters_for_hits: <span class="bool-val">true</span>,
+            optimize_for_point_lookup: <span class="number">8</span>,
         }
     }
 }
 
 <span class="doccomment">/// Converts string to a compaction style `RocksDB` variant.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compaction_style_from_str(s: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;DBCompactionStyle&gt; {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>compaction_style_from_str(s: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;DBCompactionStyle&gt;&gt; {
     <span class="kw">match </span>s.to_lowercase().as_str() {
-        <span class="string">&quot;level&quot; </span>=&gt; <span class="prelude-val">Ok</span>(DBCompactionStyle::Level),
-        <span class="string">&quot;universal&quot; </span>=&gt; <span class="prelude-val">Ok</span>(DBCompactionStyle::Universal),
-        <span class="string">&quot;fifo&quot; </span>=&gt; <span class="prelude-val">Ok</span>(DBCompactionStyle::Fifo),
+        <span class="string">&quot;level&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DBCompactionStyle::Level)),
+        <span class="string">&quot;universal&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DBCompactionStyle::Universal)),
+        <span class="string">&quot;fifo&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DBCompactionStyle::Fifo)),
+        <span class="string">&quot;none&quot; </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;invalid compaction option&quot;</span>)),
     }
 }
@@ -205,9 +222,10 @@
     <span class="attribute">#[test]
     </span><span class="kw">fn </span>compaction_style_from_str_test() {
         <span class="kw">let </span>test_cases = <span class="macro">vec!</span>[
-            (<span class="string">&quot;Level&quot;</span>, <span class="prelude-val">Ok</span>(DBCompactionStyle::Level)),
-            (<span class="string">&quot;UNIVERSAL&quot;</span>, <span class="prelude-val">Ok</span>(DBCompactionStyle::Universal)),
-            (<span class="string">&quot;fifo&quot;</span>, <span class="prelude-val">Ok</span>(DBCompactionStyle::Fifo)),
+            (<span class="string">&quot;Level&quot;</span>, <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DBCompactionStyle::Level))),
+            (<span class="string">&quot;UNIVERSAL&quot;</span>, <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DBCompactionStyle::Universal))),
+            (<span class="string">&quot;fifo&quot;</span>, <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(DBCompactionStyle::Fifo))),
+            (<span class="string">&quot;none&quot;</span>, <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)),
             (<span class="string">&quot;cthulhu&quot;</span>, <span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(<span class="string">&quot;some error message&quot;</span>))),
         ];
         <span class="kw">for </span>(input, expected) <span class="kw">in </span>test_cases {

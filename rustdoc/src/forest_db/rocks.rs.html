@@ -127,6 +127,30 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -137,11 +161,14 @@
 };
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">pub use </span>rocksdb::{LogLevel, Options, WriteBatch, DB};
+<span class="kw">pub use </span>rocksdb::{
+    BlockBasedOptions, Cache, CompactOptions, DBCompressionType, DataBlockIndexType, Options,
+    WriteBatch, DB,
+};
 <span class="kw">use </span>std::{path::Path, sync::Arc};
 
 <span class="doccomment">/// `RocksDB` instance this satisfies the [Store] interface.
-</span><span class="attribute">#[derive(Debug, Clone)]
+</span><span class="attribute">#[derive(Clone)]
 </span><span class="kw">pub struct </span>RocksDb {
     <span class="kw">pub </span>db: Arc&lt;DB&gt;,
 }
@@ -156,10 +183,7 @@
 /// let mut db = RocksDb::open(&quot;test_db&quot;, &amp;RocksDbConfig::default()).unwrap();
 /// ```
 </span><span class="kw">impl </span>RocksDb {
-    <span class="kw">pub fn </span>open&lt;P&gt;(path: P, config: <span class="kw-2">&amp;</span>RocksDbConfig) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt;
-    <span class="kw">where
-        </span>P: AsRef&lt;Path&gt;,
-    {
+    <span class="kw">fn </span>to_options(config: <span class="kw-2">&amp;</span>RocksDbConfig) -&gt; Options {
         <span class="kw">let </span><span class="kw-2">mut </span>db_opts = Options::default();
         db_opts.create_if_missing(config.create_if_missing);
         db_opts.increase_parallelism(config.parallelism);
@@ -169,19 +193,43 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(max_background_jobs) = config.max_background_jobs {
             db_opts.set_max_background_jobs(max_background_jobs);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(compaction_style) = <span class="kw-2">&amp;</span>config.compaction_style {
-            db_opts.set_compaction_style(compaction_style_from_str(compaction_style).unwrap());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(compaction_style) = compaction_style_from_str(<span class="kw-2">&amp;</span>config.compaction_style).unwrap()
+        {
+            db_opts.set_compaction_style(compaction_style);
             db_opts.set_disable_auto_compactions(<span class="bool-val">false</span>);
         } <span class="kw">else </span>{
             db_opts.set_disable_auto_compactions(<span class="bool-val">true</span>);
         }
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(compression_type) = <span class="kw-2">&amp;</span>config.compression_type {
-            db_opts.set_compression_type(compression_type_from_str(compression_type).unwrap());
-        }
+        db_opts.set_compression_type(compression_type_from_str(<span class="kw-2">&amp;</span>config.compression_type).unwrap());
         <span class="kw">if </span>config.enable_statistics {
+            db_opts.set_stats_dump_period_sec(config.stats_dump_period_sec);
             db_opts.enable_statistics();
         };
         db_opts.set_log_level(log_level_from_str(<span class="kw-2">&amp;</span>config.log_level).unwrap());
+        db_opts.set_optimize_filters_for_hits(config.optimize_filters_for_hits);
+        <span class="comment">// Comes from https://github.com/facebook/rocksdb/blob/main/options/options.cc#L606
+        // Only modified to upgrade format to v5
+        </span><span class="kw">if </span>!config.optimize_for_point_lookup.is_negative() {
+            <span class="kw">let </span>cache_size = config.optimize_for_point_lookup <span class="kw">as </span>usize;
+            <span class="kw">let </span><span class="kw-2">mut </span>opts = BlockBasedOptions::default();
+            opts.set_format_version(<span class="number">5</span>);
+            opts.set_data_block_index_type(DataBlockIndexType::BinaryAndHash);
+            opts.set_data_block_hash_ratio(<span class="number">0.75</span>);
+            opts.set_bloom_filter(<span class="number">10.0</span>, <span class="bool-val">false</span>);
+            <span class="kw">let </span>cache = Cache::new_lru_cache(cache_size * <span class="number">1024 </span>* <span class="number">1024</span>).unwrap();
+            opts.set_block_cache(<span class="kw-2">&amp;</span>cache);
+            db_opts.set_block_based_table_factory(<span class="kw-2">&amp;</span>opts);
+            db_opts.set_memtable_prefix_bloom_ratio(<span class="number">0.02</span>);
+            db_opts.set_memtable_whole_key_filtering(<span class="bool-val">true</span>);
+        }
+        db_opts
+    }
+
+    <span class="kw">pub fn </span>open&lt;P&gt;(path: P, config: <span class="kw-2">&amp;</span>RocksDbConfig) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt;
+    <span class="kw">where
+        </span>P: AsRef&lt;Path&gt;,
+    {
+        <span class="kw">let </span>db_opts = <span class="self">Self</span>::to_options(config);
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             db: Arc::new(DB::open(<span class="kw-2">&amp;</span>db_opts, path)<span class="question-mark">?</span>),
         })

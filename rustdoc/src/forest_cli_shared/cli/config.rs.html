@@ -233,6 +233,9 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -433,10 +436,13 @@
                     write_buffer_size: usize::arbitrary(g),
                     max_open_files: i32::arbitrary(g),
                     max_background_jobs: Option::arbitrary(g),
-                    compression_type: Option::arbitrary(g),
-                    compaction_style: Option::arbitrary(g),
+                    compaction_style: String::arbitrary(g),
+                    compression_type: String::arbitrary(g),
                     enable_statistics: bool::arbitrary(g),
+                    stats_dump_period_sec: u32::arbitrary(g),
                     log_level: String::arbitrary(g),
+                    optimize_filters_for_hits: bool::arbitrary(g),
+                    optimize_for_point_lookup: i32::arbitrary(g),
                 },
                 network: Libp2pConfig {
                     listening_multiaddr: Ipv4Addr::arbitrary(g).into(),

@@ -189,6 +189,9 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -203,6 +206,7 @@
 <span class="kw">use </span>log::{debug, info};
 <span class="kw">use </span>std::io::Stdout;
 <span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::time;
 <span class="kw">use </span>tokio::fs::File;
 <span class="kw">use </span>tokio::io::AsyncRead;
 <span class="kw">use </span>tokio::io::BufReader;
@@ -325,7 +329,8 @@
 
     <span class="macro">info!</span>(<span class="string">&quot;Importing chain from snapshot at: {path}&quot;</span>);
     <span class="comment">// start import
-    </span><span class="kw">let </span>cids = <span class="kw">if </span>is_remote_file {
+    </span><span class="kw">let </span>stopwatch = time::Instant::now();
+    <span class="kw">let </span>cids = <span class="kw">if </span>is_remote_file {
         <span class="macro">info!</span>(<span class="string">&quot;Downloading file...&quot;</span>);
         <span class="kw">let </span>url = Url::parse(path)<span class="question-mark">?</span>;
         <span class="kw">let </span>reader = FetchProgress::fetch_from_url(url).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -336,6 +341,7 @@
         <span class="kw">let </span>reader = FetchProgress::fetch_from_file(file).<span class="kw">await</span><span class="question-mark">?</span>;
         load_and_retrieve_header(sm.blockstore(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>};
+    <span class="macro">info!</span>(<span class="string">&quot;Loaded .car file in {}s&quot;</span>, stopwatch.elapsed().as_secs());
     <span class="kw">let </span>ts = sm
         .chain_store()
         .tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(cids))

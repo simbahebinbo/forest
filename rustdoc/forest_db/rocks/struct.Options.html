@@ -112,7 +112,7 @@ e.g. to read/write files, schedule background work, etc. In the near
 future, support for doing storage operations such as read/write files
 through env will be deprecated in favor of file_system.</p>
 <p>Default: Env::default()</p>
-</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_compression_type" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_compression_type" class="fnname">set_compression_type</a>(&amp;mut self, t: DBCompressionType)</h4></section></summary><div class="docblock"><p>Sets the compression algorithm that will be used for compressing blocks.</p>
+</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_compression_type" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_compression_type" class="fnname">set_compression_type</a>(&amp;mut self, t: <a class="enum" href="enum.DBCompressionType.html" title="enum forest_db::rocks::DBCompressionType">DBCompressionType</a>)</h4></section></summary><div class="docblock"><p>Sets the compression algorithm that will be used for compressing blocks.</p>
 <p>Default: <code>DBCompressionType::Snappy</code> (<code>DBCompressionType::None</code> if
 snappy feature is not enabled).</p>
 <h5 id="examples-4"><a href="#examples-4">Examples</a></h5>
@@ -120,7 +120,7 @@ snappy feature is not enabled).</p>
 
 <span class="kw">let </span><span class="kw-2">mut </span>opts = Options::default();
 opts.set_compression_type(DBCompressionType::Snappy);</code></pre></div>
-</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_bottommost_compression_type" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_bottommost_compression_type" class="fnname">set_bottommost_compression_type</a>(&amp;mut self, t: DBCompressionType)</h4></section></summary><div class="docblock"><p>Sets the bottom-most compression algorithm that will be used for
+</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_bottommost_compression_type" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_bottommost_compression_type" class="fnname">set_bottommost_compression_type</a>(&amp;mut self, t: <a class="enum" href="enum.DBCompressionType.html" title="enum forest_db::rocks::DBCompressionType">DBCompressionType</a>)</h4></section></summary><div class="docblock"><p>Sets the bottom-most compression algorithm that will be used for
 compressing blocks at the bottom-most level.</p>
 <p>Note that to actually unable bottom-most compression configuration after
 setting the compression type it needs to be enabled by calling
@@ -133,7 +133,7 @@ set to <code>true</code>.</p>
 <span class="kw">let </span><span class="kw-2">mut </span>opts = Options::default();
 opts.set_bottommost_compression_type(DBCompressionType::Zstd);
 opts.set_bottommost_zstd_max_train_bytes(<span class="number">0</span>, <span class="bool-val">true</span>);</code></pre></div>
-</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_compression_per_level" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_compression_per_level" class="fnname">set_compression_per_level</a>(&amp;mut self, level_types: &amp;[DBCompressionType])</h4></section></summary><div class="docblock"><p>Different levels can have different compression policies. There
+</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_compression_per_level" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_compression_per_level" class="fnname">set_compression_per_level</a>(&amp;mut self, level_types: &amp;[<a class="enum" href="enum.DBCompressionType.html" title="enum forest_db::rocks::DBCompressionType">DBCompressionType</a>])</h4></section></summary><div class="docblock"><p>Different levels can have different compression policies. There
 are cases where most lower levels would like to use quick compression
 algorithms while the higher levels (which have more data) use
 compression algorithms that have better compression but could
@@ -268,7 +268,7 @@ If it is non empty, the log files will be in the specified dir,
 and the db data dir’s absolute path will be used as the log file
 name’s prefix.</p>
 <p>Default: empty</p>
-</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_log_level" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_log_level" class="fnname">set_log_level</a>(&amp;mut self, level: <a class="enum" href="enum.LogLevel.html" title="enum forest_db::rocks::LogLevel">LogLevel</a>)</h4></section></summary><div class="docblock"><p>Specifies the log level.
+</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_log_level" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_log_level" class="fnname">set_log_level</a>(&amp;mut self, level: LogLevel)</h4></section></summary><div class="docblock"><p>Specifies the log level.
 Consider the <code>LogLevel</code> enum for a list of possible levels.</p>
 <p>Default: Info</p>
 <h5 id="examples-12"><a href="#examples-12">Examples</a></h5>
@@ -699,7 +699,7 @@ Defaults to using a skiplist.</p>
 
 opts.set_allow_concurrent_memtable_write(<span class="bool-val">false</span>);
 opts.set_memtable_factory(factory);</code></pre></div>
-</div></details><section id="method.set_block_based_table_factory" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_block_based_table_factory" class="fnname">set_block_based_table_factory</a>(&amp;mut self, factory: &amp;BlockBasedOptions)</h4></section><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_cuckoo_table_factory" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_cuckoo_table_factory" class="fnname">set_cuckoo_table_factory</a>(&amp;mut self, factory: &amp;CuckooTableOptions)</h4></section></summary><div class="docblock"><p>Sets the table factory to a CuckooTableFactory (the default table
+</div></details><section id="method.set_block_based_table_factory" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_block_based_table_factory" class="fnname">set_block_based_table_factory</a>(&amp;mut self, factory: &amp;<a class="struct" href="struct.BlockBasedOptions.html" title="struct forest_db::rocks::BlockBasedOptions">BlockBasedOptions</a>)</h4></section><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_cuckoo_table_factory" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_cuckoo_table_factory" class="fnname">set_cuckoo_table_factory</a>(&amp;mut self, factory: &amp;CuckooTableOptions)</h4></section></summary><div class="docblock"><p>Sets the table factory to a CuckooTableFactory (the default table
 factory is a block-based table factory that provides a default
 implementation of TableBuilder and TableReader with default
 BlockBasedTableOptions).
@@ -876,7 +876,7 @@ WAL, writes are always consistent across column families.</p>
 
 <span class="kw">let </span><span class="kw-2">mut </span>options = Options::default();
 options.set_atomic_flush(<span class="bool-val">true</span>);</code></pre></div>
-</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_row_cache" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_row_cache" class="fnname">set_row_cache</a>(&amp;mut self, cache: &amp;Cache)</h4></section></summary><div class="docblock"><p>Sets global cache for table-level rows. Cache must outlive DB instance which uses it.</p>
+</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_row_cache" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_row_cache" class="fnname">set_row_cache</a>(&amp;mut self, cache: &amp;<a class="struct" href="struct.Cache.html" title="struct forest_db::rocks::Cache">Cache</a>)</h4></section></summary><div class="docblock"><p>Sets global cache for table-level rows. Cache must outlive DB instance which uses it.</p>
 <p>Default: null (disabled)
 Not supported in ROCKSDB_LITE mode!</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_ratelimiter" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_ratelimiter" class="fnname">set_ratelimiter</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self,<br>&nbsp;&nbsp;&nbsp;&nbsp;rate_bytes_per_sec: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;refill_period_us: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i64.html">i64</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;fairness: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a><br>)</h4></section></summary><div class="docblock"><p>Use to control write rate of flush and compaction. Flush has higher
@@ -940,7 +940,7 @@ to blob files during flush or compaction.</p>
 <p>Dynamically changeable through SetOptions() API</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_blob_file_size" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_blob_file_size" class="fnname">set_blob_file_size</a>(&amp;mut self, val: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>)</h4></section></summary><div class="docblock"><p>Sets the size limit for blob files.</p>
 <p>Dynamically changeable through SetOptions() API</p>
-</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_blob_compression_type" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_blob_compression_type" class="fnname">set_blob_compression_type</a>(&amp;mut self, val: DBCompressionType)</h4></section></summary><div class="docblock"><p>Sets the blob compression type. All blob files use the same
+</div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_blob_compression_type" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_blob_compression_type" class="fnname">set_blob_compression_type</a>(&amp;mut self, val: <a class="enum" href="enum.DBCompressionType.html" title="enum forest_db::rocks::DBCompressionType">DBCompressionType</a>)</h4></section></summary><div class="docblock"><p>Sets the blob compression type. All blob files use the same
 compression type.</p>
 <p>Dynamically changeable through SetOptions() API</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.set_enable_blob_gc" class="method has-srclink"><h4 class="code-header">pub fn <a href="#method.set_enable_blob_gc" class="fnname">set_enable_blob_gc</a>(&amp;mut self, val: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)</h4></section></summary><div class="docblock"><p>If this is set to true RocksDB will actively relocate valid blobs from the oldest blob files
