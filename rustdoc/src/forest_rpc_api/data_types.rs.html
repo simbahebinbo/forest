@@ -260,12 +260,10 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
-<span id="263">263</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>async_std::channel::Sender;
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::market::{DealProposal, DealState};
 <span class="kw">use </span>forest_beacon::BeaconEntry;
 <span class="kw">use </span>forest_beacon::{json::BeaconEntryJson, Beacon, BeaconSchedule};
@@ -323,9 +321,9 @@
     <span class="kw">pub </span>mpool: Arc&lt;MessagePool&lt;MpoolRpcProvider&lt;DB&gt;&gt;&gt;,
     <span class="kw">pub </span>bad_blocks: Arc&lt;BadBlockCache&gt;,
     <span class="kw">pub </span>sync_state: Arc&lt;RwLock&lt;SyncState&gt;&gt;,
-    <span class="kw">pub </span>network_send: Sender&lt;NetworkMessage&gt;,
+    <span class="kw">pub </span>network_send: flume::Sender&lt;NetworkMessage&gt;,
     <span class="kw">pub </span>network_name: String,
-    <span class="kw">pub </span>new_mined_block_tx: Sender&lt;Arc&lt;Tipset&gt;&gt;,
+    <span class="kw">pub </span>new_mined_block_tx: flume::Sender&lt;Arc&lt;Tipset&gt;&gt;,
     <span class="kw">pub </span>beacon: Arc&lt;BeaconSchedule&lt;B&gt;&gt;,
 }
 

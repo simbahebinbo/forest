@@ -1675,7 +1675,7 @@
 <span class="kw">use </span>std::time::{SystemTime, UNIX_EPOCH};
 
 <span class="kw">use </span>async_std::stream::{Stream, StreamExt};
-<span class="kw">use </span>async_std::{channel, channel::SendError, task};
+<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>futures::TryFutureExt;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
@@ -1781,8 +1781,8 @@
     </span>ConsensusError(C::Error),
 }
 
-<span class="kw">impl</span>&lt;C: Consensus, T&gt; From&lt;SendError&lt;T&gt;&gt; <span class="kw">for </span>TipsetRangeSyncerError&lt;C&gt; {
-    <span class="kw">fn </span>from(err: SendError&lt;T&gt;) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;C: Consensus, T&gt; From&lt;flume::SendError&lt;T&gt;&gt; <span class="kw">for </span>TipsetRangeSyncerError&lt;C&gt; {
+    <span class="kw">fn </span>from(err: flume::SendError&lt;T&gt;) -&gt; <span class="self">Self </span>{
         TipsetRangeSyncerError::NetworkTipsetQueryFailed(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, err))
     }
 }
@@ -2675,7 +2675,7 @@
     batch: <span class="kw-2">&amp;</span>[Arc&lt;Tipset&gt;],
     network: <span class="kw-2">&amp;</span>SyncNetworkContext&lt;DB&gt;,
     chainstore: <span class="kw-2">&amp;</span>ChainStore&lt;DB&gt;,
-    s: <span class="kw-2">&amp;</span>channel::Sender&lt;FullTipset&gt;,
+    s: <span class="kw-2">&amp;</span>flume::Sender&lt;FullTipset&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), TipsetRangeSyncerError&lt;C&gt;&gt; {
     <span class="comment">// Tipsets in `batch` are already in chronological order
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(head) = batch.last() {
@@ -2708,7 +2708,7 @@
                 <span class="macro">warn!</span>(<span class="string">&quot;ChainExchange request for messages returned null messages&quot;</span>);
             }
 
-            s.send(full_tipset).<span class="kw">await</span><span class="question-mark">?</span>;
+            s.send_async(full_tipset).<span class="kw">await</span><span class="question-mark">?</span>;
         }
     }
 
@@ -2735,7 +2735,7 @@
     <span class="kw">let </span>task_chainstore = chainstore.clone();
 
     <span class="comment">// Spawn a background task for the chain_exchange message requests
-    </span><span class="kw">let </span>(s, r) = channel::bounded(REQUEST_WINDOW * <span class="number">2</span>);
+    </span><span class="kw">let </span>(s, r) = flume::bounded(REQUEST_WINDOW * <span class="number">2</span>);
     <span class="kw">let </span>handle = task::spawn(<span class="kw">async move </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>batch: Vec&lt;Arc&lt;Tipset&gt;&gt; = Vec::with_capacity(REQUEST_WINDOW);
 
@@ -2746,7 +2746,7 @@
             // it directly to the validator.
             </span><span class="kw">if </span>batch.is_empty() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(full_tipset) = task_chainstore.fill_tipset(<span class="kw-2">&amp;</span>tipset) {
-                    s.send(full_tipset).<span class="kw">await</span><span class="question-mark">?</span>;
+                    s.send_async(full_tipset).<span class="kw">await</span><span class="question-mark">?</span>;
                     <span class="kw">continue</span>;
                 }
             }
@@ -2765,7 +2765,7 @@
     });
 
     <span class="comment">// Validation loop
-    </span><span class="kw">while let </span><span class="prelude-val">Ok</span>(full_tipset) = r.recv().<span class="kw">await </span>{
+    </span><span class="kw">while let </span><span class="prelude-val">Ok</span>(full_tipset) = r.recv_async().<span class="kw">await </span>{
         <span class="kw">let </span>current_epoch = full_tipset.epoch();
         <span class="kw">let </span>timer = metrics::TIPSET_PROCESSING_TIME.start_timer();
         validate_tipset::&lt;<span class="kw">_</span>, C&gt;(

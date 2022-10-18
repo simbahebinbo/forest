@@ -923,8 +923,6 @@
 <span id="923">923</span>
 <span id="924">924</span>
 <span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -939,7 +937,6 @@
 <span class="kw">use </span><span class="kw">crate</span>::msg_pool::MsgSet;
 <span class="kw">use </span><span class="kw">crate</span>::msg_pool::{add_helper, remove};
 <span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
-<span class="kw">use </span>async_std::channel::Sender;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
@@ -985,7 +982,7 @@
 <span class="attribute">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">async fn </span>republish_pending_messages&lt;T&gt;(
     api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
-    network_sender: <span class="kw-2">&amp;</span>Sender&lt;NetworkMessage&gt;,
+    network_sender: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkMessage&gt;,
     network_name: <span class="kw-2">&amp;</span>str,
     pending: <span class="kw-2">&amp;</span>RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
     cur_tipset: <span class="kw-2">&amp;</span>RwLock&lt;Arc&lt;Tipset&gt;&gt;,
@@ -1024,7 +1021,7 @@
     <span class="kw">for </span>m <span class="kw">in </span>msgs.iter() {
         <span class="kw">let </span>mb = m.marshal_cbor()<span class="question-mark">?</span>;
         network_sender
-            .send(NetworkMessage::PubsubMessage {
+            .send_async(NetworkMessage::PubsubMessage {
                 topic: Topic::new(<span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_MSG_STR, network_name)),
                 message: mb,
             })
@@ -1141,7 +1138,7 @@
 </span><span class="kw">pub async fn </span>head_change&lt;T&gt;(
     api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
     bls_sig_cache: <span class="kw-2">&amp;</span>RwLock&lt;LruCache&lt;Cid, Signature&gt;&gt;,
-    repub_trigger: Arc&lt;Sender&lt;()&gt;&gt;,
+    repub_trigger: Arc&lt;flume::Sender&lt;()&gt;&gt;,
     republished: <span class="kw-2">&amp;</span>RwLock&lt;HashSet&lt;Cid&gt;&gt;,
     pending: <span class="kw-2">&amp;</span>RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
     cur_tipset: <span class="kw-2">&amp;</span>RwLock&lt;Arc&lt;Tipset&gt;&gt;,
@@ -1196,7 +1193,7 @@
     }
     <span class="kw">if </span>repub {
         repub_trigger
-            .send(())
+            .send_async(())
             .<span class="kw">await
             </span>.map_err(|<span class="kw">_</span>| Error::Other(<span class="string">&quot;Republish receiver dropped&quot;</span>.to_string()))<span class="question-mark">?</span>;
     }
@@ -1252,7 +1249,6 @@
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span><span class="kw">crate</span>::msg_chain::{create_message_chains, Chains};
     <span class="kw">use </span><span class="kw">crate</span>::msg_pool::MessagePool;
-    <span class="kw">use </span>async_std::channel::bounded;
     <span class="kw">use </span>forest_blocks::Tipset;
     <span class="kw">use </span>forest_key_management::{KeyStore, KeyStoreConfig, Wallet};
     <span class="kw">use </span>forest_message::SignedMessage;
@@ -1297,7 +1293,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>tma = TestApi::default();
         tma.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
 
-        <span class="kw">let </span>(tx, _rx) = bounded(<span class="number">50</span>);
+        <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
         <span class="kw">let </span>mpool = MessagePool::new(
             tma,
             <span class="string">&quot;mptest&quot;</span>.to_string(),
@@ -1364,7 +1360,7 @@
             <span class="kw">let </span>msg = create_smsg(<span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>sender, wallet.borrow_mut(), i, <span class="number">1000000</span>, <span class="number">1</span>);
             smsg_vec.push(msg);
         }
-        <span class="kw">let </span>(tx, _rx) = bounded(<span class="number">50</span>);
+        <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
 
         <span class="kw">let </span>mpool = MessagePool::new(
             tma,
@@ -1462,7 +1458,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>tma = TestApi::default();
         tma.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
-        <span class="kw">let </span>(tx, _rx) = bounded(<span class="number">50</span>);
+        <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
 
         <span class="kw">let </span>mpool = MessagePool::new(
             tma,

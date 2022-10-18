@@ -197,8 +197,8 @@
 <span id="197">197</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
-</span><span class="kw">use </span>async_std::task::{<span class="self">self</span>, JoinHandle};
-<span class="kw">use </span>async_std::{channel::Sender, stream::StreamExt};
+</span><span class="kw">use </span>async_std::stream::StreamExt;
+<span class="kw">use </span>async_std::task::{<span class="self">self</span>, JoinHandle};
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_BLOCK_STR};
@@ -363,15 +363,15 @@
 /// Similar to `sync_api::sync_submit_block` but assumes that the block is correct and already persisted.
 </span><span class="kw">pub struct </span>SyncGossipSubmitter {
     network_name: String,
-    network_tx: Sender&lt;NetworkMessage&gt;,
-    tipset_tx: Sender&lt;Arc&lt;Tipset&gt;&gt;,
+    network_tx: flume::Sender&lt;NetworkMessage&gt;,
+    tipset_tx: flume::Sender&lt;Arc&lt;Tipset&gt;&gt;,
 }
 
 <span class="kw">impl </span>SyncGossipSubmitter {
     <span class="kw">pub fn </span>new(
         network_name: String,
-        network_tx: Sender&lt;NetworkMessage&gt;,
-        tipset_tx: Sender&lt;Arc&lt;Tipset&gt;&gt;,
+        network_tx: flume::Sender&lt;NetworkMessage&gt;,
+        tipset_tx: flume::Sender&lt;Arc&lt;Tipset&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             network_name,
@@ -387,8 +387,8 @@
             topic: Topic::new(<span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_BLOCK_STR, <span class="self">self</span>.network_name)),
             message: data,
         };
-        <span class="self">self</span>.tipset_tx.send(ts).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="self">self</span>.network_tx.send(msg).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.tipset_tx.send_async(ts).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.network_tx.send_async(msg).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }

@@ -1359,7 +1359,6 @@
 <span id="1359">1359</span>
 <span id="1360">1360</span>
 <span id="1361">1361</span>
-<span id="1362">1362</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2046,7 +2045,6 @@
     <span class="kw">use </span><span class="kw">crate</span>::head_change;
     <span class="kw">use </span><span class="kw">crate</span>::msgpool::test_provider::{mock_block, TestApi};
     <span class="kw">use </span><span class="kw">crate</span>::msgpool::tests::create_smsg;
-    <span class="kw">use </span>async_std::channel::bounded;
     <span class="kw">use </span>forest_db::MemoryDB;
     <span class="kw">use </span>forest_key_management::{KeyStore, KeyStoreConfig, Wallet};
     <span class="kw">use </span>forest_message::Message;
@@ -2058,7 +2056,7 @@
 
     <span class="kw">async fn </span>make_test_mpool() -&gt; MessagePool&lt;TestApi&gt; {
         <span class="kw">let </span>tma = TestApi::default();
-        <span class="kw">let </span>(tx, _rx) = bounded(<span class="number">50</span>);
+        <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
         MessagePool::new(
             tma,
             <span class="string">&quot;mptest&quot;</span>.to_string(),

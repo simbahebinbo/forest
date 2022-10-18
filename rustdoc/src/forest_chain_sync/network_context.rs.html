@@ -316,8 +316,6 @@
 <span id="316">316</span>
 <span id="317">317</span>
 <span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -340,8 +338,6 @@
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::{Duration, SystemTime};
-
-<span class="kw">use </span>async_std::channel::Sender;
 <span class="kw">use </span>tokio::time::timeout;
 
 <span class="doccomment">/// Timeout for response from an RPC request
@@ -354,7 +350,7 @@
 /// network requests.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SyncNetworkContext&lt;DB&gt; {
     <span class="doccomment">/// Channel to send network messages through P2P service
-    </span>network_send: Sender&lt;NetworkMessage&gt;,
+    </span>network_send: flume::Sender&lt;NetworkMessage&gt;,
 
     <span class="doccomment">/// Manages peers to send requests to and updates request stats for the respective peers.
     </span><span class="kw">pub </span>peer_manager: Arc&lt;PeerManager&gt;,
@@ -376,7 +372,7 @@
     </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub fn </span>new(
-        network_send: Sender&lt;NetworkMessage&gt;,
+        network_send: flume::Sender&lt;NetworkMessage&gt;,
         peer_manager: Arc&lt;PeerManager&gt;,
         db: DB,
     ) -&gt; <span class="self">Self </span>{
@@ -448,7 +444,7 @@
         }
         <span class="kw">let </span>(tx, rx) = oneshot_channel();
         <span class="self">self</span>.network_send
-            .send(NetworkMessage::BitswapRequest {
+            .send_async(NetworkMessage::BitswapRequest {
                 cid: content,
                 response_channel: tx,
             })
@@ -549,7 +545,7 @@
         <span class="kw">let </span>(tx, rx) = oneshot_channel();
         <span class="kw">if </span><span class="self">self
             </span>.network_send
-            .send(NetworkMessage::ChainExchangeRequest {
+            .send_async(NetworkMessage::ChainExchangeRequest {
                 peer_id,
                 request,
                 response_channel: tx,
@@ -617,7 +613,7 @@
 
         <span class="comment">// Send request into libp2p service
         </span><span class="self">self</span>.network_send
-            .send(NetworkMessage::HelloRequest {
+            .send_async(NetworkMessage::HelloRequest {
                 peer_id,
                 request,
                 response_channel: tx,

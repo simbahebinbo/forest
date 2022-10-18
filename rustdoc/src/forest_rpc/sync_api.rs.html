@@ -245,7 +245,6 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-<span id="248">248</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -344,10 +343,10 @@
     forest_chain::persist_objects(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>secp_msgs)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>ts = Arc::new(Tipset::new(<span class="macro">vec!</span>[blk.header.clone()])<span class="question-mark">?</span>);
-    data.new_mined_block_tx.send(ts).<span class="kw">await</span><span class="question-mark">?</span>;
+    data.new_mined_block_tx.send_async(ts).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="comment">// TODO validate by constructing full block and validate (cids of messages could be invalid)
     </span>data.network_send
-        .send(NetworkMessage::PubsubMessage {
+        .send_async(NetworkMessage::PubsubMessage {
             topic: Topic::new(<span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_BLOCK_STR, data.network_name)),
             message: blk.marshal_cbor().map_err(|e| e.to_string())<span class="question-mark">?</span>,
         })
@@ -358,7 +357,6 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>async_std::channel::{bounded, Receiver};
     <span class="kw">use </span>forest_beacon::{BeaconPoint, BeaconSchedule, MockBeacon};
     <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset};
     <span class="kw">use </span>forest_chain::ChainStore;
@@ -378,14 +376,14 @@
 
     <span class="kw">async fn </span>state_setup() -&gt; (
         Arc&lt;RPCState&lt;MemoryDB, MockBeacon&gt;&gt;,
-        Receiver&lt;NetworkMessage&gt;,
+        flume::Receiver&lt;NetworkMessage&gt;,
     ) {
         <span class="kw">let </span>beacon = Arc::new(BeaconSchedule(<span class="macro">vec!</span>[BeaconPoint {
             height: <span class="number">0</span>,
             beacon: Arc::new(MockBeacon::new(Duration::from_secs(<span class="number">1</span>))),
         }]));
 
-        <span class="kw">let </span>(network_send, network_rx) = bounded(<span class="number">5</span>);
+        <span class="kw">let </span>(network_send, network_rx) = flume::bounded(<span class="number">5</span>);
         <span class="kw">let </span>db = MemoryDB::default();
         <span class="kw">let </span>cs_arc = Arc::new(ChainStore::new(db.clone()).<span class="kw">await</span>);
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
@@ -432,7 +430,7 @@
             .<span class="kw">await
             </span>.unwrap()
         };
-        <span class="kw">let </span>(new_mined_block_tx, <span class="kw">_</span>) = bounded(<span class="number">5</span>);
+        <span class="kw">let </span>(new_mined_block_tx, <span class="kw">_</span>) = flume::bounded(<span class="number">5</span>);
         <span class="kw">let </span>state = Arc::new(RPCState {
             state_manager,
             keystore: Arc::new(RwLock::new(KeyStore::new(KeyStoreConfig::Memory).unwrap())),

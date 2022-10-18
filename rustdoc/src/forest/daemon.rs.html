@@ -516,7 +516,7 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::cli::set_sigint_handler;
-<span class="kw">use </span>async_std::{channel::bounded, net::TcpListener, task};
+<span class="kw">use </span>async_std::{net::TcpListener, task};
 <span class="kw">use </span>forest_auth::{create_token, generate_priv_key, ADMIN, JWT_IDENTIFIER};
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_chain_sync::consensus::SyncGossipSubmitter;
@@ -716,7 +716,7 @@
 
     <span class="macro">info!</span>(<span class="string">&quot;Using network :: {}&quot;</span>, network_name);
 
-    <span class="kw">let </span>(tipset_sink, tipset_stream) = bounded(<span class="number">20</span>);
+    <span class="kw">let </span>(tipset_sink, tipset_stream) = flume::bounded(<span class="number">20</span>);
 
     <span class="comment">// if bootstrap peers are not set, set them
     </span><span class="kw">let </span>config = <span class="kw">if </span>config.network.bootstrap_peers.is_empty() {

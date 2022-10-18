@@ -942,6 +942,10 @@
 <span id="942">942</span>
 <span id="943">943</span>
 <span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -955,6 +959,7 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::validation::{TipsetValidationError, TipsetValidator};
 
+<span class="kw">use </span>async_std::stream::StreamExt;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{
     Block, Error <span class="kw">as </span>ForestBlockError, FullTipset, GossipBlock, Tipset, TipsetKeys,
@@ -968,12 +973,9 @@
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_message_pool::{MessagePool, Provider};
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>fvm_shared::message::Message;
-
-<span class="kw">use </span>async_std::channel::{Receiver, Sender};
-<span class="kw">use </span>async_std::stream::StreamExt;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>futures::{future::try_join_all, future::Future, try_join};
+<span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::pin::Pin;
@@ -1088,16 +1090,16 @@
     </span>bad_blocks: Arc&lt;BadBlockCache&gt;,
 
     <span class="doccomment">/// Incoming network events to be handled by synchronizer
-    </span>net_handler: Receiver&lt;NetworkEvent&gt;,
+    </span>net_handler: flume::Receiver&lt;NetworkEvent&gt;,
 
     <span class="doccomment">/// Message pool
     </span>mpool: Arc&lt;MessagePool&lt;M&gt;&gt;,
 
     <span class="doccomment">/// Tipset channel sender
-    </span>tipset_sender: Sender&lt;Arc&lt;Tipset&gt;&gt;,
+    </span>tipset_sender: flume::Sender&lt;Arc&lt;Tipset&gt;&gt;,
 
     <span class="doccomment">/// Tipset channel receiver
-    </span>tipset_receiver: Receiver&lt;Arc&lt;Tipset&gt;&gt;,
+    </span>tipset_receiver: flume::Receiver&lt;Arc&lt;Tipset&gt;&gt;,
 
     <span class="doccomment">/// Syncing configurations
     </span>sync_config: SyncConfig,
@@ -1114,11 +1116,11 @@
         consensus: Arc&lt;C&gt;,
         state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
         mpool: Arc&lt;MessagePool&lt;M&gt;&gt;,
-        network_send: Sender&lt;NetworkMessage&gt;,
-        network_rx: Receiver&lt;NetworkEvent&gt;,
+        network_send: flume::Sender&lt;NetworkMessage&gt;,
+        network_rx: flume::Receiver&lt;NetworkEvent&gt;,
         genesis: Arc&lt;Tipset&gt;,
-        tipset_sender: Sender&lt;Arc&lt;Tipset&gt;&gt;,
-        tipset_receiver: Receiver&lt;Arc&lt;Tipset&gt;&gt;,
+        tipset_sender: flume::Sender&lt;Arc&lt;Tipset&gt;&gt;,
+        tipset_receiver: flume::Receiver&lt;Arc&lt;Tipset&gt;&gt;,
         cfg: SyncConfig,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ChainMuxerError&lt;C&gt;&gt; {
         <span class="kw">let </span>network = SyncNetworkContext::new(
@@ -1439,7 +1441,7 @@
         <span class="kw">let </span>evaluator = <span class="kw">async move </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>tipsets = <span class="macro">vec!</span>[];
             <span class="kw">loop </span>{
-                <span class="kw">let </span>event = <span class="kw">match </span>p2p_messages.recv().<span class="kw">await </span>{
+                <span class="kw">let </span>event = <span class="kw">match </span>p2p_messages.recv_async().<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(event) =&gt; event,
                     <span class="prelude-val">Err</span>(why) =&gt; {
                         <span class="macro">debug!</span>(<span class="string">&quot;Receiving event from p2p event stream failed: {}&quot;</span>, why);
@@ -1556,7 +1558,7 @@
         <span class="kw">let </span>block_delay = <span class="self">self</span>.state_manager.chain_config().block_delay_secs;
         <span class="kw">let </span>stream_processor: ChainMuxerFuture&lt;(), ChainMuxerError&lt;C&gt;&gt; = Box::pin(<span class="kw">async move </span>{
             <span class="kw">loop </span>{
-                <span class="kw">let </span>event = <span class="kw">match </span>p2p_messages.recv().<span class="kw">await </span>{
+                <span class="kw">let </span>event = <span class="kw">match </span>p2p_messages.recv_async().<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(event) =&gt; event,
                     <span class="prelude-val">Err</span>(why) =&gt; {
                         <span class="macro">debug!</span>(<span class="string">&quot;Receiving event from p2p event stream failed: {}&quot;</span>, why);
@@ -1622,7 +1624,7 @@
             Box::pin(<span class="kw">async move </span>{
                 TipsetProcessor::new(
                     tp_tracker,
-                    Box::pin(tp_tipset_receiver),
+                    Box::pin(tp_tipset_receiver.into_stream()),
                     tp_consensus,
                     tp_state_manager,
                     tp_network,
@@ -1650,13 +1652,16 @@
             <span class="kw">async move </span>{
                 <span class="comment">// If a tipset has been provided, pass it to the tipset processor
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tipset) = tipset_opt {
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(why) = tipset_sender.send(Arc::new(tipset.into_tipset())).<span class="kw">await </span>{
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(why) = tipset_sender
+                        .send_async(Arc::new(tipset.into_tipset()))
+                        .<span class="kw">await
+                    </span>{
                         <span class="macro">debug!</span>(<span class="string">&quot;Sending tipset to TipsetProcessor failed: {}&quot;</span>, why);
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ChainMuxerError::TipsetChannelSend(why.to_string()));
                     };
                 }
                 <span class="kw">loop </span>{
-                    <span class="kw">let </span>event = <span class="kw">match </span>p2p_messages.recv().<span class="kw">await </span>{
+                    <span class="kw">let </span>event = <span class="kw">match </span>p2p_messages.recv_async().<span class="kw">await </span>{
                         <span class="prelude-val">Ok</span>(event) =&gt; event,
                         <span class="prelude-val">Err</span>(why) =&gt; {
                             <span class="macro">debug!</span>(<span class="string">&quot;Receiving event from p2p event stream failed: {}&quot;</span>, why);
@@ -1697,7 +1702,10 @@
                         <span class="kw">continue</span>;
                     }
 
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(why) = tipset_sender.send(Arc::new(tipset.into_tipset())).<span class="kw">await </span>{
+                    <span class="kw">if let </span><span class="prelude-val">Err</span>(why) = tipset_sender
+                        .send_async(Arc::new(tipset.into_tipset()))
+                        .<span class="kw">await
+                    </span>{
                         <span class="macro">debug!</span>(<span class="string">&quot;Sending tipset to TipsetProcessor failed: {}&quot;</span>, why);
                         <span class="kw">return </span><span class="prelude-val">Err</span>(ChainMuxerError::TipsetChannelSend(why.to_string()));
                     };

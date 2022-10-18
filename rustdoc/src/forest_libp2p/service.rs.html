@@ -455,7 +455,6 @@
 <span id="455">455</span>
 <span id="456">456</span>
 <span id="457">457</span>
-<span id="458">458</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -467,7 +466,6 @@
     hello::{HelloRequest, HelloResponse},
     rpc::RequestResponseError,
 };
-<span class="kw">use </span>async_std::channel::{unbounded, Receiver, Sender};
 <span class="kw">use </span>async_std::{stream, task};
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>forest_blocks::GossipBlock;
@@ -581,10 +579,10 @@
     swarm: Swarm&lt;ForestBehaviour&gt;,
     cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
 
-    network_receiver_in: Receiver&lt;NetworkMessage&gt;,
-    network_sender_in: Sender&lt;NetworkMessage&gt;,
-    network_receiver_out: Receiver&lt;NetworkEvent&gt;,
-    network_sender_out: Sender&lt;NetworkEvent&gt;,
+    network_receiver_in: flume::Receiver&lt;NetworkMessage&gt;,
+    network_sender_in: flume::Sender&lt;NetworkMessage&gt;,
+    network_receiver_out: flume::Receiver&lt;NetworkEvent&gt;,
+    network_sender_out: flume::Sender&lt;NetworkEvent&gt;,
     network_name: String,
     bitswap_response_channels: HashMap&lt;Cid, Vec&lt;OneShotSender&lt;()&gt;&gt;&gt;,
 }
@@ -633,8 +631,8 @@
             <span class="macro">warn!</span>(<span class="string">&quot;Failed to bootstrap with Kademlia: {}&quot;</span>, e);
         }
 
-        <span class="kw">let </span>(network_sender_in, network_receiver_in) = unbounded();
-        <span class="kw">let </span>(network_sender_out, network_receiver_out) = unbounded();
+        <span class="kw">let </span>(network_sender_in, network_receiver_in) = flume::unbounded();
+        <span class="kw">let </span>(network_sender_out, network_receiver_out) = flume::unbounded();
 
         Libp2pService {
             swarm,
@@ -651,7 +649,7 @@
     <span class="doccomment">/// Starts the libp2p service networking stack. This Future resolves when shutdown occurs.
     </span><span class="kw">pub async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>swarm_stream = <span class="self">self</span>.swarm.fuse();
-        <span class="kw">let </span><span class="kw-2">mut </span>network_stream = <span class="self">self</span>.network_receiver_in.fuse();
+        <span class="kw">let </span><span class="kw-2">mut </span>network_stream = <span class="self">self</span>.network_receiver_in.stream().fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>interval = stream::interval(Duration::from_secs(<span class="number">15</span>)).fuse();
         <span class="kw">let </span>pubsub_block_str = <span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_BLOCK_STR, <span class="self">self</span>.network_name);
         <span class="kw">let </span>pubsub_msg_str = <span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_MSG_STR, <span class="self">self</span>.network_name);
@@ -844,18 +842,18 @@
     }
 
     <span class="doccomment">/// Returns a sender which allows sending messages to the libp2p service.
-    </span><span class="kw">pub fn </span>network_sender(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sender&lt;NetworkMessage&gt; {
+    </span><span class="kw">pub fn </span>network_sender(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; flume::Sender&lt;NetworkMessage&gt; {
         <span class="self">self</span>.network_sender_in.clone()
     }
 
     <span class="doccomment">/// Returns a receiver to listen to network events emitted from the service.
-    </span><span class="kw">pub fn </span>network_receiver(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Receiver&lt;NetworkEvent&gt; {
+    </span><span class="kw">pub fn </span>network_receiver(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; flume::Receiver&lt;NetworkEvent&gt; {
         <span class="self">self</span>.network_receiver_out.clone()
     }
 }
 
-<span class="kw">async fn </span>emit_event(sender: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;, event: NetworkEvent) {
-    <span class="kw">if </span>sender.send(event).<span class="kw">await</span>.is_err() {
+<span class="kw">async fn </span>emit_event(sender: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkEvent&gt;, event: NetworkEvent) {
+    <span class="kw">if </span>sender.send_async(event).<span class="kw">await</span>.is_err() {
         <span class="macro">error!</span>(<span class="string">&quot;Failed to emit event: Network channel receiver has been dropped&quot;</span>);
     }
 }

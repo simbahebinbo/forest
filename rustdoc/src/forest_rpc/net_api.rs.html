@@ -131,7 +131,7 @@
         method: NetRPCMethods::NetAddrsListen(tx),
     };
 
-    data.network_send.send(req).<span class="kw">await</span><span class="question-mark">?</span>;
+    data.network_send.send_async(req).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>(id, addrs) = rx.<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(AddrInfo {
@@ -151,7 +151,7 @@
         method: NetRPCMethods::NetPeers(tx),
     };
 
-    data.network_send.send(req).<span class="kw">await</span><span class="question-mark">?</span>;
+    data.network_send.send_async(req).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>peer_addresses = rx.<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let </span>connections = peer_addresses
@@ -181,7 +181,7 @@
         method: NetRPCMethods::NetConnect(tx, peer_id, addrs),
     };
 
-    data.network_send.send(req).<span class="kw">await</span><span class="question-mark">?</span>;
+    data.network_send.send_async(req).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>success = rx.<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">if </span>success {
@@ -207,7 +207,7 @@
         method: NetRPCMethods::NetDisconnect(tx, peer_id),
     };
 
-    data.network_send.send(req).<span class="kw">await</span><span class="question-mark">?</span>;
+    data.network_send.send_async(req).<span class="kw">await</span><span class="question-mark">?</span>;
     rx.<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
