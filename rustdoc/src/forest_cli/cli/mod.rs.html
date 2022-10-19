@@ -257,9 +257,6 @@
 <span id="257">257</span>
 <span id="258">258</span>
 <span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -305,6 +302,7 @@
 <span class="kw">use </span>rug::float::ParseFloatError;
 <span class="kw">use </span>rug::Float;
 <span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::io::{<span class="self">self</span>, Write};
 <span class="kw">use </span>std::process;
 <span class="kw">use </span>structopt::StructOpt;
@@ -372,20 +370,16 @@
 
 <span class="doccomment">/// Pretty-print a JSON-RPC error and exit
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>handle_rpc_err(e: JsonRpcError) -&gt; ! {
-    <span class="kw">match </span>e {
-        JsonRpcError::Full {
-            code,
-            message,
-            data: <span class="kw">_</span>,
-        } =&gt; {
-            <span class="macro">error!</span>(<span class="string">&quot;JSON RPC Error: Code: {} Message: {}&quot;</span>, code, message);
-            process::exit(code <span class="kw">as </span>i32);
-        }
-        JsonRpcError::Provided { code, message } =&gt; {
-            <span class="macro">error!</span>(<span class="string">&quot;JSON RPC Error: Code: {} Message: {}&quot;</span>, code, message);
-            process::exit(code <span class="kw">as </span>i32);
-        }
-    }
+    <span class="kw">let </span>(code, message) = <span class="kw">match </span>e {
+        JsonRpcError::Full { code, message, .. } =&gt; (code, Cow::from(message)),
+        JsonRpcError::Provided { code, message } =&gt; (code, Cow::from(message)),
+    };
+
+    <span class="macro">error!</span>(<span class="string">&quot;JSON RPC Error: Code: {code} Message: {message}&quot;</span>);
+
+    <span class="comment">// fail-safe in case the `code` from `JsonRpcError` is zero. We still want to quit the process
+    // with an error because, well, an error occurred if we are here.
+    </span>process::exit(code.max(<span class="number">1</span>) <span class="kw">as </span>i32);
 }
 
 <span class="doccomment">/// Format a vector to a prettified string
