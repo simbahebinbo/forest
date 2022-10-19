@@ -442,6 +442,8 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -561,7 +563,7 @@
     }
 
     <span class="doccomment">/// Set a default `KeyInfo` to the wallet
-    </span><span class="kw">pub fn </span>set_default(<span class="kw-2">&amp;mut </span><span class="self">self</span>, addr: Address) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">pub fn </span>set_default(<span class="kw-2">&amp;mut </span><span class="self">self</span>, addr: Address) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>addr_string = <span class="macro">format!</span>(<span class="string">&quot;wallet-{}&quot;</span>, addr);
         <span class="kw">let </span>key_info = <span class="self">self</span>.keystore.get(<span class="kw-2">&amp;</span>addr_string)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.keystore.get(<span class="string">&quot;default&quot;</span>).is_ok() {
@@ -572,7 +574,7 @@
     }
 
     <span class="doccomment">/// Generate a new address that fits the requirement of the given `SignatureType`
-    </span><span class="kw">pub fn </span>generate_addr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: SignatureType) -&gt; <span class="prelude-ty">Result</span>&lt;Address, Error&gt; {
+    </span><span class="kw">pub fn </span>generate_addr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: SignatureType) -&gt; anyhow::Result&lt;Address&gt; {
         <span class="kw">let </span>key = generate_key(typ)<span class="question-mark">?</span>;
         <span class="kw">let </span>addr = <span class="macro">format!</span>(<span class="string">&quot;wallet-{}&quot;</span>, key.address);
         <span class="self">self</span>.keystore.put(addr, key.key_info.clone())<span class="question-mark">?</span>;
@@ -658,7 +660,7 @@
 }
 
 <span class="doccomment">/// Import `KeyInfo` into `KeyStore`
-</span><span class="kw">pub fn </span>import(key_info: KeyInfo, keystore: <span class="kw-2">&amp;mut </span>KeyStore) -&gt; <span class="prelude-ty">Result</span>&lt;Address, Error&gt; {
+</span><span class="kw">pub fn </span>import(key_info: KeyInfo, keystore: <span class="kw-2">&amp;mut </span>KeyStore) -&gt; anyhow::Result&lt;Address&gt; {
     <span class="kw">let </span>k = Key::try_from(key_info)<span class="question-mark">?</span>;
     <span class="kw">let </span>addr = <span class="macro">format!</span>(<span class="string">&quot;wallet-{}&quot;</span>, k.address);
     keystore.put(addr, k.key_info)<span class="question-mark">?</span>;
@@ -669,6 +671,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use crate</span>::{generate, KeyStoreConfig};
+    <span class="kw">use </span>anyhow::ensure;
     <span class="kw">use </span>forest_encoding::blake2b_256;
     <span class="kw">use </span>libsecp256k1::{Message <span class="kw">as </span>SecpMessage, SecretKey <span class="kw">as </span>SecpPrivate};
 
@@ -748,7 +751,7 @@
     }
 
     <span class="attribute">#[test]
-    </span><span class="kw">fn </span>import_export() {
+    </span><span class="kw">fn </span>import_export() -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>key_vec = construct_priv_keys();
         <span class="kw">let </span>key = key_vec[<span class="number">0</span>].clone();
         <span class="kw">let </span>keystore = KeyStore::new(KeyStoreConfig::Memory).unwrap();
@@ -772,7 +775,8 @@
 
         <span class="kw">let </span>duplicate_error = wallet.import(test_key_info).unwrap_err();
         <span class="comment">// make sure that error is thrown when attempted to re-import a duplicate key_info
-        </span><span class="macro">assert_eq!</span>(duplicate_error, Error::KeyExists);
+        </span><span class="macro">ensure!</span>(duplicate_error == Error::KeyExists);
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[test]
