@@ -420,17 +420,6 @@
 <span id="420">420</span>
 <span id="421">421</span>
 <span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -469,17 +458,6 @@
     <span class="kw">pub </span>miner: Address,
     <span class="kw">pub </span>messages: Vec&lt;ChainMessage&gt;,
     <span class="kw">pub </span>win_count: i64,
-}
-
-<span class="doccomment">/// Allows generation of the current circulating supply
-/// given some context.
-</span><span class="kw">pub trait </span>CircSupplyCalc: Clone + <span class="lifetime">&#39;static </span>{
-    <span class="doccomment">/// Retrieves total circulating supply on the network.
-    </span><span class="kw">fn </span>get_supply&lt;DB: BlockStore&gt;(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        height: ChainEpoch,
-        state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt;;
 }
 
 <span class="doccomment">/// Allows the generation of a reward message based on gas fees and penalties.
@@ -547,10 +525,10 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt;
     <span class="kw">where
         </span>R: Rand + Clone + <span class="lifetime">&#39;static</span>,
-        C: CircSupplyCalc,
+        C: FnOnce(ChainEpoch, <span class="kw-2">&amp;</span>StateTree&lt;<span class="kw-2">&amp;</span>DB&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt;,
     {
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="kw-2">&amp;</span>store_arc, <span class="kw-2">&amp;</span>root)<span class="question-mark">?</span>;
-        <span class="kw">let </span>circ_supply = circ_supply_calc.get_supply(epoch, <span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
+        <span class="kw">let </span>circ_supply = circ_supply_calc(epoch, <span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>context = NetworkConfig::new(network_version).for_epoch(epoch, root);
         context.set_base_fee(base_fee);

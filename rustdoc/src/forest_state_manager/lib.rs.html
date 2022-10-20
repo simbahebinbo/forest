@@ -1439,8 +1439,6 @@
 <span id="1439">1439</span>
 <span id="1440">1440</span>
 <span id="1441">1441</span>
-<span id="1442">1442</span>
-<span id="1443">1443</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1461,9 +1459,7 @@
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::{ChainStore, HeadChange};
 <span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
-<span class="kw">use </span>forest_interpreter::{
-    resolve_to_key_addr, BlockMessages, CircSupplyCalc, Heights, RewardCalc, VM,
-};
+<span class="kw">use </span>forest_interpreter::{resolve_to_key_addr, BlockMessages, Heights, RewardCalc, VM};
 <span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::{message_receipt, ChainMessage, Message <span class="kw">as </span>MessageTrait, MessageReceipt};
@@ -1804,7 +1800,7 @@
                 <span class="kw-2">&amp;</span>rand_clone,
                 base_fee.clone(),
                 network_version,
-                <span class="self">self</span>.genesis_info.clone(),
+                |height, state| <span class="self">self</span>.genesis_info.get_circulating_supply(height, state),
                 <span class="self">self</span>.reward_calc.clone(),
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
@@ -1939,7 +1935,7 @@
                 rand,
                 <span class="number">0</span>.into(),
                 network_version,
-                <span class="self">self</span>.genesis_info.clone(),
+                |height, state| <span class="self">self</span>.genesis_info.get_circulating_supply(height, state),
                 <span class="self">self</span>.reward_calc.clone(),
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
@@ -2029,7 +2025,7 @@
             <span class="kw-2">&amp;</span>chain_rand,
             ts.blocks()[<span class="number">0</span>].parent_base_fee().clone(),
             network_version,
-            <span class="self">self</span>.genesis_info.clone(),
+            |height, state| <span class="self">self</span>.genesis_info.get_circulating_supply(height, state),
             <span class="self">self</span>.reward_calc.clone(),
             chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts)),
             <span class="self">self</span>.engine
@@ -2827,7 +2823,7 @@
         height: ChainEpoch,
         state_tree: <span class="kw-2">&amp;</span>StateTree&lt;<span class="kw-2">&amp;</span>DB&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
-        <span class="self">self</span>.genesis_info.get_supply(height, state_tree)
+        <span class="self">self</span>.genesis_info.get_circulating_supply(height, state_tree)
     }
 
     <span class="doccomment">/// Return the state of Market Actor.
