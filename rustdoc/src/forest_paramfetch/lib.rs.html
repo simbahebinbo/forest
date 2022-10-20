@@ -194,7 +194,6 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
-<span id="197">197</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -208,7 +207,6 @@
 <span class="kw">use </span>std::io::{<span class="self">self</span>, copy <span class="kw">as </span>sync_copy, BufReader <span class="kw">as </span>SyncBufReader, ErrorKind};
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>surf::Client;
 <span class="kw">use </span>tokio::fs::{<span class="self">self</span>, File};
 <span class="kw">use </span>tokio::io::{copy, BufWriter};
 <span class="kw">use </span>tokio_util::compat::FuturesAsyncReadCompatExt;
@@ -351,7 +349,7 @@
 
     <span class="kw">let </span>url = <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, gw, info.cid);
 
-    <span class="kw">let </span>client = Client::new();
+    <span class="kw">let </span>client: surf::Client = surf::Config::default().set_timeout(<span class="prelude-val">None</span>).try_into()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>req = client.get(url.as_str());
 

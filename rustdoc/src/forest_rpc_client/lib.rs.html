@@ -201,6 +201,9 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -358,13 +361,16 @@
 
     <span class="macro">debug!</span>(<span class="string">&quot;Using JSON-RPC v2 HTTP URL: {}&quot;</span>, api_url);
 
+    <span class="kw">let </span>client: surf::Client = surf::Config::default().set_timeout(<span class="prelude-val">None</span>).try_into()<span class="question-mark">?</span>;
     <span class="comment">// Split the JWT off if present, format multiaddress as URL, then post RPC request to URL
     </span><span class="kw">let </span><span class="kw-2">mut </span>http_res = <span class="kw">match </span>api_info.token.to_owned() {
-        <span class="prelude-val">Some</span>(jwt) =&gt; surf::post(api_url)
+        <span class="prelude-val">Some</span>(jwt) =&gt; client
+            .post(api_url)
             .content_type(<span class="string">&quot;application/json-rpc&quot;</span>)
             .body(surf::Body::from_json(<span class="kw-2">&amp;</span>rpc_req)<span class="question-mark">?</span>)
             .header(<span class="string">&quot;Authorization&quot;</span>, jwt),
-        <span class="prelude-val">None </span>=&gt; surf::post(api_url)
+        <span class="prelude-val">None </span>=&gt; client
+            .post(api_url)
             .content_type(<span class="string">&quot;application/json-rpc&quot;</span>)
             .body(surf::Body::from_json(<span class="kw-2">&amp;</span>rpc_req)<span class="question-mark">?</span>),
     }
