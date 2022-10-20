@@ -543,6 +543,50 @@
 <span id="543">543</span>
 <span id="544">544</span>
 <span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -597,6 +641,50 @@
         <span class="comment">// XXX: Support random generation of tipsets with multiple blocks.
         </span><span class="kw">let </span>first_header = BlockHeader::arbitrary(g);
         Tipset::new(<span class="macro">vec!</span>[first_header]).unwrap()
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>property_tests {
+    <span class="kw">use </span><span class="kw">super</span>::tipset_json::{TipsetJson, TipsetJsonRef};
+    <span class="kw">use </span><span class="kw">super</span>::tipset_keys_json::TipsetKeysJson;
+    <span class="kw">use super</span>::{Tipset, TipsetKeys};
+    <span class="kw">use </span>cid::Cid;
+    <span class="kw">use </span>quickcheck_macros::quickcheck;
+    <span class="kw">use </span>serde_json;
+
+    <span class="attribute">#[derive(Clone)]
+    </span><span class="kw">struct </span>ArbitraryCid(Cid);
+
+    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>ArbitraryCid {
+        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+            ArbitraryCid(Cid::new_v1(
+                u64::arbitrary(g),
+                cid::multihash::Multihash::wrap(u64::arbitrary(g), <span class="kw-2">&amp;</span>[u8::arbitrary(g)]).unwrap(),
+            ))
+        }
+    }
+
+    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>TipsetKeys {
+        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>arbitrary_cids: Vec&lt;ArbitraryCid&gt; = Vec::arbitrary(g);
+            <span class="kw">let </span>cids: Vec&lt;Cid&gt; = arbitrary_cids.iter().map(|cid| cid.<span class="number">0</span>).collect();
+            <span class="self">Self </span>{ cids }
+        }
+    }
+
+    <span class="attribute">#[quickcheck]
+    </span><span class="kw">fn </span>tipset_keys_roundtrip(tipset_keys: TipsetKeys) {
+        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>TipsetKeysJson(tipset_keys.clone())).unwrap();
+        <span class="kw">let </span>parsed: TipsetKeysJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
+        <span class="macro">assert_eq!</span>(tipset_keys, parsed.<span class="number">0</span>);
+    }
+
+    <span class="attribute">#[quickcheck]
+    </span><span class="kw">fn </span>tipset_roundtrip(tipset: Tipset) {
+        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>TipsetJsonRef(<span class="kw-2">&amp;</span>tipset)).unwrap();
+        <span class="kw">let </span>parsed: TipsetJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>tipset, parsed.<span class="number">0</span>.as_ref());
     }
 }
 
