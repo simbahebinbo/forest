@@ -364,11 +364,25 @@
 <span id="364">364</span>
 <span id="365">365</span>
 <span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, handle_rpc_err, snapshot_fetch::snapshot_fetch};
+<span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
 <span class="kw">use </span>regex::Regex;
@@ -679,8 +693,20 @@
         .clone()
         .unwrap_or_else(|| default_snapshot_dir(config));
     <span class="macro">println!</span>(<span class="string">&quot;Snapshot dir: {}&quot;</span>, snapshot_dir.display());
-    <span class="kw">let </span>snapshots_to_delete: Vec&lt;<span class="kw">_</span>&gt; = fs::read_dir(snapshot_dir)<span class="question-mark">?
-        </span>.flatten()
+
+    <span class="kw">let </span>read_dir = <span class="kw">match </span>fs::read_dir(snapshot_dir) {
+        <span class="prelude-val">Ok</span>(read_dir) =&gt; read_dir,
+        <span class="comment">// basically have the same behaviour as in `rm -f` which doesn&#39;t fail if the target
+        // directory doesn&#39;t exist.
+        </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="kw">if </span>force =&gt; {
+            <span class="macro">println!</span>(<span class="string">&quot;Target directory not accessible. Skipping.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
+        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">bail!</span>(e),
+    };
+
+    <span class="kw">let </span>snapshots_to_delete: Vec&lt;<span class="kw">_</span>&gt; = read_dir
+        .flatten()
         .map(|entry| entry.path())
         .filter(|p| p.extension().unwrap_or_default() == <span class="string">&quot;car&quot;</span>)
         .collect();
