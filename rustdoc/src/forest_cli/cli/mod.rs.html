@@ -257,6 +257,16 @@
 <span id="257">257</span>
 <span id="258">258</span>
 <span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -297,6 +307,7 @@
 <span class="kw">use </span>byte_unit::Byte;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::FILECOIN_PRECISION;
+<span class="kw">use </span>http::StatusCode;
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>rug::float::ParseFloatError;
@@ -375,7 +386,16 @@
         JsonRpcError::Provided { code, message } =&gt; (code, Cow::from(message)),
     };
 
-    <span class="macro">error!</span>(<span class="string">&quot;JSON RPC Error: Code: {code} Message: {message}&quot;</span>);
+    <span class="kw">match </span>StatusCode::from_u16(
+        u16::try_from(code).expect(<span class="string">&quot;Normalized HTTP status codes are always under u16::MAX&quot;</span>),
+    ) {
+        <span class="prelude-val">Ok</span>(reason) =&gt; {
+            <span class="macro">error!</span>(<span class="string">&quot;JSON RPC Error: Code: {reason} Message: {message}&quot;</span>)
+        }
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+            <span class="macro">error!</span>(<span class="string">&quot;JSON RPC Error: Code: {code} Message: {message}&quot;</span>)
+        }
+    };
 
     <span class="comment">// fail-safe in case the `code` from `JsonRpcError` is zero. We still want to quit the process
     // with an error because, well, an error occurred if we are here.
