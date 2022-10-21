@@ -264,6 +264,7 @@
 <span id="264">264</span>
 <span id="265">265</span>
 <span id="266">266</span>
+<span id="267">267</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -274,10 +275,11 @@
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconEntry, BeaconSchedule, DrandBeacon};
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::ChainStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_encoding::blake2b_256;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>fvm::externs::Rand;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>std::io::Write;
 <span class="kw">use </span>std::sync::Arc;
@@ -303,7 +305,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; ChainRand&lt;DB&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub fn </span>new(
         chain_config: Arc&lt;ChainConfig&gt;,
@@ -490,7 +492,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; Rand <span class="kw">for </span>ChainRand&lt;DB&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">fn </span>get_chain_randomness(
         <span class="kw-2">&amp;</span><span class="self">self</span>,

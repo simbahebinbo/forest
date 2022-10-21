@@ -207,18 +207,20 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
+<span id="210">210</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::gas_api::estimate_message_gas;
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_blocks::TipsetKeys;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::cid::{vec::CidJsonVec, CidJson};
 <span class="kw">use </span>forest_message::message::json::MessageJson;
 <span class="kw">use </span>forest_message::{signed_message::json::SignedMessageJson, SignedMessage};
 <span class="kw">use </span>forest_rpc_api::data_types::RPCState;
 <span class="kw">use </span>forest_rpc_api::mpool_api::<span class="kw-2">*</span>;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::{Address, Protocol};
 
@@ -232,7 +234,7 @@
     Params(params): Params&lt;MpoolEstimateGasPriceParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolEstimateGasPriceResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(nblocks, sender_str, gas_limit, tsk) = params;
@@ -249,7 +251,7 @@
     Params(params): Params&lt;MpoolGetNonceParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolGetNonceResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(addr_str,) = params;
@@ -264,7 +266,7 @@
     Params(params): Params&lt;MpoolPendingParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolPendingResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(CidJsonVec(cid_vec),) = params;
@@ -329,7 +331,7 @@
     Params(params): Params&lt;MpoolPushParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolPushResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(SignedMessageJson(smsg),) = params;
@@ -345,7 +347,7 @@
     Params(params): Params&lt;MpoolPushMessageParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolPushMessageResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(MessageJson(umsg), spec) = params;
@@ -401,7 +403,7 @@
     Params(params): Params&lt;MpoolSelectParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolSelectResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(tsk, q) = params;

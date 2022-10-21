@@ -568,6 +568,7 @@
 <span id="568">568</span>
 <span id="569">569</span>
 <span id="570">570</span>
+<span id="571">571</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -575,7 +576,8 @@
 <span class="kw">use crate</span>::{bmap_bytes, init_sized_vec, nodes_for_height, Error};
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>forest_encoding::cs_serde_bytes;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::BytesSer;
 <span class="kw">use </span>once_cell::unsync::OnceCell;
 <span class="kw">use </span>serde::{
@@ -756,7 +758,7 @@
     }
 
     <span class="doccomment">/// Flushes cache for node, replacing any cached values with a Cid variant
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>flush&lt;DB: BlockStore&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bs: <span class="kw-2">&amp;</span>DB) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>flush&lt;DB: Blockstore&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bs: <span class="kw-2">&amp;</span>DB) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">if let </span>Node::Link { links } = <span class="self">self </span>{
             <span class="kw">for </span>link <span class="kw">in </span>links.iter_mut().flatten() {
                 <span class="comment">// links should only be flushed if the bitmap is set.
@@ -805,7 +807,7 @@
     }
 
     <span class="doccomment">/// Gets value at given index of Amt given height
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get&lt;DB: BlockStore&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get&lt;DB: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         bs: <span class="kw-2">&amp;</span>DB,
         height: usize,
@@ -844,7 +846,7 @@
     }
 
     <span class="doccomment">/// Set value in node
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set&lt;DB: BlockStore&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>set&lt;DB: Blockstore&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bs: <span class="kw-2">&amp;</span>DB,
         height: usize,
@@ -914,7 +916,7 @@
     }
 
     <span class="doccomment">/// Delete value in Amt by index
-    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>delete&lt;DB: BlockStore&gt;(
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>delete&lt;DB: Blockstore&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bs: <span class="kw-2">&amp;</span>DB,
         height: usize,
@@ -996,7 +998,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;
     <span class="kw">where
         </span>F: FnMut(usize, <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;,
-        S: BlockStore,
+        S: Blockstore,
     {
         <span class="kw">match </span><span class="self">self </span>{
             Node::Leaf { vals } =&gt; {
@@ -1055,7 +1057,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(bool, bool), Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;
     <span class="kw">where
         </span>F: FnMut(usize, <span class="kw-2">&amp;mut </span>ValueMut&lt;<span class="lifetime">&#39;_</span>, V&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;,
-        S: BlockStore,
+        S: Blockstore,
     {
         <span class="kw">let </span><span class="kw-2">mut </span>did_mutate = <span class="bool-val">false</span>;
 

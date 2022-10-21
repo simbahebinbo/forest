@@ -95,6 +95,7 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
+<span id="98">98</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -104,7 +105,8 @@
 
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset};
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 
 <span class="kw">use </span><span class="kw">super</span>::Error;
@@ -117,7 +119,7 @@
     db: DB,
 }
 
-<span class="kw">impl</span>&lt;DB: BlockStore&gt; TipsetTracker&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB: Blockstore&gt; TipsetTracker&lt;DB&gt; {
     <span class="kw">pub fn </span>new(db: DB) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             entries: Default::default(),

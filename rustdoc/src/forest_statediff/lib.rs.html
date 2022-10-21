@@ -500,9 +500,9 @@
 <span class="kw">use </span>colored::<span class="kw-2">*</span>;
 <span class="kw">use </span>difference::{Changeset, Difference};
 <span class="kw">use </span>forest_ipld::json::{IpldJson, IpldJsonRef};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 <span class="kw">use </span>resolve::resolve_cids_recursive;
@@ -785,7 +785,7 @@
 }
 
 <span class="kw">fn </span>actor_to_resolved(
-    bs: <span class="kw-2">&amp;</span><span class="kw">impl </span>BlockStore,
+    bs: <span class="kw-2">&amp;</span><span class="kw">impl </span>Blockstore,
     actor: <span class="kw-2">&amp;</span>ActorState,
     depth: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 ) -&gt; ActorStateResolved {
@@ -799,7 +799,7 @@
     }
 }
 
-<span class="kw">fn </span>root_to_state_map&lt;BS: BlockStore&gt;(
+<span class="kw">fn </span>root_to_state_map&lt;BS: Blockstore&gt;(
     bs: <span class="kw-2">&amp;</span>BS,
     root: <span class="kw-2">&amp;</span>Cid,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;HashMap&lt;Address, ActorState&gt;, anyhow::Error&gt; {
@@ -817,7 +817,7 @@
 /// The actors HAMT is hard to parse in a diff, so this attempts to remedy this.
 /// This function will only print the actors that are added, removed, or changed so it
 /// can be used on large state trees.
-</span><span class="kw">fn </span>try_print_actor_states&lt;BS: BlockStore&gt;(
+</span><span class="kw">fn </span>try_print_actor_states&lt;BS: Blockstore&gt;(
     bs: <span class="kw-2">&amp;</span>BS,
     root: <span class="kw-2">&amp;</span>Cid,
     expected_root: <span class="kw-2">&amp;</span>Cid,
@@ -863,7 +863,7 @@
 }
 
 <span class="kw">fn </span>pp_actor_state(
-    bs: <span class="kw-2">&amp;</span><span class="kw">impl </span>BlockStore,
+    bs: <span class="kw-2">&amp;</span><span class="kw">impl </span>Blockstore,
     state: <span class="kw-2">&amp;</span>ActorState,
     depth: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, anyhow::Error&gt; {
@@ -926,7 +926,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub fn </span>print_actor_diff&lt;BS: BlockStore&gt;(
+<span class="kw">pub fn </span>print_actor_diff&lt;BS: Blockstore&gt;(
     bs: <span class="kw-2">&amp;</span>BS,
     expected: <span class="kw-2">&amp;</span>ActorState,
     actual: <span class="kw-2">&amp;</span>ActorState,
@@ -951,7 +951,7 @@
     depth: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: BlockStore,
+    </span>BS: Blockstore,
 {
     <span class="macro">eprintln!</span>(
         <span class="string">&quot;StateDiff:\n  Expected: {}\n  Root: {}&quot;</span>,

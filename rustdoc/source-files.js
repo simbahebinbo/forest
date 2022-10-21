@@ -18,7 +18,6 @@ var sourcesIndex = JSON.parse('{\
 "forest_genesis":["",[],["lib.rs"]],\
 "forest_interpreter":["",[["fvm",[],["externs.rs","mod.rs"]]],["default_runtime.rs","lib.rs","vm.rs"]],\
 "forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["error.rs","json.rs","lib.rs","util.rs"]],\
-"forest_ipld_blockstore":["",[],["lib.rs"]],\
 "forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","sector.rs"]],\
 "forest_key_management":["",[],["errors.rs","keystore.rs","lib.rs","wallet.rs","wallet_helpers.rs"]],\
 "forest_legacy_ipld_amt":["",[],["amt.rs","error.rs","lib.rs","node.rs","root.rs","value_mut.rs"]],\
@@ -35,7 +34,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\
 "forest_test_utils":["",[],["chain_structures.rs","lib.rs"]],\
-"forest_utils":["",[["io",[],["mod.rs","writer_checksum.rs"]],["json",[],["mod.rs"]],["macros",[],["mod.rs"]],["net",[],["download.rs","mod.rs"]]],["lib.rs"]],\
+"forest_utils":["",[["db",[],["mod.rs"]],["io",[],["mod.rs","writer_checksum.rs"]],["json",[],["mod.rs"]],["macros",[],["mod.rs"]],["net",[],["download.rs","mod.rs"]]],["lib.rs"]],\
 "serialization_tests":["",[],["lib.rs"]]\
 }');
 createSourceSidebar();

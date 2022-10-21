@@ -109,15 +109,17 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, Tipset};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 
 <span class="kw">use </span><span class="kw">crate</span>::DelegatedConsensusError;
@@ -129,7 +131,7 @@
 /// * Sanity checks
 /// * Timestamps
 /// * The block was proposed by the only only miner eligible
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>validate_block&lt;DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>&gt;(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>validate_block&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>&gt;(
     chosen_one: <span class="kw-2">&amp;</span>Address,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     block: Arc&lt;Block&gt;,
@@ -201,7 +203,7 @@
     chosen_one: <span class="kw-2">&amp;</span>Address,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;DelegatedConsensusError&gt;&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">use </span>DelegatedConsensusError::<span class="kw-2">*</span>;
     <span class="kw">let </span>miner_addr = header.miner_address();

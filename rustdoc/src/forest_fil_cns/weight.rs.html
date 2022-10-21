@@ -63,8 +63,8 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>forest_actor_interface::power;
 <span class="kw">use </span>forest_blocks::Tipset;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>fvm::state_tree::StateTree;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::bigint::{BigInt, Integer};
 <span class="kw">use </span>num_traits::Zero;
 
@@ -80,7 +80,7 @@
 /// and calculate the total weight of the [Tipset].
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>weight&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, String&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">let </span>state = StateTree::new_from_root(db, ts.parent_state()).map_err(|e| e.to_string())<span class="question-mark">?</span>;
 

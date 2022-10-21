@@ -204,11 +204,11 @@
 
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_chain::headchange_json::SubscriptionHeadChange;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_rpc_api::{
     chain_api::<span class="kw-2">*</span>,
     data_types::{JsonRpcServerState, StreamingData},
 };
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 
 <span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc, call_rpc_str, check_permissions, get_auth_header, get_error_str};
 
@@ -220,7 +220,7 @@
     ws_sender: WebSocketConnection,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>call_method = rpc_call.method_ref();
@@ -308,7 +308,7 @@
     <span class="kw-2">mut </span>ws_stream: WebSocketConnection,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(authorization_header, request) = get_auth_header(request);

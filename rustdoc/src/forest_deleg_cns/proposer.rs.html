@@ -161,6 +161,7 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
+<span id="164">164</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>anyhow::anyhow;
@@ -177,10 +178,11 @@
 <span class="kw">use </span>forest_blocks::{BlockHeader, GossipBlock, Tipset};
 <span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_chain_sync::consensus::{MessagePoolApi, Proposer, SyncGossipSubmitter};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_key_management::Key;
 <span class="kw">use </span>forest_networks::Height;
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 
 <span class="kw">use </span><span class="kw">crate</span>::DelegatedConsensus;
@@ -215,7 +217,7 @@
         base: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
     ) -&gt; anyhow::Result&lt;GossipBlock&gt;
     <span class="kw">where
-        </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+        </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>block_delay = state_manager.chain_config().block_delay_secs;
         <span class="kw">let </span>smoke_height = state_manager.chain_config().epoch(Height::Smoke);
@@ -267,7 +269,7 @@
         submitter: SyncGossipSubmitter,
     ) -&gt; anyhow::Result&lt;Vec&lt;JoinHandle&lt;()&gt;&gt;&gt;
     <span class="kw">where
-        </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+        </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
         MP: MessagePoolApi + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>running = task::spawn(<span class="kw">async move </span>{
@@ -287,7 +289,7 @@
         submitter: <span class="kw-2">&amp;</span>SyncGossipSubmitter,
     ) -&gt; anyhow::Result&lt;()&gt;
     <span class="kw">where
-        </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+        </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
         MP: MessagePoolApi + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// TODO: Ideally these should not be coming through the `StateManager`.

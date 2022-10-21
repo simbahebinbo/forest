@@ -227,13 +227,15 @@
 <span id="227">227</span>
 <span id="228">228</span>
 <span id="229">229</span>
+<span id="230">230</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::{ChainStore, Error <span class="kw">as </span>ChainError};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>log::debug;
 <span class="kw">use </span>std::collections::HashMap;
 
@@ -248,7 +250,7 @@
     request: <span class="kw-2">&amp;</span>ChainExchangeRequest,
 ) -&gt; ChainExchangeResponse
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>response_chain: Vec&lt;TipsetBundle&gt; = Vec::with_capacity(request.request_len <span class="kw">as </span>usize);
 
@@ -319,7 +321,7 @@
 <span class="comment">// Builds CompactedMessages for given Tipset.
 </span><span class="kw">fn </span>compact_messages&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, tipset: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;CompactedMessages, ChainError&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore + Store + Clone,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>bls_messages_order = HashMap::new();
     <span class="kw">let </span><span class="kw-2">mut </span>secp_messages_order = HashMap::new();

@@ -316,6 +316,7 @@
 <span id="316">316</span>
 <span id="317">317</span>
 <span id="318">318</span>
+<span id="319">319</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -323,7 +324,6 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{FullTipset, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_encoding::de::DeserializeOwned;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_libp2p::{
     chain_exchange::{
         ChainExchangeRequest, ChainExchangeResponse, CompactedMessages, TipsetBundle, HEADERS,
@@ -333,7 +333,9 @@
     rpc::RequestResponseError,
     NetworkMessage, PeerId,
 };
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>futures::channel::oneshot::channel <span class="kw">as </span>oneshot_channel;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>log::{debug, trace, warn};
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::sync::Arc;
@@ -369,7 +371,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; SyncNetworkContext&lt;DB&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub fn </span>new(
         network_send: flume::Sender&lt;NetworkMessage&gt;,

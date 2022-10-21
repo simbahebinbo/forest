@@ -159,10 +159,10 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::FilterEstimate;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime_v8::runtime::Policy;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStoreExt;
 <span class="kw">use </span>forest_json::bigint::json;
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm::state_tree::ActorState;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::sector::StoragePower;
@@ -212,7 +212,7 @@
 <span class="kw">impl </span>State {
     <span class="kw">pub fn </span>load&lt;BS&gt;(store: <span class="kw-2">&amp;</span>BS, actor: <span class="kw-2">&amp;</span>ActorState) -&gt; anyhow::Result&lt;State&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="kw">if </span>is_v8_power_cid(<span class="kw-2">&amp;</span>actor.code) {
             <span class="kw">return </span>store
@@ -248,7 +248,7 @@
     }
 
     <span class="doccomment">/// Loads power for a given miner, if exists.
-    </span><span class="kw">pub fn </span>miner_power&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>miner_power&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         s: <span class="kw-2">&amp;</span>BS,
         miner: <span class="kw-2">&amp;</span>Address,
@@ -259,12 +259,12 @@
     }
 
     <span class="doccomment">/// Loads power for a given miner, if exists.
-    </span><span class="kw">pub fn </span>list_all_miners&lt;BS: BlockStore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _s: <span class="kw-2">&amp;</span>BS) -&gt; anyhow::Result&lt;Vec&lt;Address&gt;&gt; {
+    </span><span class="kw">pub fn </span>list_all_miners&lt;BS: Blockstore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _s: <span class="kw-2">&amp;</span>BS) -&gt; anyhow::Result&lt;Vec&lt;Address&gt;&gt; {
         <span class="macro">unimplemented!</span>()
     }
 
     <span class="doccomment">/// Checks power actor state for if miner meets minimum consensus power.
-    </span><span class="kw">pub fn </span>miner_nominal_power_meets_consensus_minimum&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>miner_nominal_power_meets_consensus_minimum&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         policy: <span class="kw-2">&amp;</span>Policy,
         s: <span class="kw-2">&amp;</span>BS,

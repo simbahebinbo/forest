@@ -59,13 +59,13 @@
 <span class="kw">use </span>tide::http::{format_err, Error <span class="kw">as </span>HttpError, Method};
 
 <span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 
 <span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc_str, check_permissions, get_auth_header, is_streaming_method};
 
 <span class="kw">pub async fn </span>rpc_http_handler&lt;DB, B&gt;(request: tide::Request&lt;JsonRpcServerState&gt;) -&gt; tide::Result
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(auth_header, <span class="kw-2">mut </span>request) = get_auth_header(request);

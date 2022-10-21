@@ -123,6 +123,8 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -133,11 +135,13 @@
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_blocks::TipsetKeys;
 <span class="kw">use </span>forest_chain::HeadChange;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
 <span class="kw">use </span>forest_networks::Height;
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::message::Message;
@@ -180,11 +184,11 @@
 
 <span class="kw">impl</span>&lt;DB&gt; MpoolRpcProvider&lt;DB&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Sync + Send,
+    </span>DB: Blockstore + Store + Clone + Sync + Send,
 {
     <span class="kw">pub fn </span>new(subscriber: Publisher&lt;HeadChange&gt;, sm: Arc&lt;StateManager&lt;DB&gt;&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>DB: BlockStore,
+        </span>DB: Blockstore + Store + Clone,
     {
         MpoolRpcProvider { subscriber, sm }
     }
@@ -193,7 +197,7 @@
 <span class="attribute">#[async_trait]
 </span><span class="kw">impl</span>&lt;DB&gt; Provider <span class="kw">for </span>MpoolRpcProvider&lt;DB&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">async fn </span>subscribe_head_changes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Subscriber&lt;HeadChange&gt; {
         <span class="self">self</span>.subscriber.subscribe()

@@ -151,6 +151,7 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>anyhow::anyhow;
@@ -168,9 +169,10 @@
 <span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_chain::Weight;
 <span class="kw">use </span>forest_chain_sync::consensus::Consensus;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_state_manager::Error <span class="kw">as </span>StateManagerError;
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Error <span class="kw">as </span>ForestEncodingError;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
@@ -253,7 +255,7 @@
         state_manager: <span class="kw-2">&amp;</span>Arc&lt;StateManager&lt;DB&gt;&gt;,
     ) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;DelegatedProposer&gt;&gt;
     <span class="kw">where
-        </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+        </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>genesis = state_manager.chain_store().genesis()<span class="question-mark">?</span>;
         <span class="kw">let </span>genesis = genesis.ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;Genesis not set!&quot;</span>))<span class="question-mark">?</span>;
@@ -276,7 +278,7 @@
 <span class="kw">impl </span>Scale <span class="kw">for </span>DelegatedConsensus {
     <span class="kw">fn </span>weight&lt;DB&gt;(<span class="kw">_</span>: <span class="kw-2">&amp;</span>DB, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; anyhow::Result&lt;Weight&gt;
     <span class="kw">where
-        </span>DB: BlockStore,
+        </span>DB: Blockstore,
     {
         <span class="kw">let </span>header = ts.blocks().first().expect(<span class="string">&quot;Tipset is never empty.&quot;</span>);
         <span class="comment">// We don&#39;t have a height, only epoch, which is not exactly the same as there can be &quot;null&quot; epochs
@@ -297,7 +299,7 @@
         block: Arc&lt;Block&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), NonEmpty&lt;<span class="self">Self</span>::Error&gt;&gt;
     <span class="kw">where
-        </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+        </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">crate</span>::validation::validate_block(<span class="kw-2">&amp;</span><span class="self">self</span>.chosen_one, state_manager, block)
             .<span class="kw">await

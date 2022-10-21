@@ -88,12 +88,14 @@
 <span id="88">88</span>
 <span id="89">89</span>
 <span id="90">90</span>
+<span id="91">91</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm::state_tree::ActorState;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>serde::Serialize;
 
@@ -129,7 +131,7 @@
 <span class="kw">impl </span>State {
     <span class="kw">pub fn </span>load&lt;BS&gt;(store: <span class="kw-2">&amp;</span>BS, actor: <span class="kw-2">&amp;</span>ActorState) -&gt; anyhow::Result&lt;State&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="kw">if </span>is_v8_init_cid(<span class="kw-2">&amp;</span>actor.code) {
             <span class="kw">return </span>store
@@ -142,7 +144,7 @@
 
     <span class="doccomment">/// Allocates a new ID address and stores a mapping of the argument address to it.
     /// Returns the newly-allocated address.
-    </span><span class="kw">pub fn </span>map_address_to_new_id&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>map_address_to_new_id&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         store: <span class="kw-2">&amp;</span>BS,
         addr: <span class="kw-2">&amp;</span>Address,
@@ -162,7 +164,7 @@
     /// Returns an undefined address and `false` if the address was not an ID-address and not found
     /// in the mapping.
     /// Returns an error only if state was inconsistent.
-    </span><span class="kw">pub fn </span>resolve_address&lt;BS: BlockStore&gt;(
+    </span><span class="kw">pub fn </span>resolve_address&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         store: <span class="kw-2">&amp;</span>BS,
         addr: <span class="kw-2">&amp;</span>Address,

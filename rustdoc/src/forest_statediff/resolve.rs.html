@@ -59,12 +59,14 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
+<span id="62">62</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::DAG_CBOR;
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 
@@ -75,7 +77,7 @@
     depth: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Ipld, anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: BlockStore,
+    </span>BS: Blockstore,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>ipld = bs
         .get_obj(cid)<span class="question-mark">?
@@ -89,7 +91,7 @@
 <span class="doccomment">/// Resolves [`Ipld`] links recursively, building an [`Ipld`] structure with no hash links.
 </span><span class="kw">fn </span>resolve_ipld&lt;BS&gt;(bs: <span class="kw-2">&amp;</span>BS, ipld: <span class="kw-2">&amp;mut </span>Ipld, <span class="kw-2">mut </span>depth: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: BlockStore,
+    </span>BS: Blockstore,
 {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(dep) = depth.as_mut() {
         <span class="kw">if </span><span class="kw-2">*</span>dep == <span class="number">0 </span>{

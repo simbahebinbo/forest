@@ -455,6 +455,8 @@
 <span id="455">455</span>
 <span id="456">456</span>
 <span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -470,12 +472,14 @@
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>forest_blocks::GossipBlock;
 <span class="kw">use </span>forest_chain::ChainStore;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_message::SignedMessage;
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::io::read_file_to_vec;
 <span class="kw">use </span>futures::channel::oneshot::Sender <span class="kw">as </span>OneShotSender;
 <span class="kw">use </span>futures::select;
 <span class="kw">use </span>futures_util::stream::StreamExt;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::from_slice;
 <span class="kw">pub use </span>libp2p::gossipsub::IdentTopic;
 <span class="kw">pub use </span>libp2p::gossipsub::Topic;
@@ -589,7 +593,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; Libp2pService&lt;DB&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub async fn </span>new(
         config: Libp2pConfig,

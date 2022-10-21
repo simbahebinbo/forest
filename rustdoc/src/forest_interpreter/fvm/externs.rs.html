@@ -310,6 +310,7 @@
 <span id="310">310</span>
 <span id="311">311</span>
 <span id="312">312</span>
+<span id="313">313</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -317,11 +318,12 @@
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::BlockHeader;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>fvm::externs::{Consensus, Externs, Rand};
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas, GasTracker};
 <span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::tracking::{BSStats, TrackingBlockstore};
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -339,7 +341,7 @@
     chain_finality: i64,
 }
 
-<span class="kw">impl</span>&lt;DB: BlockStore&gt; ForestExterns&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB: Blockstore + Store&gt; ForestExterns&lt;DB&gt; {
     <span class="kw">pub fn </span>new(
         rand: <span class="kw">impl </span>Rand + <span class="lifetime">&#39;static</span>,
         epoch: ChainEpoch,
@@ -405,7 +407,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;DB: BlockStore&gt; Externs <span class="kw">for </span>ForestExterns&lt;DB&gt; {}
+<span class="kw">impl</span>&lt;DB: Blockstore + Store&gt; Externs <span class="kw">for </span>ForestExterns&lt;DB&gt; {}
 
 <span class="kw">impl</span>&lt;DB&gt; Rand <span class="kw">for </span>ForestExterns&lt;DB&gt; {
     <span class="kw">fn </span>get_chain_randomness(
@@ -427,7 +429,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;DB: BlockStore&gt; Consensus <span class="kw">for </span>ForestExterns&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB: Blockstore + Store&gt; Consensus <span class="kw">for </span>ForestExterns&lt;DB&gt; {
     <span class="kw">fn </span>verify_consensus_fault(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         h1: <span class="kw-2">&amp;</span>[u8],

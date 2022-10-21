@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["BlockstoreExt","Extension methods for inserting and retrieving IPLD data with CIDs"]]};

@@ -27,8 +27,8 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_ipld_blockstore::BlockStore;
-<span class="kw">use </span>fvm::state_tree::ActorState;
+</span><span class="kw">use </span>fvm::state_tree::ActorState;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>serde::Serialize;
 
 <span class="doccomment">/// Multisig actor method.
@@ -42,7 +42,7 @@
 <span class="kw">impl </span>State {
     <span class="kw">pub fn </span>load&lt;BS&gt;(_store: <span class="kw-2">&amp;</span>BS, actor: <span class="kw-2">&amp;</span>ActorState) -&gt; anyhow::Result&lt;State&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
             <span class="string">&quot;Unknown multisig actor code {}&quot;</span>,

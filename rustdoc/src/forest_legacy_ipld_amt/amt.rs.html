@@ -381,6 +381,8 @@
 <span id="381">381</span>
 <span id="382">382</span>
 <span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -391,8 +393,10 @@
     nodes_for_height, Error, Node, Root, MAX_HEIGHT, MAX_INDEX,
 };
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_encoding::{de::DeserializeOwned, ser::Serialize};
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>itertools::sorted;
 <span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 
@@ -423,7 +427,7 @@
     block_store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;db </span>BS,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, V: PartialEq, BS: BlockStore&gt; PartialEq <span class="kw">for </span>Amt&lt;<span class="lifetime">&#39;a</span>, V, BS&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, V: PartialEq, BS: Blockstore + Store + Clone&gt; PartialEq <span class="kw">for </span>Amt&lt;<span class="lifetime">&#39;a</span>, V, BS&gt; {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="self">self</span>.root == other.root
     }
@@ -432,7 +436,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;db</span>, V, BS&gt; Amt&lt;<span class="lifetime">&#39;db</span>, V, BS&gt;
 <span class="kw">where
     </span>V: DeserializeOwned + Serialize,
-    BS: BlockStore,
+    BS: Blockstore,
 {
     <span class="doccomment">/// Constructor for Root AMT node
     </span><span class="kw">pub fn </span>new(block_store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;db </span>BS) -&gt; <span class="self">Self </span>{

@@ -194,13 +194,15 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_json::bigint::json;
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm::state_tree::ActorState;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -241,7 +243,7 @@
 <span class="kw">impl </span>State {
     <span class="kw">pub fn </span>load&lt;BS&gt;(store: <span class="kw-2">&amp;</span>BS, actor: <span class="kw-2">&amp;</span>ActorState) -&gt; anyhow::Result&lt;State&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="kw">if </span>is_v8_market_cid(<span class="kw-2">&amp;</span>actor.code) {
             <span class="kw">return </span>store
@@ -255,7 +257,7 @@
     <span class="doccomment">/// Loads escrow table
     </span><span class="kw">pub fn </span>escrow_table&lt;<span class="lifetime">&#39;bs</span>, BS&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bs </span>BS) -&gt; anyhow::Result&lt;BalanceTable&lt;<span class="lifetime">&#39;bs</span>, BS&gt;&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="macro">unimplemented!</span>()
     }
@@ -263,7 +265,7 @@
     <span class="doccomment">/// Loads locked funds table
     </span><span class="kw">pub fn </span>locked_table&lt;<span class="lifetime">&#39;bs</span>, BS&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bs </span>BS) -&gt; anyhow::Result&lt;BalanceTable&lt;<span class="lifetime">&#39;bs</span>, BS&gt;&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="macro">unimplemented!</span>()
     }
@@ -271,7 +273,7 @@
     <span class="doccomment">/// Deal proposals
     </span><span class="kw">pub fn </span>proposals&lt;<span class="lifetime">&#39;bs</span>, BS&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bs </span>BS) -&gt; anyhow::Result&lt;DealProposals&lt;<span class="lifetime">&#39;bs</span>, BS&gt;&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="macro">unimplemented!</span>()
     }
@@ -279,7 +281,7 @@
     <span class="doccomment">/// Deal proposal meta data.
     </span><span class="kw">pub fn </span>states&lt;<span class="lifetime">&#39;bs</span>, BS&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, _store: <span class="kw-2">&amp;</span><span class="lifetime">&#39;bs </span>BS) -&gt; anyhow::Result&lt;DealStates&lt;<span class="lifetime">&#39;bs</span>, BS&gt;&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="macro">unimplemented!</span>()
     }
@@ -302,7 +304,7 @@
         curr_epoch: ChainEpoch,
     ) -&gt; anyhow::Result&lt;(BigInt, BigInt)&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; fil_actor_market_v8::validate_deals_for_activation(
@@ -332,7 +334,7 @@
         _f: <span class="kw">impl </span>FnMut(u64, DealProposal) -&gt; anyhow::Result&lt;(), anyhow::Error&gt;,
     ) -&gt; anyhow::Result&lt;()&gt;
     <span class="kw">where
-        </span>BS: BlockStore,
+        </span>BS: Blockstore,
     {
         <span class="macro">unimplemented!</span>()
     }
@@ -367,7 +369,7 @@
 
 <span class="kw">impl</span>&lt;BS&gt; DealStates&lt;<span class="lifetime">&#39;_</span>, BS&gt;
 <span class="kw">where
-    </span>BS: BlockStore,
+    </span>BS: Blockstore,
 {
     <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, _key: u64) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;DealState&gt;&gt; {
         <span class="macro">unimplemented!</span>()
@@ -384,7 +386,7 @@
 
 <span class="kw">impl</span>&lt;BS&gt; BalanceTable&lt;<span class="lifetime">&#39;_</span>, BS&gt;
 <span class="kw">where
-    </span>BS: BlockStore,
+    </span>BS: Blockstore,
 {
     <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, _key: <span class="kw-2">&amp;</span>Address) -&gt; anyhow::Result&lt;TokenAmount&gt; {
         <span class="macro">unimplemented!</span>()

@@ -245,6 +245,7 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
+<span id="248">248</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -252,12 +253,13 @@
 <span class="kw">use </span>forest_blocks::gossip_block::json::GossipBlockJson;
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_chain_sync::SyncState;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_BLOCK_STR};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_rpc_api::data_types::{RPCState, RPCSyncState};
 <span class="kw">use </span>forest_rpc_api::sync_api::<span class="kw-2">*</span>;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::message::Message;
 
@@ -271,7 +273,7 @@
     Params(params): Params&lt;SyncCheckBadParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncCheckBadResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(CidJson(cid),) = params;
@@ -284,7 +286,7 @@
     Params(params): Params&lt;SyncMarkBadParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncMarkBadResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(CidJson(cid),) = params;
@@ -305,7 +307,7 @@
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncStateResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>active_syncs = <span class="macro">vec!</span>[clone_state(data.sync_state.as_ref()).<span class="kw">await</span>];
@@ -318,7 +320,7 @@
     Params((GossipBlockJson(blk),)): Params&lt;SyncSubmitBlockParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncSubmitBlockResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>bls_msgs: Vec&lt;Message&gt; =

@@ -194,7 +194,7 @@
 </span><span class="kw">use crate</span>::{tipset_from_keys, Error, TipsetCache};
 <span class="kw">use </span>async_std::task;
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc};
@@ -224,13 +224,13 @@
     <span class="doccomment">/// `Arc` reference tipset cache.
     </span>ts_cache: Arc&lt;TipsetCache&gt;,
 
-    <span class="doccomment">/// `BlockStore` pointer needed to load tipsets from cold storage.
+    <span class="doccomment">/// `Blockstore` pointer needed to load tipsets from cold storage.
     </span>db: BS,
 }
 
 <span class="kw">impl</span>&lt;BS&gt; ChainIndex&lt;BS&gt;
 <span class="kw">where
-    </span>BS: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ts_cache: Arc&lt;TipsetCache&gt;, db: BS) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{

@@ -164,10 +164,10 @@
 <span class="kw">use </span>tide::http::headers::HeaderValues;
 
 <span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_rpc_api::{
     auth_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, check_access, data_types::JsonRpcServerState, ACCESS_MAP,
 };
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 
 <span class="kw">pub fn </span>get_error_obj(code: i64, message: String) -&gt; jsonrpc_v2::Error {
     <span class="macro">debug!</span>(
@@ -208,7 +208,7 @@
     authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValues&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>claims = <span class="kw">match </span>authorization_header

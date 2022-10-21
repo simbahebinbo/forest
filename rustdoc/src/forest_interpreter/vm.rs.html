@@ -420,13 +420,14 @@
 <span id="420">420</span>
 <span id="421">421</span>
 <span id="422">422</span>
+<span id="423">423</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">crate</span>::fvm::ForestExterns;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_message::{ChainMessage, MessageReceipt};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>fvm::call_manager::DefaultCallManager;
@@ -435,6 +436,7 @@
 <span class="kw">use </span>fvm::machine::{DefaultMachine, Engine, Machine, NetworkConfig};
 <span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm::DefaultKernel;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
@@ -496,7 +498,7 @@
 
 <span class="doccomment">/// Interpreter which handles execution of state transitioning messages and returns receipts
 /// from the VM execution.
-</span><span class="kw">pub struct </span>VM&lt;DB: BlockStore + <span class="lifetime">&#39;static</span>, P = DefaultNetworkParams&gt; {
+</span><span class="kw">pub struct </span>VM&lt;DB: Blockstore + Store + Clone + <span class="lifetime">&#39;static</span>, P = DefaultNetworkParams&gt; {
     fvm_executor: ForestExecutor&lt;DB&gt;,
     params: PhantomData&lt;P&gt;,
     reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
@@ -505,7 +507,7 @@
 
 <span class="kw">impl</span>&lt;DB, P&gt; VM&lt;DB, P&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore + Store + Clone,
     P: NetworkParams,
 {
     <span class="attribute">#[allow(clippy::too_many_arguments)]
@@ -609,7 +611,7 @@
     </span><span class="kw">pub fn </span>migrate_state(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         epoch: ChainEpoch,
-        _store: Arc&lt;<span class="kw">impl </span>BlockStore + Send + Sync&gt;,
+        _store: Arc&lt;<span class="kw">impl </span>Blockstore + Send + Sync&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Cid&gt;, anyhow::Error&gt; {
         <span class="kw">match </span>epoch {
             x <span class="kw">if </span>x == <span class="self">self</span>.heights.turbo =&gt; {

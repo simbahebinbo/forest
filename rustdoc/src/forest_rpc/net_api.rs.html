@@ -105,6 +105,7 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -113,15 +114,16 @@
 <span class="kw">use </span>log::error;
 
 <span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p::{NetRPCMethods, NetworkMessage, PeerId};
 <span class="kw">use </span>forest_rpc_api::{
     data_types::{AddrInfo, RPCState},
     net_api::<span class="kw-2">*</span>,
 };
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>net_addrs_listen&lt;
-    DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
@@ -141,7 +143,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>net_peers&lt;
-    DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
@@ -166,7 +168,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>net_connect&lt;
-    DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
@@ -193,7 +195,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>net_disconnect&lt;
-    DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,

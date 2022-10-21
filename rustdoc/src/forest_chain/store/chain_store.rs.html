@@ -1044,6 +1044,8 @@
 <span id="1044">1044</span>
 <span id="1045">1045</span>
 <span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1058,15 +1060,17 @@
 <span class="kw">use </span>forest_actor_interface::{miner, EPOCHS_IN_DAY};
 <span class="kw">use </span>forest_beacon::{BeaconEntry, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, TipsetKeys, TxMeta};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_encoding::de::DeserializeOwned;
 <span class="kw">use </span>forest_interpreter::BlockMessages;
 <span class="kw">use </span>forest_ipld::recurse_links;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
 <span class="kw">use </span>forest_message::{ChainMessage, MessageReceipt, SignedMessage};
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::io::Checksum;
 <span class="kw">use </span>fvm::state_tree::StateTree;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::CarHeader;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, Cbor};
 <span class="kw">use </span>fvm_shared::address::Address;
@@ -1139,7 +1143,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; ChainStore&lt;DB&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub async fn </span>new(db: DB) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>(publisher, <span class="kw">_</span>) = broadcast::channel(SINK_CAP);
@@ -1385,7 +1389,7 @@
     <span class="doccomment">/// Constructs and returns a full tipset if messages from storage exists - non self version
     </span><span class="kw">pub fn </span>fill_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Option</span>&lt;FullTipset&gt;
     <span class="kw">where
-        </span>DB: BlockStore,
+        </span>DB: Blockstore,
     {
         <span class="comment">// Collect all messages before moving tipset.
         </span><span class="kw">let </span>messages: Vec&lt;(Vec&lt;<span class="kw">_</span>&gt;, Vec&lt;<span class="kw">_</span>&gt;)&gt; = <span class="kw">match </span>ts
@@ -1715,7 +1719,7 @@
     tsk: <span class="kw-2">&amp;</span>TipsetKeys,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;
 <span class="kw">where
-    </span>BS: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(ts) = cache.write().<span class="kw">await</span>.get(tsk) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(ts.clone());
@@ -1753,7 +1757,7 @@
     bh: <span class="kw-2">&amp;</span>BlockHeader,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Message&gt;, Vec&lt;SignedMessage&gt;), Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">let </span>(bls_cids, secpk_cids) = read_msg_cids(db, bh.messages())<span class="question-mark">?</span>;
 
@@ -1770,7 +1774,7 @@
     secp_cids: <span class="kw-2">&amp;</span>[Cid],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Message&gt;, Vec&lt;SignedMessage&gt;), Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">let </span>bls_msgs: Vec&lt;Message&gt; = messages_from_cids(db, bls_cids)<span class="question-mark">?</span>;
     <span class="kw">let </span>secp_msgs: Vec&lt;SignedMessage&gt; = messages_from_cids(db, secp_cids)<span class="question-mark">?</span>;
@@ -1782,7 +1786,7 @@
 </span><span class="comment">// TODO cache these recent meta roots
 </span><span class="kw">pub fn </span>read_msg_cids&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, msg_cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Cid&gt;, Vec&lt;Cid&gt;), Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(roots) = db
         .get_obj::&lt;TxMeta&gt;(msg_cid)
@@ -1799,12 +1803,12 @@
     }
 }
 
-<span class="doccomment">/// Sets the genesis key in the `BlockStore`. Be careful if using this outside of
+<span class="doccomment">/// Sets the genesis key in the `Blockstore`. Be careful if using this outside of
 /// the `ChainStore` as it will not update what the `ChainStore` thinks is the genesis
 /// after the `ChainStore` has been created.
 </span><span class="kw">pub fn </span>set_genesis&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, header: <span class="kw-2">&amp;</span>BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore + Store,
 {
     db.write(GENESIS_KEY, header.marshal_cbor()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
     db.put_obj(<span class="kw-2">&amp;</span>header, Blake2b256)
@@ -1814,7 +1818,7 @@
 <span class="doccomment">/// Persists slice of `serializable` objects to `blockstore`.
 </span><span class="kw">pub fn </span>persist_objects&lt;DB, C&gt;(db: <span class="kw-2">&amp;</span>DB, headers: <span class="kw-2">&amp;</span>[C]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
     C: Serialize,
 {
     <span class="kw">for </span>chunk <span class="kw">in </span>headers.chunks(<span class="number">256</span>) {
@@ -1827,7 +1831,7 @@
 <span class="doccomment">/// Returns a vector of CIDs from provided root CID
 </span><span class="kw">fn </span>read_amt_cids&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, root: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Cid&gt;, Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">let </span>amt = Amt::&lt;Cid, <span class="kw">_</span>&gt;::load(root, db)<span class="question-mark">?</span>;
 
@@ -1844,7 +1848,7 @@
 <span class="doccomment">/// Returns the genesis block from storage.
 </span><span class="kw">pub fn </span>genesis&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BlockHeader&gt;, Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore + Store,
 {
     <span class="prelude-val">Ok</span>(db
         .read(GENESIS_KEY)<span class="question-mark">?
@@ -1856,7 +1860,7 @@
 /// [`ChainMessage`].
 </span><span class="kw">pub fn </span>get_chain_message&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, key: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;ChainMessage, Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     db.get_obj(key)
         .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?
@@ -1866,7 +1870,7 @@
 <span class="doccomment">/// Given a tipset this function will return all unique messages in that tipset.
 </span><span class="kw">pub fn </span>messages_for_tipset&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ChainMessage&gt;, Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>applied: HashMap&lt;Address, u64&gt; = HashMap::new();
     <span class="kw">let </span><span class="kw-2">mut </span>balances: HashMap&lt;Address, BigInt&gt; = HashMap::new();
@@ -1924,7 +1928,7 @@
 <span class="doccomment">/// Returns messages from key-value store based on a slice of [`Cid`]s.
 </span><span class="kw">pub fn </span>messages_from_cids&lt;DB, T&gt;(db: <span class="kw-2">&amp;</span>DB, keys: <span class="kw-2">&amp;</span>[Cid]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;T&gt;, Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
     T: DeserializeOwned,
 {
     keys.iter()
@@ -1943,7 +1947,7 @@
     i: usize,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;MessageReceipt&gt;, Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">let </span>amt = Amt::load(block_header.message_receipts(), db)<span class="question-mark">?</span>;
     <span class="kw">let </span>receipts = amt.get(i)<span class="question-mark">?</span>;
@@ -1994,7 +1998,7 @@
 <span class="doccomment">/// Partition the messages into SECP and BLS variants, store them individually in the IPLD store,
 /// and the corresponding `TxMeta` as well, returning its CID so that it can be put in a block header.
 /// Also return the aggregated BLS signature of all BLS messages.
-</span><span class="kw">pub fn </span>persist_block_messages&lt;DB: BlockStore&gt;(
+</span><span class="kw">pub fn </span>persist_block_messages&lt;DB: Blockstore&gt;(
     db: <span class="kw-2">&amp;</span>DB,
     messages: Vec&lt;<span class="kw-2">&amp;</span>SignedMessage&gt;,
 ) -&gt; anyhow::Result&lt;PersistedBlockMessages&gt; {

@@ -192,16 +192,20 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::ChainStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
-<span class="kw">use </span>forest_ipld_blockstore::{BlockStore, BlockStoreExt};
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::net::FetchProgress;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::{load_car, CarReader};
 <span class="kw">use </span>log::{debug, info};
 <span class="kw">use </span>std::io::Stdout;
@@ -224,7 +228,7 @@
     cs: <span class="kw-2">&amp;</span>ChainStore&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Tipset, anyhow::Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>genesis = <span class="kw">match </span>genesis_fp {
         <span class="prelude-val">Some</span>(path) =&gt; {
@@ -250,7 +254,7 @@
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;BS&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="comment">// the genesis tipset has just one block, so fetch it
     </span><span class="kw">let </span>genesis_header = genesis_ts.min_ticket_block();
@@ -267,7 +271,7 @@
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;BS&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Tipset, String), anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>genesis_bytes = state_manager.chain_config().genesis_bytes();
     <span class="kw">let </span>ts = read_genesis_header(genesis_fp, genesis_bytes, state_manager.chain_store()).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -281,7 +285,7 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BlockHeader, anyhow::Error&gt;
 <span class="kw">where
     </span>R: AsyncRead + Send + Unpin,
-    BS: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="comment">// Load genesis state into the database and get the Cid
     </span><span class="kw">let </span>genesis_cids: Vec&lt;Cid&gt; = load_car(chain_store.blockstore(), reader.compat()).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -323,7 +327,7 @@
     skip_load: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>is_remote_file: bool = path.starts_with(<span class="string">&quot;http://&quot;</span>) || path.starts_with(<span class="string">&quot;https://&quot;</span>);
 
@@ -374,7 +378,7 @@
     skip_load: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Cid&gt;, anyhow::Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
     R: AsyncRead + Send + Unpin,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>compat = reader.compat();

@@ -946,6 +946,7 @@
 <span id="946">946</span>
 <span id="947">947</span>
 <span id="948">948</span>
+<span id="949">949</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -965,7 +966,7 @@
     Block, Error <span class="kw">as </span>ForestBlockError, FullTipset, GossipBlock, Tipset, TipsetKeys,
 };
 <span class="kw">use </span>forest_chain::{ChainStore, Error <span class="kw">as </span>ChainStoreError};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p::{
     hello::HelloRequest, rpc::RequestResponseError, NetworkEvent, NetworkMessage, PeerId,
     PubsubMessage,
@@ -975,6 +976,7 @@
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>futures::{future::try_join_all, future::Future, try_join};
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -1107,7 +1109,7 @@
 
 <span class="kw">impl</span>&lt;DB, M, C&gt; ChainMuxer&lt;DB, M, C&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     M: Provider + Sync + Send + <span class="lifetime">&#39;static</span>,
     C: Consensus,
 {
@@ -1754,7 +1756,7 @@
 
 <span class="kw">impl</span>&lt;DB, M, C&gt; Future <span class="kw">for </span>ChainMuxer&lt;DB, M, C&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     M: Provider + Sync + Send + <span class="lifetime">&#39;static</span>,
     C: Consensus,
 {

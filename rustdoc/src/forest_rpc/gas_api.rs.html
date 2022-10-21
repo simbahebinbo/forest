@@ -279,6 +279,7 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
+<span id="282">282</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -289,13 +290,14 @@
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_blocks::{tipset_keys_json::TipsetKeysJson, TipsetKeys};
 <span class="kw">use </span>forest_chain::{BASE_FEE_MAX_CHANGE_DENOM, BLOCK_GAS_TARGET, MINIMUM_BASE_FEE};
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_message::{message::json::MessageJson, ChainMessage};
 <span class="kw">use </span>forest_rpc_api::{
     data_types::{MessageSendSpec, RPCState},
     gas_api::<span class="kw-2">*</span>,
 };
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::BLOCK_GAS_LIMIT;
@@ -308,7 +310,7 @@
     Params(params): Params&lt;GasEstimateFeeCapParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;GasEstimateFeeCapResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(MessageJson(msg), max_queue_blks, TipsetKeysJson(tsk)) = params;
@@ -325,7 +327,7 @@
     _tsk: TipsetKeys,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>ts = data
@@ -353,7 +355,7 @@
     Params(params): Params&lt;GasEstimateGasPremiumParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;GasEstimateGasPremiumResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(nblocksincl, AddressJson(_sender), _gas_limit, TipsetKeysJson(_tsk)) = params;
@@ -367,7 +369,7 @@
     <span class="kw-2">mut </span>nblocksincl: u64,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">if </span>nblocksincl == <span class="number">0 </span>{
@@ -461,7 +463,7 @@
     Params(params): Params&lt;GasEstimateGasLimitParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;GasEstimateGasLimitResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(MessageJson(msg), TipsetKeysJson(tsk)) = params;
@@ -474,7 +476,7 @@
     <span class="kw">_</span>: TipsetKeys,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;i64, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>msg = msg;
@@ -525,7 +527,7 @@
     Params(params): Params&lt;GasEstimateMessageGasParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;GasEstimateMessageGasResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(MessageJson(msg), spec, TipsetKeysJson(tsk)) = params;
@@ -541,7 +543,7 @@
     tsk: TipsetKeys,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Message, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>msg = msg;

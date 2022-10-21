@@ -19,7 +19,7 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>forest_blocks::Tipset;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 
 <span class="kw">pub type </span>Weight = BigInt;
@@ -32,7 +32,7 @@
     <span class="doccomment">/// Calculate the weight of a tipset.
     </span><span class="kw">fn </span>weight&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;Weight, anyhow::Error&gt;
     <span class="kw">where
-        </span>DB: BlockStore;
+        </span>DB: Blockstore;
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_chain" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>

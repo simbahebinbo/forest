@@ -174,8 +174,8 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_blocks::Tipset;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
 <span class="kw">use </span>forest_message::Message;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::bigint::{BigInt, Integer};
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -244,7 +244,7 @@
     smoke_height: ChainEpoch,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, <span class="kw">crate</span>::Error&gt;
 <span class="kw">where
-    </span>DB: BlockStore,
+    </span>DB: Blockstore,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>total_limit = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>seen = HashSet::new();

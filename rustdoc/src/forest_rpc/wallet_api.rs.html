@@ -276,6 +276,7 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
+<span id="279">279</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -285,7 +286,7 @@
 
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_crypto::signature::json::SignatureJson;
-<span class="kw">use </span>forest_ipld_blockstore::BlockStore;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_key_management::{json::KeyInfoJson, Error, Key};
 <span class="kw">use </span>forest_message::{
@@ -293,6 +294,7 @@
 };
 <span class="kw">use </span>forest_rpc_api::{data_types::RPCState, wallet_api::<span class="kw-2">*</span>};
 <span class="kw">use </span>fvm::state_tree::StateTree;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::BigUint;
@@ -303,7 +305,7 @@
     Params(params): Params&lt;WalletBalanceParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletBalanceResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(addr_str,) = params;
@@ -336,7 +338,7 @@
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletDefaultAddressResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>keystore = data.keystore.read().<span class="kw">await</span>;
@@ -351,7 +353,7 @@
     Params(params): Params&lt;WalletExportParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletExportResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(addr_str,) = params;
@@ -369,7 +371,7 @@
     Params(params): Params&lt;WalletHasParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletHasResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(addr_str,) = params;
@@ -387,7 +389,7 @@
     Params(params): Params&lt;WalletImportParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletBalanceResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>key_info: forest_key_management::KeyInfo = <span class="kw">match </span>params.first().cloned() {
@@ -419,7 +421,7 @@
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletListResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>keystore = data.keystore.read().<span class="kw">await</span>;
@@ -435,7 +437,7 @@
     Params(params): Params&lt;WalletNewParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletNewResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(sig_raw,) = params;
@@ -458,7 +460,7 @@
     Params(params): Params&lt;WalletSetDefaultParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletSetDefaultResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(address,) = params;
@@ -477,7 +479,7 @@
     Params(params): Params&lt;WalletSignParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletSignResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>state_manager = <span class="kw-2">&amp;</span>data.state_manager;
@@ -516,7 +518,7 @@
     Params(params): Params&lt;WalletSignMessageParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletSignMessageResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(addr_str, MessageJson(msg)) = params;
@@ -544,7 +546,7 @@
     Params(params): Params&lt;WalletVerifyParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletVerifyResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: BlockStore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>(addr_str, msg_str, SignatureJson(sig)) = params;
