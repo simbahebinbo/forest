@@ -77,6 +77,8 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -100,8 +102,10 @@
 
 <span class="kw">pub fn </span>is_v8_reward_cid(cid: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
     <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
-        <span class="comment">// calibnet
+        <span class="comment">// calibnet v8
         </span>Cid::try_from(<span class="string">&quot;bafk2bzaceayah37uvj7brl5no4gmvmqbmtndh5raywuts7h6tqbgbq2ge7dhu&quot;</span>).unwrap(),
+        <span class="comment">// calibnet v9
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzacedhw7p6ognchfairevqikx4odnoojo3a3oicvla4tiacy7sq2n4ds&quot;</span>).unwrap(),
         <span class="comment">// mainnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacecwzzxlgjiavnc3545cqqil3cmq4hgpvfp2crguxy2pl5ybusfsbe&quot;</span>).unwrap(),
         <span class="comment">// devnet

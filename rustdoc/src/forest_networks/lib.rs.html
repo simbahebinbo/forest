@@ -573,6 +573,8 @@
 <span id="573">573</span>
 <span id="574">574</span>
 <span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -613,6 +615,7 @@
     Chocolate,
     OhSnap,
     Skyr,
+    Shark,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Height {
@@ -641,7 +644,8 @@
             Height::Chocolate =&gt; NetworkVersion::V14,
             Height::OhSnap =&gt; NetworkVersion::V15,
             Height::Skyr =&gt; NetworkVersion::V16,
-        }
+            Height::Shark =&gt; NetworkVersion::V16, <span class="comment">// Fix this when `fvm_shared` has been updated.
+        </span>}
     }
 }
 

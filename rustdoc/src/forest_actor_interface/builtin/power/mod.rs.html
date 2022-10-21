@@ -151,6 +151,8 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -178,8 +180,10 @@
 
 <span class="kw">pub fn </span>is_v8_power_cid(cid: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
     <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
-        <span class="comment">// calibnet
+        <span class="comment">// calibnet v8
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacecpwr4mynn55bg5hrlns3osvg7sty3rca6zlai3vl52vbbjk7ulfa&quot;</span>).unwrap(),
+        <span class="comment">// calibnet v9
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzacecl26ak5vas4ilrnbjvghpikilyviwobmbspbarqcivq72j7g6wee&quot;</span>).unwrap(),
         <span class="comment">// mainnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacebjvqva6ppvysn5xpmiqcdfelwbbcxmghx5ww6hr37cgred6dyrpm&quot;</span>).unwrap(),
         <span class="comment">// devnet
