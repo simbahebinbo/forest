@@ -386,6 +386,8 @@
 <span id="386">386</span>
 <span id="387">387</span>
 <span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -466,7 +468,8 @@
         ))<span class="question-mark">?</span>;
     }
 
-    <span class="kw">let </span>file = File::create(<span class="kw-2">&amp;</span>out).<span class="kw">await</span>.map_err(JsonRpcError::from)<span class="question-mark">?</span>;
+    <span class="kw">let </span>out_tmp = out.with_extension(<span class="string">&quot;car.tmp&quot;</span>);
+    <span class="kw">let </span>file = File::create(<span class="kw-2">&amp;</span>out_tmp).<span class="kw">await</span>.map_err(JsonRpcError::from)<span class="question-mark">?</span>;
     <span class="kw">let </span>writer = AsyncWriterWithChecksum::&lt;Sha256, <span class="kw">_</span>&gt;::new(BufWriter::new(file));
 
     <span class="kw">let </span>head = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -479,18 +482,19 @@
         .<span class="kw">await
     </span>{
         <span class="prelude-val">Ok</span>(checksum) =&gt; {
+            std::fs::rename(<span class="kw-2">&amp;</span>out_tmp, <span class="kw-2">&amp;</span>out)<span class="question-mark">?</span>;
             <span class="kw">if </span>!skip_checksum {
                 save_checksum(<span class="kw-2">&amp;</span>out, checksum).<span class="kw">await</span><span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Err</span>(e) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = std::fs::remove_file(<span class="kw-2">&amp;</span>out) {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = std::fs::remove_file(<span class="kw-2">&amp;</span>out_tmp) {
                 <span class="macro">error!</span>(
                     <span class="string">&quot;failed to remove incomplete export file at {}: {e}&quot;</span>,
-                    out.display()
+                    out_tmp.display()
                 );
             } <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;incomplete export file at {} removed&quot;</span>, out.display());
+                <span class="macro">debug!</span>(<span class="string">&quot;incomplete export file at {} removed&quot;</span>, out_tmp.display());
             }
 
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsonRpcError::from(e));

@@ -377,6 +377,18 @@
 <span id="377">377</span>
 <span id="378">378</span>
 <span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -386,7 +398,11 @@
 <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
 <span class="kw">use </span>regex::Regex;
-<span class="kw">use </span>std::{collections::HashMap, ffi::OsStr, fs, path::PathBuf};
+<span class="kw">use </span>std::{
+    collections::HashMap,
+    fs,
+    path::{Path, PathBuf},
+};
 <span class="kw">use </span>strfmt::strfmt;
 <span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>time::{format_description::well_known::Iso8601, Date, OffsetDateTime};
@@ -583,7 +599,7 @@
     fs::read_dir(snapshot_dir)<span class="question-mark">?
         </span>.flatten()
         .map(|entry| entry.path())
-        .filter(|p| p.extension().unwrap_or_default() == <span class="string">&quot;car&quot;</span>)
+        .filter(|p| is_car_or_tmp(p))
         .for_each(|p| <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, p.display()));
 
     <span class="prelude-val">Ok</span>(())
@@ -594,10 +610,7 @@
         .clone()
         .unwrap_or_else(|| default_snapshot_dir(config));
     <span class="kw">let </span>snapshot_path = snapshot_dir.join(filename);
-    <span class="kw">if </span>snapshot_path.exists()
-        &amp;&amp; snapshot_path.is_file()
-        &amp;&amp; snapshot_path.extension() == <span class="prelude-val">Some</span>(OsStr::new(<span class="string">&quot;car&quot;</span>))
-    {
+    <span class="kw">if </span>snapshot_path.exists() &amp;&amp; snapshot_path.is_file() &amp;&amp; is_car_or_tmp(<span class="kw-2">&amp;</span>snapshot_path) {
         <span class="macro">println!</span>(<span class="string">&quot;Deleting {}&quot;</span>, snapshot_path.display());
         <span class="kw">if </span>!force &amp;&amp; !prompt_confirm() {
             <span class="macro">println!</span>(<span class="string">&quot;Aborted.&quot;</span>);
@@ -653,6 +666,8 @@
 
                             snapshots_with_valid_name.push(path);
                         }
+                    } <span class="kw">else if </span>path.extension().unwrap_or_default() == <span class="string">&quot;tmp&quot; </span>{
+                        snapshots_with_valid_name.push(path);
                     }
                 }
             }
@@ -708,13 +723,17 @@
     <span class="kw">let </span>snapshots_to_delete: Vec&lt;<span class="kw">_</span>&gt; = read_dir
         .flatten()
         .map(|entry| entry.path())
-        .filter(|p| p.extension().unwrap_or_default() == <span class="string">&quot;car&quot;</span>)
+        .filter(|p| is_car_or_tmp(p))
         .collect();
 
     <span class="kw">if </span>snapshots_to_delete.is_empty() {
         <span class="macro">println!</span>(<span class="string">&quot;No files to delete&quot;</span>);
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
+    <span class="macro">println!</span>(<span class="string">&quot;Files to delete:&quot;</span>);
+    snapshots_to_delete
+        .iter()
+        .for_each(|f| <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, f.display()));
 
     <span class="kw">if </span>!force &amp;&amp; !prompt_confirm() {
         <span class="macro">println!</span>(<span class="string">&quot;Aborted.&quot;</span>);
@@ -755,6 +774,11 @@
     std::io::stdin().read_line(<span class="kw-2">&amp;mut </span>line).unwrap();
     <span class="kw">let </span>line = line.trim().to_lowercase();
     line == <span class="string">&quot;y&quot; </span>|| line == <span class="string">&quot;yes&quot;
+</span>}
+
+<span class="kw">fn </span>is_car_or_tmp(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+    <span class="kw">let </span>ext = path.extension().unwrap_or_default();
+    ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot;
 </span>}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="forest_cli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>

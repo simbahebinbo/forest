@@ -365,11 +365,28 @@
 <span id="365">365</span>
 <span id="366">366</span>
 <span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use super</span>::{Config, SnapshotFetchConfig};
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>chrono::DateTime;
+<span class="kw">use </span>forest_utils::io::TempFile;
 <span class="kw">use </span>hex::{FromHex, ToHex};
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>pbr::ProgressBar;
@@ -449,10 +466,14 @@
 
     <span class="kw">let </span>snapshot_response = client.get(url.clone()).send().<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>total_size = last_modified.size;
-    <span class="kw">let </span>snapshot_checksum =
-        download_snapshot_to_file(<span class="kw-2">&amp;</span>snapshot_path, snapshot_response, total_size).<span class="kw">await</span><span class="question-mark">?</span>;
-
-    fetch_checksum_and_validate(client, url, <span class="kw-2">&amp;</span>snapshot_checksum).<span class="kw">await</span><span class="question-mark">?</span>;
+    download_snapshot_and_validate_checksum(
+        client,
+        url,
+        <span class="kw-2">&amp;</span>snapshot_path,
+        snapshot_response,
+        total_size,
+    )
+    .<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
@@ -488,20 +509,26 @@
     </span>create_dir_all(snapshot_out_dir).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>snapshot_path = snapshot_out_dir.join(<span class="kw-2">&amp;</span>snapshot_name);
 
-    <span class="kw">let </span>snapshot_checksum =
-        download_snapshot_to_file(<span class="kw-2">&amp;</span>snapshot_path, snapshot_response, total_size).<span class="kw">await</span><span class="question-mark">?</span>;
-
-    fetch_checksum_and_validate(client, snapshot_url, <span class="kw-2">&amp;</span>snapshot_checksum).<span class="kw">await</span><span class="question-mark">?</span>;
+    download_snapshot_and_validate_checksum(
+        client,
+        snapshot_url,
+        <span class="kw-2">&amp;</span>snapshot_path,
+        snapshot_response,
+        total_size,
+    )
+    .<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
 
 <span class="doccomment">/// Downloads snapshot to a file with a progress bar. Returns the digest of the downloaded file.
-</span><span class="kw">async fn </span>download_snapshot_to_file(
+</span><span class="kw">async fn </span>download_snapshot_and_validate_checksum(
+    client: Client,
+    url: Url,
     snapshot_path: <span class="kw-2">&amp;</span>Path,
     snapshot_response: Response,
     total_size: u64,
-) -&gt; anyhow::Result&lt;Vec&lt;u8&gt;&gt; {
+) -&gt; anyhow::Result&lt;()&gt; {
     <span class="macro">info!</span>(
         <span class="string">&quot;Snapshot will be downloaded to {} ({})&quot;</span>,
         snapshot_path.display(),
@@ -513,7 +540,8 @@
     progress_bar.set_max_refresh_rate(<span class="prelude-val">Some</span>(Duration::from_millis(<span class="number">500</span>)));
     progress_bar.set_units(pbr::Units::Bytes);
 
-    <span class="kw">let </span>file = File::create(<span class="kw-2">&amp;</span>snapshot_path).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>snapshot_file_tmp = TempFile::new(snapshot_path.with_extension(<span class="string">&quot;car.tmp&quot;</span>));
+    <span class="kw">let </span>file = File::create(snapshot_file_tmp.path()).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>writer = BufWriter::new(file);
     <span class="kw">let </span><span class="kw-2">mut </span>downloaded: u64 = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>stream = snapshot_response.bytes_stream();
@@ -528,13 +556,17 @@
     }
     writer.flush().<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="kw">let </span>file_size = std::fs::metadata(snapshot_path)<span class="question-mark">?</span>.len();
+    <span class="kw">let </span>file_size = std::fs::metadata(snapshot_file_tmp.path())<span class="question-mark">?</span>.len();
     <span class="kw">if </span>file_size != total_size {
         <span class="macro">bail!</span>(<span class="string">&quot;Didn&#39;t manage to download the entire file. {file_size}/{total_size} [B]&quot;</span>);
     }
 
     progress_bar.finish_println(<span class="string">&quot;Finished downloading the snapshot.&quot;</span>);
-    <span class="prelude-val">Ok</span>(snapshot_hasher.finalize().to_vec())
+
+    fetch_checksum_and_validate(client, url, <span class="kw-2">&amp;</span>snapshot_hasher.finalize()).<span class="kw">await</span><span class="question-mark">?</span>;
+    std::fs::rename(snapshot_file_tmp.path(), snapshot_path)<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Tries to extract resource filename from a given URL.
