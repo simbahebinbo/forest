@@ -170,6 +170,7 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
+<span id="173">173</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -177,8 +178,9 @@
 <span class="kw">use </span>forest_message::Message;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::bigint::{BigInt, Integer};
+<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::BLOCK_GAS_LIMIT;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>std::collections::HashSet;
@@ -196,7 +198,7 @@
 
 <span class="macro">lazy_static! </span>{
     <span class="doccomment">/// Minimum base fee amount allowed for the given [Tipset].
-    </span><span class="kw">pub static </span><span class="kw-2">ref </span>MINIMUM_BASE_FEE: BigInt = <span class="number">100</span>.into();
+    </span><span class="kw">pub static </span><span class="kw-2">ref </span>MINIMUM_BASE_FEE: TokenAmount = TokenAmount::from_atto(<span class="number">100</span>);
 
     <span class="doccomment">/// These statics are just to avoid allocations for division.
     </span><span class="kw">static </span><span class="kw-2">ref </span>BLOCK_GAS_TARGET_BIG: BigInt = BigInt::from(BLOCK_GAS_TARGET);
@@ -204,12 +206,12 @@
 }
 
 <span class="kw">fn </span>compute_next_base_fee(
-    base_fee: <span class="kw-2">&amp;</span>BigInt,
+    base_fee: <span class="kw-2">&amp;</span>TokenAmount,
     gas_limit_used: i64,
     no_of_blocks: usize,
     epoch: ChainEpoch,
     smoke_height: ChainEpoch,
-) -&gt; BigInt {
+) -&gt; TokenAmount {
     <span class="kw">let </span><span class="kw-2">mut </span>delta: i64 = <span class="kw">if </span>epoch &gt; smoke_height {
         (gas_limit_used / no_of_blocks <span class="kw">as </span>i64) - BLOCK_GAS_TARGET
     } <span class="kw">else </span>{
@@ -228,9 +230,9 @@
     }
 
     <span class="comment">// cap change at 12.5% (BaseFeeMaxChangeDenom) by capping delta
-    </span><span class="kw">let </span>change: BigInt = (base_fee * delta)
-        .div_floor(<span class="kw-2">&amp;</span>BLOCK_GAS_TARGET_BIG)
-        .div_floor(<span class="kw-2">&amp;</span>BASE_FEE_MAX_CHANGE_DENOM_BIG);
+    </span><span class="kw">let </span>change: TokenAmount = (base_fee * delta)
+        .div_floor((<span class="kw-2">*</span>BLOCK_GAS_TARGET_BIG).clone())
+        .div_floor((<span class="kw-2">*</span>BASE_FEE_MAX_CHANGE_DENOM_BIG).clone());
     <span class="kw">let </span><span class="kw-2">mut </span>next_base_fee = base_fee + change;
     <span class="kw">if </span>next_base_fee &lt; <span class="kw-2">*</span>MINIMUM_BASE_FEE {
         next_base_fee = MINIMUM_BASE_FEE.clone();
@@ -242,7 +244,7 @@
     db: <span class="kw-2">&amp;</span>DB,
     ts: <span class="kw-2">&amp;</span>Tipset,
     smoke_height: ChainEpoch,
-) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, <span class="kw">crate</span>::Error&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, <span class="kw">crate</span>::Error&gt;
 <span class="kw">where
     </span>DB: Blockstore,
 {
@@ -322,23 +324,23 @@
         <span class="kw">for </span>case <span class="kw">in </span>cases {
             <span class="comment">// Pre smoke
             </span><span class="kw">let </span>output = compute_next_base_fee(
-                <span class="kw-2">&amp;</span>case.<span class="number">0</span>.into(),
+                <span class="kw-2">&amp;</span>TokenAmount::from_atto(case.<span class="number">0</span>),
                 case.<span class="number">1</span>,
                 case.<span class="number">2</span>,
                 smoke_height - <span class="number">1</span>,
                 smoke_height,
             );
-            <span class="macro">assert_eq!</span>(BigInt::from(case.<span class="number">3</span>), output);
+            <span class="macro">assert_eq!</span>(TokenAmount::from_atto(case.<span class="number">3</span>), output);
 
             <span class="comment">// Post smoke
             </span><span class="kw">let </span>output = compute_next_base_fee(
-                <span class="kw-2">&amp;</span>case.<span class="number">0</span>.into(),
+                <span class="kw-2">&amp;</span>TokenAmount::from_atto(case.<span class="number">0</span>),
                 case.<span class="number">1</span>,
                 case.<span class="number">2</span>,
                 smoke_height + <span class="number">1</span>,
                 smoke_height,
             );
-            <span class="macro">assert_eq!</span>(BigInt::from(case.<span class="number">4</span>), output);
+            <span class="macro">assert_eq!</span>(TokenAmount::from_atto(case.<span class="number">4</span>), output);
         }
     }
 }

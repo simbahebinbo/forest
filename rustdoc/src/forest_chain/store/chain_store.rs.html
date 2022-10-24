@@ -1074,9 +1074,9 @@
 <span class="kw">use </span>fvm_ipld_car::CarHeader;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, Cbor};
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
@@ -1873,7 +1873,7 @@
     </span>DB: Blockstore,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>applied: HashMap&lt;Address, u64&gt; = HashMap::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>balances: HashMap&lt;Address, BigInt&gt; = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>balances: HashMap&lt;Address, TokenAmount&gt; = HashMap::new();
     <span class="kw">let </span>state =
         StateTree::new_from_root(db, ts.parent_state()).map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
 

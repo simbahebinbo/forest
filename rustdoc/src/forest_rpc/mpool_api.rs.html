@@ -388,7 +388,7 @@
     <span class="kw">let </span>sig = forest_key_management::sign(
         <span class="kw-2">*</span>key.key_info.key_type(),
         key.key_info.private_key(),
-        umsg.to_signing_bytes().as_slice(),
+        umsg.cid().unwrap().to_bytes().as_slice(),
     )<span class="question-mark">?</span>;
 
     <span class="kw">let </span>smsg = SignedMessage::new_from_parts(umsg, sig)<span class="question-mark">?</span>;

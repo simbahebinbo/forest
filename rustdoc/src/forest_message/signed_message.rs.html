@@ -274,7 +274,7 @@
 <span class="kw">impl </span>SignedMessage {
     <span class="doccomment">/// Generate new signed message from an unsigned message and a signer.
     </span><span class="kw">pub fn </span>new&lt;S: Signer&gt;(message: Message, signer: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CryptoError&gt; {
-        <span class="kw">let </span>bz = message.to_signing_bytes();
+        <span class="kw">let </span>bz = message.cid()<span class="question-mark">?</span>.to_bytes();
 
         <span class="kw">let </span>signature = signer
             .sign_bytes(<span class="kw-2">&amp;</span>bz, <span class="kw-2">&amp;</span>message.from)
@@ -285,7 +285,7 @@
 
     <span class="doccomment">/// Generate a new signed message from fields.
     </span><span class="kw">pub fn </span>new_from_parts(message: Message, signature: Signature) -&gt; <span class="prelude-ty">Result</span>&lt;SignedMessage, String&gt; {
-        signature.verify(<span class="kw-2">&amp;</span>message.to_signing_bytes(), <span class="kw-2">&amp;</span>message.from)<span class="question-mark">?</span>;
+        signature.verify(<span class="kw-2">&amp;</span>message.cid().unwrap().to_bytes(), <span class="kw-2">&amp;</span>message.from)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(SignedMessage { message, signature })
     }
 
@@ -317,7 +317,7 @@
     <span class="doccomment">/// Verifies that the from address of the message generated the signature.
     </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
         <span class="self">self</span>.signature
-            .verify(<span class="kw-2">&amp;</span><span class="self">self</span>.message.to_signing_bytes(), <span class="self">self</span>.from())
+            .verify(<span class="kw-2">&amp;</span><span class="self">self</span>.message.cid().unwrap().to_bytes(), <span class="self">self</span>.from())
     }
 }
 

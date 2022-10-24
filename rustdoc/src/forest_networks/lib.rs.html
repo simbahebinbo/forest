@@ -575,6 +575,22 @@
 <span id="575">575</span>
 <span id="576">576</span>
 <span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -742,8 +758,8 @@
                 &amp;&amp; <span class="self">self</span>.policy.valid_post_proof_type == other.policy.valid_post_proof_type
                 &amp;&amp; <span class="self">self</span>.policy.valid_pre_commit_proof_type
                     == other.policy.valid_pre_commit_proof_type
-                &amp;&amp; <span class="self">self</span>.policy.minimum_verified_deal_size
-                    == other.policy.minimum_verified_deal_size
+                &amp;&amp; <span class="self">self</span>.policy.minimum_verified_allocation_size
+                    == other.policy.minimum_verified_allocation_size
                 &amp;&amp; <span class="self">self</span>.policy.deal_updates_interval == other.policy.deal_updates_interval
                 &amp;&amp; <span class="self">self</span>.policy.prov_collateral_percent_supply_num
                     == other.policy.prov_collateral_percent_supply_num
@@ -904,12 +920,17 @@
         valid_post_proof_type: HashSet&lt;RegisteredPoStProof&gt;,
         valid_pre_commit_proof_type: HashSet&lt;RegisteredSealProof&gt;,
         <span class="attribute">#[serde(with = <span class="string">&quot;bigint_json&quot;</span>)]
-        </span>minimum_verified_deal_size: StoragePower,
+        </span>minimum_verified_allocation_size: StoragePower,
         deal_updates_interval: i64,
         prov_collateral_percent_supply_num: i64,
         prov_collateral_percent_supply_denom: i64,
         <span class="attribute">#[serde(with = <span class="string">&quot;bigint_json&quot;</span>)]
         </span>minimum_consensus_power: StoragePower,
+        end_of_life_claim_drop_period: ChainEpoch,
+        market_default_allocation_term_buffer: i64,
+        maximum_verified_allocation_expiration: i64,
+        maximum_verified_allocation_term: i64,
+        minimum_verified_allocation_term: i64,
     }
 
     <span class="kw">pub fn </span>deserialize&lt;<span class="lifetime">&#39;de</span>, D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;Policy, D::Error&gt;
@@ -956,11 +977,17 @@
             chain_finality: policy.chain_finality,
             valid_post_proof_type: policy.valid_post_proof_type.clone(),
             valid_pre_commit_proof_type: policy.valid_pre_commit_proof_type.clone(),
-            minimum_verified_deal_size: policy.minimum_verified_deal_size.clone(),
+            minimum_verified_allocation_size: policy.minimum_verified_allocation_size.clone(),
             deal_updates_interval: policy.deal_updates_interval,
             prov_collateral_percent_supply_num: policy.prov_collateral_percent_supply_num,
             prov_collateral_percent_supply_denom: policy.prov_collateral_percent_supply_denom,
             minimum_consensus_power: policy.minimum_consensus_power,
+
+            end_of_life_claim_drop_period: policy.end_of_life_claim_drop_period,
+            market_default_allocation_term_buffer: policy.market_default_allocation_term_buffer,
+            maximum_verified_allocation_expiration: policy.maximum_verified_allocation_expiration,
+            maximum_verified_allocation_term: policy.maximum_verified_allocation_term,
+            minimum_verified_allocation_term: policy.minimum_verified_allocation_term,
         })
     }
 
@@ -1007,11 +1034,16 @@
             chain_finality: policy.chain_finality,
             valid_post_proof_type: policy.valid_post_proof_type.clone(),
             valid_pre_commit_proof_type: policy.valid_pre_commit_proof_type.clone(),
-            minimum_verified_deal_size: policy.minimum_verified_deal_size.clone(),
+            minimum_verified_allocation_size: policy.minimum_verified_allocation_size.clone(),
             deal_updates_interval: policy.deal_updates_interval,
             prov_collateral_percent_supply_num: policy.prov_collateral_percent_supply_num,
             prov_collateral_percent_supply_denom: policy.prov_collateral_percent_supply_denom,
             minimum_consensus_power: policy.minimum_consensus_power.clone(),
+            end_of_life_claim_drop_period: policy.end_of_life_claim_drop_period,
+            market_default_allocation_term_buffer: policy.market_default_allocation_term_buffer,
+            maximum_verified_allocation_expiration: policy.maximum_verified_allocation_expiration,
+            maximum_verified_allocation_term: policy.maximum_verified_allocation_term,
+            minimum_verified_allocation_term: policy.minimum_verified_allocation_term,
         }
         .serialize(serializer)
     }

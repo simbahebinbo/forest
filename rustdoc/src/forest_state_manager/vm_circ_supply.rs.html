@@ -259,8 +259,6 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -274,11 +272,9 @@
 <span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
-<span class="kw">use </span>fvm_shared::bigint::Integer;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::FILECOIN_PRECISION;
+<span class="kw">use </span>num_traits::Zero;
 
 <span class="kw">const </span>EPOCHS_IN_YEAR: ChainEpoch = <span class="number">365 </span>* EPOCHS_IN_DAY;
 <span class="kw">const </span>PRE_CALICO_VESTING: [(ChainEpoch, usize); <span class="number">5</span>] = [
@@ -342,7 +338,7 @@
         </span>} <span class="kw">else </span>{
             TokenAmount::default()
         };
-        <span class="kw">let </span>fil_circulating = BigInt::max(
+        <span class="kw">let </span>fil_circulating = TokenAmount::max(
             <span class="kw-2">&amp;</span>fil_vested + <span class="kw-2">&amp;</span>fil_mined + <span class="kw-2">&amp;</span>fil_reserve_distributed - <span class="kw-2">&amp;</span>fil_burnt - <span class="kw-2">&amp;</span>fil_locked,
             TokenAmount::default(),
         );
@@ -446,7 +442,7 @@
 <span class="kw">fn </span>get_fil_reserve_disbursed&lt;DB: Blockstore + Store + Clone&gt;(
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
-    <span class="kw">let </span>fil_reserved: BigInt = BigInt::from(<span class="number">300_000_000</span>) * FILECOIN_PRECISION;
+    <span class="kw">let </span>fil_reserved: TokenAmount = TokenAmount::from_whole(<span class="number">300_000_000</span>);
     <span class="kw">let </span>reserve_actor = get_actor_state(state_tree, <span class="kw-2">&amp;</span>RESERVE_ADDRESS)<span class="question-mark">?</span>;
 
     <span class="comment">// If money enters the reserve actor, this could lead to a negative term
@@ -464,7 +460,7 @@
 <span class="kw">fn </span>get_fil_burnt&lt;DB: Blockstore + Store + Clone&gt;(
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
-    <span class="kw">let </span>burnt_actor = get_actor_state(state_tree, BURNT_FUNDS_ACTOR_ADDR)<span class="question-mark">?</span>;
+    <span class="kw">let </span>burnt_actor = get_actor_state(state_tree, <span class="kw-2">&amp;</span>BURNT_FUNDS_ACTOR_ADDR)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(burnt_actor.balance)
 }
@@ -473,7 +469,7 @@
     PRE_CALICO_VESTING
         .into_iter()
         .map(|(unlock_duration, initial_balance)| {
-            (unlock_duration, TokenAmount::from(initial_balance))
+            (unlock_duration, TokenAmount::from_atto(initial_balance))
         })
         .collect()
 }
@@ -487,7 +483,7 @@
             (
                 liftoff_height,
                 unlock_duration,
-                TokenAmount::from(initial_balance) * FILECOIN_PRECISION,
+                TokenAmount::from_whole(initial_balance),
             )
         })
         .collect()
@@ -501,7 +497,7 @@
             (
                 liftoff_height,
                 unlock_duration,
-                TokenAmount::from(initial_balance) * FILECOIN_PRECISION,
+                TokenAmount::from_whole(initial_balance),
             )
         })
         .collect()
@@ -515,13 +511,13 @@
     elapsed_epoch: ChainEpoch,
 ) -&gt; TokenAmount {
     <span class="kw">if </span>elapsed_epoch &gt;= unlock_duration {
-        <span class="kw">return </span>TokenAmount::from(<span class="number">0</span>);
+        <span class="kw">return </span>TokenAmount::zero();
     }
     <span class="kw">if </span>elapsed_epoch &lt; <span class="number">0 </span>{
         <span class="kw">return </span>initial_balance.clone();
     }
     <span class="comment">// Division truncation is broken here: https://github.com/filecoin-project/specs-actors/issues/1131
-    </span><span class="kw">let </span>unit_locked: TokenAmount = initial_balance.div_floor(<span class="kw-2">&amp;</span>TokenAmount::from(unlock_duration));
+    </span><span class="kw">let </span>unit_locked: TokenAmount = initial_balance.div_floor(unlock_duration);
     unit_locked * (unlock_duration - elapsed_epoch)
 }
 </code></pre></div>

@@ -114,10 +114,6 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -132,7 +128,7 @@
 <span class="kw">use </span>std::borrow::Borrow;
 
 <span class="kw">pub enum </span>Map&lt;BS, V&gt; {
-    V8(fil_actors_runtime_v8::fvm_ipld_hamt::Hamt&lt;BS, V, BytesKey&gt;),
+    V8(fvm_ipld_hamt::Hamt&lt;BS, V, BytesKey&gt;),
 }
 
 <span class="kw">impl</span>&lt;BS, V&gt; Map&lt;BS, V&gt;
@@ -142,12 +138,10 @@
 {
     <span class="kw">pub fn </span>new(store: <span class="kw-2">&amp;</span>BS, version: ActorVersion) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>version {
-            ActorVersion::V8 =&gt; Map::V8(
-                fil_actors_runtime_v8::fvm_ipld_hamt::Hamt::new_with_bit_width(
-                    store.clone(),
-                    HAMT_BIT_WIDTH,
-                ),
-            ),
+            ActorVersion::V8 =&gt; Map::V8(fvm_ipld_hamt::Hamt::new_with_bit_width(
+                store.clone(),
+                HAMT_BIT_WIDTH,
+            )),
             <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;unsupported actor version: {}&quot;</span>, version),
         }
     }
@@ -155,13 +149,11 @@
     <span class="doccomment">/// Load map with root
     </span><span class="kw">pub fn </span>load(cid: <span class="kw-2">&amp;</span>Cid, store: <span class="kw-2">&amp;</span>BS, version: ActorVersion) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
         <span class="kw">match </span>version {
-            ActorVersion::V8 =&gt; <span class="prelude-val">Ok</span>(Map::V8(
-                fil_actors_runtime_v8::fvm_ipld_hamt::Hamt::load_with_bit_width(
-                    cid,
-                    store.clone(),
-                    HAMT_BIT_WIDTH,
-                )<span class="question-mark">?</span>,
-            )),
+            ActorVersion::V8 =&gt; <span class="prelude-val">Ok</span>(Map::V8(fvm_ipld_hamt::Hamt::load_with_bit_width(
+                cid,
+                store.clone(),
+                HAMT_BIT_WIDTH,
+            )<span class="question-mark">?</span>)),
             <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;unsupported actor version: {}&quot;</span>, version),
         }
     }

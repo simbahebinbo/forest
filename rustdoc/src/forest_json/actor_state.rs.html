@@ -115,6 +115,7 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
+<span id="118">118</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -122,6 +123,7 @@
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>fvm::state_tree::ActorState;
     <span class="kw">use </span>fvm_shared::econ::TokenAmount;
+    <span class="kw">use </span>num_bigint::BigInt;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
     <span class="kw">use </span>std::str::FromStr;
 
@@ -160,7 +162,7 @@
             code: <span class="kw-2">&amp;</span>m.code,
             state: <span class="kw-2">&amp;</span>m.state,
             sequence: m.sequence,
-            balance: m.balance.to_str_radix(<span class="number">10</span>),
+            balance: m.balance.atto().to_str_radix(<span class="number">10</span>),
         }
         .serialize(serializer)
     }
@@ -190,7 +192,7 @@
             code,
             state,
             sequence,
-            balance: TokenAmount::from_str(<span class="kw-2">&amp;</span>balance).map_err(de::Error::custom)<span class="question-mark">?</span>,
+            balance: TokenAmount::from_atto(BigInt::from_str(<span class="kw-2">&amp;</span>balance).map_err(de::Error::custom)<span class="question-mark">?</span>),
         })
     }
 }
@@ -218,7 +220,7 @@
                 code: cid,
                 state: cid,
                 sequence: u64::arbitrary(g),
-                balance: TokenAmount::from(i64::arbitrary(g)),
+                balance: TokenAmount::from_atto(u64::arbitrary(g)),
             };
             ActorStateWrapper { actorstate }
         }

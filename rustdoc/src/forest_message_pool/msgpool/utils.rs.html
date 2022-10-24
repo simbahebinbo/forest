@@ -46,6 +46,9 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -54,15 +57,15 @@
 <span class="kw">use </span>forest_chain::MINIMUM_BASE_FEE;
 <span class="kw">use </span>forest_message::{Message <span class="kw">as </span>MessageTrait, SignedMessage};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::bigint::{BigInt, Integer};
 <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num_rational::BigRational;
 <span class="kw">use </span>num_traits::ToPrimitive;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_base_fee_lower_bound(base_fee: <span class="kw-2">&amp;</span>BigInt, factor: i64) -&gt; BigInt {
-    <span class="kw">let </span>base_fee_lower_bound = base_fee.div_floor(<span class="kw-2">&amp;</span>BigInt::from(factor));
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_base_fee_lower_bound(base_fee: <span class="kw-2">&amp;</span>TokenAmount, factor: i64) -&gt; TokenAmount {
+    <span class="kw">let </span>base_fee_lower_bound = base_fee.div_floor(factor);
     <span class="kw">if </span>base_fee_lower_bound &lt; <span class="kw-2">*</span>MINIMUM_BASE_FEE {
         <span class="kw">return </span>MINIMUM_BASE_FEE.clone();
     }
@@ -70,7 +73,7 @@
 }
 
 <span class="doccomment">/// Gets the gas reward for the given message.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_gas_reward(msg: <span class="kw-2">&amp;</span>SignedMessage, base_fee: <span class="kw-2">&amp;</span>BigInt) -&gt; BigInt {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_gas_reward(msg: <span class="kw-2">&amp;</span>SignedMessage, base_fee: <span class="kw-2">&amp;</span>TokenAmount) -&gt; TokenAmount {
     <span class="kw">let </span><span class="kw-2">mut </span>max_prem = msg.gas_fee_cap() - base_fee;
     <span class="kw">if </span><span class="kw-2">&amp;</span>max_prem &lt; msg.gas_premium() {
         max_prem = msg.gas_premium().clone();
@@ -78,8 +81,11 @@
     max_prem * msg.gas_limit()
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_gas_perf(gas_reward: <span class="kw-2">&amp;</span>BigInt, gas_limit: i64) -&gt; f64 {
-    <span class="kw">let </span>a = BigRational::new(gas_reward * fvm_shared::BLOCK_GAS_LIMIT, gas_limit.into());
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_gas_perf(gas_reward: <span class="kw-2">&amp;</span>TokenAmount, gas_limit: i64) -&gt; f64 {
+    <span class="kw">let </span>a = BigRational::new(
+        gas_reward.atto() * fvm_shared::BLOCK_GAS_LIMIT,
+        gas_limit.into(),
+    );
     a.to_f64().unwrap()
 }
 

@@ -540,6 +540,7 @@
 <span id="540">540</span>
 <span id="541">541</span>
 <span id="542">542</span>
+<span id="543">543</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -552,8 +553,9 @@
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>log::warn;
+<span class="kw">use </span>num_traits::Zero;
 <span class="kw">use </span>slotmap::{new_key_type, SlotMap};
 <span class="kw">use </span>std::cmp::Ordering;
 <span class="kw">use </span>std::collections::HashMap;
@@ -709,7 +711,7 @@
     }
 
     <span class="doccomment">/// Removes messages from the given index and resets effective `perfs`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trim_msgs_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: usize, gas_limit: i64, base_fee: <span class="kw-2">&amp;</span>BigInt) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trim_msgs_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: usize, gas_limit: i64, base_fee: <span class="kw-2">&amp;</span>TokenAmount) {
         <span class="kw">let </span>prev = <span class="kw">match </span>idx {
             <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
             <span class="kw">_ </span>=&gt; <span class="self">self
@@ -798,7 +800,7 @@
 </span><span class="attribute">#[derive(Clone, Debug)]
 </span><span class="kw">pub struct </span>MsgChainNode {
     <span class="kw">pub </span>msgs: Vec&lt;SignedMessage&gt;,
-    <span class="kw">pub </span>gas_reward: BigInt,
+    <span class="kw">pub </span>gas_reward: TokenAmount,
     <span class="kw">pub </span>gas_limit: i64,
     <span class="kw">pub </span>gas_perf: f64,
     <span class="kw">pub </span>eff_perf: f64,
@@ -867,7 +869,7 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             msgs: <span class="macro">vec!</span>[],
-            gas_reward: BigInt::default(),
+            gas_reward: TokenAmount::zero(),
             gas_limit: <span class="number">0</span>,
             gas_perf: <span class="number">0.0</span>,
             eff_perf: <span class="number">0.0</span>,
@@ -885,7 +887,7 @@
     api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
     actor: <span class="kw-2">&amp;</span>Address,
     mset: <span class="kw-2">&amp;</span>HashMap&lt;u64, SignedMessage&gt;,
-    base_fee: <span class="kw-2">&amp;</span>BigInt,
+    base_fee: <span class="kw-2">&amp;</span>TokenAmount,
     ts: <span class="kw-2">&amp;</span>Tipset,
     chains: <span class="kw-2">&amp;mut </span>Chains,
     chain_config: <span class="kw-2">&amp;</span>ChainConfig,

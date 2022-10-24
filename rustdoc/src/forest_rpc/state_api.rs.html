@@ -887,6 +887,7 @@
 <span id="887">887</span>
 <span id="888">888</span>
 <span id="889">889</span>
+<span id="890">890</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -929,6 +930,7 @@
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::sector::PoStProof;
 <span class="kw">use </span>fvm_shared::{address::Address, bigint::BigInt};
 <span class="kw">use </span>libipld_core::ipld::Ipld;
@@ -1541,7 +1543,7 @@
     <span class="kw">let </span>sig = forest_key_management::sign(
         <span class="kw-2">*</span>key.key_info.key_type(),
         key.key_info.private_key(),
-        <span class="kw-2">&amp;</span>next.to_signing_bytes(),
+        <span class="kw-2">&amp;</span>next.cid().to_bytes(),
     )<span class="question-mark">?</span>;
     next.signature = <span class="prelude-val">Some</span>(sig);
 
@@ -1691,7 +1693,7 @@
     <span class="kw">let </span>deposit = reward::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>reward_actor)<span class="question-mark">?
         </span>.pre_commit_deposit_for_power(power_smoothed, <span class="kw-2">&amp;</span>sector_weight);
 
-    <span class="kw">let </span>ret: BigInt = (deposit * <span class="number">110</span>) / <span class="number">100</span>;
+    <span class="kw">let </span>ret: TokenAmount = (deposit * <span class="number">110</span>).div_floor(<span class="number">100</span>);
     <span class="prelude-val">Ok</span>(ret.to_string())
 }
 
@@ -1740,7 +1742,7 @@
     <span class="kw">let </span>initial_pledge = reward::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>reward_actor)<span class="question-mark">?
         </span>.initial_pledge_for_power(<span class="kw-2">&amp;</span>sector_weight, <span class="kw-2">&amp;</span>total_locked, power_smoothed, <span class="kw-2">&amp;</span>circ_supply);
 
-    <span class="kw">let </span>ret: BigInt = (initial_pledge * <span class="number">110</span>) / <span class="number">100</span>;
+    <span class="kw">let </span>ret: BigInt = (initial_pledge.atto() * <span class="number">110</span>) / <span class="number">100</span>;
     <span class="prelude-val">Ok</span>(ret.to_string())
 }
 

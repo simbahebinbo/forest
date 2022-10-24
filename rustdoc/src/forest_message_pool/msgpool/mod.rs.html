@@ -923,6 +923,7 @@
 <span id="923">923</span>
 <span id="924">924</span>
 <span id="925">925</span>
+<span id="926">926</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1254,9 +1255,10 @@
     <span class="kw">use </span>forest_message::SignedMessage;
     <span class="kw">use </span>forest_networks::ChainConfig;
     <span class="kw">use </span>fvm_shared::address::Address;
-    <span class="kw">use </span>fvm_shared::bigint::BigInt;
     <span class="kw">use </span>fvm_shared::crypto::signature::SignatureType;
+    <span class="kw">use </span>fvm_shared::econ::TokenAmount;
     <span class="kw">use </span>fvm_shared::message::Message;
+    <span class="kw">use </span>num_traits::Zero;
     <span class="kw">use </span>std::borrow::BorrowMut;
     <span class="kw">use </span>std::thread::sleep;
     <span class="kw">use </span>std::time::Duration;
@@ -1275,11 +1277,11 @@
             from: <span class="kw-2">*</span>from,
             sequence,
             gas_limit,
-            gas_fee_cap: (gas_price + <span class="number">100</span>).into(),
-            gas_premium: gas_price.into(),
+            gas_fee_cap: TokenAmount::from_atto(gas_price + <span class="number">100</span>),
+            gas_premium: TokenAmount::from_atto(gas_price),
             ..Message::default()
         };
-        <span class="kw">let </span>msg_signing_bytes = umsg.to_signing_bytes();
+        <span class="kw">let </span>msg_signing_bytes = umsg.cid().unwrap().to_bytes();
         <span class="kw">let </span>sig = wallet.sign(from, msg_signing_bytes.as_slice()).unwrap();
         SignedMessage::new_from_parts(umsg, sig).unwrap()
     }
@@ -1532,7 +1534,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i64</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
@@ -1570,7 +1572,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i64</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
@@ -1614,7 +1616,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i64</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
@@ -1662,7 +1664,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i32</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
@@ -1712,7 +1714,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i32</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
@@ -1736,7 +1738,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         tma.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, BigInt::from(<span class="number">1_000_000_000_000_000_000_u64</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_atto(<span class="number">1_000_000_000_000_000_000_u64</span>));
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
             <span class="kw">let </span>msg = <span class="kw">if </span>i != <span class="number">5 </span>{
                 create_smsg(<span class="kw-2">&amp;</span>a2, <span class="kw-2">&amp;</span>a1, wallet.borrow_mut(), i, gas_limit, <span class="number">1 </span>+ i)
@@ -1751,7 +1753,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i32</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
@@ -1793,7 +1795,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i32</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
@@ -1815,7 +1817,7 @@
         <span class="comment">// Test 7: insufficient balance for all messages
         </span>tma.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, (<span class="number">300 </span>* gas_limit + <span class="number">1</span>).into());
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_atto(<span class="number">300 </span>* gas_limit + <span class="number">1</span>));
         <span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
@@ -1828,7 +1830,7 @@
             <span class="kw-2">&amp;</span>tma,
             <span class="kw-2">&amp;</span>a1,
             <span class="kw-2">&amp;</span>mset,
-            <span class="kw-2">&amp;</span>BigInt::from(<span class="number">0i32</span>),
+            <span class="kw-2">&amp;</span>TokenAmount::zero(),
             <span class="kw-2">&amp;</span>ts,
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,

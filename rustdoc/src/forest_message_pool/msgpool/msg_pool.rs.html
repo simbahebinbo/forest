@@ -788,6 +788,9 @@
 <span id="788">788</span>
 <span id="789">789</span>
 <span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -820,10 +823,12 @@
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::{Address, Protocol};
-<span class="kw">use </span>fvm_shared::bigint::{BigInt, Integer};
+<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>lru::LruCache;
+<span class="kw">use </span>num_traits::Zero;
 <span class="kw">use </span>std::collections::{HashMap, HashSet};
 <span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::sync::Arc;
@@ -842,7 +847,7 @@
 </span><span class="kw">pub struct </span>MsgSet {
     <span class="kw">pub</span>(<span class="kw">crate</span>) msgs: HashMap&lt;u64, SignedMessage&gt;,
     next_sequence: u64,
-    required_funds: BigInt,
+    required_funds: TokenAmount,
 }
 
 <span class="kw">impl </span>MsgSet {
@@ -851,7 +856,7 @@
         MsgSet {
             msgs: HashMap::new(),
             next_sequence: sequence,
-            required_funds: Default::default(),
+            required_funds: TokenAmount::zero(),
         }
     }
 
@@ -864,8 +869,9 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(exms) = <span class="self">self</span>.msgs.get(<span class="kw-2">&amp;</span>m.sequence()) {
             <span class="kw">if </span>m.cid()<span class="question-mark">? </span>!= exms.cid()<span class="question-mark">? </span>{
                 <span class="kw">let </span>premium = exms.message().gas_premium.clone();
-                <span class="kw">let </span>rbf_denom = BigInt::from(RBF_DENOM);
-                <span class="kw">let </span>min_price = premium.clone() + ((premium * RBF_NUM).div_floor(<span class="kw-2">&amp;</span>rbf_denom)) + <span class="number">1u8</span>;
+                <span class="kw">let </span>min_price = premium.clone()
+                    + ((premium * RBF_NUM).div_floor(RBF_DENOM))
+                    + TokenAmount::from_atto(<span class="number">1u8</span>);
                 <span class="kw">if </span>m.message().gas_premium &lt;= min_price {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::GasPriceTooLow);
                 }
@@ -908,7 +914,7 @@
         }
     }
 
-    <span class="kw">fn </span>get_required_funds(<span class="kw-2">&amp;</span><span class="self">self</span>, sequence: u64) -&gt; BigInt {
+    <span class="kw">fn </span>get_required_funds(<span class="kw-2">&amp;</span><span class="self">self</span>, sequence: u64) -&gt; TokenAmount {
         <span class="kw">let </span>required_funds = <span class="self">self</span>.required_funds.clone();
         <span class="kw">match </span><span class="self">self</span>.msgs.get(<span class="kw-2">&amp;</span>sequence) {
             <span class="prelude-val">Some</span>(m) =&gt; required_funds - m.required_funds(),
@@ -1255,7 +1261,7 @@
 
     <span class="doccomment">/// Get the state balance for the actor that corresponds to the supplied address and tipset,
     /// if this actor does not exist, return an error.
-    </span><span class="kw">async fn </span>get_state_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, Error&gt; {
+    </span><span class="kw">async fn </span>get_state_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>actor = <span class="self">self</span>.api.read().<span class="kw">await</span>.get_actor_after(addr, ts)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(actor.balance)
     }

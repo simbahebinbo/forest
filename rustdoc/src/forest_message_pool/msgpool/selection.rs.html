@@ -1358,7 +1358,6 @@
 <span id="1358">1358</span>
 <span id="1359">1359</span>
 <span id="1360">1360</span>
-<span id="1361">1361</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1378,7 +1377,7 @@
 <span class="kw">use </span>forest_message::Message;
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>rand::prelude::SliceRandom;
 <span class="kw">use </span>rand::thread_rng;
 <span class="kw">use </span>std::borrow::BorrowMut;
@@ -1851,7 +1850,7 @@
     <span class="kw">async fn </span>select_priority_messages(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pending: <span class="kw-2">&amp;mut </span>Pending,
-        base_fee: <span class="kw-2">&amp;</span>BigInt,
+        base_fee: <span class="kw-2">&amp;</span>TokenAmount,
         ts: <span class="kw-2">&amp;</span>Tipset,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;SignedMessage&gt;, i64), Error&gt; {
         <span class="kw">let </span>result = Vec::with_capacity(<span class="self">self</span>.config.size_limit_low() <span class="kw">as </span>usize);
@@ -1896,7 +1895,7 @@
 </span><span class="kw">fn </span>merge_and_trim(
     chains: <span class="kw-2">&amp;mut </span>Chains,
     <span class="kw-2">mut </span>result: Vec&lt;SignedMessage&gt;,
-    base_fee: <span class="kw-2">&amp;</span>BigInt,
+    base_fee: <span class="kw-2">&amp;</span>TokenAmount,
     gas_limit: i64,
     min_gas: i64,
 ) -&gt; (Vec&lt;SignedMessage&gt;, i64) {
@@ -2049,7 +2048,6 @@
     <span class="kw">use </span>forest_key_management::{KeyStore, KeyStoreConfig, Wallet};
     <span class="kw">use </span>forest_message::Message;
     <span class="kw">use </span>fvm_shared::crypto::signature::SignatureType;
-    <span class="kw">use </span>fvm_shared::NetworkParams;
     <span class="kw">use </span>std::sync::Arc;
 
     <span class="kw">const </span>TEST_GAS_LIMIT: i64 = <span class="number">6955002</span>;
@@ -2105,10 +2103,10 @@
         <span class="comment">// let gas_limit = 6955002;
         </span>api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_whole(<span class="number">1</span>));
         api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, TokenAmount::from_whole(<span class="number">1</span>));
 
         <span class="comment">// we create 10 messages from each actor to another, with the first actor paying higher
         // gas prices than the second; we expect message selection to order his messages first
@@ -2275,10 +2273,10 @@
         <span class="comment">// let gas_limit = 6955002;
         </span>api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_whole(<span class="number">1</span>));
         api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, TokenAmount::from_whole(<span class="number">1</span>));
 
         <span class="kw">let </span>nmsgs = (fvm_shared::BLOCK_GAS_LIMIT / TEST_GAS_LIMIT) + <span class="number">1</span>;
 
@@ -2359,10 +2357,10 @@
         <span class="comment">// let gas_limit = 6955002;
         </span>api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_whole(<span class="number">1</span>));
         api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, TokenAmount::from_whole(<span class="number">1</span>));
 
         <span class="kw">let </span>nmsgs = <span class="number">10</span>;
 
@@ -2455,11 +2453,11 @@
 
         api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_whole(<span class="number">1</span>));
 
         api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, TokenAmount::from_whole(<span class="number">1</span>));
 
         <span class="kw">let </span>n_msgs = <span class="number">10 </span>* fvm_shared::BLOCK_GAS_LIMIT / TEST_GAS_LIMIT;
 
@@ -2537,11 +2535,11 @@
 
         api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>)); <span class="comment">// in FIL
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_whole(<span class="number">1</span>)); <span class="comment">// in FIL
 
         </span>api.write()
             .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>)); <span class="comment">// in FIL
+            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, TokenAmount::from_whole(<span class="number">1</span>)); <span class="comment">// in FIL
 
         </span><span class="kw">let </span>n_msgs = <span class="number">5 </span>* fvm_shared::BLOCK_GAS_LIMIT / TEST_GAS_LIMIT;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..n_msgs <span class="kw">as </span>usize {
@@ -2660,7 +2658,7 @@
         <span class="kw">for </span>a <span class="kw">in </span><span class="kw-2">&amp;mut </span>actors {
             api.write()
                 .<span class="kw">await
-                </span>.set_state_balance_raw(a, fvm_shared::DefaultNetworkParams::from_fil(<span class="number">1</span>));
+                </span>.set_state_balance_raw(a, TokenAmount::from_whole(<span class="number">1</span>));
             <span class="comment">// in FIL
         </span>}
 

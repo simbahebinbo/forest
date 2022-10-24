@@ -306,7 +306,7 @@
 
 <span class="kw">use </span>byte_unit::Byte;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
-<span class="kw">use </span>fvm_shared::FILECOIN_PRECISION;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>http::StatusCode;
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
 <span class="kw">use </span>log::error;
@@ -489,11 +489,11 @@
 }
 
 <span class="doccomment">/// Convert an `attoFIL` balance to `FIL`
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>balance_to_fil(balance: BigInt) -&gt; <span class="prelude-ty">Result</span>&lt;Float, ParseFloatError&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>balance_to_fil(balance: TokenAmount) -&gt; <span class="prelude-ty">Result</span>&lt;Float, ParseFloatError&gt; {
     <span class="kw">let </span>raw = Float::parse_radix(balance.to_string(), <span class="number">10</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>b = Float::with_val(<span class="number">128</span>, raw);
 
-    <span class="kw">let </span>raw = Float::parse_radix(FILECOIN_PRECISION.to_string().as_bytes(), <span class="number">10</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>raw = Float::parse_radix(TokenAmount::PRECISION.to_string().as_bytes(), <span class="number">10</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>p = Float::with_val(<span class="number">64</span>, raw);
 
     <span class="prelude-val">Ok</span>(Float::with_val(<span class="number">128</span>, b / p))

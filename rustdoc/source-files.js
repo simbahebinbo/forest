@@ -18,7 +18,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_genesis":["",[],["lib.rs"]],\
 "forest_interpreter":["",[["fvm",[],["externs.rs","mod.rs"]]],["default_runtime.rs","lib.rs","vm.rs"]],\
 "forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["error.rs","json.rs","lib.rs","util.rs"]],\
-"forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","sector.rs"]],\
+"forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","sector.rs","token_amount.rs"]],\
 "forest_key_management":["",[],["errors.rs","keystore.rs","lib.rs","wallet.rs","wallet_helpers.rs"]],\
 "forest_legacy_ipld_amt":["",[],["amt.rs","error.rs","lib.rs","node.rs","root.rs","value_mut.rs"]],\
 "forest_libp2p":["",[["chain_exchange",[],["message.rs","mod.rs","provider.rs"]],["hello",[],["message.rs","mod.rs"]],["rpc",[],["cbor_codec.rs","mod.rs"]]],["behaviour.rs","config.rs","discovery.rs","gossip_params.rs","lib.rs","service.rs"]],\

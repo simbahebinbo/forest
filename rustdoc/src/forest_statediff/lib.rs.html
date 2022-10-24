@@ -473,20 +473,6 @@
 <span id="473">473</span>
 <span id="474">474</span>
 <span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -555,15 +541,13 @@
     </span><span class="kw">pub </span>total_quality_adj_power: StoragePower,
     <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>total_qa_bytes_committed: StoragePower,
-    <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
-    </span><span class="kw">pub </span>total_pledge_collateral: TokenAmount,
+    <span class="kw">pub </span>total_pledge_collateral: TokenAmount,
 
     <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>this_epoch_raw_byte_power: StoragePower,
     <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>this_epoch_quality_adj_power: StoragePower,
-    <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
-    </span><span class="kw">pub </span>this_epoch_pledge_collateral: TokenAmount,
+    <span class="kw">pub </span>this_epoch_pledge_collateral: TokenAmount,
     <span class="kw">pub </span>this_epoch_qa_power_smoothed: FilterEstimate,
 
     <span class="kw">pub </span>miner_count: i64,
@@ -589,22 +573,18 @@
     </span><span class="kw">pub </span>info: Cid,
 
     <span class="doccomment">/// Total funds locked as `pre_commit_deposit`
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>pre_commit_deposits: TokenAmount,
 
     <span class="doccomment">/// Total rewards and added funds locked in vesting table
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>locked_funds: TokenAmount,
 
     <span class="doccomment">/// `VestingFunds` (Vesting Funds schedule for the miner).
     </span><span class="kw">pub </span>vesting_funds: Cid,
 
     <span class="doccomment">/// Absolute value of debt this miner owes from unpaid fees.
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>fee_debt: TokenAmount,
 
     <span class="doccomment">/// Sum of initial pledge requirements of all active sectors.
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>initial_pledge: TokenAmount,
 
     <span class="doccomment">/// Sectors that have been pre-committed but not yet proven.
@@ -682,13 +662,10 @@
     <span class="kw">pub </span>last_cron: ChainEpoch,
 
     <span class="doccomment">/// Total Client Collateral that is locked. Unlocked when deal is terminated
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>total_client_locked_collateral: TokenAmount,
     <span class="doccomment">/// Total Provider Collateral that is locked. Unlocked when deal is terminated
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>total_provider_locked_collateral: TokenAmount,
     <span class="doccomment">/// Total storage fee that is locked in escrow. Unlocked when payments are made
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>total_client_storage_fee: TokenAmount,
 }
 
@@ -703,7 +680,6 @@
     <span class="kw">pub </span>next_tx_id: TxnID,
 
     <span class="comment">// Linear unlock
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>initial_balance: TokenAmount,
     <span class="kw">pub </span>start_epoch: ChainEpoch,
     <span class="kw">pub </span>unlock_duration: ChainEpoch,
@@ -742,7 +718,6 @@
     <span class="doccomment">/// The reward to be paid in per `WinCount` to block producers.
     /// The actual reward total paid out depends on the number of winners in any round.
     /// This value is recomputed every non-null epoch and used in the next non-null epoch.
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>this_epoch_reward: TokenAmount,
     <span class="doccomment">/// Smoothed `this_epoch_reward`.
     </span><span class="kw">pub </span>this_epoch_reward_smoothed: FilterEstimate,
@@ -755,7 +730,6 @@
     </span><span class="kw">pub </span>epoch: ChainEpoch,
 
     <span class="comment">// TotalStoragePowerReward tracks the total FIL awarded to block miners
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>total_storage_power_reward: TokenAmount,
 
     <span class="comment">// Simple and Baseline totals are constants used for computing rewards.
@@ -763,10 +737,8 @@
     // in a way that depended on the history leading immediately up to the
     // migration fixing the value.  These values can be moved from state back
     // into a code constant in a subsequent upgrade.
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>simple_total: TokenAmount,
-    <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
-    </span><span class="kw">pub </span>baseline_total: TokenAmount,
+    <span class="kw">pub </span>baseline_total: TokenAmount,
 }
 
 <span class="attribute">#[derive(Serialize_tuple, Deserialize_tuple, Debug)]

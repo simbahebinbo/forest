@@ -143,7 +143,7 @@
 <span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::broadcast::{Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};
@@ -173,7 +173,7 @@
     <span class="doccomment">/// Return a tipset given the tipset keys from the `ChainStore`
     </span><span class="kw">async fn </span>load_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;;
     <span class="doccomment">/// Computes the base fee
-    </span><span class="kw">fn </span>chain_compute_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, Error&gt;;
+    </span><span class="kw">fn </span>chain_compute_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt;;
 }
 
 <span class="doccomment">/// This is the default Provider implementation that will be used for the `mpool` RPC.
@@ -240,7 +240,7 @@
         <span class="kw">let </span>ts = <span class="self">self</span>.sm.chain_store().tipset_from_keys(tsk).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(ts)
     }
-    <span class="kw">fn </span>chain_compute_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, Error&gt; {
+    <span class="kw">fn </span>chain_compute_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>smoke_height = <span class="self">self</span>.sm.chain_config().epoch(Height::Smoke);
         forest_chain::compute_base_fee(<span class="self">self</span>.sm.blockstore(), ts, smoke_height)
             .map_err(|err| err.into())

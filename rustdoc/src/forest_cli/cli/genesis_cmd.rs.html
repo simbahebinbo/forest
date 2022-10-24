@@ -118,12 +118,10 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
-<span id="121">121</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>fvm_shared::bigint::BigInt;
-<span class="kw">use </span>log::{info, warn};
+</span><span class="kw">use </span>log::{info, warn};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fs::{File, OpenOptions};
 <span class="kw">use </span>std::io::Read;
@@ -133,7 +131,7 @@
 
 <span class="kw">use </span>forest_fil_types::genesis::{Actor, ActorType, Miner, Template <span class="kw">as </span>GenesisTemplate};
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::FILECOIN_PRECISION;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 
 <span class="kw">const </span>ACCOUNT_START: u64 = <span class="number">1000</span>;
 <span class="attribute">#[derive(Debug, StructOpt)]
@@ -228,7 +226,7 @@
         <span class="macro">info!</span>(<span class="string">&quot;Giving {} some intial balance&quot;</span>, miner_owner);
         template.accounts.push(Actor {
             actor_type: ActorType::Account,
-            balance: BigInt::from(<span class="number">50_000_000</span>) * FILECOIN_PRECISION,
+            balance: TokenAmount::from_whole(<span class="number">50_000_000</span>),
             owner: miner_owner,
         })
     }

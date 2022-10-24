@@ -439,7 +439,7 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
+<span class="kw">use </span>fvm_shared::bigint::Zero;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::error::ExitCode;
@@ -472,8 +472,8 @@
         epoch: ChainEpoch,
         miner: Address,
         win_count: i64,
-        penalty: BigInt,
-        gas_reward: BigInt,
+        penalty: TokenAmount,
+        gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt;;
 }
 
@@ -516,7 +516,7 @@
         store_arc: DB,
         epoch: ChainEpoch,
         rand: <span class="kw-2">&amp;</span>R,
-        base_fee: BigInt,
+        base_fee: TokenAmount,
         network_version: NetworkVersion,
         circ_supply_calc: C,
         reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
@@ -636,8 +636,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>processed = HashSet::&lt;Cid&gt;::default();
 
         <span class="kw">for </span>block <span class="kw">in </span>messages.iter() {
-            <span class="kw">let </span><span class="kw-2">mut </span>penalty = Default::default();
-            <span class="kw">let </span><span class="kw-2">mut </span>gas_reward = Default::default();
+            <span class="kw">let </span><span class="kw-2">mut </span>penalty = TokenAmount::zero();
+            <span class="kw">let </span><span class="kw-2">mut </span>gas_reward = TokenAmount::zero();
 
             <span class="kw">let </span><span class="kw-2">mut </span>process_msg = |msg: <span class="kw-2">&amp;</span>ChainMessage| -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
                 <span class="kw">let </span>cid = msg.cid()<span class="question-mark">?</span>;
@@ -768,8 +768,8 @@
         epoch: ChainEpoch,
         miner: Address,
         win_count: i64,
-        penalty: BigInt,
-        gas_reward: BigInt,
+        penalty: TokenAmount,
+        gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
         <span class="kw">let </span>params = RawBytes::serialize(AwardBlockRewardParams {
             miner,
@@ -805,8 +805,8 @@
         _epoch: ChainEpoch,
         _miner: Address,
         _win_count: i64,
-        _penalty: BigInt,
-        _gas_reward: BigInt,
+        _penalty: TokenAmount,
+        _gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
@@ -815,7 +815,7 @@
 <span class="doccomment">/// Giving a fixed amount of coins for each block produced directly to the miner,
 /// on top of the gas spent, so the circulating supply isn&#39;t burned. Ignores penalties.
 </span><span class="kw">pub struct </span>FixedRewardCalc {
-    <span class="kw">pub </span>reward: BigInt,
+    <span class="kw">pub </span>reward: TokenAmount,
 }
 
 <span class="kw">impl </span>RewardCalc <span class="kw">for </span>FixedRewardCalc {
@@ -824,8 +824,8 @@
         epoch: ChainEpoch,
         miner: Address,
         _win_count: i64,
-        _penalty: BigInt,
-        gas_reward: BigInt,
+        _penalty: TokenAmount,
+        gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
         <span class="kw">let </span>msg = Message {
             from: reward::ADDRESS,

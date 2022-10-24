@@ -299,6 +299,7 @@
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::BLOCK_GAS_LIMIT;
 
@@ -317,7 +318,7 @@
 
     estimate_fee_cap::&lt;DB, B&gt;(<span class="kw-2">&amp;</span>data, msg, max_queue_blks, tsk)
         .<span class="kw">await
-        </span>.map(|n| BigInt::to_string(<span class="kw-2">&amp;</span>n))
+        </span>.map(|n| TokenAmount::to_string(<span class="kw-2">&amp;</span>n))
 }
 
 <span class="kw">async fn </span>estimate_fee_cap&lt;DB, B&gt;(
@@ -325,7 +326,7 @@
     msg: Message,
     max_queue_blks: i64,
     _tsk: TipsetKeys,
-) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, JsonRpcError&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, JsonRpcError&gt;
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -344,7 +345,7 @@
     <span class="kw">let </span>fee_in_future = parent_base_fee
         * BigInt::from_f64(increase_factor * (<span class="number">1 </span>&lt;&lt; <span class="number">8</span>) <span class="kw">as </span>f64)
             .ok_or(<span class="string">&quot;failed to convert fee_in_future f64 to bigint&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>out = fee_in_future / (<span class="number">1 </span>&lt;&lt; <span class="number">8</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>out = fee_in_future.div_floor(<span class="number">1 </span>&lt;&lt; <span class="number">8</span>);
     out += msg.gas_premium;
     <span class="prelude-val">Ok</span>(out)
 }
@@ -361,13 +362,13 @@
     <span class="kw">let </span>(nblocksincl, AddressJson(_sender), _gas_limit, TipsetKeysJson(_tsk)) = params;
     estimate_gas_premium::&lt;DB, B&gt;(<span class="kw-2">&amp;</span>data, nblocksincl)
         .<span class="kw">await
-        </span>.map(|n| BigInt::to_string(<span class="kw-2">&amp;</span>n))
+        </span>.map(|n| TokenAmount::to_string(<span class="kw-2">&amp;</span>n))
 }
 
 <span class="kw">async fn </span>estimate_gas_premium&lt;DB, B&gt;(
     data: <span class="kw-2">&amp;</span>Data&lt;RPCState&lt;DB, B&gt;&gt;,
     <span class="kw-2">mut </span>nblocksincl: u64,
-) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, JsonRpcError&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, JsonRpcError&gt;
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -377,7 +378,7 @@
     }
 
     <span class="kw">struct </span>GasMeta {
-        <span class="kw">pub </span>price: BigInt,
+        <span class="kw">pub </span>price: TokenAmount,
         <span class="kw">pub </span>limit: i64,
     }
 
@@ -418,8 +419,8 @@
     prices.sort_by(|a, b| b.price.cmp(<span class="kw-2">&amp;</span>a.price));
     <span class="comment">// TODO: From lotus, account for how full blocks are
     </span><span class="kw">let </span><span class="kw-2">mut </span>at = BLOCK_GAS_TARGET * blocks <span class="kw">as </span>i64 / <span class="number">2</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>prev = BigInt::zero();
-    <span class="kw">let </span><span class="kw-2">mut </span>premium = BigInt::zero();
+    <span class="kw">let </span><span class="kw-2">mut </span>prev = TokenAmount::zero();
+    <span class="kw">let </span><span class="kw-2">mut </span>premium = TokenAmount::zero();
 
     <span class="kw">for </span>price <span class="kw">in </span>prices {
         at -= price.limit;
@@ -427,20 +428,19 @@
             prev = price.price;
             <span class="kw">continue</span>;
         }
-        <span class="kw">if </span>prev == <span class="number">0</span>.into() {
-            <span class="kw">let </span>ret: BigInt = price.price + <span class="number">1</span>;
+        <span class="kw">if </span>prev == TokenAmount::zero() {
+            <span class="kw">let </span>ret: TokenAmount = price.price + TokenAmount::from_atto(<span class="number">1</span>);
             <span class="kw">return </span><span class="prelude-val">Ok</span>(ret);
         }
-        premium = (<span class="kw-2">&amp;</span>price.price + <span class="kw-2">&amp;</span>prev) / <span class="number">2 </span>+ <span class="number">1
-    </span>}
+        premium = (<span class="kw-2">&amp;</span>price.price + <span class="kw-2">&amp;</span>prev).div_floor(<span class="number">2</span>) + TokenAmount::from_atto(<span class="number">1</span>)
+    }
 
-    <span class="kw">if </span>premium == <span class="number">0</span>.into() {
-        premium = BigInt::from_f64(<span class="kw">match </span>nblocksincl {
-            <span class="number">1 </span>=&gt; MIN_GAS_PREMIUM * <span class="number">2.0</span>,
-            <span class="number">2 </span>=&gt; MIN_GAS_PREMIUM * <span class="number">1.5</span>,
-            <span class="kw">_ </span>=&gt; MIN_GAS_PREMIUM,
-        })
-        .ok_or(<span class="string">&quot;failed to convert gas premium f64 to bigint&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">if </span>premium == TokenAmount::zero() {
+        premium = TokenAmount::from_atto(<span class="kw">match </span>nblocksincl {
+            <span class="number">1 </span>=&gt; (MIN_GAS_PREMIUM * <span class="number">2.0</span>) <span class="kw">as </span>u64,
+            <span class="number">2 </span>=&gt; (MIN_GAS_PREMIUM * <span class="number">1.5</span>) <span class="kw">as </span>u64,
+            <span class="kw">_ </span>=&gt; MIN_GAS_PREMIUM <span class="kw">as </span>u64,
+        });
     }
 
     <span class="kw">let </span>precision = <span class="number">32</span>;
@@ -452,7 +452,7 @@
 
     premium <span class="kw-2">*</span>= BigInt::from_f64(noise * (<span class="number">1i64 </span>&lt;&lt; precision) <span class="kw">as </span>f64)
         .ok_or(<span class="string">&quot;failed to converrt gas premium f64 to bigint&quot;</span>)<span class="question-mark">?</span>;
-    premium /= <span class="number">1i64 </span>&lt;&lt; precision;
+    premium = premium.div_floor(<span class="number">1i64 </span>&lt;&lt; precision);
 
     <span class="prelude-val">Ok</span>(premium)
 }
@@ -481,8 +481,8 @@
 {
     <span class="kw">let </span><span class="kw-2">mut </span>msg = msg;
     msg.gas_limit = BLOCK_GAS_LIMIT;
-    msg.gas_fee_cap = MINIMUM_BASE_FEE.clone() + <span class="number">1</span>;
-    msg.gas_premium = <span class="number">1</span>.into();
+    msg.gas_fee_cap = MINIMUM_BASE_FEE.clone() + TokenAmount::from_atto(<span class="number">1</span>);
+    msg.gas_premium = TokenAmount::from_atto(<span class="number">1</span>);
 
     <span class="kw">let </span>curr_ts = data
         .state_manager

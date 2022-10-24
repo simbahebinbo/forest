@@ -245,14 +245,6 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -271,11 +263,8 @@
 <span class="kw">use </span>fvm::state_tree::ActorState;
 <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::bigint_ser;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>num_traits::cast::FromPrimitive;
 <span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use </span><span class="kw">crate</span>::cli::{balance_to_fil, cli_error_and_die, to_size_string};
@@ -290,8 +279,7 @@
 <span class="attribute">#[derive(Serialize_tuple, Deserialize_tuple, Clone, Debug)]
 </span><span class="kw">struct </span>VestingScheduleEntry {
     epoch: ChainEpoch,
-    <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
-    </span>amount: TokenAmount,
+    amount: TokenAmount,
 }
 
 <span class="attribute">#[derive(Debug, StructOpt)]
@@ -498,11 +486,7 @@
 
                 <span class="macro">println!</span>(<span class="string">&quot;Vesting Schedule for Miner {}:&quot;</span>, address);
                 <span class="kw">for </span>entry <span class="kw">in </span>schedule.entries {
-                    <span class="macro">println!</span>(
-                        <span class="string">&quot;Epoch: {}     FIL: {:.3}&quot;</span>,
-                        entry.epoch,
-                        <span class="kw-2">&amp;</span>entry.amount / (BigInt::from_f64(<span class="number">1e18</span>).unwrap())
-                    );
+                    <span class="macro">println!</span>(<span class="string">&quot;Epoch: {}     FIL: {:.3}&quot;</span>, entry.epoch, <span class="kw-2">&amp;</span>entry.amount);
                 }
             }
         }

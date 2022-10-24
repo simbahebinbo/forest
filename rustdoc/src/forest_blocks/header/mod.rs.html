@@ -733,7 +733,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>.timestamp,
             <span class="kw-2">&amp;</span><span class="self">self</span>.signature,
             <span class="kw-2">&amp;</span><span class="self">self</span>.fork_signal,
-            BigIntSer(<span class="kw-2">&amp;</span><span class="self">self</span>.parent_base_fee),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.parent_base_fee,
         )
             .serialize(serializer)
     }
@@ -760,7 +760,7 @@
             timestamp,
             signature,
             fork_signal,
-            BigIntDe(parent_base_fee),
+            parent_base_fee,
         ) = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>header = BlockHeader {
@@ -848,7 +848,7 @@
             .get_or_init(|| Cid::new_v1(DAG_CBOR, Blake2b256.digest(<span class="self">self</span>.cached_bytes())))
     }
     <span class="doccomment">/// Get `BlockHeader.parent_base_fee`
-    </span><span class="kw">pub fn </span>parent_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigInt {
+    </span><span class="kw">pub fn </span>parent_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TokenAmount {
         <span class="kw-2">&amp;</span><span class="self">self</span>.parent_base_fee
     }
     <span class="doccomment">/// Get `BlockHeader.fork_signal`

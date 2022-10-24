@@ -680,13 +680,13 @@
     </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
     </span><span class="kw">pub </span>verified_deal_weight: BigInt,
     <span class="doccomment">/// Pledge collected to commit this sector
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>initial_pledge: TokenAmount,
     <span class="doccomment">/// Expected one day projection of reward for sector computed at activation time
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>expected_day_reward: TokenAmount,
     <span class="doccomment">/// Expected twenty day projection of reward for sector computed at activation time
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>expected_storage_pledge: TokenAmount,
 }
 
@@ -712,7 +712,7 @@
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>SectorPreCommitOnChainInfo {
     <span class="kw">pub </span>info: SectorPreCommitInfo,
-    <span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>pre_commit_deposit: TokenAmount,
     <span class="kw">pub </span>pre_commit_epoch: ChainEpoch,
     <span class="doccomment">/// Integral of active deals over sector lifetime, 0 if `CommittedCapacity` sector

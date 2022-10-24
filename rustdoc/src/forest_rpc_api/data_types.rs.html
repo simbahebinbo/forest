@@ -259,7 +259,6 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
-<span id="262">262</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -275,9 +274,9 @@
 <span class="kw">use </span>forest_chain_sync::{BadBlockCache, SyncState};
 <span class="kw">use </span>forest_ipld::json::IpldJson;
 <span class="kw">use </span>forest_json::address::json::AddressJson;
-<span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_json::sector::json::{PoStProofJson, SectorInfoJson};
+<span class="kw">use </span>forest_json::token_amount::json;
 <span class="kw">use </span>forest_key_management::KeyStore;
 <span class="kw">pub use </span>forest_libp2p::{Multiaddr, Protocol};
 <span class="kw">use </span>forest_libp2p::{Multihash, NetworkMessage};
@@ -291,11 +290,10 @@
 <span class="kw">use </span>fvm_ipld_bitfield::json::BitFieldJson;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::sector::SectorSize;
+<span class="kw">use </span>fvm_shared::sector::{SectorSize, StoragePower};
 <span class="kw">use </span>jsonrpc_v2::{MapRouter <span class="kw">as </span>JsonRpcMapRouter, Server <span class="kw">as </span>JsonRpcServer};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::sync::Arc;
@@ -386,7 +384,7 @@
     </span>head: Cid,
     nonce: u64,
     <span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
-    </span>balance: BigInt,
+    </span>balance: TokenAmount,
 }
 
 <span class="kw">impl </span>ActorStateJson {
@@ -452,10 +450,10 @@
 <span class="attribute">#[derive(Serialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>MiningBaseInfoJson {
-    <span class="attribute">#[serde(with = <span class="string">&quot;json::option&quot;</span>)]
-    </span><span class="kw">pub </span>miner_power: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
-    <span class="attribute">#[serde(with = <span class="string">&quot;json::option&quot;</span>)]
-    </span><span class="kw">pub </span>network_power: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
+    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::bigint::json::option&quot;</span>)]
+    </span><span class="kw">pub </span>miner_power: <span class="prelude-ty">Option</span>&lt;StoragePower&gt;,
+    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::bigint::json::option&quot;</span>)]
+    </span><span class="kw">pub </span>network_power: <span class="prelude-ty">Option</span>&lt;StoragePower&gt;,
     <span class="kw">pub </span>sectors: Vec&lt;SectorInfoJson&gt;,
     <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::address::json&quot;</span>)]
     </span><span class="kw">pub </span>worker_key: Address,

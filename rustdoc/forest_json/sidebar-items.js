@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["actor_state",""],["address",""],["bigint",""],["cid",""],["sector",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["actor_state",""],["address",""],["bigint",""],["cid",""],["sector",""],["token_amount",""]]};

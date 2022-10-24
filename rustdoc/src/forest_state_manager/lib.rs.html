@@ -1439,8 +1439,6 @@
 <span id="1439">1439</span>
 <span id="1440">1440</span>
 <span id="1441">1441</span>
-<span id="1442">1442</span>
-<span id="1443">1443</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1475,12 +1473,12 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::{Address, Payload, Protocol, BLS_PUB_LEN};
-<span class="kw">use </span>fvm_shared::bigint::{bigint_ser, BigInt};
+<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
-<span class="kw">use </span>fvm_shared::sector::{SectorInfo, SectorSize};
+<span class="kw">use </span>fvm_shared::sector::{SectorInfo, SectorSize, StoragePower};
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>num_traits::identities::Zero;
@@ -1512,10 +1510,8 @@
 </span><span class="attribute">#[derive(Default, Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>MarketBalance {
-    <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
-    </span>escrow: BigInt,
-    <span class="attribute">#[serde(with = <span class="string">&quot;bigint_ser&quot;</span>)]
-    </span>locked: BigInt,
+    escrow: TokenAmount,
+    locked: TokenAmount,
 }
 
 <span class="doccomment">/// State manager handles all interactions with the internal Filecoin actors state.
@@ -1782,7 +1778,7 @@
         messages: <span class="kw-2">&amp;</span>[BlockMessages],
         epoch: ChainEpoch,
         rand: <span class="kw-2">&amp;</span>R,
-        base_fee: BigInt,
+        base_fee: TokenAmount,
         <span class="kw-2">mut </span>callback: <span class="prelude-ty">Option</span>&lt;CB&gt;,
         tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;CidPair, anyhow::Error&gt;
@@ -1937,7 +1933,7 @@
                 store_arc,
                 bheight,
                 rand,
-                <span class="number">0</span>.into(),
+                TokenAmount::zero(),
                 network_version,
                 |height, state| <span class="self">self</span>.genesis_info.get_circulating_supply(height, state),
                 <span class="self">self</span>.reward_calc.clone(),
@@ -2675,7 +2671,7 @@
     }
 
     <span class="doccomment">/// Return the heaviest tipset&#39;s balance from self.db for a given address
-    </span><span class="kw">pub async fn </span>get_heaviest_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, Error&gt; {
+    </span><span class="kw">pub async fn </span>get_heaviest_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>ts = <span class="self">self
             </span>.cs
             .heaviest_tipset()
@@ -2686,7 +2682,7 @@
     }
 
     <span class="doccomment">/// Return the balance of a given address and `state_cid`
-    </span><span class="kw">pub fn </span>get_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, cid: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;BigInt, Error&gt; {
+    </span><span class="kw">pub fn </span>get_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, cid: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>act = <span class="self">self</span>.get_actor(addr, cid)<span class="question-mark">?</span>;
         <span class="kw">let </span>actor = act.ok_or_else(|| <span class="string">&quot;could not find actor&quot;</span>.to_owned())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(actor.balance)
@@ -2856,8 +2852,8 @@
 </span><span class="comment">// * There is not a great reason this is a separate type from the one on the RPC.
 // * This should probably be removed in the future, but is a convenience to keep for now.
 </span><span class="kw">pub struct </span>MiningBaseInfo {
-    <span class="kw">pub </span>miner_power: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
-    <span class="kw">pub </span>network_power: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
+    <span class="kw">pub </span>miner_power: <span class="prelude-ty">Option</span>&lt;StoragePower&gt;,
+    <span class="kw">pub </span>network_power: <span class="prelude-ty">Option</span>&lt;StoragePower&gt;,
     <span class="kw">pub </span>sectors: Vec&lt;SectorInfo&gt;,
     <span class="kw">pub </span>worker_key: Address,
     <span class="kw">pub </span>sector_size: SectorSize,

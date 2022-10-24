@@ -191,15 +191,10 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm::state_tree::ActorState;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -355,12 +350,9 @@
     </span><span class="kw">pub </span>label: String,
     <span class="kw">pub </span>start_epoch: ChainEpoch,
     <span class="kw">pub </span>end_epoch: ChainEpoch,
-    <span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
-    </span><span class="kw">pub </span>storage_price_per_epoch: TokenAmount,
-    <span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
-    </span><span class="kw">pub </span>provider_collateral: TokenAmount,
-    <span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
-    </span><span class="kw">pub </span>client_collateral: TokenAmount,
+    <span class="kw">pub </span>storage_price_per_epoch: TokenAmount,
+    <span class="kw">pub </span>provider_collateral: TokenAmount,
+    <span class="kw">pub </span>client_collateral: TokenAmount,
 }
 
 <span class="kw">pub enum </span>DealStates&lt;<span class="lifetime">&#39;a</span>, BS&gt; {

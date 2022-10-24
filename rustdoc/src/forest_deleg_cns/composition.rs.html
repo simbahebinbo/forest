@@ -55,7 +55,7 @@
 <span class="kw">use </span>forest_key_management::KeyStore;
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{bigint::BigInt, FILECOIN_PRECISION};
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::RwLock;
@@ -69,7 +69,7 @@
 <span class="comment">// Reward 1FIL on top of the gas, which is what Eudico does.
 </span><span class="kw">pub fn </span>reward_calc() -&gt; Arc&lt;<span class="kw">dyn </span>forest_interpreter::RewardCalc&gt; {
     Arc::new(forest_interpreter::FixedRewardCalc {
-        reward: BigInt::from(<span class="number">1</span>) * FILECOIN_PRECISION,
+        reward: TokenAmount::from_whole(<span class="number">1</span>),
     })
 }
 

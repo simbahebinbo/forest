@@ -54,12 +54,16 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_message::message::json::MessageJson;
 <span class="kw">use </span>forest_rpc_client::{mpool_push_message, wallet_default_address};
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message, METHOD_SEND};
+<span class="kw">use </span>fvm_shared::{
+    address::Address, bigint::BigInt, econ::TokenAmount, message::Message, METHOD_SEND,
+};
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>structopt::StructOpt;
 
@@ -72,16 +76,16 @@
     </span>from: <span class="prelude-ty">Option</span>&lt;Address&gt;,
     target_address: Address,
     <span class="doccomment">/// token amount in attoFIL
-    </span>amount: TokenAmount,
+    </span>amount: BigInt,
     <span class="doccomment">/// specify gas fee cap to use in attoFIL
     </span><span class="attribute">#[structopt(long)]
-    </span>gas_feecap: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
+    </span>gas_feecap: <span class="prelude-ty">Option</span>&lt;BigInt&gt;,
     <span class="doccomment">/// specify gas limit in attoFIL
     </span><span class="attribute">#[structopt(long)]
     </span>gas_limit: <span class="prelude-ty">Option</span>&lt;i64&gt;,
     <span class="doccomment">/// specify gas price to use in attoFIL
     </span><span class="attribute">#[structopt(long)]
-    </span>gas_premium: <span class="prelude-ty">Option</span>&lt;TokenAmount&gt;,
+    </span>gas_premium: <span class="prelude-ty">Option</span>&lt;BigInt&gt;,
 }
 
 <span class="kw">impl </span>SendCommand {
@@ -95,11 +99,11 @@
         <span class="kw">let </span>message = Message {
             from,
             to: <span class="self">self</span>.target_address,
-            value: <span class="self">self</span>.amount.clone(),
+            value: TokenAmount::from_atto(<span class="self">self</span>.amount.clone()),
             method_num: METHOD_SEND,
             gas_limit: <span class="self">self</span>.gas_limit.unwrap_or_default(),
-            gas_fee_cap: <span class="self">self</span>.gas_feecap.clone().unwrap_or_default(),
-            gas_premium: <span class="self">self</span>.gas_premium.clone().unwrap_or_default(),
+            gas_fee_cap: TokenAmount::from_atto(<span class="self">self</span>.gas_feecap.clone().unwrap_or_default()),
+            gas_premium: TokenAmount::from_atto(<span class="self">self</span>.gas_premium.clone().unwrap_or_default()),
             ..Default::default()
         };
 

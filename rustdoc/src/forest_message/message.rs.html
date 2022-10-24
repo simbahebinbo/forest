@@ -207,8 +207,6 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -223,7 +221,6 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
     <span class="kw">use </span>fvm_shared::version::NetworkVersion;
     <span class="kw">use </span>fvm_shared::{BLOCK_GAS_LIMIT, TOTAL_FILECOIN, ZERO_ADDRESS};
-    <span class="kw">use </span>num_traits::Signed;
     <span class="kw">if </span>msg.version != <span class="number">0 </span>{
         <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Message version: {} not supported&quot;</span>, msg.version);
     }
@@ -263,7 +260,6 @@
 <span class="kw">pub mod </span>json {
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_json::address::json::AddressJson;
-    <span class="kw">use </span>forest_json::bigint;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
     <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
     <span class="kw">use </span>fvm_shared::econ::TokenAmount;
@@ -301,12 +297,12 @@
         from: AddressJson,
         <span class="attribute">#[serde(rename = <span class="string">&quot;Nonce&quot;</span>)]
         </span>sequence: u64,
-        <span class="attribute">#[serde(with = <span class="string">&quot;bigint::json&quot;</span>)]
+        <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
         </span>value: TokenAmount,
         gas_limit: i64,
-        <span class="attribute">#[serde(with = <span class="string">&quot;bigint::json&quot;</span>)]
+        <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
         </span>gas_fee_cap: TokenAmount,
-        <span class="attribute">#[serde(with = <span class="string">&quot;bigint::json&quot;</span>)]
+        <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
         </span>gas_premium: TokenAmount,
         <span class="attribute">#[serde(rename = <span class="string">&quot;Method&quot;</span>)]
         </span>method_num: u64,
@@ -402,12 +398,12 @@
                 from: Address::new_id(u64::arbitrary(g)),
                 version: i64::arbitrary(g),
                 sequence: u64::arbitrary(g),
-                value: TokenAmount::from(i64::arbitrary(g)),
+                value: TokenAmount::from_atto(u64::arbitrary(g)),
                 method_num: u64::arbitrary(g),
                 params: fvm_ipld_encoding::RawBytes::new(Vec::arbitrary(g)),
                 gas_limit: i64::arbitrary(g),
-                gas_fee_cap: TokenAmount::from(i64::arbitrary(g)),
-                gas_premium: TokenAmount::from(i64::arbitrary(g)),
+                gas_fee_cap: TokenAmount::from_atto(u64::arbitrary(g)),
+                gas_premium: TokenAmount::from_atto(u64::arbitrary(g)),
             };
             MessageWrapper { message: msg }
         }
