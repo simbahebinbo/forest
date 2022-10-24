@@ -49,6 +49,7 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
+<span id="52">52</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -66,10 +67,11 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_base_fee_lower_bound(base_fee: <span class="kw-2">&amp;</span>TokenAmount, factor: i64) -&gt; TokenAmount {
     <span class="kw">let </span>base_fee_lower_bound = base_fee.div_floor(factor);
-    <span class="kw">if </span>base_fee_lower_bound &lt; <span class="kw-2">*</span>MINIMUM_BASE_FEE {
-        <span class="kw">return </span>MINIMUM_BASE_FEE.clone();
+    <span class="kw">if </span>base_fee_lower_bound.atto() &lt; <span class="kw-2">&amp;</span>MINIMUM_BASE_FEE.into() {
+        TokenAmount::from_atto(MINIMUM_BASE_FEE)
+    } <span class="kw">else </span>{
+        base_fee_lower_bound
     }
-    base_fee_lower_bound
 }
 
 <span class="doccomment">/// Gets the gas reward for the given message.

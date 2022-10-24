@@ -161,16 +161,6 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -178,11 +168,9 @@
 <span class="kw">use </span>forest_message::Message;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::BLOCK_GAS_LIMIT;
-<span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>std::collections::HashSet;
 
 <span class="doccomment">/// Used in calculating the base fee change.
@@ -195,15 +183,7 @@
 </span><span class="kw">pub const </span>INITIAL_BASE_FEE: i64 = <span class="number">100000000</span>;
 <span class="kw">pub const </span>PACKING_EFFICIENCY_DENOM: i64 = <span class="number">5</span>;
 <span class="kw">pub const </span>PACKING_EFFICIENCY_NUM: i64 = <span class="number">4</span>;
-
-<span class="macro">lazy_static! </span>{
-    <span class="doccomment">/// Minimum base fee amount allowed for the given [Tipset].
-    </span><span class="kw">pub static </span><span class="kw-2">ref </span>MINIMUM_BASE_FEE: TokenAmount = TokenAmount::from_atto(<span class="number">100</span>);
-
-    <span class="doccomment">/// These statics are just to avoid allocations for division.
-    </span><span class="kw">static </span><span class="kw-2">ref </span>BLOCK_GAS_TARGET_BIG: BigInt = BigInt::from(BLOCK_GAS_TARGET);
-    <span class="kw">static </span><span class="kw-2">ref </span>BASE_FEE_MAX_CHANGE_DENOM_BIG: BigInt = BigInt::from(BASE_FEE_MAX_CHANGE_DENOM);
-}
+<span class="kw">pub const </span>MINIMUM_BASE_FEE: i64 = <span class="number">100</span>;
 
 <span class="kw">fn </span>compute_next_base_fee(
     base_fee: <span class="kw-2">&amp;</span>TokenAmount,
@@ -231,11 +211,11 @@
 
     <span class="comment">// cap change at 12.5% (BaseFeeMaxChangeDenom) by capping delta
     </span><span class="kw">let </span>change: TokenAmount = (base_fee * delta)
-        .div_floor((<span class="kw-2">*</span>BLOCK_GAS_TARGET_BIG).clone())
-        .div_floor((<span class="kw-2">*</span>BASE_FEE_MAX_CHANGE_DENOM_BIG).clone());
+        .div_floor(BLOCK_GAS_TARGET)
+        .div_floor(BASE_FEE_MAX_CHANGE_DENOM);
     <span class="kw">let </span><span class="kw-2">mut </span>next_base_fee = base_fee + change;
-    <span class="kw">if </span>next_base_fee &lt; <span class="kw-2">*</span>MINIMUM_BASE_FEE {
-        next_base_fee = MINIMUM_BASE_FEE.clone();
+    <span class="kw">if </span>next_base_fee.atto() &lt; <span class="kw-2">&amp;</span>MINIMUM_BASE_FEE.into() {
+        next_base_fee = TokenAmount::from_atto(MINIMUM_BASE_FEE);
     }
     next_base_fee
 }

@@ -1152,7 +1152,7 @@
         <span class="kw">if </span>msg.value() &gt; <span class="kw-2">&amp;</span>fvm_shared::TOTAL_FILECOIN {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MessageValueTooHigh);
         }
-        <span class="kw">if </span>msg.gas_fee_cap() &lt; <span class="kw-2">&amp;</span>MINIMUM_BASE_FEE {
+        <span class="kw">if </span>msg.gas_fee_cap().atto() &lt; <span class="kw-2">&amp;</span>MINIMUM_BASE_FEE.into() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::GasFeeCapTooLow);
         }
         <span class="self">self</span>.verify_msg_sig(msg).<span class="kw">await
