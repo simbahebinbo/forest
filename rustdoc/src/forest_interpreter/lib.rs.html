@@ -7,14 +7,68 @@
 <span id="7">7</span>
 <span id="8">8</span>
 <span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">mod </span>default_runtime;
-<span class="kw">mod </span>fvm;
+</span><span class="kw">mod </span>fvm;
 <span class="kw">mod </span>vm;
 
-<span class="kw">pub use </span><span class="self">self</span>::default_runtime::<span class="kw-2">*</span>;
 <span class="kw">pub use </span><span class="self">self</span>::vm::<span class="kw-2">*</span>;
+
+<span class="kw">use </span>::fvm::state_tree::StateTree <span class="kw">as </span>FvmStateTree;
+<span class="kw">use </span>forest_actor_interface::account;
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>fvm_shared::address::{Address, Protocol};
+
+<span class="doccomment">/// returns the public key type of address (`BLS`/`SECP256K1`) of an account actor
+/// identified by `addr`.
+</span><span class="kw">pub fn </span>resolve_to_key_addr&lt;BS, S&gt;(
+    st: <span class="kw-2">&amp;</span>FvmStateTree&lt;S&gt;,
+    store: <span class="kw-2">&amp;</span>BS,
+    addr: <span class="kw-2">&amp;</span>Address,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Address, anyhow::Error&gt;
+<span class="kw">where
+    </span>BS: Blockstore,
+    S: Blockstore,
+{
+    <span class="kw">if </span>addr.protocol() == Protocol::BLS || addr.protocol() == Protocol::Secp256k1 {
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>addr);
+    }
+
+    <span class="kw">let </span>act = st
+        .get_actor(addr)<span class="question-mark">?
+        </span>.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Failed to retrieve actor: {}&quot;</span>, addr))<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>acc_st = account::State::load(store, <span class="kw-2">&amp;</span>act)<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(acc_st.pubkey_address())
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_interpreter" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>

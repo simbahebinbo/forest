@@ -1731,9 +1731,9 @@
     <span class="kw">let </span>power_smoothed = power_state.total_power_smoothed();
     <span class="kw">let </span>total_locked = power_state.total_locked();
 
-    <span class="kw">let </span>circ_supply = data
-        .state_manager
-        .get_circulating_supply(ts.epoch(), <span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
+    <span class="kw">let </span>circ_supply =
+        data.state_manager
+            .get_circulating_supply(ts.epoch(), <span class="kw-2">&amp;</span>data.chain_store.db, <span class="kw-2">&amp;</span>root_cid)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>reward_actor = state
         .get_actor(<span class="kw-2">&amp;</span>reward::ADDRESS)<span class="question-mark">?

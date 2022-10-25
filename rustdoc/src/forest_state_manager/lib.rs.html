@@ -1436,9 +1436,6 @@
 <span id="1436">1436</span>
 <span id="1437">1437</span>
 <span id="1438">1438</span>
-<span id="1439">1439</span>
-<span id="1440">1440</span>
-<span id="1441">1441</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1460,7 +1457,7 @@
 <span class="kw">use </span>forest_chain::{ChainStore, HeadChange};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
-<span class="kw">use </span>forest_interpreter::{resolve_to_key_addr, BlockMessages, Heights, RewardCalc, VM};
+<span class="kw">use </span>forest_interpreter::{resolve_to_key_addr, BlockMessages, RewardCalc, VM};
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::{message_receipt, ChainMessage, Message <span class="kw">as </span>MessageTrait, MessageReceipt};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
@@ -1791,7 +1788,6 @@
         <span class="kw">let </span>turbo_height = <span class="self">self</span>.chain_config.epoch(Height::Turbo);
         <span class="kw">let </span>rand_clone = rand.clone();
         <span class="kw">let </span>create_vm = |state_root, epoch| {
-            <span class="kw">let </span>heights = Heights::new(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config);
             <span class="kw">let </span>network_version = <span class="self">self</span>.get_network_version(epoch);
             VM::&lt;<span class="kw">_</span>&gt;::new(
                 state_root,
@@ -1800,13 +1796,13 @@
                 <span class="kw-2">&amp;</span>rand_clone,
                 base_fee.clone(),
                 network_version,
-                |height, state| <span class="self">self</span>.genesis_info.get_circulating_supply(height, state),
+                <span class="self">self</span>.genesis_info
+                    .get_circulating_supply(epoch, <span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>state_root)<span class="question-mark">?</span>,
                 <span class="self">self</span>.reward_calc.clone(),
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
                     .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
                     .unwrap(),
-                heights,
                 <span class="self">self</span>.chain_config.policy.chain_finality,
             )
         };
@@ -1923,25 +1919,22 @@
         <span class="macro">span!</span>(<span class="string">&quot;state_call_raw&quot;</span>, {
             <span class="kw">let </span>bstate = tipset.parent_state();
             <span class="kw">let </span>bheight = tipset.epoch();
-
             <span class="kw">let </span>store_arc = <span class="self">self</span>.blockstore_cloned();
-
-            <span class="kw">let </span>heights = Heights::new(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config);
             <span class="kw">let </span>network_version = <span class="self">self</span>.get_network_version(bheight);
             <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::&lt;<span class="kw">_</span>&gt;::new(
                 <span class="kw-2">*</span>bstate,
-                store_arc,
+                store_arc.clone(),
                 bheight,
                 rand,
                 TokenAmount::zero(),
                 network_version,
-                |height, state| <span class="self">self</span>.genesis_info.get_circulating_supply(height, state),
+                <span class="self">self</span>.genesis_info
+                    .get_circulating_supply(bheight, <span class="kw-2">&amp;</span>store_arc, bstate)<span class="question-mark">?</span>,
                 <span class="self">self</span>.reward_calc.clone(),
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
                 <span class="self">self</span>.engine
                     .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
                     .unwrap(),
-                heights,
                 <span class="self">self</span>.chain_config.policy.chain_finality,
             )<span class="question-mark">?</span>;
 
@@ -2015,23 +2008,23 @@
         <span class="comment">// TODO investigate: this doesn&#39;t use a buffered store in any way, and can lead to
         // state bloat potentially?
         </span><span class="kw">let </span>store_arc = <span class="self">self</span>.blockstore_cloned();
-        <span class="kw">let </span>heights = Heights::new(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config);
         <span class="comment">// Since we&#39;re simulating a future message, pretend we&#39;re applying it in the &quot;next&quot; tipset
         </span><span class="kw">let </span>network_version = <span class="self">self</span>.get_network_version(ts.epoch() + <span class="number">1</span>);
+        <span class="kw">let </span>epoch = ts.epoch() + <span class="number">1</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::&lt;<span class="kw">_</span>&gt;::new(
             st,
-            store_arc,
-            ts.epoch() + <span class="number">1</span>,
+            store_arc.clone(),
+            epoch,
             <span class="kw-2">&amp;</span>chain_rand,
             ts.blocks()[<span class="number">0</span>].parent_base_fee().clone(),
             network_version,
-            |height, state| <span class="self">self</span>.genesis_info.get_circulating_supply(height, state),
+            <span class="self">self</span>.genesis_info
+                .get_circulating_supply(epoch, <span class="kw-2">&amp;</span>store_arc, <span class="kw-2">&amp;</span>st)<span class="question-mark">?</span>,
             <span class="self">self</span>.reward_calc.clone(),
             chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts)),
             <span class="self">self</span>.engine
                 .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
                 .unwrap(),
-            heights,
             <span class="self">self</span>.chain_config.policy.chain_finality,
         )<span class="question-mark">?</span>;
 
@@ -2821,9 +2814,10 @@
     </span><span class="kw">pub fn </span>get_circulating_supply(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         height: ChainEpoch,
-        state_tree: <span class="kw-2">&amp;</span>StateTree&lt;<span class="kw-2">&amp;</span>DB&gt;,
+        db: <span class="kw-2">&amp;</span>DB,
+        root: <span class="kw-2">&amp;</span>Cid,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
-        <span class="self">self</span>.genesis_info.get_circulating_supply(height, state_tree)
+        <span class="self">self</span>.genesis_info.get_circulating_supply(height, db, root)
     }
 
     <span class="doccomment">/// Return the state of Market Actor.
