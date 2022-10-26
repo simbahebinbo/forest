@@ -280,6 +280,7 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
+<span id="283">283</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -292,7 +293,8 @@
 <span class="kw">use </span>forest_chain::{BASE_FEE_MAX_CHANGE_DENOM, BLOCK_GAS_TARGET, MINIMUM_BASE_FEE};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::address::json::AddressJson;
-<span class="kw">use </span>forest_message::{message::json::MessageJson, ChainMessage};
+<span class="kw">use </span>forest_json::message::json::MessageJson;
+<span class="kw">use </span>forest_message::ChainMessage;
 <span class="kw">use </span>forest_rpc_api::{
     data_types::{MessageSendSpec, RPCState},
     gas_api::<span class="kw-2">*</span>,

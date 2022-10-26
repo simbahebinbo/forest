@@ -1435,7 +1435,6 @@
 <span id="1435">1435</span>
 <span id="1436">1436</span>
 <span id="1437">1437</span>
-<span id="1438">1438</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1458,8 +1457,9 @@
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_interpreter::{resolve_to_key_addr, BlockMessages, RewardCalc, VM};
+<span class="kw">use </span>forest_json::message_receipt;
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
-<span class="kw">use </span>forest_message::{message_receipt, ChainMessage, Message <span class="kw">as </span>MessageTrait, MessageReceipt};
+<span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>futures::{channel::oneshot, select, FutureExt};
@@ -1475,6 +1475,7 @@
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
+<span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>fvm_shared::sector::{SectorInfo, SectorSize, StoragePower};
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>log::{debug, info, trace, warn};
@@ -1493,10 +1494,10 @@
 </span><span class="attribute">#[derive(Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>InvocResult {
-    <span class="attribute">#[serde(with = <span class="string">&quot;forest_message::message::json&quot;</span>)]
+    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::message::json&quot;</span>)]
     </span><span class="kw">pub </span>msg: Message,
     <span class="attribute">#[serde(with = <span class="string">&quot;message_receipt::json::opt&quot;</span>)]
-    </span><span class="kw">pub </span>msg_rct: <span class="prelude-ty">Option</span>&lt;MessageReceipt&gt;,
+    </span><span class="kw">pub </span>msg_rct: <span class="prelude-ty">Option</span>&lt;Receipt&gt;,
     <span class="kw">pub </span>error: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
@@ -2356,7 +2357,7 @@
         tipset: <span class="kw-2">&amp;</span>Tipset,
         msg_cid: Cid,
         (message_from_address, message_sequence): (<span class="kw-2">&amp;</span>Address, <span class="kw-2">&amp;</span>u64),
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;MessageReceipt&gt;, Error&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Receipt&gt;, Error&gt; {
         <span class="kw">if </span>tipset.epoch() == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -2413,7 +2414,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         current: <span class="kw-2">&amp;</span>Tipset,
         (message_from_address, message_cid, message_sequence): (<span class="kw-2">&amp;</span>Address, <span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>u64),
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Arc&lt;Tipset&gt;, MessageReceipt)&gt;, <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Arc&lt;Tipset&gt;, Receipt)&gt;, <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;&gt; {
         <span class="kw">if </span>current.epoch() == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
@@ -2459,7 +2460,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         current: <span class="kw-2">&amp;</span>Tipset,
         params: (<span class="kw-2">&amp;</span>Address, <span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>u64),
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Arc&lt;Tipset&gt;, MessageReceipt)&gt;, Error&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Arc&lt;Tipset&gt;, Receipt)&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ts: Arc&lt;Tipset&gt; = <span class="kw">match </span><span class="self">self</span>.check_search(current, params).<span class="kw">await </span>{
             <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(res),
             <span class="prelude-val">Err</span>(e) =&gt; e<span class="question-mark">?</span>,
@@ -2474,7 +2475,7 @@
         }
     }
     <span class="doccomment">/// Returns a message receipt from a given tipset and message CID.
-    </span><span class="kw">pub async fn </span>get_receipt(<span class="kw-2">&amp;</span><span class="self">self</span>, tipset: <span class="kw-2">&amp;</span>Tipset, msg: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;MessageReceipt, Error&gt; {
+    </span><span class="kw">pub async fn </span>get_receipt(<span class="kw-2">&amp;</span><span class="self">self</span>, tipset: <span class="kw-2">&amp;</span>Tipset, msg: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;Receipt, Error&gt; {
         <span class="kw">let </span>m = forest_chain::get_chain_message(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>msg)
             .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
         <span class="kw">let </span>message_var = (m.from(), <span class="kw-2">&amp;</span>m.sequence());
@@ -2505,7 +2506,7 @@
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         msg_cid: Cid,
         confidence: i64,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;, <span class="prelude-ty">Option</span>&lt;MessageReceipt&gt;), Error&gt;
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;, <span class="prelude-ty">Option</span>&lt;Receipt&gt;), Error&gt;
     <span class="kw">where
         </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
@@ -2524,7 +2525,7 @@
         }
 
         <span class="kw">let </span><span class="kw-2">mut </span>candidate_tipset: <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; = <span class="prelude-val">None</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>candidate_receipt: <span class="prelude-ty">Option</span>&lt;MessageReceipt&gt; = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>candidate_receipt: <span class="prelude-ty">Option</span>&lt;Receipt&gt; = <span class="prelude-val">None</span>;
 
         <span class="kw">let </span>sm_cloned = Arc::clone(<span class="self">self</span>);
         <span class="kw">let </span>cid = message
@@ -2553,10 +2554,7 @@
         <span class="kw">let </span>sm_cloned = Arc::clone(<span class="self">self</span>);
 
         <span class="comment">// Wait for message to be included in head change.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>subscriber_poll = task::spawn::&lt;
-            <span class="kw">_</span>,
-            <span class="prelude-ty">Result</span>&lt;(<span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;, <span class="prelude-ty">Option</span>&lt;MessageReceipt&gt;), Error&gt;,
-        &gt;(<span class="kw">async move </span>{
+        </span><span class="kw">let </span><span class="kw-2">mut </span>subscriber_poll = task::spawn(<span class="kw">async move </span>{
             <span class="kw">loop </span>{
                 <span class="kw">match </span>subscriber.recv().<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(subscriber) =&gt; <span class="kw">match </span>subscriber {

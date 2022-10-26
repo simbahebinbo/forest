@@ -1046,6 +1046,7 @@
 <span id="1046">1046</span>
 <span id="1047">1047</span>
 <span id="1048">1048</span>
+<span id="1049">1049</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1066,7 +1067,7 @@
 <span class="kw">use </span>forest_ipld::recurse_links;
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
-<span class="kw">use </span>forest_message::{ChainMessage, MessageReceipt, SignedMessage};
+<span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::io::Checksum;
 <span class="kw">use </span>fvm::state_tree::StateTree;
@@ -1078,6 +1079,7 @@
 <span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
+<span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>serde::Serialize;
@@ -1945,7 +1947,7 @@
     db: <span class="kw-2">&amp;</span>DB,
     block_header: <span class="kw-2">&amp;</span>BlockHeader,
     i: usize,
-) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;MessageReceipt&gt;, Error&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Receipt&gt;, Error&gt;
 <span class="kw">where
     </span>DB: Blockstore,
 {

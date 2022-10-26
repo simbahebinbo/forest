@@ -397,6 +397,7 @@
 <span id="397">397</span>
 <span id="398">398</span>
 <span id="399">399</span>
+<span id="400">400</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -404,7 +405,7 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_message::{ChainMessage, MessageReceipt};
+<span class="kw">use </span>forest_message::ChainMessage;
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>fvm::call_manager::DefaultCallManager;
 <span class="kw">use </span>fvm::executor::{ApplyRet, DefaultExecutor};
@@ -419,6 +420,7 @@
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::error::ExitCode;
 <span class="kw">use </span>fvm_shared::message::Message;
+<span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>fvm_shared::{DefaultNetworkParams, NetworkParams, BLOCK_GAS_LIMIT, METHOD_SEND};
 <span class="kw">use </span>std::collections::HashSet;
@@ -583,7 +585,7 @@
         <span class="kw-2">mut </span>callback: <span class="prelude-ty">Option</span>&lt;
             <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;,
         &gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;MessageReceipt&gt;, anyhow::Error&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Receipt&gt;, anyhow::Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>receipts = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>processed = HashSet::&lt;Cid&gt;::default();
 
