@@ -577,16 +577,6 @@
 <span id="577">577</span>
 <span id="578">578</span>
 <span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -646,24 +636,14 @@
 
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>property_tests {
+    <span class="kw">use </span><span class="kw">crate</span>::ArbitraryCid;
+
     <span class="kw">use </span><span class="kw">super</span>::tipset_json::{TipsetJson, TipsetJsonRef};
     <span class="kw">use </span><span class="kw">super</span>::tipset_keys_json::TipsetKeysJson;
     <span class="kw">use super</span>::{Tipset, TipsetKeys};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
-
-    <span class="attribute">#[derive(Clone)]
-    </span><span class="kw">struct </span>ArbitraryCid(Cid);
-
-    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>ArbitraryCid {
-        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-            ArbitraryCid(Cid::new_v1(
-                u64::arbitrary(g),
-                cid::multihash::Multihash::wrap(u64::arbitrary(g), <span class="kw-2">&amp;</span>[u8::arbitrary(g)]).unwrap(),
-            ))
-        }
-    }
 
     <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>TipsetKeys {
         <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{

@@ -102,6 +102,30 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -129,6 +153,16 @@
     <span class="doccomment">/// The signature of message `H(prev_round, prev_round.data, round)`.
     </span><span class="kw">pub fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.data
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>BeaconEntry {
+    <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+        BeaconEntry {
+            round: u64::arbitrary(g),
+            data: Vec::arbitrary(g),
+        }
     }
 }
 
@@ -204,6 +238,20 @@
         {
             deserializer.deserialize_any(GoVecVisitor::&lt;BeaconEntry, BeaconEntryJson&gt;::new())
         }
+    }
+}
+
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use </span><span class="kw">super</span>::json::{BeaconEntryJson, BeaconEntryJsonRef};
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>quickcheck_macros::quickcheck;
+
+    <span class="attribute">#[quickcheck]
+    </span><span class="kw">fn </span>beacon_entry_roundtrip(entry: BeaconEntry) {
+        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>BeaconEntryJsonRef(<span class="kw-2">&amp;</span>entry)).unwrap();
+        <span class="kw">let </span>parsed: BeaconEntryJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
+        <span class="macro">assert_eq!</span>(entry, parsed.into());
     }
 }
 </code></pre></div>
