@@ -29,18 +29,102 @@
 <span id="29">29</span>
 <span id="30">30</span>
 <span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, LogValue};
+<span class="kw">use </span>isatty::stdout_isatty;
 <span class="kw">use </span>log::LevelFilter;
+<span class="kw">use </span>pretty_env_logger::env_logger::WriteStyle;
 <span class="kw">use </span>std::str::FromStr;
 
-<span class="kw">pub fn </span>setup_logger(log_config: <span class="kw-2">&amp;</span>[LogValue]) {
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub enum </span>LoggingColor {
+    Always,
+    Auto,
+    Never,
+}
+
+<span class="kw">impl </span>FromStr <span class="kw">for </span>LoggingColor {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= anyhow::Error;
+
+    <span class="kw">fn </span>from_str(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">match </span>s.to_lowercase().as_str() {
+            <span class="string">&quot;auto&quot; </span>=&gt; <span class="prelude-val">Ok</span>(LoggingColor::Auto),
+            <span class="string">&quot;always&quot; </span>=&gt; <span class="prelude-val">Ok</span>(LoggingColor::Always),
+            <span class="string">&quot;never&quot; </span>=&gt; <span class="prelude-val">Ok</span>(LoggingColor::Never),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="self">Self</span>::Err::msg(
+                <span class="string">&quot;Invalid logging color output. Must be one of Auto, Always, Never&quot;</span>,
+            )),
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;LoggingColor&gt; <span class="kw">for </span>WriteStyle {
+    <span class="kw">fn </span>from(color: LoggingColor) -&gt; WriteStyle {
+        <span class="kw">match </span>color {
+            LoggingColor::Always =&gt; WriteStyle::Always,
+            LoggingColor::Auto =&gt; {
+                <span class="kw">if </span>stdout_isatty() {
+                    WriteStyle::Always
+                } <span class="kw">else </span>{
+                    WriteStyle::Never
+                }
+            }
+            LoggingColor::Never =&gt; WriteStyle::Never,
+        }
+    }
+}
+
+<span class="kw">pub fn </span>setup_logger(log_config: <span class="kw-2">&amp;</span>[LogValue], write_style: WriteStyle) {
     <span class="kw">let </span><span class="kw-2">mut </span>logger_builder = pretty_env_logger::formatted_timed_builder();
 
     <span class="comment">// Assign default log level settings
     </span>logger_builder.filter(<span class="prelude-val">None</span>, LevelFilter::Info);
+
+    logger_builder.write_style(write_style);
 
     <span class="kw">for </span>item <span class="kw">in </span>log_config {
         <span class="kw">let </span>level = LevelFilter::from_str(item.level.as_str())

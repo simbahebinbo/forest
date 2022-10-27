@@ -228,11 +228,18 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">mod </span>client;
 <span class="kw">mod </span>config;
+
+<span class="kw">use </span><span class="kw">crate</span>::logger::LoggingColor;
 
 <span class="kw">pub use </span><span class="self">self</span>::{client::<span class="kw-2">*</span>, config::<span class="kw-2">*</span>};
 
@@ -317,6 +324,9 @@
     <span class="doccomment">/// Daemonize Forest process
     </span><span class="attribute">#[structopt(long)]
     </span><span class="kw">pub </span>detach: bool,
+    <span class="doccomment">/// Enable or disable colored logging in `stdout`
+    </span><span class="attribute">#[structopt(long, default_value = <span class="string">&quot;auto&quot;</span>)]
+    </span><span class="kw">pub </span>color: LoggingColor,
     <span class="comment">// env_logger-0.7 can only redirect to stderr or stdout. Version 0.9 can redirect to a file.
     // However, we cannot upgrade to version 0.9 because pretty_env_logger depends on version 0.7
     // and hasn&#39;t been updated in quite a while. See https://github.com/seanmonstar/pretty-env-logger/issues/52

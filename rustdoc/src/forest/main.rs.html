@@ -240,7 +240,7 @@
     <span class="comment">// Run forest as a daemon if no other subcommands are used. Otherwise, run the subcommand.
     </span><span class="kw">match </span>opts.to_config() {
         <span class="prelude-val">Ok</span>(cfg) =&gt; {
-            logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log);
+            logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, opts.color.into());
             <span class="kw">match </span>cmd {
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                     <span class="macro">warn!</span>(<span class="string">&quot;All subcommands have been moved to forest-cli tool&quot;</span>);
