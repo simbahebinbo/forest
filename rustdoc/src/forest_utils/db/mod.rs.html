@@ -66,10 +66,6 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -92,10 +88,6 @@
             <span class="prelude-val">Some</span>(bz) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(from_slice(<span class="kw-2">&amp;</span>bz)<span class="question-mark">?</span>)),
             <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
-    }
-
-    <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;bool&gt; {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.get(cid)<span class="question-mark">?</span>.is_some())
     }
 
     <span class="doccomment">/// Put an object in the block store and return the Cid identifier.
