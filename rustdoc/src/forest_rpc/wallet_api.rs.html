@@ -280,12 +280,12 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
+</span><span class="kw">use </span>forest_json::signature::json::SignatureJson;
+<span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_crypto::signature::json::SignatureJson;
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_json::message::json::MessageJson;

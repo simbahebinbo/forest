@@ -169,15 +169,13 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
-<span id="172">172</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{election_proof, ticket, tipset::tipset_keys_json};
 <span class="kw">use </span>forest_beacon::beacon_entries;
-<span class="kw">use </span>forest_crypto::signature;
-<span class="kw">use </span>forest_json::sector;
+<span class="kw">use </span>forest_json::{sector, signature};
 <span class="kw">use </span>serde::{de, Deserialize, Serialize};
 
 <span class="comment">// Wrapper for serializing and deserializing a BlockHeader from JSON.

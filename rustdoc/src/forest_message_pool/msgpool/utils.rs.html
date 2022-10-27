@@ -99,7 +99,7 @@
     <span class="kw">let </span>val = bls_sig_cache
         .get(<span class="kw-2">&amp;</span>msg.cid()<span class="question-mark">?</span>)
         .ok_or_else(|| Error::Other(<span class="string">&quot;Could not recover sig&quot;</span>.to_owned()))<span class="question-mark">?</span>;
-    <span class="kw">let </span>smsg = SignedMessage::new_from_parts(msg, val.clone()).map_err(Error::Other)<span class="question-mark">?</span>;
+    <span class="kw">let </span>smsg = SignedMessage::new_from_parts(msg, val.clone())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(smsg)
 }
 </code></pre></div>

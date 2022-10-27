@@ -179,14 +179,6 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -194,7 +186,7 @@
 <span class="kw">use </span>cid::multihash::MultihashDigest;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Ticket, Tipset, TipsetKeys, TxMeta};
-<span class="kw">use </span>forest_crypto::{Signer, VRFProof};
+<span class="kw">use </span>forest_crypto::VRFProof;
 <span class="kw">use </span>forest_libp2p::chain_exchange::{
     ChainExchangeResponse, ChainExchangeResponseStatus, CompactedMessages, TipsetBundle,
 };
@@ -315,15 +307,6 @@
     FullTipset::new(blocks).unwrap()
 }
 
-<span class="kw">const </span>DUMMY_SIG: [u8; <span class="number">1</span>] = [<span class="number">0u8</span>];
-
-<span class="kw">struct </span>DummySigner;
-<span class="kw">impl </span>Signer <span class="kw">for </span>DummySigner {
-    <span class="kw">fn </span>sign_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8], <span class="kw">_</span>: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, anyhow::Error&gt; {
-        <span class="prelude-val">Ok</span>(Signature::new_secp256k1(DUMMY_SIG.to_vec()))
-    }
-}
-
 <span class="doccomment">/// Returns a tuple of unsigned and signed messages used for testing
 </span><span class="kw">pub fn </span>construct_messages() -&gt; (Message, SignedMessage) {
     <span class="kw">let </span>bls_messages = Message {
@@ -332,7 +315,8 @@
         ..Message::default()
     };
 
-    <span class="kw">let </span>secp_messages = SignedMessage::new(bls_messages.clone(), <span class="kw-2">&amp;</span>DummySigner).unwrap();
+    <span class="kw">let </span>secp_messages =
+        SignedMessage::new_unchecked(bls_messages.clone(), Signature::new_secp256k1(<span class="macro">vec!</span>[<span class="number">0</span>]));
     (bls_messages, secp_messages)
 }
 

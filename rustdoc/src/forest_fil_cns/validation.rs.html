@@ -390,6 +390,7 @@
 <span id="390">390</span>
 <span id="391">391</span>
 <span id="392">392</span>
+<span id="393">393</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -411,6 +412,7 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
+<span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_sig;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>fvm_shared::TICKET_RANDOMNESS_LOOKBACK;
@@ -715,7 +717,7 @@
     rand: <span class="kw-2">&amp;</span>[u8],
     evrf: <span class="kw-2">&amp;</span>[u8],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FilecoinConsensusError&gt; {
-    forest_crypto::verify_vrf(worker, rand, evrf).map_err(FilecoinConsensusError::VrfValidation)
+    verify_bls_sig(rand, evrf, worker).map_err(FilecoinConsensusError::VrfValidation)
 }
 
 <span class="kw">fn </span>verify_winning_post_proof&lt;

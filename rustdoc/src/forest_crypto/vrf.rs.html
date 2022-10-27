@@ -48,19 +48,10 @@
 <span id="48">48</span>
 <span id="49">49</span>
 <span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
-<span id="55">55</span>
-<span id="56">56</span>
-<span id="57">57</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::signature::verify_bls_sig;
-<span class="kw">use </span>forest_encoding::{blake2b_256, serde_byte_array};
-<span class="kw">use </span>fvm_shared::address::Address;
+</span><span class="kw">use </span>forest_encoding::{blake2b_256, serde_byte_array};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="doccomment">/// The output from running a VRF proof.
@@ -83,11 +74,6 @@
     </span><span class="kw">pub fn </span>digest(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [u8; <span class="number">32</span>] {
         blake2b_256(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>)
     }
-}
-
-<span class="doccomment">/// Verifies raw VRF proof. This VRF proof is a BLS signature.
-</span><span class="kw">pub fn </span>verify_vrf(worker: <span class="kw-2">&amp;</span>Address, vrf_base: <span class="kw-2">&amp;</span>[u8], vrf_proof: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
-    verify_bls_sig(vrf_proof, vrf_base, worker).map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;VRF was invalid: {}&quot;</span>, e))
 }
 
 <span class="kw">pub mod </span>json {

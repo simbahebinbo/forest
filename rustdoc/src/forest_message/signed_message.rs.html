@@ -121,18 +121,14 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::Message <span class="kw">as </span>MessageTrait;
-<span class="kw">use </span>forest_crypto::Signer;
 <span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
 <span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError, RawBytes};
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::crypto::signature::{Error <span class="kw">as </span>CryptoError, Signature, SignatureType};
+<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::MethodNum;
@@ -145,21 +141,19 @@
 }
 
 <span class="kw">impl </span>SignedMessage {
-    <span class="doccomment">/// Generate new signed message from an unsigned message and a signer.
-    </span><span class="kw">pub fn </span>new&lt;S: Signer&gt;(message: Message, signer: <span class="kw-2">&amp;</span>S) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, CryptoError&gt; {
-        <span class="kw">let </span>bz = message.cid()<span class="question-mark">?</span>.to_bytes();
-
-        <span class="kw">let </span>signature = signer
-            .sign_bytes(<span class="kw-2">&amp;</span>bz, <span class="kw-2">&amp;</span>message.from)
-            .map_err(|e| CryptoError::SigningError(e.to_string()))<span class="question-mark">?</span>;
-
+    <span class="doccomment">/// Generate a new signed message from fields.
+    /// The signature will be verified.
+    </span><span class="kw">pub fn </span>new_from_parts(message: Message, signature: Signature) -&gt; anyhow::Result&lt;SignedMessage&gt; {
+        signature
+            .verify(<span class="kw-2">&amp;</span>message.cid()<span class="question-mark">?</span>.to_bytes(), <span class="kw-2">&amp;</span>message.from)
+            .map_err(anyhow::Error::msg)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(SignedMessage { message, signature })
     }
 
     <span class="doccomment">/// Generate a new signed message from fields.
-    </span><span class="kw">pub fn </span>new_from_parts(message: Message, signature: Signature) -&gt; <span class="prelude-ty">Result</span>&lt;SignedMessage, String&gt; {
-        signature.verify(<span class="kw-2">&amp;</span>message.cid().unwrap().to_bytes(), <span class="kw-2">&amp;</span>message.from)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(SignedMessage { message, signature })
+    /// The signature will not be verified.
+    </span><span class="kw">pub fn </span>new_unchecked(message: Message, signature: Signature) -&gt; SignedMessage {
+        SignedMessage { message, signature }
     }
 
     <span class="doccomment">/// Returns reference to the unsigned message.

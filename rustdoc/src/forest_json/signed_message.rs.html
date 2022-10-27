@@ -218,32 +218,11 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">pub mod </span>json {
-    <span class="kw">use </span><span class="kw">crate</span>::message;
+    <span class="kw">use crate</span>::{message, signature};
     <span class="kw">use </span>cid::Cid;
-    <span class="kw">use </span>forest_crypto::signature;
     <span class="kw">use </span>forest_message::SignedMessage;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
     <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
@@ -340,7 +319,6 @@
     <span class="kw">use </span><span class="kw">super</span>::json::{SignedMessageJson, SignedMessageJsonRef};
     <span class="kw">use </span><span class="kw">crate</span>::message;
     <span class="kw">use </span><span class="kw">crate</span>::message::json::{MessageJson, MessageJsonRef};
-    <span class="kw">use </span>forest_crypto::Signer;
     <span class="kw">use </span>forest_message::{<span class="self">self</span>, SignedMessage};
     <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
     <span class="kw">use </span>fvm_shared::address::Address;
@@ -357,22 +335,10 @@
 
     <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>SignedMessageWrapper {
         <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-            <span class="kw">const </span>DUMMY_SIG: [u8; <span class="number">1</span>] = [<span class="number">0u8</span>];
-
-            <span class="kw">struct </span>DummySigner;
-            <span class="kw">impl </span>Signer <span class="kw">for </span>DummySigner {
-                <span class="kw">fn </span>sign_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8], <span class="kw">_</span>: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, anyhow::Error&gt; {
-                    <span class="prelude-val">Ok</span>(Signature::new_secp256k1(DUMMY_SIG.to_vec()))
-                }
-            }
-
-            SignedMessageWrapper(
-                SignedMessage::new(
-                    <span class="kw">crate</span>::message::tests::MessageWrapper::arbitrary(g).message,
-                    <span class="kw-2">&amp;</span>DummySigner,
-                )
-                .unwrap(),
-            )
+            SignedMessageWrapper(SignedMessage::new_unchecked(
+                <span class="kw">crate</span>::message::tests::MessageWrapper::arbitrary(g).message,
+                Signature::new_secp256k1(<span class="macro">vec!</span>[<span class="number">0</span>]),
+            ))
         }
     }
 
@@ -422,13 +388,7 @@
             gas_premium: TokenAmount::from_atto(<span class="number">9</span>),
         };
 
-        <span class="kw">struct </span>DummySigner;
-        <span class="kw">impl </span>Signer <span class="kw">for </span>DummySigner {
-            <span class="kw">fn </span>sign_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[u8], <span class="kw">_</span>: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, anyhow::Error&gt; {
-                <span class="prelude-val">Ok</span>(Signature::new_bls(<span class="macro">vec!</span>[<span class="number">0u8</span>, <span class="number">1u8</span>]))
-            }
-        }
-        <span class="kw">let </span>signed = SignedMessage::new(message.clone(), <span class="kw-2">&amp;</span>DummySigner).unwrap();
+        <span class="kw">let </span>signed = SignedMessage::new_unchecked(message.clone(), Signature::new_bls(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>]));
 
         <span class="attribute">#[derive(Serialize, Deserialize, Debug, PartialEq)]
         </span><span class="kw">struct </span>TestStruct {
