@@ -381,6 +381,7 @@
 <span id="381">381</span>
 <span id="382">382</span>
 <span id="383">383</span>
+<span id="384">384</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use super</span>::{Config, SnapshotFetchConfig};
@@ -529,6 +530,7 @@
     snapshot_response: Response,
     total_size: u64,
 ) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="macro">info!</span>(<span class="string">&quot;Snapshot url: {url}&quot;</span>);
     <span class="macro">info!</span>(
         <span class="string">&quot;Snapshot will be downloaded to {} ({})&quot;</span>,
         snapshot_path.display(),
