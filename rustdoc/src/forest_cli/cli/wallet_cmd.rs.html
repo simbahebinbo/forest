@@ -266,14 +266,6 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -293,7 +285,7 @@
 };
 <span class="kw">use </span>structopt::StructOpt;
 
-<span class="kw">use super</span>::{balance_to_fil, cli_error_and_die, handle_rpc_err};
+<span class="kw">use super</span>::{cli_error_and_die, handle_rpc_err};
 
 <span class="attribute">#[derive(Debug, StructOpt)]
 </span><span class="kw">pub enum </span>WalletCommands {
@@ -480,15 +472,7 @@
                         }
                     };
 
-                    <span class="kw">let </span>balance_fil = <span class="kw">match </span>balance_to_fil(balance_int.clone()) {
-                        <span class="prelude-val">Ok</span>(balance) =&gt; balance,
-                        <span class="prelude-val">Err</span>(err) =&gt; {
-                            <span class="macro">println!</span>(<span class="string">&quot;Couldn&#39;t convert balance {} to FIL: {}&quot;</span>, balance_int, err);
-                            <span class="kw">continue</span>;
-                        }
-                    };
-
-                    <span class="macro">println!</span>(<span class="string">&quot;{addr:41}  {default_address_mark:7}  {balance_fil:.6} FIL&quot;</span>);
+                    <span class="macro">println!</span>(<span class="string">&quot;{addr:41}  {default_address_mark:7}  {balance_int:.6} FIL&quot;</span>);
                 }
             }
             <span class="self">Self</span>::SetDefault { key } =&gt; {

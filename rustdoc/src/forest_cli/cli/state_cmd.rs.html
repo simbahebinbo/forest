@@ -242,9 +242,6 @@
 <span id="242">242</span>
 <span id="243">243</span>
 <span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -267,7 +264,7 @@
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>structopt::StructOpt;
 
-<span class="kw">use </span><span class="kw">crate</span>::cli::{balance_to_fil, cli_error_and_die, to_size_string};
+<span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, to_size_string};
 
 <span class="kw">use </span><span class="kw">super</span>::handle_rpc_err;
 
@@ -392,10 +389,7 @@
                     <span class="kw">let </span>a: ActorState = state.into();
 
                     <span class="macro">println!</span>(<span class="string">&quot;Address:\t{}&quot;</span>, address);
-                    <span class="macro">println!</span>(
-                        <span class="string">&quot;Balance:\t{:.23} FIL&quot;</span>,
-                        balance_to_fil(a.balance).expect(<span class="string">&quot;Couldn&#39;t convert balance to fil&quot;</span>)
-                    );
+                    <span class="macro">println!</span>(<span class="string">&quot;Balance:\t{:.23} FIL&quot;</span>, a.balance);
                     <span class="macro">println!</span>(<span class="string">&quot;Nonce:  \t{}&quot;</span>, a.sequence);
                     <span class="macro">println!</span>(<span class="string">&quot;Code:   \t{}&quot;</span>, a.code);
                 } <span class="kw">else </span>{
