@@ -228,7 +228,7 @@
     cs: <span class="kw-2">&amp;</span>ChainStore&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Tipset, anyhow::Error&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store,
 {
     <span class="kw">let </span>genesis = <span class="kw">match </span>genesis_fp {
         <span class="prelude-val">Some</span>(path) =&gt; {
@@ -285,7 +285,7 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BlockHeader, anyhow::Error&gt;
 <span class="kw">where
     </span>R: AsyncRead + Send + Unpin,
-    BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    BS: Blockstore + Store,
 {
     <span class="comment">// Load genesis state into the database and get the Cid
     </span><span class="kw">let </span>genesis_cids: Vec&lt;Cid&gt; = load_car(chain_store.blockstore(), reader.compat()).<span class="kw">await</span><span class="question-mark">?</span>;

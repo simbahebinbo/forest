@@ -1403,38 +1403,6 @@
 <span id="1403">1403</span>
 <span id="1404">1404</span>
 <span id="1405">1405</span>
-<span id="1406">1406</span>
-<span id="1407">1407</span>
-<span id="1408">1408</span>
-<span id="1409">1409</span>
-<span id="1410">1410</span>
-<span id="1411">1411</span>
-<span id="1412">1412</span>
-<span id="1413">1413</span>
-<span id="1414">1414</span>
-<span id="1415">1415</span>
-<span id="1416">1416</span>
-<span id="1417">1417</span>
-<span id="1418">1418</span>
-<span id="1419">1419</span>
-<span id="1420">1420</span>
-<span id="1421">1421</span>
-<span id="1422">1422</span>
-<span id="1423">1423</span>
-<span id="1424">1424</span>
-<span id="1425">1425</span>
-<span id="1426">1426</span>
-<span id="1427">1427</span>
-<span id="1428">1428</span>
-<span id="1429">1429</span>
-<span id="1430">1430</span>
-<span id="1431">1431</span>
-<span id="1432">1432</span>
-<span id="1433">1433</span>
-<span id="1434">1434</span>
-<span id="1435">1435</span>
-<span id="1436">1436</span>
-<span id="1437">1437</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1465,7 +1433,6 @@
 <span class="kw">use </span>futures::{channel::oneshot, select, FutureExt};
 <span class="kw">use </span>fvm::executor::ApplyRet;
 <span class="kw">use </span>fvm::externs::Rand;
-<span class="kw">use </span>fvm::machine::NetworkConfig;
 <span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
@@ -1601,13 +1568,8 @@
 
     <span class="doccomment">/// Gets actor from given [`Cid`], if it exists.
     </span><span class="kw">pub fn </span>get_actor(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, state_cid: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ActorState&gt;, Error&gt; {
-        <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore_cloned(), <span class="kw-2">&amp;</span>state_cid)<span class="question-mark">?</span>;
+        <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore().clone(), <span class="kw-2">&amp;</span>state_cid)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(state.get_actor(addr)<span class="question-mark">?</span>)
-    }
-
-    <span class="doccomment">/// Returns the cloned [`Arc`] of the state manager&#39;s [`Blockstore`].
-    </span><span class="kw">pub fn </span>blockstore_cloned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DB {
-        <span class="self">self</span>.cs.blockstore_cloned()
     }
 
     <span class="doccomment">/// Returns a reference to the state manager&#39;s [`Blockstore`].
@@ -1775,7 +1737,7 @@
         p_state: <span class="kw-2">&amp;</span>Cid,
         messages: <span class="kw-2">&amp;</span>[BlockMessages],
         epoch: ChainEpoch,
-        rand: <span class="kw-2">&amp;</span>R,
+        rand: R,
         base_fee: TokenAmount,
         <span class="kw-2">mut </span>callback: <span class="prelude-ty">Option</span>&lt;CB&gt;,
         tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
@@ -1784,27 +1746,22 @@
         </span>R: Rand + Clone + <span class="lifetime">&#39;static</span>,
         CB: FnMut(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;,
     {
-        <span class="kw">let </span>db = <span class="self">self</span>.blockstore_cloned();
+        <span class="kw">let </span>db = <span class="self">self</span>.blockstore().clone();
 
         <span class="kw">let </span>turbo_height = <span class="self">self</span>.chain_config.epoch(Height::Turbo);
-        <span class="kw">let </span>rand_clone = rand.clone();
         <span class="kw">let </span>create_vm = |state_root, epoch| {
-            <span class="kw">let </span>network_version = <span class="self">self</span>.get_network_version(epoch);
-            VM::&lt;<span class="kw">_</span>&gt;::new(
+            VM::new(
                 state_root,
-                db.clone(),
+                <span class="self">self</span>.blockstore().clone(),
                 epoch,
-                <span class="kw-2">&amp;</span>rand_clone,
+                rand.clone(),
                 base_fee.clone(),
-                network_version,
                 <span class="self">self</span>.genesis_info
                     .get_circulating_supply(epoch, <span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>state_root)<span class="question-mark">?</span>,
                 <span class="self">self</span>.reward_calc.clone(),
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
-                <span class="self">self</span>.engine
-                    .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
-                    .unwrap(),
-                <span class="self">self</span>.chain_config.policy.chain_finality,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
+                Arc::clone(<span class="self">self</span>.chain_config()),
             )
         };
 
@@ -1837,14 +1794,7 @@
         <span class="comment">// Flush changes to blockstore
         </span><span class="kw">let </span>state_root = vm.flush()<span class="question-mark">?</span>;
 
-        <span class="comment">// FIXME: Buffering disabled while debugging. Investigate if the buffer improves performance.
-        //        See issue: https://github.com/ChainSafe/forest/issues/1451
-        // Persist changes connected to root
-        // buf_store
-        //     .flush(&amp;state_root)
-        //     .expect(&quot;buffered blockstore flush failed&quot;);
-
-        </span><span class="prelude-val">Ok</span>((state_root, receipt_root))
+        <span class="prelude-val">Ok</span>((state_root, receipt_root))
     }
 
     <span class="doccomment">/// Returns the pair of (parent state root, message receipt root). This will either be cached
@@ -1914,29 +1864,25 @@
     <span class="kw">fn </span>call_raw(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         msg: <span class="kw-2">&amp;mut </span>Message,
-        rand: <span class="kw-2">&amp;</span>ChainRand&lt;DB&gt;,
+        rand: ChainRand&lt;DB&gt;,
         tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
     ) -&gt; StateCallResult {
         <span class="macro">span!</span>(<span class="string">&quot;state_call_raw&quot;</span>, {
             <span class="kw">let </span>bstate = tipset.parent_state();
             <span class="kw">let </span>bheight = tipset.epoch();
-            <span class="kw">let </span>store_arc = <span class="self">self</span>.blockstore_cloned();
-            <span class="kw">let </span>network_version = <span class="self">self</span>.get_network_version(bheight);
-            <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::&lt;<span class="kw">_</span>&gt;::new(
+            <span class="kw">let </span>store = <span class="self">self</span>.blockstore().clone();
+            <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::new(
                 <span class="kw-2">*</span>bstate,
-                store_arc.clone(),
+                store,
                 bheight,
                 rand,
                 TokenAmount::zero(),
-                network_version,
                 <span class="self">self</span>.genesis_info
-                    .get_circulating_supply(bheight, <span class="kw-2">&amp;</span>store_arc, bstate)<span class="question-mark">?</span>,
+                    .get_circulating_supply(bheight, <span class="self">self</span>.blockstore(), bstate)<span class="question-mark">?</span>,
                 <span class="self">self</span>.reward_calc.clone(),
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
-                <span class="self">self</span>.engine
-                    .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
-                    .unwrap(),
-                <span class="self">self</span>.chain_config.policy.chain_finality,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
+                Arc::clone(<span class="self">self</span>.chain_config()),
             )<span class="question-mark">?</span>;
 
             <span class="kw">if </span>msg.gas_limit == <span class="number">0 </span>{
@@ -1981,7 +1927,7 @@
                 </span>.ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
         </span>};
         <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
-        <span class="self">self</span>.call_raw(message, <span class="kw-2">&amp;</span>chain_rand, <span class="kw-2">&amp;</span>ts)
+        <span class="self">self</span>.call_raw(message, chain_rand, <span class="kw-2">&amp;</span>ts)
     }
 
     <span class="doccomment">/// Computes message on the given [Tipset] state, after applying other messages and returns
@@ -2006,27 +1952,21 @@
             </span>.map_err(|<span class="kw">_</span>| Error::Other(<span class="string">&quot;Could not load tipset state&quot;</span>.to_string()))<span class="question-mark">?</span>;
         <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
 
-        <span class="comment">// TODO investigate: this doesn&#39;t use a buffered store in any way, and can lead to
-        // state bloat potentially?
-        </span><span class="kw">let </span>store_arc = <span class="self">self</span>.blockstore_cloned();
+        <span class="kw">let </span>store = <span class="self">self</span>.blockstore().clone();
         <span class="comment">// Since we&#39;re simulating a future message, pretend we&#39;re applying it in the &quot;next&quot; tipset
-        </span><span class="kw">let </span>network_version = <span class="self">self</span>.get_network_version(ts.epoch() + <span class="number">1</span>);
-        <span class="kw">let </span>epoch = ts.epoch() + <span class="number">1</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::&lt;<span class="kw">_</span>&gt;::new(
+        </span><span class="kw">let </span>epoch = ts.epoch() + <span class="number">1</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::new(
             st,
-            store_arc.clone(),
+            store,
             epoch,
-            <span class="kw-2">&amp;</span>chain_rand,
+            chain_rand,
             ts.blocks()[<span class="number">0</span>].parent_base_fee().clone(),
-            network_version,
             <span class="self">self</span>.genesis_info
-                .get_circulating_supply(epoch, <span class="kw-2">&amp;</span>store_arc, <span class="kw-2">&amp;</span>st)<span class="question-mark">?</span>,
+                .get_circulating_supply(epoch, <span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>st)<span class="question-mark">?</span>,
             <span class="self">self</span>.reward_calc.clone(),
             chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts)),
-            <span class="self">self</span>.engine
-                .get(<span class="kw-2">&amp;</span>NetworkConfig::new(network_version))
-                .unwrap(),
-            <span class="self">self</span>.chain_config.policy.chain_finality,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
+            Arc::clone(<span class="self">self</span>.chain_config()),
         )<span class="question-mark">?</span>;
 
         <span class="kw">for </span>msg <span class="kw">in </span>prior_messages {
@@ -2095,17 +2035,13 @@
         tipset: Arc&lt;Tipset&gt;,
         round: ChainEpoch,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Arc&lt;Tipset&gt;, Cid), Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>lbr: ChainEpoch = ChainEpoch::from(<span class="number">0</span>);
         <span class="kw">let </span>version = <span class="self">self</span>.get_network_version(round);
         <span class="kw">let </span>lb = <span class="kw">if </span>version &lt;= NetworkVersion::V3 {
             ChainEpoch::from(<span class="number">10</span>)
         } <span class="kw">else </span>{
             <span class="self">self</span>.chain_config.policy.chain_finality
         };
-
-        <span class="kw">if </span>round &gt; lb {
-            lbr = round - lb
-        }
+        <span class="kw">let </span>lbr = (round - lb).max(<span class="number">0</span>);
 
         <span class="comment">// More null blocks than lookback
         </span><span class="kw">if </span>lbr &gt;= tipset.epoch() {
@@ -2340,7 +2276,7 @@
                     <span class="kw-2">&amp;</span>sr,
                     <span class="kw-2">&amp;</span>blocks,
                     epoch,
-                    <span class="kw-2">&amp;</span>chain_rand,
+                    chain_rand,
                     base_fee,
                     callback,
                     <span class="kw-2">&amp;</span>ts_cloned,

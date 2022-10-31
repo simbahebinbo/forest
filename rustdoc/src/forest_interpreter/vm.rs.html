@@ -363,54 +363,18 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">crate</span>::fvm::ForestExterns;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_message::ChainMessage;
-<span class="kw">use </span>forest_networks::{ChainConfig, Height};
+<span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>fvm::call_manager::DefaultCallManager;
 <span class="kw">use </span>fvm::executor::{ApplyRet, DefaultExecutor};
 <span class="kw">use </span>fvm::externs::Rand;
-<span class="kw">use </span>fvm::machine::{DefaultMachine, Engine, Machine, NetworkConfig};
+<span class="kw">use </span>fvm::machine::{DefaultMachine, Machine, MultiEngine, NetworkConfig};
 <span class="kw">use </span>fvm::DefaultKernel;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
@@ -421,10 +385,8 @@
 <span class="kw">use </span>fvm_shared::error::ExitCode;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::receipt::Receipt;
-<span class="kw">use </span>fvm_shared::version::NetworkVersion;
-<span class="kw">use </span>fvm_shared::{DefaultNetworkParams, NetworkParams, BLOCK_GAS_LIMIT, METHOD_SEND};
+<span class="kw">use </span>fvm_shared::{BLOCK_GAS_LIMIT, METHOD_SEND};
 <span class="kw">use </span>std::collections::HashSet;
-<span class="kw">use </span>std::marker::PhantomData;
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">type </span>ForestMachine&lt;DB&gt; = DefaultMachine&lt;DB, ForestExterns&lt;DB&gt;&gt;;
@@ -454,78 +416,46 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt;;
 }
 
-<span class="attribute">#[derive(Clone, Copy)]
-</span><span class="kw">pub struct </span>Heights {
-    <span class="kw">pub </span>calico: ChainEpoch,
-    <span class="kw">pub </span>turbo: ChainEpoch,
-    <span class="kw">pub </span>hyperdrive: ChainEpoch,
-    <span class="kw">pub </span>chocolate: ChainEpoch,
-}
-
-<span class="kw">impl </span>Heights {
-    <span class="kw">pub fn </span>new(chain_config: <span class="kw-2">&amp;</span>ChainConfig) -&gt; <span class="self">Self </span>{
-        Heights {
-            calico: chain_config.epoch(Height::Calico),
-            turbo: chain_config.epoch(Height::Turbo),
-            hyperdrive: chain_config.epoch(Height::Hyperdrive),
-            chocolate: chain_config.epoch(Height::Chocolate),
-        }
-    }
-}
-
 <span class="doccomment">/// Interpreter which handles execution of state transitioning messages and returns receipts
 /// from the VM execution.
-</span><span class="kw">pub struct </span>VM&lt;DB: Blockstore + Store + Clone + <span class="lifetime">&#39;static</span>, P = DefaultNetworkParams&gt; {
+</span><span class="kw">pub struct </span>VM&lt;DB: Blockstore + <span class="lifetime">&#39;static</span>&gt; {
     fvm_executor: ForestExecutor&lt;DB&gt;,
-    params: PhantomData&lt;P&gt;,
     reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
 }
 
-<span class="kw">impl</span>&lt;DB, P&gt; VM&lt;DB, P&gt;
+<span class="kw">impl</span>&lt;DB&gt; VM&lt;DB&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone,
-    P: NetworkParams,
+    </span>DB: Blockstore + Clone,
 {
     <span class="attribute">#[allow(clippy::too_many_arguments)]
-    </span><span class="kw">pub fn </span>new&lt;R&gt;(
+    </span><span class="kw">pub fn </span>new(
         root: Cid,
-        store_arc: DB,
+        store: DB,
         epoch: ChainEpoch,
-        rand: <span class="kw-2">&amp;</span>R,
+        rand: <span class="kw">impl </span>Rand + <span class="lifetime">&#39;static</span>,
         base_fee: TokenAmount,
-        network_version: NetworkVersion,
         circ_supply: TokenAmount,
         reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
         lb_fn: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
-        engine: Engine,
-        chain_finality: i64,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt;
-    <span class="kw">where
-        </span>R: Rand + Clone + <span class="lifetime">&#39;static</span>,
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>context = NetworkConfig::new(network_version).for_epoch(epoch, root);
+        multi_engine: <span class="kw-2">&amp;</span>MultiEngine,
+        chain_config: Arc&lt;ChainConfig&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
+        <span class="kw">let </span>network_version = chain_config.network_version(epoch);
+        <span class="kw">let </span>config = NetworkConfig::new(network_version);
+        <span class="kw">let </span>engine = multi_engine.get(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>context = config.for_epoch(epoch, root);
         context.set_base_fee(base_fee);
         context.set_circulating_supply(circ_supply);
-        context.enable_tracing();
         <span class="kw">let </span>fvm: fvm::machine::DefaultMachine&lt;DB, ForestExterns&lt;DB&gt;&gt; =
             fvm::machine::DefaultMachine::new(
                 <span class="kw-2">&amp;</span>engine,
                 <span class="kw-2">&amp;</span>context,
-                store_arc.clone(),
-                ForestExterns::new(
-                    rand.clone(),
-                    epoch,
-                    root,
-                    lb_fn,
-                    store_arc,
-                    network_version,
-                    chain_finality,
-                ),
+                store.clone(),
+                ForestExterns::new(rand, epoch, root, lb_fn, store, chain_config),
             )<span class="question-mark">?</span>;
         <span class="kw">let </span>exec: ForestExecutor&lt;DB&gt; = DefaultExecutor::new(fvm);
         <span class="prelude-val">Ok</span>(VM {
             fvm_executor: exec,
-            params: PhantomData,
             reward_calc,
         })
     }

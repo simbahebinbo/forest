@@ -2952,7 +2952,7 @@
     <span class="comment">// Base fee check
     </span><span class="kw">let </span>smoke_height = state_manager.chain_config().epoch(Height::Smoke);
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
-    <span class="kw">let </span>v_block_store = state_manager.blockstore_cloned();
+    <span class="kw">let </span>v_block_store = state_manager.blockstore().clone();
     <span class="kw">let </span>v_block = Arc::clone(<span class="kw-2">&amp;</span>block);
     validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
         <span class="kw">let </span>base_fee = forest_chain::compute_base_fee(<span class="kw-2">&amp;</span>v_block_store, <span class="kw-2">&amp;</span>v_base_tipset, smoke_height)
@@ -2973,7 +2973,7 @@
     }));
 
     <span class="comment">// Parent weight calculation check
-    </span><span class="kw">let </span>v_block_store = state_manager.blockstore_cloned();
+    </span><span class="kw">let </span>v_block_store = state_manager.blockstore().clone();
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
     <span class="kw">let </span>weight = header.weight().clone();
     validations.push(task::spawn_blocking(<span class="kw">move </span>|| {

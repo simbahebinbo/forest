@@ -1128,7 +1128,7 @@
         <span class="kw">let </span>network = SyncNetworkContext::new(
             network_send,
             Default::default(),
-            state_manager.blockstore_cloned(),
+            state_manager.blockstore().clone(),
         );
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{

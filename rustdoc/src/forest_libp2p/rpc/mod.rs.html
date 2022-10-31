@@ -226,8 +226,8 @@
 </span><span class="kw">impl</span>&lt;P, RQ, RS&gt; RequestResponseCodec <span class="kw">for </span>CborRequestResponse&lt;P, RQ, RS&gt;
 <span class="kw">where
     </span>P: ProtocolName + Clone + Send + Sync,
-    RQ: Serialize + DeserializeOwned + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    RS: Serialize + DeserializeOwned + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    RQ: Serialize + DeserializeOwned + Send + Sync,
+    RS: Serialize + DeserializeOwned + Send + Sync,
 {
     <span class="kw">type </span>Protocol = P;
     <span class="kw">type </span>Request = RQ;

@@ -75,7 +75,7 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, LogValue};
-<span class="kw">use </span>isatty::stdout_isatty;
+<span class="kw">use </span>atty::Stream;
 <span class="kw">use </span>log::LevelFilter;
 <span class="kw">use </span>pretty_env_logger::env_logger::WriteStyle;
 <span class="kw">use </span>std::str::FromStr;
@@ -107,7 +107,7 @@
         <span class="kw">match </span>color {
             LoggingColor::Always =&gt; WriteStyle::Always,
             LoggingColor::Auto =&gt; {
-                <span class="kw">if </span>stdout_isatty() {
+                <span class="kw">if </span>atty::is(Stream::Stdout) {
                     WriteStyle::Always
                 } <span class="kw">else </span>{
                     WriteStyle::Never

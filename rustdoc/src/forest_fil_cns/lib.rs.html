@@ -234,8 +234,8 @@
 <span class="attribute">#[async_trait]
 </span><span class="kw">impl</span>&lt;B, V&gt; Consensus <span class="kw">for </span>FilecoinConsensus&lt;B, V&gt;
 <span class="kw">where
-    </span>B: Beacon + Unpin + Send + Sync + <span class="lifetime">&#39;static</span>,
-    V: ProofVerifier + Unpin + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>B: Beacon + Unpin,
+    V: ProofVerifier + Unpin,
 {
     <span class="kw">type </span>Error = FilecoinConsensusError;
 

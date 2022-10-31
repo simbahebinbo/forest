@@ -273,8 +273,8 @@
     Params(params): Params&lt;SyncCheckBadParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncCheckBadResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore,
+    B: Beacon,
 {
     <span class="kw">let </span>(CidJson(cid),) = params;
     <span class="prelude-val">Ok</span>(data.bad_blocks.peek(<span class="kw-2">&amp;</span>cid).<span class="kw">await</span>.unwrap_or_default())
@@ -286,8 +286,8 @@
     Params(params): Params&lt;SyncMarkBadParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncMarkBadResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore,
+    B: Beacon,
 {
     <span class="kw">let </span>(CidJson(cid),) = params;
     data.bad_blocks
@@ -307,8 +307,8 @@
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncStateResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore,
+    B: Beacon,
 {
     <span class="kw">let </span>active_syncs = <span class="macro">vec!</span>[clone_state(data.sync_state.as_ref()).<span class="kw">await</span>];
     <span class="prelude-val">Ok</span>(RPCSyncState { active_syncs })
@@ -321,7 +321,7 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncSubmitBlockResult, JsonRpcError&gt;
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 {
     <span class="kw">let </span>bls_msgs: Vec&lt;Message&gt; =
         forest_chain::messages_from_cids(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>blk.bls_messages)<span class="question-mark">?</span>;

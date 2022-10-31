@@ -220,8 +220,8 @@
     ws_sender: WebSocketConnection,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore,
+    B: Beacon,
 {
     <span class="kw">let </span>call_method = rpc_call.method_ref();
     <span class="kw">let </span>call_id = rpc_call.id_ref();
@@ -308,8 +308,8 @@
     <span class="kw-2">mut </span>ws_stream: WebSocketConnection,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore,
+    B: Beacon,
 {
     <span class="kw">let </span>(authorization_header, request) = get_auth_header(request);
     <span class="kw">let </span>rpc_server = request.state();

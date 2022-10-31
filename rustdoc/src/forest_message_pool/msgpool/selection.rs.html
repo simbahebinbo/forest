@@ -1394,7 +1394,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; MessagePool&lt;T&gt;
 <span class="kw">where
-    </span>T: Provider + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>T: Provider,
 {
     <span class="doccomment">/// Forest employs a sophisticated algorithm for selecting messages
     /// for inclusion from the pool, given the ticket quality of a miner.
@@ -1991,7 +1991,7 @@
     rmsgs: <span class="kw-2">&amp;mut </span>HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
-    </span>T: Provider + <span class="lifetime">&#39;static</span>,
+    </span>T: Provider,
 {
     <span class="comment">// TODO: This logic should probably be implemented in the ChainStore. It handles reorgs.
     </span><span class="kw">let </span><span class="kw-2">mut </span>left = Arc::new(from);

@@ -146,7 +146,6 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-<span id="149">149</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -155,7 +154,6 @@
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>forest_blocks::{Block, FullTipset, Tipset, TxMeta};
 <span class="kw">use </span>forest_chain::ChainStore;
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_legacy_ipld_amt::{Amt, Error <span class="kw">as </span>IpldAmtError};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
@@ -205,7 +203,7 @@
 <span class="kw">pub struct </span>TipsetValidator&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw">pub </span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>FullTipset);
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; TipsetValidator&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub async fn </span>validate&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+    <span class="kw">pub async fn </span>validate&lt;DB: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         chainstore: Arc&lt;ChainStore&lt;DB&gt;&gt;,
         bad_block_cache: Arc&lt;BadBlockCache&gt;,

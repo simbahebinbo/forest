@@ -371,7 +371,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; SyncNetworkContext&lt;DB&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore,
 {
     <span class="kw">pub fn </span>new(
         network_send: flume::Sender&lt;NetworkMessage&gt;,

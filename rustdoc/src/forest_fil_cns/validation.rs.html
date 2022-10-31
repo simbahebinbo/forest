@@ -433,8 +433,8 @@
 /// * Elections and Proof-of-SpaceTime, Beacon values
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>validate_block&lt;
     DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Sync + Send + <span class="lifetime">&#39;static</span>,
-    V: ProofVerifier + Sync + Send + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
+    V: ProofVerifier,
 &gt;(
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     beacon_schedule: Arc&lt;BeaconSchedule&lt;B&gt;&gt;,
@@ -542,7 +542,7 @@
             v_base_tipset.as_ref(),
             v_prev_beacon.as_ref(),
             <span class="kw-2">&amp;</span>work_addr,
-            v_state_manager.as_ref(),
+            v_state_manager.chain_config(),
         )
     }));
 
@@ -672,15 +672,15 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn </span>validate_ticket_election&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>&gt;(
+<span class="kw">fn </span>validate_ticket_election(
     header: <span class="kw-2">&amp;</span>BlockHeader,
     base_tipset: <span class="kw-2">&amp;</span>Tipset,
     prev_beacon: <span class="kw-2">&amp;</span>BeaconEntry,
     work_addr: <span class="kw-2">&amp;</span>Address,
-    state_manager: <span class="kw-2">&amp;</span>StateManager&lt;DB&gt;,
+    chain_config: <span class="kw-2">&amp;</span>ChainConfig,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FilecoinConsensusError&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>miner_address_buf = header.miner_address().marshal_cbor()<span class="question-mark">?</span>;
-    <span class="kw">let </span>smoke_height = state_manager.chain_config().epoch(Height::Smoke);
+    <span class="kw">let </span>smoke_height = chain_config.epoch(Height::Smoke);
 
     <span class="kw">if </span>header.epoch() &gt; smoke_height {
         <span class="kw">let </span>vrf_proof = base_tipset

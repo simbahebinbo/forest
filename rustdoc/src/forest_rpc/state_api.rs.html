@@ -885,9 +885,6 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -942,7 +939,7 @@
 /// If false, only those sectors in the filter are included.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_sectors&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerSectorsParams&gt;,
@@ -964,7 +961,7 @@
 <span class="doccomment">/// runs the given message and returns its result without any persisted changes.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_call&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateCallParams&gt;,
@@ -983,7 +980,7 @@
 <span class="doccomment">/// returns all the proving deadlines for the given miner
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_deadlines&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerDeadlinesParams&gt;,
@@ -1017,7 +1014,7 @@
 <span class="doccomment">/// returns the `PreCommit` info for the specified miner&#39;s sector
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_sector_precommit_info&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateSectorPrecommitInfoParams&gt;,
@@ -1036,10 +1033,7 @@
 }
 
 <span class="doccomment">/// `StateMinerInfo` returns info about the indicated miner
-</span><span class="kw">pub async fn </span>state_miner_info&lt;
-    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
-&gt;(
+</span><span class="kw">pub async fn </span>state_miner_info&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, B: Beacon&gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerInfoParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;StateMinerInfoResult, JsonRpcError&gt; {
@@ -1066,7 +1060,7 @@
 <span class="doccomment">/// returns the on-chain info for the specified miner&#39;s sector
 </span><span class="kw">pub async fn </span>state_sector_info&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateSectorGetInfoParams&gt;,
@@ -1089,7 +1083,7 @@
 /// and returns the deadline-related calculations.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_proving_deadline&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerProvingDeadlineParams&gt;,
@@ -1114,7 +1108,7 @@
 <span class="doccomment">/// returns a single non-expired Faults that occur within look-back epochs of the given tipset
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_faults&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerFaultsParams&gt;,
@@ -1136,7 +1130,7 @@
 <span class="doccomment">/// returns all non-expired Faults that occur within look-back epochs of the given tipset
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_all_miner_faults&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     _data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(_params): Params&lt;StateAllMinerFaultsParams&gt;,
@@ -1172,7 +1166,7 @@
 <span class="doccomment">/// returns a bitfield indicating the recovering sectors of the given miner
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_recoveries&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerRecoveriesParams&gt;,
@@ -1194,7 +1188,7 @@
 <span class="doccomment">/// returns a bitfield indicating the recovering sectors of the given miner
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_partitions&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerPartitionsParams&gt;,
@@ -1227,7 +1221,7 @@
 <span class="doccomment">/// returns the result of executing the indicated message, assuming it was executed in the indicated tipset.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_replay&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateReplayParams&gt;,
@@ -1252,7 +1246,7 @@
 <span class="doccomment">/// gets network name from state manager
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_network_name&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;StateNetworkNameResult, JsonRpcError&gt; {
@@ -1270,7 +1264,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_get_network_version&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateNetworkVersionParams&gt;,
@@ -1283,7 +1277,7 @@
 <span class="doccomment">/// returns the indicated actor&#39;s nonce and balance.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_get_actor&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateGetActorParams&gt;,
@@ -1303,7 +1297,7 @@
 <span class="doccomment">/// returns addresses of all actors on the network by tipset
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_list_actors&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateListActorsParams&gt;,
@@ -1329,7 +1323,7 @@
 <span class="doccomment">/// returns the public key address of the given ID address
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_account_key&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateAccountKeyParams&gt;,
@@ -1350,7 +1344,7 @@
 <span class="doccomment">/// retrieves the ID address of the given address
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_lookup_id&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateLookupIdParams&gt;,
@@ -1375,7 +1369,7 @@
 <span class="doccomment">/// looks up the Escrow and Locked balances of the given address in the Storage Market
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_market_balance&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMarketBalanceParams&gt;,
@@ -1394,7 +1388,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_market_deals&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMarketDealsParams&gt;,
@@ -1432,7 +1426,7 @@
 <span class="doccomment">/// returns the message receipt for the given message
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_get_receipt&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateGetReceiptParams&gt;,
@@ -1455,7 +1449,7 @@
 /// message arrives on chain, and gets to the indicated confidence depth.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_wait_msg&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateWaitMsgParams&gt;,
@@ -1482,7 +1476,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>miner_create_block&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
     S: Scale,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
@@ -1556,7 +1550,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_sector_allocated&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerSectorAllocatedParams&gt;,
@@ -1618,7 +1612,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_power&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerPowerParams&gt;,
@@ -1656,7 +1650,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_pre_commit_deposit_for_power&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerPreCommitDepositForPowerParams&gt;,
@@ -1699,7 +1693,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_initial_pledge_collateral&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;StateMinerInitialPledgeCollateralParams&gt;,
@@ -1749,8 +1743,8 @@
 <span class="doccomment">/// returns the indicated actor&#39;s nonce and balance.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>miner_get_base_info&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
-    V: ProofVerifier + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
+    V: ProofVerifier,
 &gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;MinerGetBaseInfoParams&gt;,

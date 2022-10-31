@@ -432,7 +432,7 @@
 </span><span class="doccomment">/// Trait used as the interface to be able to retrieve bytes from a randomness beacon.
 </span><span class="kw">pub trait </span>Beacon
 <span class="kw">where
-    </span><span class="self">Self</span>: Sized,
+    </span><span class="self">Self</span>: Sized + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Verify a new beacon entry against the most recent one before it.
     </span><span class="kw">async fn </span>verify_entry(

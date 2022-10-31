@@ -1045,8 +1045,6 @@
 <span id="1045">1045</span>
 <span id="1046">1046</span>
 <span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1145,9 +1143,12 @@
 
 <span class="kw">impl</span>&lt;DB&gt; ChainStore&lt;DB&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store,
 {
-    <span class="kw">pub async fn </span>new(db: DB) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub async fn </span>new(db: DB) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>DB: Clone,
+    {
         <span class="kw">let </span>(publisher, <span class="kw">_</span>) = broadcast::channel(SINK_CAP);
         <span class="kw">let </span>ts_cache = Arc::new(RwLock::new(LruCache::new(DEFAULT_TIPSET_CACHE_SIZE)));
         <span class="kw">let </span>cs = <span class="self">Self </span>{
@@ -1243,11 +1244,6 @@
     <span class="doccomment">/// Returns key-value store instance.
     </span><span class="kw">pub fn </span>blockstore(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DB {
         <span class="kw-2">&amp;</span><span class="self">self</span>.db
-    }
-
-    <span class="doccomment">/// Clones `blockstore` `Arc`.
-    </span><span class="kw">pub fn </span>blockstore_cloned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; DB {
-        <span class="self">self</span>.db.clone()
     }
 
     <span class="doccomment">/// Returns Tipset from key-value store from provided CIDs
@@ -1721,7 +1717,7 @@
     tsk: <span class="kw-2">&amp;</span>TipsetKeys,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;
 <span class="kw">where
-    </span>BS: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore,
 {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(ts) = cache.write().<span class="kw">await</span>.get(tsk) {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(ts.clone());

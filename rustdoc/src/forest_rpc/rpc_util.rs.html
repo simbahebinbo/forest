@@ -208,8 +208,8 @@
     authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValues&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore,
+    B: Beacon,
 {
     <span class="kw">let </span>claims = <span class="kw">match </span>authorization_header
         .and_then(|header_values| header_values.get(<span class="number">0</span>).cloned())

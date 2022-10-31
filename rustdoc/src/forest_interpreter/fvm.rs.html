@@ -310,7 +310,6 @@
 <span id="310">310</span>
 <span id="311">311</span>
 <span id="312">312</span>
-<span id="313">313</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -318,7 +317,7 @@
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::BlockHeader;
-<span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>fvm::externs::{Consensus, Externs, Rand};
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas, GasTracker};
 <span class="kw">use </span>fvm::state_tree::StateTree;
@@ -330,6 +329,7 @@
 <span class="kw">use </span>fvm_shared::consensus::{ConsensusFault, ConsensusFaultType};
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>std::cell::Ref;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">pub struct </span>ForestExterns&lt;DB&gt; {
     rand: Box&lt;<span class="kw">dyn </span>Rand&gt;,
@@ -337,19 +337,17 @@
     root: Cid,
     lookback: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
     db: DB,
-    network_version: NetworkVersion,
-    chain_finality: i64,
+    chain_config: Arc&lt;ChainConfig&gt;,
 }
 
-<span class="kw">impl</span>&lt;DB: Blockstore + Store&gt; ForestExterns&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB: Blockstore&gt; ForestExterns&lt;DB&gt; {
     <span class="kw">pub fn </span>new(
         rand: <span class="kw">impl </span>Rand + <span class="lifetime">&#39;static</span>,
         epoch: ChainEpoch,
         root: Cid,
         lookback: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
         db: DB,
-        network_version: NetworkVersion,
-        chain_finality: i64,
+        chain_config: Arc&lt;ChainConfig&gt;,
     ) -&gt; <span class="self">Self </span>{
         ForestExterns {
             rand: Box::new(rand),
@@ -357,8 +355,7 @@
             root,
             lookback,
             db,
-            network_version,
-            chain_finality,
+            chain_config,
         }
     }
 
@@ -367,7 +364,7 @@
         miner_addr: <span class="kw-2">&amp;</span>Address,
         height: ChainEpoch,
     ) -&gt; anyhow::Result&lt;(Address, i64)&gt; {
-        <span class="kw">if </span>height &lt; <span class="self">self</span>.epoch - <span class="self">self</span>.chain_finality {
+        <span class="kw">if </span>height &lt; <span class="self">self</span>.epoch - <span class="self">self</span>.chain_config.policy.chain_finality {
             <span class="macro">bail!</span>(
                 <span class="string">&quot;cannot get worker key (current epoch: {}, height: {})&quot;</span>,
                 <span class="self">self</span>.epoch,
@@ -392,7 +389,8 @@
 
         <span class="kw">let </span>addr = resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>tbs, <span class="kw-2">&amp;</span>worker)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>gas_used = cal_gas_used_from_stats(tbs.stats.borrow(), <span class="self">self</span>.network_version)<span class="question-mark">?</span>;
+        <span class="kw">let </span>network_version = <span class="self">self</span>.chain_config.network_version(<span class="self">self</span>.epoch);
+        <span class="kw">let </span>gas_used = cal_gas_used_from_stats(tbs.stats.borrow(), network_version)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>((addr, gas_used.round_up()))
     }
@@ -407,7 +405,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;DB: Blockstore + Store&gt; Externs <span class="kw">for </span>ForestExterns&lt;DB&gt; {}
+<span class="kw">impl</span>&lt;DB: Blockstore&gt; Externs <span class="kw">for </span>ForestExterns&lt;DB&gt; {}
 
 <span class="kw">impl</span>&lt;DB&gt; Rand <span class="kw">for </span>ForestExterns&lt;DB&gt; {
     <span class="kw">fn </span>get_chain_randomness(
@@ -429,7 +427,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;DB: Blockstore + Store&gt; Consensus <span class="kw">for </span>ForestExterns&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB: Blockstore&gt; Consensus <span class="kw">for </span>ForestExterns&lt;DB&gt; {
     <span class="kw">fn </span>verify_consensus_fault(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         h1: <span class="kw-2">&amp;</span>[u8],

@@ -236,6 +236,9 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -264,7 +267,10 @@
 
 <span class="doccomment">/// Functionality for verification of seal, winning PoSt and window PoSt proofs.
 /// Proof verification will be full validation by default.
-</span><span class="kw">pub trait </span>ProofVerifier {
+</span><span class="kw">pub trait </span>ProofVerifier
+<span class="kw">where
+    </span><span class="self">Self</span>: Sized + Send + Sync + <span class="lifetime">&#39;static</span>,
+{
     <span class="doccomment">/// Verify seal proof for sectors. This proof verifies that a sector was sealed by the miner.
     </span><span class="kw">fn </span>verify_seal(vi: <span class="kw-2">&amp;</span>SealVerifyInfo) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
         <span class="kw">let </span>commr =
