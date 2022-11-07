@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `blockchain/consensus/fil_cns/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../forest_fil_cns/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../forest_fil_cns/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../forest_fil_cns/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `blockchain/consensus/fil_cns/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../forest_fil_cns/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -151,46 +151,46 @@
 <span class="comment">// Shim to work with daemon.rs
 </span><span class="kw">pub mod </span>composition;
 
-<span class="attribute">#[derive(Debug, Error)]
+<span class="attr">#[derive(Debug, Error)]
 </span><span class="kw">pub enum </span>FilecoinConsensusError {
-    <span class="attribute">#[error(<span class="string">&quot;Block must have an election proof included in tipset&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Block must have an election proof included in tipset&quot;</span>)]
     </span>BlockWithoutElectionProof,
-    <span class="attribute">#[error(<span class="string">&quot;Block without ticket&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Block without ticket&quot;</span>)]
     </span>BlockWithoutTicket,
-    <span class="attribute">#[error(<span class="string">&quot;Block had the wrong timestamp: {0} != {1}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Block had the wrong timestamp: {0} != {1}&quot;</span>)]
     </span>UnequalBlockTimestamps(u64, u64),
-    <span class="attribute">#[error(<span class="string">&quot;Tipset without ticket to verify&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Tipset without ticket to verify&quot;</span>)]
     </span>TipsetWithoutTicket,
-    <span class="attribute">#[error(<span class="string">&quot;Block is not claiming to be a winner&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Block is not claiming to be a winner&quot;</span>)]
     </span>NotClaimingWin,
-    <span class="attribute">#[error(<span class="string">&quot;Block miner was slashed or is invalid&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Block miner was slashed or is invalid&quot;</span>)]
     </span>InvalidOrSlashedMiner,
-    <span class="attribute">#[error(<span class="string">&quot;Miner power not available for miner address&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Miner power not available for miner address&quot;</span>)]
     </span>MinerPowerNotAvailable,
-    <span class="attribute">#[error(<span class="string">&quot;Miner claimed wrong number of wins: miner = {0}, computed = {1}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Miner claimed wrong number of wins: miner = {0}, computed = {1}&quot;</span>)]
     </span>MinerWinClaimsIncorrect(i64, i64),
-    <span class="attribute">#[error(<span class="string">&quot;Drawing chain randomness failed: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Drawing chain randomness failed: {0}&quot;</span>)]
     </span>DrawingChainRandomness(String),
-    <span class="attribute">#[error(<span class="string">&quot;Miner isn&#39;t elligible to mine&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Miner isn&#39;t elligible to mine&quot;</span>)]
     </span>MinerNotEligibleToMine,
-    <span class="attribute">#[error(<span class="string">&quot;Querying miner power failed: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Querying miner power failed: {0}&quot;</span>)]
     </span>MinerPowerUnavailable(String),
-    <span class="attribute">#[error(<span class="string">&quot;Power actor not found&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Power actor not found&quot;</span>)]
     </span>PowerActorUnavailable,
-    <span class="attribute">#[error(<span class="string">&quot;Verifying VRF failed: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Verifying VRF failed: {0}&quot;</span>)]
     </span>VrfValidation(String),
-    <span class="attribute">#[error(<span class="string">&quot;Failed to validate blocks random beacon values: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Failed to validate blocks random beacon values: {0}&quot;</span>)]
     </span>BeaconValidation(String),
-    <span class="attribute">#[error(<span class="string">&quot;Failed to verify winning PoSt: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Failed to verify winning PoSt: {0}&quot;</span>)]
     </span>WinningPoStValidation(String),
-    <span class="attribute">#[error(<span class="string">&quot;[INSECURE-POST-VALIDATION] {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;[INSECURE-POST-VALIDATION] {0}&quot;</span>)]
     </span>InsecurePostValidation(String),
-    <span class="attribute">#[error(<span class="string">&quot;Chain store error: {0}&quot;</span>)]
-    </span>ChainStore(<span class="attribute">#[from] </span>ChainStoreError),
-    <span class="attribute">#[error(<span class="string">&quot;StateManager error: {0}&quot;</span>)]
-    </span>StateManager(<span class="attribute">#[from] </span>StateManagerError),
-    <span class="attribute">#[error(<span class="string">&quot;Encoding error: {0}&quot;</span>)]
-    </span>ForestEncoding(<span class="attribute">#[from] </span>ForestEncodingError),
+    <span class="attr">#[error(<span class="string">&quot;Chain store error: {0}&quot;</span>)]
+    </span>ChainStore(<span class="attr">#[from] </span>ChainStoreError),
+    <span class="attr">#[error(<span class="string">&quot;StateManager error: {0}&quot;</span>)]
+    </span>StateManager(<span class="attr">#[from] </span>StateManagerError),
+    <span class="attr">#[error(<span class="string">&quot;Encoding error: {0}&quot;</span>)]
+    </span>ForestEncoding(<span class="attr">#[from] </span>ForestEncodingError),
 }
 
 <span class="kw">pub struct </span>FilecoinConsensus&lt;B, V&gt; {
@@ -231,7 +231,7 @@
     }
 }
 
-<span class="attribute">#[async_trait]
+<span class="attr">#[async_trait]
 </span><span class="kw">impl</span>&lt;B, V&gt; Consensus <span class="kw">for </span>FilecoinConsensus&lt;B, V&gt;
 <span class="kw">where
     </span>B: Beacon + Unpin,
@@ -251,4 +251,4 @@
     </span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_fil_cns" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_fil_cns" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

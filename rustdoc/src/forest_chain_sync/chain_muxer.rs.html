@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `blockchain/chain_sync/src/chain_muxer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chain_muxer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../forest_chain_sync/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../forest_chain_sync/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../forest_chain_sync/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `blockchain/chain_sync/src/chain_muxer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chain_muxer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../forest_chain_sync/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -992,32 +992,32 @@
 
 <span class="kw">type </span>ChainMuxerFuture&lt;T, E&gt; = Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;T, E&gt;&gt; + Send&gt;&gt;;
 
-<span class="attribute">#[derive(Debug, Error)]
+<span class="attr">#[derive(Debug, Error)]
 </span><span class="kw">pub enum </span>ChainMuxerError&lt;C: Consensus&gt; {
-    <span class="attribute">#[error(<span class="string">&quot;Tipset processor error: {0}&quot;</span>)]
-    </span>TipsetProcessor(<span class="attribute">#[from] </span>TipsetProcessorError&lt;C&gt;),
-    <span class="attribute">#[error(<span class="string">&quot;Tipset range syncer error: {0}&quot;</span>)]
-    </span>TipsetRangeSyncer(<span class="attribute">#[from] </span>TipsetRangeSyncerError&lt;C&gt;),
-    <span class="attribute">#[error(<span class="string">&quot;Tipset validation error: {0}&quot;</span>)]
-    </span>TipsetValidator(<span class="attribute">#[from] </span>Box&lt;TipsetValidationError&gt;),
-    <span class="attribute">#[error(<span class="string">&quot;Sending tipset on channel failed: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Tipset processor error: {0}&quot;</span>)]
+    </span>TipsetProcessor(<span class="attr">#[from] </span>TipsetProcessorError&lt;C&gt;),
+    <span class="attr">#[error(<span class="string">&quot;Tipset range syncer error: {0}&quot;</span>)]
+    </span>TipsetRangeSyncer(<span class="attr">#[from] </span>TipsetRangeSyncerError&lt;C&gt;),
+    <span class="attr">#[error(<span class="string">&quot;Tipset validation error: {0}&quot;</span>)]
+    </span>TipsetValidator(<span class="attr">#[from] </span>Box&lt;TipsetValidationError&gt;),
+    <span class="attr">#[error(<span class="string">&quot;Sending tipset on channel failed: {0}&quot;</span>)]
     </span>TipsetChannelSend(String),
-    <span class="attribute">#[error(<span class="string">&quot;Receiving p2p network event failed: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Receiving p2p network event failed: {0}&quot;</span>)]
     </span>P2PEventStreamReceive(String),
-    <span class="attribute">#[error(<span class="string">&quot;Chain store error: {0}&quot;</span>)]
-    </span>ChainStore(<span class="attribute">#[from] </span>ChainStoreError),
-    <span class="attribute">#[error(<span class="string">&quot;Chain exchange: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Chain store error: {0}&quot;</span>)]
+    </span>ChainStore(<span class="attr">#[from] </span>ChainStoreError),
+    <span class="attr">#[error(<span class="string">&quot;Chain exchange: {0}&quot;</span>)]
     </span>ChainExchange(String),
-    <span class="attribute">#[error(<span class="string">&quot;Bitswap: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Bitswap: {0}&quot;</span>)]
     </span>Bitswap(String),
-    <span class="attribute">#[error(<span class="string">&quot;Block error: {0}&quot;</span>)]
-    </span>Block(<span class="attribute">#[from] </span>ForestBlockError),
-    <span class="attribute">#[error(<span class="string">&quot;Following network unexpectedly failed: {0}&quot;</span>)]
+    <span class="attr">#[error(<span class="string">&quot;Block error: {0}&quot;</span>)]
+    </span>Block(<span class="attr">#[from] </span>ForestBlockError),
+    <span class="attr">#[error(<span class="string">&quot;Following network unexpectedly failed: {0}&quot;</span>)]
     </span>NetworkFollowingFailure(String),
 }
 
 <span class="doccomment">/// Structure that defines syncing configuration options
-</span><span class="attribute">#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+</span><span class="attr">#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>SyncConfig {
     <span class="doccomment">/// Request window length for tipsets during chain exchange
     </span><span class="kw">pub </span>req_window: i64,
@@ -1113,7 +1113,7 @@
     M: Provider + Sync + Send + <span class="lifetime">&#39;static</span>,
     C: Consensus,
 {
-    <span class="attribute">#[allow(clippy::too_many_arguments)]
+    <span class="attr">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">pub fn </span>new(
         consensus: Arc&lt;C&gt;,
         state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
@@ -1301,7 +1301,7 @@
         }
     }
 
-    <span class="attribute">#[allow(clippy::too_many_arguments)]
+    <span class="attr">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">async fn </span>process_gossipsub_event(
         event: NetworkEvent,
         network: SyncNetworkContext&lt;DB&gt;,
@@ -1840,7 +1840,7 @@
     }
 }
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>std::convert::TryFrom;
 
@@ -1853,7 +1853,7 @@
     <span class="kw">use </span>forest_test_utils::construct_messages;
     <span class="kw">use </span>fvm_shared::{address::Address, message::Message};
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>compute_msg_meta_given_msgs_test() {
         <span class="kw">let </span>blockstore = MemoryDB::default();
 
@@ -1868,7 +1868,7 @@
         <span class="macro">assert_eq!</span>(root, expected_root);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>empty_msg_meta_vector() {
         <span class="kw">let </span>blockstore = MemoryDB::default();
         <span class="kw">let </span>usm: Vec&lt;Message&gt; =
@@ -1884,7 +1884,7 @@
         </span>);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>compute_base_fee_shouldnt_panic_on_bad_input() {
         <span class="kw">let </span>blockstore = MemoryDB::default();
         <span class="kw">let </span>h0 = BlockHeader::builder()
@@ -1897,4 +1897,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_chain_sync" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_chain_sync" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

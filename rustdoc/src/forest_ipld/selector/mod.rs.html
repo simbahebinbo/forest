@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `ipld/src/selector/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../forest_ipld/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../forest_ipld/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../forest_ipld/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `ipld/src/selector/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../forest_ipld/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -416,7 +416,7 @@
 
 <span class="doccomment">/// Selectors are expressions that identify and select a subset of data from an IPLD DAG.
 /// Selectors are themselves IPLD and can be serialized and de-serialized as such.
-</span><span class="attribute">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+</span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>Selector {
     <span class="doccomment">/// `Matcher` marks a node to be included in the &quot;result&quot; set.
     /// (All nodes traversed by a selector are in the &quot;covered&quot; set (which is a.k.a.
@@ -427,14 +427,14 @@
     ///
     /// A selector tree with only &quot;explore*&quot;-type selectors and no `Matcher` selectors
     /// is valid; it will just generate a &quot;covered&quot; set of nodes and no &quot;result&quot; set.
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;.&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;.&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
     </span>Matcher,
 
     <span class="doccomment">/// `ExploreAll` is similar to a `*` -- it traverses all elements of an array,
     /// or all entries in a map, and applies a next selector to the reached nodes.
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
     </span>ExploreAll {
-        <span class="attribute">#[serde(rename = <span class="string">&quot;&gt;&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;&gt;&quot;</span>)]
         </span>next: Box&lt;Selector&gt;,
     },
 
@@ -447,31 +447,31 @@
     /// specifying one field.
     ///
     /// Fields insertion order is maintained and traversed using that order.
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;f&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;f&quot;</span>)]
     </span>ExploreFields {
-        <span class="attribute">#[serde(rename = <span class="string">&quot;f&gt;&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;f&gt;&quot;</span>)]
         </span>fields: IndexMap&lt;String, Selector&gt;,
     },
 
     <span class="doccomment">/// `ExploreIndex` traverses a specific index in a list, and applies a next
     /// selector to the reached node.
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
     </span>ExploreIndex {
-        <span class="attribute">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;i&quot;</span>)]
         </span>index: usize,
-        <span class="attribute">#[serde(rename = <span class="string">&quot;&gt;&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;&gt;&quot;</span>)]
         </span>next: Box&lt;Selector&gt;,
     },
 
     <span class="doccomment">/// `ExploreRange` traverses a list, and for each element in the range specified,
     /// will apply a next selector to those reached nodes.
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;r&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;r&quot;</span>)]
     </span>ExploreRange {
-        <span class="attribute">#[serde(rename = <span class="string">&quot;^&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;^&quot;</span>)]
         </span>start: usize,
-        <span class="attribute">#[serde(rename = <span class="string">&quot;$&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;$&quot;</span>)]
         </span>end: usize,
-        <span class="attribute">#[serde(rename = <span class="string">&quot;&gt;&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;&gt;&quot;</span>)]
         </span>next: Box&lt;Selector&gt;,
     },
 
@@ -505,16 +505,16 @@
     /// no value (key &quot;none&quot;). If limit has no value it is up to the
     /// implementation library using selectors to identify an appropriate max depth
     /// as necessary so that recursion is not infinite
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;R&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;R&quot;</span>)]
     </span>ExploreRecursive {
-        <span class="attribute">#[serde(rename = <span class="string">&quot;:&gt;&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;:&gt;&quot;</span>)]
         </span>sequence: Box&lt;Selector&gt;,
-        <span class="attribute">#[serde(rename = <span class="string">&quot;l&quot;</span>)]
+        <span class="attr">#[serde(rename = <span class="string">&quot;l&quot;</span>)]
         </span>limit: RecursionLimit,
         <span class="doccomment">/// if a node matches, we won&#39;t match it nor explore its children.
-        </span><span class="attribute">#[serde(rename = <span class="string">&quot;!&quot;</span>)]
+        </span><span class="attr">#[serde(rename = <span class="string">&quot;!&quot;</span>)]
         </span>stop_at: <span class="prelude-ty">Option</span>&lt;Condition&gt;,
-        <span class="attribute">#[serde(skip_deserializing)]
+        <span class="attr">#[serde(skip_deserializing)]
         </span><span class="doccomment">/// Used to index current
         </span>current: <span class="prelude-ty">Option</span>&lt;Box&lt;Selector&gt;&gt;,
     },
@@ -526,7 +526,7 @@
     /// be considered part of a (possibly labeled) result set), while simultaneously
     /// continuing to explore deeper parts of the tree with another selector,
     /// for example.
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;|&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;|&quot;</span>)]
     </span>ExploreUnion(Vec&lt;Selector&gt;),
 
     <span class="doccomment">/// `ExploreRecursiveEdge` is a special sentinel value which is used to mark
@@ -537,7 +537,7 @@
     /// An `ExploreRecursive` selector that doesn&#39;t contain an `ExploreRecursiveEdge`
     /// is nonsensical.  Containing more than one `ExploreRecursiveEdge` is valid.
     /// An `ExploreRecursiveEdge` without an enclosing `ExploreRecursive` is an error.
-    </span><span class="attribute">#[serde(rename = <span class="string">&quot;@&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
+    </span><span class="attr">#[serde(rename = <span class="string">&quot;@&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
     </span>ExploreRecursiveEdge,
     <span class="comment">//* No conditional explore impl exists, ignore for now
     // #[serde(rename = &quot;&amp;&quot;)]
@@ -551,11 +551,11 @@
 
 <span class="kw">impl </span>Cbor <span class="kw">for </span>Selector {}
 
-<span class="attribute">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy)]
+<span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy)]
 </span><span class="kw">pub enum </span>RecursionLimit {
-    <span class="attribute">#[serde(rename = <span class="string">&quot;none&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;none&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
     </span><span class="prelude-val">None</span>,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;depth&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;depth&quot;</span>)]
     </span>Depth(u64),
 }
 
@@ -578,23 +578,23 @@
 </span><span class="comment">// TODO -- Condition is very skeletal and incomplete.
 // TODO -- The place where Condition appears in other structures is correct;
 // TODO -- the rest of the details inside it are not final nor even completely drafted.
-</span><span class="attribute">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy)]
+</span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Copy)]
 </span><span class="kw">pub enum </span>Condition {
-    <span class="attribute">#[serde(rename = <span class="string">&quot;hasField&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;hasField&quot;</span>)]
     </span>HasField,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;=&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;=&quot;</span>)]
     </span>HasValue,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;%&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;%&quot;</span>)]
     </span>HasKind,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;/&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;/&quot;</span>)]
     </span>IsLink,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;greaterThan&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;greaterThan&quot;</span>)]
     </span>GreaterThan,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;lessThan&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;lessThan&quot;</span>)]
     </span>LessThan,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;and&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;and&quot;</span>)]
     </span>And,
-    <span class="attribute">#[serde(rename = <span class="string">&quot;or&quot;</span>)]
+    <span class="attr">#[serde(rename = <span class="string">&quot;or&quot;</span>)]
     </span>Or,
 }
 
@@ -803,4 +803,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="forest_ipld" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="forest_ipld" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vm/actor_interface/src/builtin/miner/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../forest_actor_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../forest_actor_interface/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../forest_actor_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `vm/actor_interface/src/builtin/miner/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../../normalize.css"><link rel="stylesheet" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../../ayu.css" disabled><link rel="stylesheet" href="../../../../dark.css" disabled><link rel="stylesheet" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../../forest_actor_interface/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -412,7 +412,7 @@
 }
 
 <span class="doccomment">/// Miner actor state.
-</span><span class="attribute">#[derive(Serialize)]
+</span><span class="attr">#[derive(Serialize)]
 #[serde(untagged)]
 </span><span class="kw">pub enum </span>State {
     <span class="comment">// V7(fil_actor_miner_v7::State),
@@ -471,7 +471,7 @@
             State::V8(st) =&gt; {
                 st.load_deadlines(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
                     </span>.for_each(<span class="kw-2">&amp;</span>Default::default(), <span class="kw-2">&amp;</span>store, |idx, dl| {
-                        f(idx <span class="kw">as </span>u64, Deadline::V8(dl))
+                        f(idx, Deadline::V8(dl))
                     })
             }
         }
@@ -547,19 +547,19 @@
 }
 
 <span class="doccomment">/// Static information about miner
-</span><span class="attribute">#[derive(Debug, PartialEq, Serialize)]
+</span><span class="attr">#[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>MinerInfo {
-    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::address::json&quot;</span>)]
+    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::address::json&quot;</span>)]
     </span><span class="kw">pub </span>owner: Address,
-    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::address::json&quot;</span>)]
+    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::address::json&quot;</span>)]
     </span><span class="kw">pub </span>worker: Address,
-    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::address::json::opt&quot;</span>)]
+    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::address::json::opt&quot;</span>)]
     </span><span class="kw">pub </span>new_worker: <span class="prelude-ty">Option</span>&lt;Address&gt;,
-    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::address::json::vec&quot;</span>)]
+    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::address::json::vec&quot;</span>)]
     </span><span class="kw">pub </span>control_addresses: Vec&lt;Address&gt;, <span class="comment">// Must all be ID addresses.
     </span><span class="kw">pub </span>worker_change_epoch: ChainEpoch,
-    <span class="attribute">#[serde(with = <span class="string">&quot;peer_id_json&quot;</span>)]
+    <span class="attr">#[serde(with = <span class="string">&quot;peer_id_json&quot;</span>)]
     </span><span class="kw">pub </span>peer_id: <span class="prelude-ty">Option</span>&lt;PeerId&gt;,
     <span class="kw">pub </span>multiaddrs: Vec&lt;BytesDe&gt;,
     <span class="kw">pub </span>window_post_proof_type: RegisteredPoStProof,
@@ -578,7 +578,7 @@
     }
 }
 
-<span class="attribute">#[derive(Serialize, Deserialize)]
+<span class="attr">#[derive(Serialize, Deserialize)]
 </span><span class="kw">pub struct </span>MinerPower {
     <span class="kw">pub </span>miner_power: Claim,
     <span class="kw">pub </span>total_power: Claim,
@@ -599,7 +599,7 @@
     ) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Deadline::V8(dl) =&gt; dl.for_each(<span class="kw-2">&amp;</span>store, |idx, part| {
-                f(idx <span class="kw">as </span>u64, Partition::V8(Cow::Borrowed(part)))
+                f(idx, Partition::V8(Cow::Borrowed(part)))
             }),
         }
     }
@@ -619,7 +619,7 @@
     }
 }
 
-<span class="attribute">#[allow(clippy::large_enum_variant)]
+<span class="attr">#[allow(clippy::large_enum_variant)]
 </span><span class="kw">pub enum </span>Partition&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="comment">// V7(Cow&lt;&#39;a, fil_actor_miner_v7::Partition&gt;),
     </span>V8(Cow&lt;<span class="lifetime">&#39;a</span>, fil_actor_miner_v8::Partition&gt;),
@@ -659,14 +659,14 @@
     }
 }
 
-<span class="attribute">#[derive(Serialize)]
+<span class="attr">#[derive(Serialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>SectorOnChainInfo {
     <span class="kw">pub </span>sector_number: SectorNumber,
     <span class="doccomment">/// The seal proof type implies the PoSt proofs
     </span><span class="kw">pub </span>seal_proof: RegisteredSealProof,
     <span class="doccomment">/// `CommR`
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::cid&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::cid&quot;</span>)]
     </span><span class="kw">pub </span>sealed_cid: Cid,
     <span class="kw">pub </span>deal_ids: Vec&lt;DealID&gt;,
     <span class="doccomment">/// Epoch during which the sector proof was accepted
@@ -674,19 +674,19 @@
     <span class="doccomment">/// Epoch during which the sector expires
     </span><span class="kw">pub </span>expiration: ChainEpoch,
     <span class="doccomment">/// Integral of active deals over sector lifetime
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;json&quot;</span>)]
     </span><span class="kw">pub </span>deal_weight: BigInt,
     <span class="doccomment">/// Integral of active verified deals over sector lifetime
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;json&quot;</span>)]
     </span><span class="kw">pub </span>verified_deal_weight: BigInt,
     <span class="doccomment">/// Pledge collected to commit this sector
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>initial_pledge: TokenAmount,
     <span class="doccomment">/// Expected one day projection of reward for sector computed at activation time
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>expected_day_reward: TokenAmount,
     <span class="doccomment">/// Expected twenty day projection of reward for sector computed at activation time
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>expected_storage_pledge: TokenAmount,
 }
 
@@ -708,31 +708,31 @@
     }
 }
 
-<span class="attribute">#[derive(Serialize)]
+<span class="attr">#[derive(Serialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>SectorPreCommitOnChainInfo {
     <span class="kw">pub </span>info: SectorPreCommitInfo,
-    <span class="attribute">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
+    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>pre_commit_deposit: TokenAmount,
     <span class="kw">pub </span>pre_commit_epoch: ChainEpoch,
     <span class="doccomment">/// Integral of active deals over sector lifetime, 0 if `CommittedCapacity` sector
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;json&quot;</span>)]
     </span><span class="kw">pub </span>deal_weight: BigInt,
     <span class="doccomment">/// Integral of active verified deals over sector lifetime
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;json&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;json&quot;</span>)]
     </span><span class="kw">pub </span>verified_deal_weight: BigInt,
 }
 
-<span class="attribute">#[derive(Serialize, Deserialize)]
+<span class="attr">#[derive(Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>SectorPreCommitInfo {
     <span class="kw">pub </span>seal_proof: RegisteredSealProof,
     <span class="kw">pub </span>sector_number: SectorNumber,
     <span class="doccomment">/// `CommR`
-    </span><span class="attribute">#[serde(with = <span class="string">&quot;forest_json::cid&quot;</span>, rename = <span class="string">&quot;SealedCID&quot;</span>)]
+    </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::cid&quot;</span>, rename = <span class="string">&quot;SealedCID&quot;</span>)]
     </span><span class="kw">pub </span>sealed_cid: Cid,
     <span class="kw">pub </span>seal_rand_epoch: ChainEpoch,
-    <span class="attribute">#[serde(with = <span class="string">&quot;go_vec_visitor&quot;</span>, rename = <span class="string">&quot;DealIDs&quot;</span>)]
+    <span class="attr">#[serde(with = <span class="string">&quot;go_vec_visitor&quot;</span>, rename = <span class="string">&quot;DealIDs&quot;</span>)]
     </span><span class="kw">pub </span>deal_ids: Vec&lt;DealID&gt;,
     <span class="kw">pub </span>expiration: ChainEpoch,
     <span class="doccomment">/// Whether to replace a &quot;committed capacity&quot; no-deal sector (requires non-empty `DealIDs`)
@@ -743,4 +743,4 @@
     <span class="kw">pub </span>replace_sector_number: SectorNumber,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="forest_actor_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="forest_actor_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

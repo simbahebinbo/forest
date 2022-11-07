@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `key_management/src/wallet.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wallet.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../forest_key_management/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../forest_key_management/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../forest_key_management/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `key_management/src/wallet.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>wallet.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../forest_key_management/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -457,7 +457,7 @@
 <span class="kw">use </span>std::str::FromStr;
 
 <span class="doccomment">/// A key, this contains a `KeyInfo`, an address, and a public key.
-</span><span class="attribute">#[derive(Clone, PartialEq, Debug, Eq, Serialize, Deserialize)]
+</span><span class="attr">#[derive(Clone, PartialEq, Debug, Eq, Serialize, Deserialize)]
 </span><span class="kw">pub struct </span>Key {
     <span class="kw">pub </span>key_info: KeyInfo,
     <span class="comment">// Vec&lt;u8&gt; is used because The public keys for BLS and SECP256K1 are not of the same type
@@ -483,7 +483,7 @@
 // - keys which is a HashMap of Keys resolved by their Address
 // - keystore which is a HashMap of KeyInfos resolved by their Address
 </span><span class="doccomment">/// A wallet is a collection of private keys with optional persistence and optional encryption.
-</span><span class="attribute">#[derive(Clone, PartialEq, Debug, Eq)]
+</span><span class="attr">#[derive(Clone, PartialEq, Debug, Eq)]
 </span><span class="kw">pub struct </span>Wallet {
     keys: HashMap&lt;Address, Key&gt;,
     keystore: KeyStore,
@@ -667,7 +667,7 @@
     <span class="prelude-val">Ok</span>(k.address)
 }
 
-<span class="attribute">#[cfg(test)]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use crate</span>::{generate, KeyStoreConfig};
@@ -699,7 +699,7 @@
         Wallet::new_from_keys(KeyStore::new(KeyStoreConfig::Memory).unwrap(), key_vec)
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>contains_key() {
         <span class="kw">let </span>key_vec = construct_priv_keys();
         <span class="kw">let </span>found_key = key_vec[<span class="number">0</span>].clone();
@@ -727,7 +727,7 @@
         </span><span class="macro">assert!</span>(!wallet.has_key(<span class="kw-2">&amp;</span>address));
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>sign() {
         <span class="kw">let </span>key_vec = construct_priv_keys();
         <span class="kw">let </span>priv_key_bytes = key_vec[<span class="number">2</span>].key_info.private_key().clone();
@@ -750,7 +750,7 @@
         <span class="macro">assert_eq!</span>(msg_sig, actual)
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>import_export() -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>key_vec = construct_priv_keys();
         <span class="kw">let </span>key = key_vec[<span class="number">0</span>].clone();
@@ -779,7 +779,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>list_addr() {
         <span class="kw">let </span>key_vec = construct_priv_keys();
         <span class="kw">let </span><span class="kw-2">mut </span>addr_string_vec = Vec::new();
@@ -810,7 +810,7 @@
         </span><span class="macro">assert_eq!</span>(test_addr_vec, addr_vec);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>generate_new_key() {
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = generate_wallet();
         <span class="kw">let </span>addr = wallet.generate_addr(SignatureType::BLS).unwrap();
@@ -828,7 +828,7 @@
         <span class="macro">assert_eq!</span>(key.address, addr);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>get_set_default() {
         <span class="kw">let </span>key_store = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = Wallet::new(key_store);
@@ -852,7 +852,7 @@
         </span><span class="macro">assert_eq!</span>(wallet.get_default().unwrap(), test_addr);
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>secp_verify() {
         <span class="kw">let </span>secp_priv_key = generate(SignatureType::Secp256k1).unwrap();
         <span class="kw">let </span>secp_key_info = KeyInfo::new(SignatureType::Secp256k1, secp_priv_key);
@@ -871,7 +871,7 @@
         <span class="macro">assert!</span>(sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>invalid_addr).is_err())
     }
 
-    <span class="attribute">#[test]
+    <span class="attr">#[test]
     </span><span class="kw">fn </span>bls_verify_test() {
         <span class="kw">let </span>bls_priv_key = generate(SignatureType::BLS).unwrap();
         <span class="kw">let </span>bls_key_info = KeyInfo::new(SignatureType::BLS, bls_priv_key);
@@ -891,4 +891,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_key_management" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (470e518c4 2022-09-27)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_key_management" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>
