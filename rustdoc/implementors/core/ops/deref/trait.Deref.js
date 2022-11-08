@@ -1,5 +1,4 @@
 (function() {var implementors = {
 "forest":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"forest/struct.IPC_PATH.html\" title=\"struct forest::IPC_PATH\">IPC_PATH</a>"]],
-"forest_cli_shared":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"forest_cli_shared/cli/struct.LogConfig.html\" title=\"struct forest_cli_shared::cli::LogConfig\">LogConfig</a>"]],
 "forest_legacy_ipld_amt":[["impl&lt;V&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"forest_legacy_ipld_amt/struct.ValueMut.html\" title=\"struct forest_legacy_ipld_amt::ValueMut\">ValueMut</a>&lt;'_, V&gt;"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

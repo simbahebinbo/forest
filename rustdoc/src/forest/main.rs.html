@@ -139,6 +139,21 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -150,7 +165,7 @@
 <span class="kw">use </span>async_std::task;
 <span class="kw">use </span>daemonize_me::{Daemon, Group, User};
 <span class="kw">use </span>forest_cli_shared::{
-    cli::{cli_error_and_die, DaemonConfig},
+    cli::{check_for_unknown_keys, cli_error_and_die, ConfigPath, DaemonConfig, LogConfig},
     logger,
 };
 <span class="kw">use </span>lazy_static::lazy_static;
@@ -239,8 +254,22 @@
 
     <span class="comment">// Run forest as a daemon if no other subcommands are used. Otherwise, run the subcommand.
     </span><span class="kw">match </span>opts.to_config() {
-        <span class="prelude-val">Ok</span>(cfg) =&gt; {
+        <span class="prelude-val">Ok</span>((cfg, path)) =&gt; {
             logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, opts.color.into());
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="kw-2">&amp;</span>path {
+                <span class="kw">match </span>path {
+                    ConfigPath::Env(path) =&gt; {
+                        <span class="macro">info!</span>(<span class="string">&quot;FOREST_CONFIG_PATH loaded: {}&quot;</span>, path.display())
+                    }
+                    ConfigPath::Project(path) =&gt; {
+                        <span class="macro">info!</span>(<span class="string">&quot;Project config loaded: {}&quot;</span>, path.display())
+                    }
+                    <span class="kw">_ </span>=&gt; (),
+                }
+                check_for_unknown_keys(path.to_path_buf(), <span class="kw-2">&amp;</span>cfg);
+            } <span class="kw">else </span>{
+                <span class="macro">info!</span>(<span class="string">&quot;Using default {} config&quot;</span>, cfg.chain.name);
+            }
             <span class="kw">match </span>cmd {
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                     <span class="macro">warn!</span>(<span class="string">&quot;All subcommands have been moved to forest-cli tool&quot;</span>);
@@ -276,7 +305,8 @@
             }
         }
         <span class="prelude-val">Err</span>(e) =&gt; {
-            cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Error parsing config. Error was: {e}&quot;</span>), <span class="number">1</span>);
+            logger::setup_logger(<span class="kw-2">&amp;</span>LogConfig::default(), opts.color.into());
+            cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Error parsing config: {e}&quot;</span>), <span class="number">1</span>);
         }
     };
 }

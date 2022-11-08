@@ -231,11 +231,6 @@
 <span id="231">231</span>
 <span id="232">232</span>
 <span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -244,7 +239,6 @@
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>log::LevelFilter;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::ops::Deref;
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>url::Url;
@@ -252,42 +246,38 @@
 <span class="kw">use </span><span class="kw">super</span>::client::Client;
 
 <span class="attr">#[derive(Serialize, Deserialize, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>LogConfig(<span class="kw">pub </span>Vec&lt;LogValue&gt;);
-
-<span class="kw">impl </span>Deref <span class="kw">for </span>LogConfig {
-    <span class="kw">type </span>Target = Vec&lt;LogValue&gt;;
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
-    </span>}
+</span><span class="kw">pub struct </span>LogConfig {
+    <span class="kw">pub </span>filters: Vec&lt;LogValue&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>LogConfig {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>underlying = <span class="macro">vec!</span>[
-            LogValue::new(<span class="string">&quot;libp2p_gossipsub&quot;</span>, LevelFilter::Error),
-            LogValue::new(<span class="string">&quot;filecoin_proofs&quot;</span>, LevelFilter::Warn),
-            LogValue::new(<span class="string">&quot;storage_proofs_core&quot;</span>, LevelFilter::Warn),
-            LogValue::new(<span class="string">&quot;surf::middleware&quot;</span>, LevelFilter::Warn),
-            LogValue::new(<span class="string">&quot;bellperson::groth16::aggregate::verify&quot;</span>, LevelFilter::Warn),
-            LogValue::new(<span class="string">&quot;tide&quot;</span>, LevelFilter::Warn),
-            LogValue::new(<span class="string">&quot;libp2p_bitswap&quot;</span>, LevelFilter::Warn),
-            LogValue::new(<span class="string">&quot;rpc&quot;</span>, LevelFilter::Error),
-        ];
-        <span class="self">Self</span>(underlying)
+        <span class="self">Self </span>{
+            filters: <span class="macro">vec!</span>[
+                LogValue::new(<span class="string">&quot;libp2p_gossipsub&quot;</span>, LevelFilter::Error),
+                LogValue::new(<span class="string">&quot;filecoin_proofs&quot;</span>, LevelFilter::Warn),
+                LogValue::new(<span class="string">&quot;storage_proofs_core&quot;</span>, LevelFilter::Warn),
+                LogValue::new(<span class="string">&quot;surf::middleware&quot;</span>, LevelFilter::Warn),
+                LogValue::new(<span class="string">&quot;bellperson::groth16::aggregate::verify&quot;</span>, LevelFilter::Warn),
+                LogValue::new(<span class="string">&quot;tide&quot;</span>, LevelFilter::Warn),
+                LogValue::new(<span class="string">&quot;libp2p_bitswap&quot;</span>, LevelFilter::Warn),
+                LogValue::new(<span class="string">&quot;rpc&quot;</span>, LevelFilter::Error),
+            ],
+        }
     }
 }
 
 <span class="attr">#[derive(Serialize, Deserialize, PartialEq, Eq, Hash)]
 </span><span class="kw">pub struct </span>LogValue {
     <span class="kw">pub </span>module: String,
-    <span class="kw">pub </span>level: String,
+    <span class="kw">pub </span>level: LevelFilter,
 }
 
 <span class="kw">impl </span>LogValue {
     <span class="kw">pub fn </span>new(module: <span class="kw-2">&amp;</span>str, level: LevelFilter) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             module: module.to_string(),
-            level: level.to_string(),
+            level,
         }
     }
 }

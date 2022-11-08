@@ -69,12 +69,10 @@
 <span id="69">69</span>
 <span id="70">70</span>
 <span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, LogValue};
+</span><span class="kw">use </span><span class="kw">crate</span>::cli::LogConfig;
 <span class="kw">use </span>atty::Stream;
 <span class="kw">use </span>log::LevelFilter;
 <span class="kw">use </span>pretty_env_logger::env_logger::WriteStyle;
@@ -118,7 +116,7 @@
     }
 }
 
-<span class="kw">pub fn </span>setup_logger(log_config: <span class="kw-2">&amp;</span>[LogValue], write_style: WriteStyle) {
+<span class="kw">pub fn </span>setup_logger(log_config: <span class="kw-2">&amp;</span>LogConfig, write_style: WriteStyle) {
     <span class="kw">let </span><span class="kw-2">mut </span>logger_builder = pretty_env_logger::formatted_timed_builder();
 
     <span class="comment">// Assign default log level settings
@@ -126,10 +124,8 @@
 
     logger_builder.write_style(write_style);
 
-    <span class="kw">for </span>item <span class="kw">in </span>log_config {
-        <span class="kw">let </span>level = LevelFilter::from_str(item.level.as_str())
-            .unwrap_or_else(|<span class="kw">_</span>| cli_error_and_die(<span class="string">&quot;could not parse LevelFilter enum value&quot;</span>, <span class="number">1</span>));
-        logger_builder.filter(<span class="prelude-val">Some</span>(item.module.as_str()), level);
+    <span class="kw">for </span>item <span class="kw">in </span>log_config.filters.iter() {
+        logger_builder.filter(<span class="prelude-val">Some</span>(item.module.as_str()), item.level);
     }
 
     <span class="comment">// Override log level based on filters if set

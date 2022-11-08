@@ -233,6 +233,98 @@
 <span id="233">233</span>
 <span id="234">234</span>
 <span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -247,11 +339,11 @@
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_utils::io::{read_file_to_string, read_toml};
 <span class="kw">use </span>git_version::git_version;
-<span class="kw">use </span>log::{error, info, warn};
+<span class="kw">use </span>log::error;
 <span class="kw">use </span>once_cell::sync::Lazy;
-<span class="kw">use </span>std::io::{<span class="self">self</span>};
+<span class="kw">use </span>std::collections::HashSet;
 <span class="kw">use </span>std::net::SocketAddr;
-<span class="kw">use </span>std::path::PathBuf;
+<span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>structopt::StructOpt;
 
@@ -337,15 +429,16 @@
 </span>}
 
 <span class="kw">impl </span>CliOpts {
-    <span class="kw">pub fn </span>to_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Config, io::Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>cfg: Config = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.config {
-            <span class="prelude-val">Some</span>(config_file) =&gt; {
+    <span class="kw">pub fn </span>to_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Config, <span class="prelude-ty">Option</span>&lt;ConfigPath&gt;), anyhow::Error&gt; {
+        <span class="kw">let </span>path = find_config_path(<span class="self">self</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>cfg: Config = <span class="kw">match </span><span class="kw-2">&amp;</span>path {
+            <span class="prelude-val">Some</span>(path) =&gt; {
                 <span class="comment">// Read from config file
-                </span><span class="kw">let </span>toml = read_file_to_string(<span class="kw-2">&amp;</span>PathBuf::from(<span class="kw-2">&amp;</span>config_file))<span class="question-mark">?</span>;
+                </span><span class="kw">let </span>toml = read_file_to_string(path.to_path_buf())<span class="question-mark">?</span>;
                 <span class="comment">// Parse and return the configuration file
                 </span>read_toml(<span class="kw-2">&amp;</span>toml)<span class="question-mark">?
             </span>}
-            <span class="prelude-val">None </span>=&gt; find_default_config().unwrap_or_default(),
+            <span class="prelude-val">None </span>=&gt; Config::default(),
         };
 
         <span class="kw">if </span><span class="self">self</span>.chain == <span class="string">&quot;calibnet&quot; </span>{
@@ -372,10 +465,7 @@
             cfg.client.metrics_address = metrics_address;
         }
         <span class="kw">if </span><span class="self">self</span>.import_snapshot.is_some() &amp;&amp; <span class="self">self</span>.import_chain.is_some() {
-            cli_error_and_die(
-                <span class="string">&quot;Can&#39;t set import_snapshot and import_chain at the same time!&quot;</span>,
-                <span class="number">1</span>,
-            );
+            <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Can&#39;t set import_snapshot and import_chain at the same time!&quot;</span>)
         } <span class="kw">else </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(snapshot_path) = <span class="kw-2">&amp;</span><span class="self">self</span>.import_snapshot {
                 cfg.client.snapshot_path = <span class="prelude-val">Some</span>(snapshot_path.to_owned());
@@ -411,62 +501,156 @@
             cfg.client.encrypt_keystore = encrypt_keystore;
         }
 
-        <span class="prelude-val">Ok</span>(cfg)
+        <span class="prelude-val">Ok</span>((cfg, path))
     }
 }
 
-<span class="kw">fn </span>find_default_config() -&gt; <span class="prelude-ty">Option</span>&lt;Config&gt; {
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(config_file) = std::env::var(<span class="string">&quot;FOREST_CONFIG_PATH&quot;</span>) {
-        <span class="macro">info!</span>(
-            <span class="string">&quot;FOREST_CONFIG_PATH detected, using configuration at {}&quot;</span>,
-            config_file
-        );
-        <span class="kw">let </span>path = PathBuf::from(config_file);
-        <span class="kw">if </span>path.exists() {
-            <span class="kw">return </span>read_config_or_none(path);
-        }
-    };
+<span class="kw">pub enum </span>ConfigPath {
+    Cli(PathBuf),
+    Env(PathBuf),
+    Project(PathBuf),
+}
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(dir) = ProjectDirs::from(<span class="string">&quot;com&quot;</span>, <span class="string">&quot;ChainSafe&quot;</span>, <span class="string">&quot;Forest&quot;</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>config_dir = dir.config_dir().to_path_buf();
-        config_dir.push(<span class="string">&quot;config.toml&quot;</span>);
-        <span class="kw">if </span>config_dir.exists() {
-            <span class="macro">info!</span>(<span class="string">&quot;Found a config file at {}&quot;</span>, config_dir.display());
-            <span class="kw">return </span>read_config_or_none(config_dir);
+<span class="kw">impl </span>ConfigPath {
+    <span class="kw">pub fn </span>to_path_buf(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>PathBuf {
+        <span class="kw">match </span><span class="self">self </span>{
+            ConfigPath::Cli(path) =&gt; path,
+            ConfigPath::Env(path) =&gt; path,
+            ConfigPath::Project(path) =&gt; path,
         }
     }
+}
 
-    <span class="macro">warn!</span>(<span class="string">&quot;No configurations found, using defaults.&quot;</span>);
-
+<span class="kw">fn </span>find_config_path(opts: <span class="kw-2">&amp;</span>CliOpts) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigPath&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = <span class="kw-2">&amp;</span>opts.config {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(ConfigPath::Cli(PathBuf::from(s)));
+    }
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(s) = std::env::var(<span class="string">&quot;FOREST_CONFIG_PATH&quot;</span>) {
+        <span class="kw">return </span><span class="prelude-val">Some</span>(ConfigPath::Env(PathBuf::from(s)));
+    }
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(dir) = ProjectDirs::from(<span class="string">&quot;com&quot;</span>, <span class="string">&quot;ChainSafe&quot;</span>, <span class="string">&quot;Forest&quot;</span>) {
+        <span class="kw">let </span>path = dir.config_dir().join(<span class="string">&quot;config.toml&quot;</span>);
+        <span class="kw">if </span>path.exists() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(ConfigPath::Project(path));
+        }
+    }
     <span class="prelude-val">None
 </span>}
 
-<span class="kw">fn </span>read_config_or_none(path: PathBuf) -&gt; <span class="prelude-ty">Option</span>&lt;Config&gt; {
-    <span class="kw">let </span>toml = <span class="kw">match </span>read_file_to_string(<span class="kw-2">&amp;</span>path) {
-        <span class="prelude-val">Ok</span>(t) =&gt; t,
-        <span class="prelude-val">Err</span>(e) =&gt; {
-            <span class="macro">warn!</span>(<span class="string">&quot;An error occured while reading configuration file at {}. Resorting to default configuration. Error was {}&quot;</span>, path.display(), e);
-            <span class="kw">return </span><span class="prelude-val">None</span>;
+<span class="kw">fn </span>find_unknown_keys&lt;<span class="lifetime">&#39;a</span>&gt;(
+    tables: Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;,
+    x: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>toml::Value,
+    y: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>toml::Value,
+    result: <span class="kw-2">&amp;mut </span>Vec&lt;(Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str)&gt;,
+) {
+    <span class="kw">if let </span>(toml::Value::Table(x_map), toml::Value::Table(y_map)) = (x, y) {
+        <span class="kw">let </span>x_set: HashSet&lt;<span class="kw">_</span>&gt; = x_map.keys().collect();
+        <span class="kw">let </span>y_set: HashSet&lt;<span class="kw">_</span>&gt; = y_map.keys().collect();
+        <span class="kw">for </span>k <span class="kw">in </span>x_set.difference(<span class="kw-2">&amp;</span>y_set) {
+            result.push((tables.clone(), k));
         }
-    };
+        <span class="kw">for </span>(x_key, x_value) <span class="kw">in </span>x_map.iter() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(y_value) = y_map.get(x_key) {
+                <span class="kw">let </span><span class="kw-2">mut </span>copy = tables.clone();
+                copy.push(x_key);
+                find_unknown_keys(copy, x_value, y_value, result);
+            }
+        }
+    }
+    <span class="kw">if let </span>(toml::Value::Array(x_vec), toml::Value::Array(y_vec)) = (x, y) {
+        <span class="kw">for </span>(x_value, y_value) <span class="kw">in </span>x_vec.iter().zip(y_vec.iter()) {
+            find_unknown_keys(tables.clone(), x_value, y_value, result);
+        }
+    }
+}
 
-    <span class="kw">match </span>read_toml(<span class="kw-2">&amp;</span>toml) {
-        <span class="prelude-val">Ok</span>(cfg) =&gt; <span class="prelude-val">Some</span>(cfg),
-        <span class="prelude-val">Err</span>(e) =&gt; {
-            <span class="macro">warn!</span>(
-                <span class="string">&quot;Error reading configuration file, opting to defaults. Error was {} &quot;</span>,
-                e
-            );
-            <span class="prelude-val">None
-        </span>}
+<span class="kw">pub fn </span>check_for_unknown_keys(path: <span class="kw-2">&amp;</span>Path, config: <span class="kw-2">&amp;</span>Config) {
+    <span class="comment">// `config` has been loaded successfully from toml file in `path` so we can always serialize
+    // it back to a valid TOML value or get the TOML value from `path`
+    </span><span class="kw">let </span>file = read_file_to_string(path).unwrap();
+    <span class="kw">let </span>value = file.parse::&lt;toml::Value&gt;().unwrap();
+
+    <span class="kw">let </span>config_file = toml::to_string(config).unwrap();
+    <span class="kw">let </span>config_value = config_file.parse::&lt;toml::Value&gt;().unwrap();
+
+    <span class="kw">let </span><span class="kw-2">mut </span>result = <span class="macro">vec!</span>[];
+    find_unknown_keys(<span class="macro">vec!</span>[], <span class="kw-2">&amp;</span>value, <span class="kw-2">&amp;</span>config_value, <span class="kw-2">&amp;mut </span>result);
+    <span class="kw">for </span>(tables, k) <span class="kw">in </span>result.iter() {
+        <span class="kw">if </span>tables.is_empty() {
+            <span class="macro">error!</span>(<span class="string">&quot;Unknown key `{k}` in top-level table&quot;</span>);
+        } <span class="kw">else </span>{
+            <span class="macro">error!</span>(<span class="string">&quot;Unknown key `{k}` in [{}]&quot;</span>, tables.join(<span class="string">&quot;.&quot;</span>));
+        }
+    }
+    <span class="kw">if </span>!result.is_empty() {
+        <span class="kw">let </span>path = path.display();
+        cli_error_and_die(
+            <span class="macro">format!</span>(<span class="string">&quot;Error checking {path}. Verify that all keys are valid&quot;</span>),
+            <span class="number">1</span>,
+        )
     }
 }
 
 <span class="doccomment">/// Print an error message and exit the program with an error code
 /// Used for handling high level errors such as invalid parameters
 </span><span class="kw">pub fn </span>cli_error_and_die(msg: <span class="kw">impl </span>AsRef&lt;str&gt;, code: i32) -&gt; ! {
-    <span class="macro">error!</span>(<span class="string">&quot;Error: {}&quot;</span>, msg.as_ref());
+    <span class="macro">error!</span>(<span class="string">&quot;{}&quot;</span>, msg.as_ref());
     std::process::exit(code);
+}
+
+<span class="attr">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>find_unknown_keys_must_work() {
+        <span class="kw">let </span>x: toml::Value = toml::from_str(
+            <span class="string">r#&quot;
+            folklore = true
+            foo = &quot;foo&quot;
+            [myth]
+            author = &#39;H. P. Lovecraft&#39;
+            entities = [
+                { name = &#39;Cthulhu&#39; },
+                { name = &#39;Azathoth&#39; },
+                { baz = &#39;Dagon&#39; },
+            ]
+            bar = &quot;bar&quot;
+        &quot;#</span>,
+        )
+        .unwrap();
+
+        <span class="kw">let </span>y: toml::Value = toml::from_str(
+            <span class="string">r#&quot;
+            folklore = true
+            [myth]
+            author = &#39;H. P. Lovecraft&#39;
+            entities = [
+                { name = &#39;Cthulhu&#39; },
+                { name = &#39;Azathoth&#39; },
+                { name = &#39;Dagon&#39; },
+            ]
+        &quot;#</span>,
+        )
+        .unwrap();
+
+        <span class="comment">// No differences
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="macro">vec!</span>[];
+        find_unknown_keys(<span class="macro">vec!</span>[], <span class="kw-2">&amp;</span>y, <span class="kw-2">&amp;</span>y, <span class="kw-2">&amp;mut </span>result);
+        <span class="macro">assert!</span>(result.is_empty());
+
+        <span class="comment">// 3 unknown keys
+        </span><span class="kw">let </span><span class="kw-2">mut </span>result = <span class="macro">vec!</span>[];
+        find_unknown_keys(<span class="macro">vec!</span>[], <span class="kw-2">&amp;</span>x, <span class="kw-2">&amp;</span>y, <span class="kw-2">&amp;mut </span>result);
+        <span class="macro">assert_eq!</span>(
+            result,
+            <span class="macro">vec!</span>[
+                (<span class="macro">vec!</span>[], <span class="string">&quot;foo&quot;</span>),
+                (<span class="macro">vec!</span>[<span class="string">&quot;myth&quot;</span>], <span class="string">&quot;bar&quot;</span>),
+                (<span class="macro">vec!</span>[<span class="string">&quot;myth&quot;</span>, <span class="string">&quot;entities&quot;</span>], <span class="string">&quot;baz&quot;</span>),
+            ]
+        );
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="forest_cli_shared" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>
