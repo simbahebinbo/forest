@@ -325,19 +325,79 @@
 <span id="325">325</span>
 <span id="326">326</span>
 <span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">mod </span>client;
 <span class="kw">mod </span>config;
+<span class="kw">mod </span>snapshot_fetch;
 
+<span class="kw">pub use </span><span class="self">self</span>::{client::<span class="kw-2">*</span>, config::<span class="kw-2">*</span>, snapshot_fetch::<span class="kw-2">*</span>};
 <span class="kw">use </span><span class="kw">crate</span>::logger::LoggingColor;
 
-<span class="kw">pub use </span><span class="self">self</span>::{client::<span class="kw-2">*</span>, config::<span class="kw-2">*</span>};
-
+<span class="kw">use </span>byte_unit::Byte;
 <span class="kw">use </span>directories::ProjectDirs;
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_utils::io::{read_file_to_string, read_toml};
+<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>git_version::git_version;
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>once_cell::sync::Lazy;
@@ -416,6 +476,9 @@
     <span class="doccomment">/// Daemonize Forest process
     </span><span class="attr">#[structopt(long)]
     </span><span class="kw">pub </span>detach: bool,
+    <span class="doccomment">/// Download a chain specific snapshot to sync with the Filecoin network
+    </span><span class="attr">#[structopt(long)]
+    </span><span class="kw">pub </span>download_snapshot: bool,
     <span class="doccomment">/// Enable or disable colored logging in `stdout`
     </span><span class="attr">#[structopt(long, default_value = <span class="string">&quot;auto&quot;</span>)]
     </span><span class="kw">pub </span>color: LoggingColor,
@@ -468,11 +531,11 @@
             <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Can&#39;t set import_snapshot and import_chain at the same time!&quot;</span>)
         } <span class="kw">else </span>{
             <span class="kw">if let </span><span class="prelude-val">Some</span>(snapshot_path) = <span class="kw-2">&amp;</span><span class="self">self</span>.import_snapshot {
-                cfg.client.snapshot_path = <span class="prelude-val">Some</span>(snapshot_path.to_owned());
+                cfg.client.snapshot_path = <span class="prelude-val">Some</span>(snapshot_path.into());
                 cfg.client.snapshot = <span class="bool-val">true</span>;
             }
             <span class="kw">if let </span><span class="prelude-val">Some</span>(snapshot_path) = <span class="kw-2">&amp;</span><span class="self">self</span>.import_chain {
-                cfg.client.snapshot_path = <span class="prelude-val">Some</span>(snapshot_path.to_owned());
+                cfg.client.snapshot_path = <span class="prelude-val">Some</span>(snapshot_path.into());
                 cfg.client.snapshot = <span class="bool-val">false</span>;
             }
             cfg.client.snapshot_height = <span class="self">self</span>.height;
@@ -481,6 +544,7 @@
         }
 
         cfg.client.halt_after_import = <span class="self">self</span>.halt_after_import;
+        cfg.client.download_snapshot = <span class="self">self</span>.download_snapshot;
 
         cfg.network.kademlia = <span class="self">self</span>.kademlia.unwrap_or(cfg.network.kademlia);
         cfg.network.mdns = <span class="self">self</span>.mdns.unwrap_or(cfg.network.mdns);
@@ -591,6 +655,14 @@
     }
 }
 
+<span class="kw">pub fn </span>default_snapshot_dir(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
+    config
+        .client
+        .data_dir
+        .join(<span class="string">&quot;snapshots&quot;</span>)
+        .join(config.chain.name.clone())
+}
+
 <span class="doccomment">/// Print an error message and exit the program with an error code
 /// Used for handling high level errors such as invalid parameters
 </span><span class="kw">pub fn </span>cli_error_and_die(msg: <span class="kw">impl </span>AsRef&lt;str&gt;, code: i32) -&gt; ! {
@@ -598,9 +670,53 @@
     std::process::exit(code);
 }
 
+<span class="doccomment">/// convert `BigInt` to size string using byte size units (i.e. KiB, GiB, PiB, etc)
+/// Provided number cannot be negative, otherwise the function will panic.
+</span><span class="kw">pub fn </span>to_size_string(input: <span class="kw-2">&amp;</span>BigInt) -&gt; anyhow::Result&lt;String&gt; {
+    <span class="kw">let </span>bytes = u128::try_from(input)
+        .map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;error parsing the input {}: {}&quot;</span>, input, e))<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(Byte::from_bytes(bytes)
+        .get_appropriate_unit(<span class="bool-val">true</span>)
+        .to_string())
+}
+
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>fvm_shared::bigint::Zero;
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>to_size_string_valid_input() {
+        <span class="kw">let </span>cases = [
+            (BigInt::zero(), <span class="string">&quot;0 B&quot;</span>),
+            (BigInt::from(<span class="number">1 </span>&lt;&lt; <span class="number">10</span>), <span class="string">&quot;1024 B&quot;</span>),
+            (BigInt::from((<span class="number">1 </span>&lt;&lt; <span class="number">10</span>) + <span class="number">1</span>), <span class="string">&quot;1.00 KiB&quot;</span>),
+            (BigInt::from((<span class="number">1 </span>&lt;&lt; <span class="number">10</span>) + <span class="number">512</span>), <span class="string">&quot;1.50 KiB&quot;</span>),
+            (BigInt::from(<span class="number">1 </span>&lt;&lt; <span class="number">20</span>), <span class="string">&quot;1024.00 KiB&quot;</span>),
+            (BigInt::from((<span class="number">1 </span>&lt;&lt; <span class="number">20</span>) + <span class="number">1</span>), <span class="string">&quot;1.00 MiB&quot;</span>),
+            (BigInt::from(<span class="number">1 </span>&lt;&lt; <span class="number">29</span>), <span class="string">&quot;512.00 MiB&quot;</span>),
+            (BigInt::from((<span class="number">1 </span>&lt;&lt; <span class="number">30</span>) + <span class="number">1</span>), <span class="string">&quot;1.00 GiB&quot;</span>),
+            (BigInt::from((<span class="number">1u64 </span>&lt;&lt; <span class="number">40</span>) + <span class="number">1</span>), <span class="string">&quot;1.00 TiB&quot;</span>),
+            (BigInt::from((<span class="number">1u64 </span>&lt;&lt; <span class="number">50</span>) + <span class="number">1</span>), <span class="string">&quot;1.00 PiB&quot;</span>),
+            <span class="comment">// ZiB is 2^70, 288230376151711744 is 2^58
+            </span>(BigInt::from(u128::MAX), <span class="string">&quot;288230376151711744.00 ZiB&quot;</span>),
+        ];
+
+        <span class="kw">for </span>(input, expected) <span class="kw">in </span>cases {
+            <span class="macro">assert_eq!</span>(to_size_string(<span class="kw-2">&amp;</span>input).unwrap(), expected.to_string());
+        }
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>to_size_string_negative_input_should_fail() {
+        <span class="macro">assert!</span>(to_size_string(<span class="kw-2">&amp;</span>BigInt::from(-<span class="number">1i8</span>)).is_err());
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>to_size_string_too_large_input_should_fail() {
+        <span class="macro">assert!</span>(to_size_string(<span class="kw-2">&amp;</span>(BigInt::from(u128::MAX) + <span class="number">1</span>)).is_err());
+    }
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>find_unknown_keys_must_work() {

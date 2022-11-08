@@ -54,6 +54,9 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -78,7 +81,7 @@
     /// Otherwise, we validate and compute the states.
     </span><span class="kw">pub </span>snapshot: bool,
     <span class="kw">pub </span>snapshot_height: <span class="prelude-ty">Option</span>&lt;i64&gt;,
-    <span class="kw">pub </span>snapshot_path: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="kw">pub </span>snapshot_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     <span class="kw">pub </span>halt_after_import: bool,
     <span class="doccomment">/// Skips loading import CAR file and assumes it&#39;s already been loaded.
     /// Will use the CIDs in the header of the file to index the chain.
@@ -88,6 +91,8 @@
     </span><span class="kw">pub </span>metrics_address: SocketAddr,
     <span class="doccomment">/// RPC bind, e.g. 127.0.0.1:1234
     </span><span class="kw">pub </span>rpc_address: SocketAddr,
+    <span class="doccomment">/// Download a chain specific snapshot to sync with the Filecoin network
+    </span><span class="kw">pub </span>download_snapshot: bool,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Client {
@@ -107,6 +112,7 @@
             encrypt_keystore: <span class="bool-val">true</span>,
             metrics_address: FromStr::from_str(<span class="string">&quot;127.0.0.1:6116&quot;</span>).unwrap(),
             rpc_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), DEFAULT_PORT),
+            download_snapshot: <span class="bool-val">false</span>,
         }
     }
 }

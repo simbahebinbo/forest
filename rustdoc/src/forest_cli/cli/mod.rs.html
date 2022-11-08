@@ -237,21 +237,6 @@
 <span id="237">237</span>
 <span id="238">238</span>
 <span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -269,7 +254,6 @@
 <span class="kw">mod </span>net_cmd;
 <span class="kw">mod </span>send_cmd;
 <span class="kw">mod </span>snapshot_cmd;
-<span class="kw">mod </span>snapshot_fetch;
 <span class="kw">mod </span>state_cmd;
 <span class="kw">mod </span>sync_cmd;
 <span class="kw">mod </span>wallet_cmd;
@@ -285,15 +269,12 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::state_cmd::StateCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::sync_cmd::SyncCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::wallet_cmd::WalletCommands;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>forest_cli_shared::cli::{
-    CliOpts, Config, SnapshotFetchConfig, FOREST_VERSION_STRING,
-};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>forest_cli_shared::cli::{Config, FOREST_VERSION_STRING};
 
 <span class="kw">use </span><span class="kw">crate</span>::cli::config_cmd::ConfigCommands;
-<span class="kw">use </span>byte_unit::Byte;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::tipset_json::TipsetJson;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
+<span class="kw">use </span>forest_cli_shared::cli::{to_size_string, CliOpts};
 <span class="kw">use </span>http::StatusCode;
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
 <span class="kw">use </span>log::error;
@@ -388,17 +369,6 @@
     <span class="macro">format!</span>(<span class="string">&quot;[{}]&quot;</span>, vec.join(<span class="string">&quot;, &quot;</span>))
 }
 
-<span class="doccomment">/// convert `BigInt` to size string using byte size units (i.e. KiB, GiB, PiB, etc)
-/// Provided number cannot be negative, otherwise the function will panic.
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>to_size_string(input: <span class="kw-2">&amp;</span>BigInt) -&gt; anyhow::Result&lt;String&gt; {
-    <span class="kw">let </span>bytes = u128::try_from(input)
-        .map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;error parsing the input {}: {}&quot;</span>, input, e))<span class="question-mark">?</span>;
-
-    <span class="prelude-val">Ok</span>(Byte::from_bytes(bytes)
-        .get_appropriate_unit(<span class="bool-val">true</span>)
-        .to_string())
-}
-
 <span class="doccomment">/// Print an error message and exit the program with an error code
 /// Used for handling high level errors such as invalid parameters
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>cli_error_and_die(msg: <span class="kw">impl </span>AsRef&lt;str&gt;, code: i32) -&gt; ! {
@@ -472,7 +442,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>fvm_shared::bigint::Zero;
+    <span class="kw">use </span>fvm_shared::bigint::{BigInt, Zero};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>to_size_string_valid_input() {

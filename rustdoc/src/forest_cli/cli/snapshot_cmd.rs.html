@@ -382,20 +382,14 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, handle_rpc_err, snapshot_fetch::snapshot_fetch};
+<span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, handle_rpc_err};
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
+<span class="kw">use </span>forest_cli_shared::cli::{default_snapshot_dir, snapshot_fetch};
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
 <span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>std::{
@@ -555,7 +549,7 @@
                 <span class="kw">let </span>snapshot_dir = snapshot_dir
                     .clone()
                     .unwrap_or_else(|| default_snapshot_dir(<span class="kw-2">&amp;</span>config));
-                <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_dir, config).<span class="kw">await </span>{
+                <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_dir, <span class="kw-2">&amp;</span>config).<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(out) =&gt; <span class="macro">println!</span>(<span class="string">&quot;Snapshot successfully downloaded at {}&quot;</span>, out.display()),
                     <span class="prelude-val">Err</span>(e) =&gt; cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Failed fetching the snapshot: {e}&quot;</span>), <span class="number">1</span>),
                 }
@@ -745,14 +739,6 @@
     }
 
     <span class="prelude-val">Ok</span>(())
-}
-
-<span class="kw">fn </span>default_snapshot_dir(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
-    config
-        .client
-        .data_dir
-        .join(<span class="string">&quot;snapshots&quot;</span>)
-        .join(config.chain.name.clone())
 }
 
 <span class="kw">fn </span>delete_snapshot(snapshot_path: <span class="kw-2">&amp;</span>PathBuf) {

@@ -512,16 +512,64 @@
 <span id="512">512</span>
 <span id="513">513</span>
 <span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::cli::set_sigint_handler;
 <span class="kw">use </span>async_std::{net::TcpListener, task};
+<span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
 <span class="kw">use </span>forest_auth::{create_token, generate_priv_key, ADMIN, JWT_IDENTIFIER};
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_chain_sync::consensus::SyncGossipSubmitter;
 <span class="kw">use </span>forest_chain_sync::ChainMuxer;
-<span class="kw">use </span>forest_cli_shared::cli::{cli_error_and_die, Config, FOREST_VERSION_STRING};
+<span class="kw">use </span>forest_cli_shared::cli::{
+    cli_error_and_die, default_snapshot_dir, snapshot_fetch, Client, Config, FOREST_VERSION_STRING,
+};
 <span class="kw">use </span>forest_db::rocks::RocksDb;
 <span class="kw">use </span>forest_fil_types::verifier::FullVerifier;
 <span class="kw">use </span>forest_genesis::{get_network_name_from_genesis, import_chain, read_genesis_header};
@@ -695,6 +743,20 @@
     </span>.unwrap();
     chain_store.set_genesis(<span class="kw-2">&amp;</span>genesis.blocks()[<span class="number">0</span>]).unwrap();
 
+    <span class="comment">// Terminate if no snapshot is provided or DB isn&#39;t recent enough
+    </span><span class="kw">let </span>should_fetch_snapshot = <span class="kw">match </span>chain_store.heaviest_tipset().<span class="kw">await </span>{
+        <span class="prelude-val">None </span>=&gt; prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span>,
+        <span class="prelude-val">Some</span>(tipset) =&gt; {
+            <span class="kw">let </span>epoch = tipset.epoch();
+            <span class="kw">let </span>nv = config.chain.network_version(epoch);
+            <span class="kw">if </span>nv &lt; NetworkVersion::V16 {
+                prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await
+            </span>} <span class="kw">else </span>{
+                <span class="bool-val">false
+            </span>}
+        }
+    };
+
     <span class="comment">// Reward calculation is needed by the VM to calculate state, which can happen essentially anywhere the `StateManager` is called.
     // It is consensus specific, but threading it through the type system would be a nightmare, which is why dynamic dispatch is used.
     </span><span class="kw">let </span>reward_calc = cns::reward_calc();
@@ -836,6 +898,8 @@
         unblock_parent_process();
     }
 
+    <span class="kw">let </span>config = maybe_fetch_snapshot(should_fetch_snapshot, config).<span class="kw">await</span>;
+
     <span class="macro">select! </span>{
         () = sync_from_snapshot(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>state_manager).fuse() =&gt; {},
         <span class="kw">_ </span>= ctrlc_oneshot =&gt; {
@@ -845,26 +909,6 @@
             }
             <span class="kw">return</span>;
         },
-    }
-
-    <span class="comment">// Terminate if no snapshot is provided or DB isn&#39;t recent enough
-    </span><span class="kw">match </span>chain_store.heaviest_tipset().<span class="kw">await </span>{
-        <span class="prelude-val">None </span>=&gt; {
-            cli_error_and_die(
-                <span class="string">&quot;Forest cannot sync without a snapshot. Download a snapshot from a trusted source and import with --import-snapshot=[file]&quot;</span>,
-                <span class="number">1</span>,
-            );
-        }
-        <span class="prelude-val">Some</span>(tipset) =&gt; {
-            <span class="kw">let </span>epoch = tipset.epoch();
-            <span class="kw">let </span>nv = config.chain.network_version(epoch);
-            <span class="kw">if </span>nv &lt; NetworkVersion::V16 {
-                cli_error_and_die(
-                    <span class="string">&quot;Database too old. Download a snapshot from a trusted source and import with --import-snapshot=[file]&quot;</span>,
-                    <span class="number">1</span>,
-                );
-            }
-        }
     }
 
     <span class="comment">// Halt
@@ -916,6 +960,49 @@
     <span class="macro">info!</span>(<span class="string">&quot;Forest finish shutdown&quot;</span>);
 }
 
+<span class="doccomment">/// Optionally fetches the snapshot. Returns the configuration (modified accordingly if a snapshot was fetched).
+</span><span class="kw">async fn </span>maybe_fetch_snapshot(should_fetch_snapshot: bool, config: Config) -&gt; Config {
+    <span class="kw">if </span>should_fetch_snapshot {
+        <span class="kw">let </span>snapshot_path = default_snapshot_dir(<span class="kw-2">&amp;</span>config);
+        <span class="kw">let </span>path = <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_path, <span class="kw-2">&amp;</span>config).<span class="kw">await </span>{
+            <span class="prelude-val">Ok</span>(path) =&gt; path,
+            <span class="prelude-val">Err</span>(err) =&gt; cli_error_and_die(err.to_string(), <span class="number">1</span>),
+        };
+        Config {
+            client: Client {
+                snapshot_path: <span class="prelude-val">Some</span>(path),
+                snapshot: <span class="bool-val">true</span>,
+                ..config.client
+            },
+            ..config
+        }
+    } <span class="kw">else </span>{
+        config
+    }
+}
+
+<span class="doccomment">/// Last resort in case a snapshot is needed. If it is not to be downloaded, this method fails and
+/// exits the process.
+</span><span class="kw">async fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; bool {
+    <span class="kw">let </span>should_download = <span class="kw">if </span>!config.client.download_snapshot &amp;&amp; atty::is(atty::Stream::Stdin) {
+        Confirm::with_theme(<span class="kw-2">&amp;</span>ColorfulTheme::default())
+                .with_prompt(
+                    <span class="string">&quot;Forest needs a snapshot to sync with the network. Would you like to download one now?&quot;</span>,
+                )
+                .default(<span class="bool-val">false</span>)
+                .interact()
+                .unwrap_or_default()
+    } <span class="kw">else </span>{
+        config.client.download_snapshot
+    };
+
+    <span class="kw">if </span>should_download {
+        <span class="bool-val">true
+    </span>} <span class="kw">else </span>{
+        cli_error_and_die(<span class="string">&quot;Forest cannot sync without a snapshot. Download a snapshot from a trusted source and import with --import-snapshot=[file] or --download-snapshot to download one automatically&quot;</span>, <span class="number">1</span>);
+    }
+}
+
 <span class="kw">async fn </span>sync_from_snapshot(config: <span class="kw-2">&amp;</span>Config, state_manager: <span class="kw-2">&amp;</span>Arc&lt;StateManager&lt;RocksDb&gt;&gt;) {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="kw-2">&amp;</span>config.client.snapshot_path {
         <span class="kw">let </span>stopwatch = time::Instant::now();
@@ -927,7 +1014,7 @@
 
         <span class="kw">match </span>import_chain::&lt;FullVerifier, <span class="kw">_</span>&gt;(
             state_manager,
-            path,
+            <span class="kw-2">&amp;</span>path.display().to_string(),
             validate_height,
             config.client.skip_load,
         )
@@ -937,7 +1024,10 @@
                 <span class="macro">info!</span>(<span class="string">&quot;Imported snapshot in: {}s&quot;</span>, stopwatch.elapsed().as_secs());
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="macro">error!</span>(<span class="string">&quot;Failed miserably while importing chain from snapshot {path}: {err}&quot;</span>)
+                <span class="macro">error!</span>(
+                    <span class="string">&quot;Failed miserably while importing chain from snapshot {}: {err}&quot;</span>,
+                    path.display()
+                )
             }
         }
     }
