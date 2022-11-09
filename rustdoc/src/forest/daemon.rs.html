@@ -565,6 +565,11 @@
 <span id="565">565</span>
 <span id="566">566</span>
 <span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -751,7 +756,9 @@
     </span>.unwrap();
     chain_store.set_genesis(<span class="kw-2">&amp;</span>genesis.blocks()[<span class="number">0</span>]).unwrap();
 
-    <span class="comment">// Terminate if no snapshot is provided or DB isn&#39;t recent enough
+    <span class="comment">// XXX: This code has to be run before starting the background services.
+    //      If it isn&#39;t, several threads will be competing for access to stdout.
+    // Terminate if no snapshot is provided or DB isn&#39;t recent enough
     </span><span class="kw">let </span>should_fetch_snapshot = <span class="kw">match </span>chain_store.heaviest_tipset().<span class="kw">await </span>{
         <span class="prelude-val">None </span>=&gt; prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span>,
         <span class="prelude-val">Some</span>(tipset) =&gt; {
@@ -992,6 +999,9 @@
 <span class="doccomment">/// Last resort in case a snapshot is needed. If it is not to be downloaded, this method fails and
 /// exits the process.
 </span><span class="kw">async fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; bool {
+    <span class="kw">if </span>config.client.snapshot_path.is_some() {
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    }
     <span class="kw">let </span>should_download = <span class="kw">if </span>!config.client.download_snapshot &amp;&amp; atty::is(atty::Stream::Stdin) {
         Confirm::with_theme(<span class="kw-2">&amp;</span>ColorfulTheme::default())
                 .with_prompt(
