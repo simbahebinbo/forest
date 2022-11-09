@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["ADDRESS","Init actor address."]],"enum":[["State","Init actor state."]],"fn":[["is_v8_init_cid",""]],"type":[["Method","Init actor method."]]};
+window.SIDEBAR_ITEMS = {"constant":[["ADDRESS","Init actor address."]],"enum":[["State","Init actor state."]],"fn":[["is_v8_init_cid",""],["is_v9_init_cid",""]],"type":[["Method","Init actor method."]]};

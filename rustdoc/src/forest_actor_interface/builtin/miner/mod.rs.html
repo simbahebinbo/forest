@@ -370,6 +370,97 @@
 <span id="370">370</span>
 <span id="371">371</span>
 <span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -401,12 +492,18 @@
     <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
         <span class="comment">// calibnet v8
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacea6rabflc7kpwr6y4lzcqsnuahr4zblyq3rhzrrsfceeiw2lufrb4&quot;</span>).unwrap(),
-        <span class="comment">// calibnet v9
-        </span>Cid::try_from(<span class="string">&quot;bafk2bzacedmllri5tg4jqllwkhzng3xf3w2sre6nbwwfzf5mj4qsdizl4ad5s&quot;</span>).unwrap(),
         <span class="comment">// mainnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacecgnynvd3tene3bvqoknuspit56canij5bpra6wl4mrq2mxxwriyu&quot;</span>).unwrap(),
         <span class="comment">// devnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacebze3elvppssc6v5457ukszzy6ndrg6xgaojfsqfbbtg3xfwo4rbs&quot;</span>).unwrap(),
+    ];
+    known_cids.contains(cid)
+}
+
+<span class="kw">pub fn </span>is_v9_miner_cid(cid: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
+    <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
+        <span class="comment">// calibnet v9
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzacebz4na3nq4gmumghegtkaofrv4nffiihd7sxntrryfneusqkuqodm&quot;</span>).unwrap(),
     ];
     known_cids.contains(cid)
 }
@@ -417,6 +514,7 @@
 </span><span class="kw">pub enum </span>State {
     <span class="comment">// V7(fil_actor_miner_v7::State),
     </span>V8(fil_actor_miner_v8::State),
+    V9(fil_actor_miner_v9::State),
 }
 
 <span class="kw">impl </span>State {
@@ -430,12 +528,41 @@
                 </span>.map(State::V8)
                 .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
         }
+        <span class="kw">if </span>is_v9_miner_cid(<span class="kw-2">&amp;</span>actor.code) {
+            <span class="kw">return </span>store
+                .get_obj(<span class="kw-2">&amp;</span>actor.state)<span class="question-mark">?
+                </span>.map(State::V9)
+                .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
+        }
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Unknown miner actor code {}&quot;</span>, actor.code))
     }
 
     <span class="kw">pub fn </span>info&lt;BS: Blockstore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;</span>BS) -&gt; anyhow::Result&lt;MinerInfo&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; {
+                <span class="kw">let </span>info = st.get_info(store)<span class="question-mark">?</span>;
+
+                <span class="comment">// Deserialize into peer id if valid, `None` if not.
+                </span><span class="kw">let </span>peer_id = PeerId::from_bytes(<span class="kw-2">&amp;</span>info.peer_id).ok();
+
+                <span class="prelude-val">Ok</span>(MinerInfo {
+                    owner: info.owner,
+                    worker: info.worker,
+                    control_addresses: info.control_addresses,
+                    new_worker: info.pending_worker_key.as_ref().map(|k| k.new_worker),
+                    worker_change_epoch: info
+                        .pending_worker_key
+                        .map(|k| k.effective_at)
+                        .unwrap_or(-<span class="number">1</span>),
+                    peer_id,
+                    multiaddrs: info.multi_address,
+                    window_post_proof_type: info.window_post_proof_type,
+                    sector_size: info.sector_size,
+                    window_post_partition_sectors: info.window_post_partition_sectors,
+                    consensus_fault_elapsed: info.consensus_fault_elapsed,
+                })
+            }
+            State::V9(st) =&gt; {
                 <span class="kw">let </span>info = st.get_info(store)<span class="question-mark">?</span>;
 
                 <span class="comment">// Deserialize into peer id if valid, `None` if not.
@@ -474,6 +601,12 @@
                         f(idx, Deadline::V8(dl))
                     })
             }
+            State::V9(st) =&gt; {
+                st.load_deadlines(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
+                    </span>.for_each(<span class="kw-2">&amp;</span>Default::default(), <span class="kw-2">&amp;</span>store, |idx, dl| {
+                        f(idx, Deadline::V9(dl))
+                    })
+            }
         }
     }
 
@@ -510,6 +643,23 @@
                     <span class="prelude-val">Ok</span>(infos)
                 }
             }
+            State::V9(st) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(sectors) = sectors {
+                    <span class="prelude-val">Ok</span>(st
+                        .load_sector_infos(<span class="kw-2">&amp;</span>store, sectors)<span class="question-mark">?
+                        </span>.into_iter()
+                        .map(From::from)
+                        .collect())
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>sectors = fil_actor_miner_v9::Sectors::load(<span class="kw-2">&amp;</span>store, <span class="kw-2">&amp;</span>st.sectors)<span class="question-mark">?</span>;
+                    <span class="kw">let </span><span class="kw-2">mut </span>infos = Vec::with_capacity(sectors.amt.count() <span class="kw">as </span>usize);
+                    sectors.amt.for_each(|<span class="kw">_</span>, info| {
+                        infos.push(SectorOnChainInfo::from(info.clone()));
+                        <span class="prelude-val">Ok</span>(())
+                    })<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>(infos)
+                }
+            }
         }
     }
 
@@ -535,6 +685,7 @@
     </span><span class="kw">pub fn </span>deadline_info(<span class="kw-2">&amp;</span><span class="self">self</span>, _epoch: ChainEpoch) -&gt; DeadlineInfo {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(_st) =&gt; <span class="macro">todo!</span>(),
+            State::V9(_st) =&gt; <span class="macro">todo!</span>(),
         }
     }
 
@@ -542,6 +693,7 @@
     </span><span class="kw">pub fn </span>fee_debt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.fee_debt.clone(),
+            State::V9(st) =&gt; st.fee_debt.clone(),
         }
     }
 }
@@ -588,6 +740,7 @@
 <span class="doccomment">/// Deadline holds the state for all sectors due at a specific deadline.
 </span><span class="kw">pub enum </span>Deadline {
     V8(fil_actor_miner_v8::Deadline),
+    V9(fil_actor_miner_v9::Deadline),
 }
 
 <span class="kw">impl </span>Deadline {
@@ -601,12 +754,20 @@
             Deadline::V8(dl) =&gt; dl.for_each(<span class="kw-2">&amp;</span>store, |idx, part| {
                 f(idx, Partition::V8(Cow::Borrowed(part)))
             }),
+            Deadline::V9(dl) =&gt; dl.for_each(<span class="kw-2">&amp;</span>store, |idx, part| {
+                f(idx, Partition::V9(Cow::Borrowed(part)))
+            }),
         }
     }
 
     <span class="kw">pub fn </span>disputable_proof_count&lt;BS: Blockstore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;</span>BS) -&gt; anyhow::Result&lt;usize&gt; {
         <span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
             Deadline::V8(dl) =&gt; dl
+                .optimistic_proofs_snapshot_amt(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
+                </span>.count()
+                .try_into()
+                .unwrap(),
+            Deadline::V9(dl) =&gt; dl
                 .optimistic_proofs_snapshot_amt(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
                 </span>.count()
                 .try_into()
@@ -623,6 +784,7 @@
 </span><span class="kw">pub enum </span>Partition&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="comment">// V7(Cow&lt;&#39;a, fil_actor_miner_v7::Partition&gt;),
     </span>V8(Cow&lt;<span class="lifetime">&#39;a</span>, fil_actor_miner_v8::Partition&gt;),
+    V9(Cow&lt;<span class="lifetime">&#39;a</span>, fil_actor_miner_v9::Partition&gt;),
 }
 
 <span class="kw">impl </span>Partition&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -638,11 +800,13 @@
     <span class="kw">pub fn </span>live_sectors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BitField {
         <span class="kw">match </span><span class="self">self </span>{
             Partition::V8(dl) =&gt; dl.live_sectors(),
+            Partition::V9(dl) =&gt; dl.live_sectors(),
         }
     }
     <span class="kw">pub fn </span>active_sectors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BitField {
         <span class="kw">match </span><span class="self">self </span>{
             Partition::V8(dl) =&gt; dl.active_sectors(),
+            Partition::V9(dl) =&gt; dl.active_sectors(),
         }
     }
 }
@@ -692,6 +856,24 @@
 
 <span class="kw">impl </span>From&lt;fil_actor_miner_v8::SectorOnChainInfo&gt; <span class="kw">for </span>SectorOnChainInfo {
     <span class="kw">fn </span>from(info: fil_actor_miner_v8::SectorOnChainInfo) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            sector_number: info.sector_number,
+            seal_proof: info.seal_proof,
+            sealed_cid: info.sealed_cid,
+            deal_ids: info.deal_ids,
+            activation: info.activation,
+            expiration: info.expiration,
+            deal_weight: info.deal_weight,
+            verified_deal_weight: info.verified_deal_weight,
+            initial_pledge: info.initial_pledge,
+            expected_day_reward: info.expected_day_reward,
+            expected_storage_pledge: info.expected_storage_pledge,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;fil_actor_miner_v9::SectorOnChainInfo&gt; <span class="kw">for </span>SectorOnChainInfo {
+    <span class="kw">fn </span>from(info: fil_actor_miner_v9::SectorOnChainInfo) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             sector_number: info.sector_number,
             seal_proof: info.seal_proof,

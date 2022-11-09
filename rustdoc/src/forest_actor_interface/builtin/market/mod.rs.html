@@ -191,6 +191,10 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -218,12 +222,18 @@
     <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
         <span class="comment">// calibnet v8
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacebotg5coqnglzsdrqxtkqk2eq4krxt6zvds3i3vb2yejgxhexl2n6&quot;</span>).unwrap(),
-        <span class="comment">// calibnet v9
-        </span>Cid::try_from(<span class="string">&quot;bafk2bzacedsurnftfw3sbfebpkdisqqaubk43gdjjeegc3kymfmhvlhatte3e&quot;</span>).unwrap(),
         <span class="comment">// mainnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacediohrxkp2fbsl4yj4jlupjdkgsiwqb4zuezvinhdo2j5hrxco62q&quot;</span>).unwrap(),
         <span class="comment">// devnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacecw57fpkqesfhi5g3nr4csy4oy7oc42wmwjuis6l7ijniolo4rt2k&quot;</span>).unwrap(),
+    ];
+    known_cids.contains(cid)
+}
+
+<span class="kw">pub fn </span>is_v9_market_cid(cid: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
+    <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
+        <span class="comment">// calibnet v9
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzacebkfcnc27d3agm2bhzzbvvtbqahmvy2b2nf5xyj4aoxehow3bules&quot;</span>).unwrap(),
     ];
     known_cids.contains(cid)
 }
@@ -233,6 +243,7 @@
 #[serde(untagged)]
 </span><span class="kw">pub enum </span>State {
     V8(fil_actor_market_v8::State),
+    V9(fil_actor_market_v9::State),
 }
 
 <span class="kw">impl </span>State {
@@ -244,6 +255,12 @@
             <span class="kw">return </span>store
                 .get_obj(<span class="kw-2">&amp;</span>actor.state)<span class="question-mark">?
                 </span>.map(State::V8)
+                .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
+        }
+        <span class="kw">if </span>is_v9_market_cid(<span class="kw-2">&amp;</span>actor.code) {
+            <span class="kw">return </span>store
+                .get_obj(<span class="kw-2">&amp;</span>actor.state)<span class="question-mark">?
+                </span>.map(State::V9)
                 .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
         }
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Unknown market actor code {}&quot;</span>, actor.code))
@@ -285,6 +302,7 @@
     </span><span class="kw">pub fn </span>total_locked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.total_locked(),
+            State::V9(st) =&gt; st.total_locked(),
         }
     }
 
@@ -292,26 +310,16 @@
     /// split into regular deal weight and verified deal weight.
     </span><span class="kw">pub fn </span>verify_deals_for_activation&lt;BS&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        store: <span class="kw-2">&amp;</span>BS,
-        deal_ids: <span class="kw-2">&amp;</span>[u64],
-        miner_addr: <span class="kw-2">&amp;</span>Address,
-        sector_expiry: ChainEpoch,
-        curr_epoch: ChainEpoch,
+        _store: <span class="kw-2">&amp;</span>BS,
+        _deal_ids: <span class="kw-2">&amp;</span>[u64],
+        _miner_addr: <span class="kw-2">&amp;</span>Address,
+        _sector_expiry: ChainEpoch,
+        _curr_epoch: ChainEpoch,
     ) -&gt; anyhow::Result&lt;(BigInt, BigInt)&gt;
     <span class="kw">where
         </span>BS: Blockstore,
     {
-        <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; fil_actor_market_v8::validate_deals_for_activation(
-                st,
-                <span class="kw-2">&amp;</span>store,
-                deal_ids,
-                miner_addr,
-                sector_expiry,
-                curr_epoch,
-            )
-            .map(|(deal_st, verified_st, <span class="kw">_</span>)| (deal_st, verified_st)),
-        }
+        <span class="macro">unimplemented!</span>()
     }
 }
 

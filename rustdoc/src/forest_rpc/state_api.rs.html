@@ -885,6 +885,7 @@
 <span id="885">885</span>
 <span id="886">886</span>
 <span id="887">887</span>
+<span id="888">888</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1605,6 +1606,7 @@
             .get_obj::&lt;fvm_ipld_bitfield::BitField&gt;(<span class="kw-2">&amp;</span>m.allocated_sectors)<span class="question-mark">?
             </span>.ok_or(<span class="string">&quot;allocated sectors bitfield not found&quot;</span>)<span class="question-mark">?
             </span>.get(sector_num),
+        <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;state_miner_sector_allocated disabled&quot;</span>),
     };
 
     <span class="prelude-val">Ok</span>(allocated_sectors)

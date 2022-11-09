@@ -71,6 +71,9 @@
 <span id="71">71</span>
 <span id="72">72</span>
 <span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -93,6 +96,7 @@
     V6,
     V7,
     V8,
+    V9,
 }
 
 <span class="kw">impl </span>Display <span class="kw">for </span>ActorVersion {
@@ -106,6 +110,7 @@
             <span class="self">Self</span>::V6 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;V6&quot;</span>),
             <span class="self">Self</span>::V7 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;V7&quot;</span>),
             <span class="self">Self</span>::V8 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;V8&quot;</span>),
+            <span class="self">Self</span>::V9 =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;V9&quot;</span>),
         }
     }
 }
@@ -128,6 +133,7 @@
             NetworkVersion::V14 =&gt; ActorVersion::V6,
             NetworkVersion::V15 =&gt; ActorVersion::V7,
             NetworkVersion::V16 =&gt; ActorVersion::V8,
+            NetworkVersion::V17 =&gt; ActorVersion::V9,
             <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;nv16+ not supported by native backend&quot;</span>),
         }
     }
@@ -140,7 +146,7 @@
             StateTreeVersion::V1 =&gt; ActorVersion::V2,
             StateTreeVersion::V2 =&gt; ActorVersion::V3,
             StateTreeVersion::V3 =&gt; ActorVersion::V6,
-            StateTreeVersion::V4 =&gt; ActorVersion::V8,
+            StateTreeVersion::V4 =&gt; ActorVersion::V9,
         }
     }
 }

@@ -89,6 +89,22 @@
 <span id="89">89</span>
 <span id="90">90</span>
 <span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -111,12 +127,18 @@
     <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
         <span class="comment">// calibnet v8
         </span>Cid::try_from(<span class="string">&quot;bafk2bzaceadyfilb22bcvzvnpzbg2lyg6npmperyq6es2brvzjdh5rmywc4ry&quot;</span>).unwrap(),
-        <span class="comment">// calibnet v9
-        </span>Cid::try_from(<span class="string">&quot;bafk2bzacecs2ohkgluvxxxzmbqq5oynudtzqoypmhckylct2i5b2uw6nyu2wa&quot;</span>).unwrap(),
         <span class="comment">// mainnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzaceaipvjhoxmtofsnv3aj6gj5ida4afdrxa4ewku2hfipdlxpaektlw&quot;</span>).unwrap(),
         <span class="comment">// devnet
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacedarbnovmucppbjkcwsxopludrj5ttmtm7mzfqsugmxdnqevqso7o&quot;</span>).unwrap(),
+    ];
+    known_cids.contains(cid)
+}
+
+<span class="kw">pub fn </span>is_v9_init_cid(cid: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
+    <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
+        <span class="comment">// calibnet v9
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzaceczqxpivlxifdo5ohr2rx5ny4uyvssm6tkf7am357xm47x472yxu2&quot;</span>).unwrap(),
     ];
     known_cids.contains(cid)
 }
@@ -126,6 +148,7 @@
 #[serde(untagged)]
 </span><span class="kw">pub enum </span>State {
     V8(fil_actor_init_v8::State),
+    V9(fil_actor_init_v9::State),
 }
 
 <span class="kw">impl </span>State {
@@ -137,6 +160,12 @@
             <span class="kw">return </span>store
                 .get_obj(<span class="kw-2">&amp;</span>actor.state)<span class="question-mark">?
                 </span>.map(State::V8)
+                .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
+        }
+        <span class="kw">if </span>is_v9_init_cid(<span class="kw-2">&amp;</span>actor.code) {
+            <span class="kw">return </span>store
+                .get_obj(<span class="kw-2">&amp;</span>actor.state)<span class="question-mark">?
+                </span>.map(State::V9)
                 .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
         }
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Unknown init actor code {}&quot;</span>, actor.code))
@@ -151,6 +180,7 @@
     ) -&gt; anyhow::Result&lt;Address&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; <span class="prelude-val">Ok</span>(Address::new_id(st.map_address_to_new_id(<span class="kw-2">&amp;</span>store, addr)<span class="question-mark">?</span>)),
+            State::V9(st) =&gt; <span class="prelude-val">Ok</span>(Address::new_id(st.map_address_to_new_id(<span class="kw-2">&amp;</span>store, addr)<span class="question-mark">?</span>)),
         }
     }
 
@@ -171,12 +201,14 @@
     ) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;Address&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.resolve_address(<span class="kw-2">&amp;</span>store, addr),
+            State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st.resolve_address(<span class="kw-2">&amp;</span>store, addr)<span class="question-mark">?</span>),
         }
     }
 
     <span class="kw">pub fn </span>into_network_name(<span class="self">self</span>) -&gt; String {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.network_name,
+            State::V9(st) =&gt; st.network_name,
         }
     }
 }

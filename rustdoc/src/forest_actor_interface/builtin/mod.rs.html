@@ -153,7 +153,7 @@
 
 <span class="doccomment">/// Returns true if the code belongs to an account actor.
 </span><span class="kw">pub fn </span>is_account_actor(code: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
-    account::is_v8_account_cid(code)
+    account::is_v8_account_cid(code) || account::is_v9_account_cid(code)
 }
 
 <span class="doccomment">/// Returns true if the code belongs to a miner actor.
