@@ -35,10 +35,12 @@ fvm_shared                       = { workspace = true, default-features = false 
 log.workspace                    = true
 lru.workspace                    = true
 num-traits.workspace             = true
-serde                            = { workspace = true, features = ["derive"] }
-thiserror.workspace              = true
-tokio                            = { workspace = true, features = ["sync"] }
-tokio-util                       = { workspace = true, features = ["compat"] }
+once_cell.workspace              = true
+
+serde               = { workspace = true, features = ["derive"] }
+thiserror.workspace = true
+tokio               = { workspace = true, features = ["sync"] }
+tokio-util          = { workspace = true, features = ["compat"] }
 
 [dev-dependencies]
 multihash = { workspace = true, default-features = false, features = ["std", "blake2b", "derive"] }

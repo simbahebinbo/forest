@@ -3037,6 +3037,7 @@ dependencies = [
  "lru 0.8.1",
  "multihash",
  "num-traits",
+ "once_cell",
  "serde",
  "thiserror",
  "tokio",
