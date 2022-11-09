@@ -18,6 +18,13 @@
 <span id="18">18</span>
 <span id="19">19</span>
 <span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -27,16 +34,23 @@
 
 <span class="kw">pub async fn </span>sync_check_bad(
     params: SyncCheckBadParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;SyncCheckBadResult, JsonRpcError&gt; {
-    call(SYNC_CHECK_BAD, params).<span class="kw">await
+    call(SYNC_CHECK_BAD, params, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>sync_mark_bad(params: SyncMarkBadParams) -&gt; <span class="prelude-ty">Result</span>&lt;SyncMarkBadResult, JsonRpcError&gt; {
-    call(SYNC_MARK_BAD, params).<span class="kw">await
+<span class="kw">pub async fn </span>sync_mark_bad(
+    params: SyncMarkBadParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;SyncMarkBadResult, JsonRpcError&gt; {
+    call(SYNC_MARK_BAD, params, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>sync_status(params: SyncStateParams) -&gt; <span class="prelude-ty">Result</span>&lt;SyncStateResult, JsonRpcError&gt; {
-    call(SYNC_STATE, params).<span class="kw">await
+<span class="kw">pub async fn </span>sync_status(
+    params: SyncStateParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;SyncStateResult, JsonRpcError&gt; {
+    call(SYNC_STATE, params, auth_token).<span class="kw">await
 </span>}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc_client" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

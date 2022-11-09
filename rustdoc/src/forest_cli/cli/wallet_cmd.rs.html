@@ -266,10 +266,22 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_json::address::json::AddressJson;
+</span><span class="kw">use </span><span class="kw">super</span>::Config;
+<span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_json::signature::json::{signature_type::SignatureTypeJson, SignatureJson};
 <span class="kw">use </span>forest_key_management::json::KeyInfoJson;
 <span class="kw">use </span>forest_rpc_client::wallet_ops::<span class="kw-2">*</span>;
@@ -348,7 +360,7 @@
 }
 
 <span class="kw">impl </span>WalletCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::New { signature_type } =&gt; {
                 <span class="kw">let </span>signature_type = <span class="kw">match </span>signature_type.to_lowercase().as_str() {
@@ -358,28 +370,28 @@
 
                 <span class="kw">let </span>signature_type_json = SignatureTypeJson(signature_type);
 
-                <span class="kw">let </span>response = wallet_new((signature_type_json,))
+                <span class="kw">let </span>response = wallet_new((signature_type_json,), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)
                     .unwrap();
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, response);
             }
             <span class="self">Self</span>::Balance { address } =&gt; {
-                <span class="kw">let </span>response = wallet_balance((address.to_string(),))
+                <span class="kw">let </span>response = wallet_balance((address.to_string(),), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)
                     .unwrap();
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, response);
             }
             <span class="self">Self</span>::Default =&gt; {
-                <span class="kw">let </span>response = wallet_default_address()
+                <span class="kw">let </span>response = wallet_default_address(<span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)
                     .unwrap();
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, response);
             }
             <span class="self">Self</span>::Export { address } =&gt; {
-                <span class="kw">let </span>response = wallet_export((address.to_string(),))
+                <span class="kw">let </span>response = wallet_export((address.to_string(),), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)
                     .unwrap();
@@ -388,7 +400,7 @@
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, hex::encode(encoded_key))
             }
             <span class="self">Self</span>::Has { key } =&gt; {
-                <span class="kw">let </span>response = wallet_has((key.to_string(),))
+                <span class="kw">let </span>response = wallet_has((key.to_string(),), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)
                     .unwrap();
@@ -427,7 +439,7 @@
 
                 <span class="kw">let </span>key = key_result.unwrap();
 
-                <span class="kw">let </span>key = wallet_import(<span class="macro">vec!</span>[KeyInfoJson(key.<span class="number">0</span>)])
+                <span class="kw">let </span>key = wallet_import(<span class="macro">vec!</span>[KeyInfoJson(key.<span class="number">0</span>)], <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)
                     .unwrap();
@@ -435,9 +447,12 @@
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, key);
             }
             <span class="self">Self</span>::List =&gt; {
-                <span class="kw">let </span>response = wallet_list().<span class="kw">await</span>.map_err(handle_rpc_err).unwrap();
+                <span class="kw">let </span>response = wallet_list(<span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)
+                    .unwrap();
 
-                <span class="kw">let </span>default = <span class="kw">match </span>wallet_default_address().<span class="kw">await </span>{
+                <span class="kw">let </span>default = <span class="kw">match </span>wallet_default_address(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(addr) =&gt; addr,
                     <span class="prelude-val">Err</span>(err) =&gt; {
                         <span class="macro">println!</span>(<span class="string">&quot;Failed get the wallet default address&quot;</span>);
@@ -453,13 +468,14 @@
                     <span class="kw">let </span>addr = address.<span class="number">0</span>.to_string();
                     <span class="kw">let </span>default_address_mark = <span class="kw">if </span>addr == default { <span class="string">&quot;X&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>};
 
-                    <span class="kw">let </span>balance_string = <span class="kw">match </span>wallet_balance((addr.clone(),)).<span class="kw">await </span>{
-                        <span class="prelude-val">Ok</span>(balance) =&gt; balance,
-                        <span class="prelude-val">Err</span>(err) =&gt; {
-                            <span class="macro">println!</span>(<span class="string">&quot;Failed loading the wallet balance&quot;</span>);
-                            handle_rpc_err(err);
-                        }
-                    };
+                    <span class="kw">let </span>balance_string =
+                        <span class="kw">match </span>wallet_balance((addr.clone(),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
+                            <span class="prelude-val">Ok</span>(balance) =&gt; balance,
+                            <span class="prelude-val">Err</span>(err) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;Failed loading the wallet balance&quot;</span>);
+                                handle_rpc_err(err);
+                            }
+                        };
 
                     <span class="kw">let </span>balance_int = <span class="kw">match </span>balance_string.parse::&lt;BigInt&gt;() {
                         <span class="prelude-val">Ok</span>(balance) =&gt; TokenAmount::from_atto(balance),
@@ -485,7 +501,7 @@
                 <span class="kw">let </span>key = key_parse_result.unwrap();
 
                 <span class="kw">let </span>key_json = AddressJson(key);
-                wallet_set_default((key_json,))
+                wallet_set_default((key_json,), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)
                     .unwrap();
@@ -502,10 +518,13 @@
                 <span class="kw">let </span>message = hex::decode(message).unwrap();
                 <span class="kw">let </span>message = base64::encode(message);
 
-                <span class="kw">let </span>response = wallet_sign((AddressJson(address), message.into_bytes()))
-                    .<span class="kw">await
-                    </span>.map_err(handle_rpc_err)
-                    .unwrap();
+                <span class="kw">let </span>response = wallet_sign(
+                    (AddressJson(address), message.into_bytes()),
+                    <span class="kw-2">&amp;</span>config.client.rpc_token,
+                )
+                .<span class="kw">await
+                </span>.map_err(handle_rpc_err)
+                .unwrap();
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, hex::encode(response.<span class="number">0</span>.bytes()));
             }
             <span class="self">Self</span>::Verify {
@@ -520,11 +539,14 @@
                     <span class="kw">_ </span>=&gt; cli_error_and_die(<span class="string">&quot;Invalid signature (must be bls or secp256k1)&quot;</span>, <span class="number">1</span>),
                 };
 
-                <span class="kw">let </span>response = wallet_verify((
-                    address.to_string(),
-                    message.to_string(),
-                    SignatureJson(signature),
-                ))
+                <span class="kw">let </span>response = wallet_verify(
+                    (
+                        address.to_string(),
+                        message.to_string(),
+                        SignatureJson(signature),
+                    ),
+                    <span class="kw-2">&amp;</span>config.client.rpc_token,
+                )
                 .<span class="kw">await
                 </span>.map_err(handle_rpc_err)
                 .unwrap();

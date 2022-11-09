@@ -128,6 +128,10 @@
 <span id="128">128</span>
 <span id="129">129</span>
 <span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -215,7 +219,9 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Block { cid } =&gt; {
                 <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
-                print_rpc_res_pretty(chain_get_block((CidJson(cid),)).<span class="kw">await</span>);
+                print_rpc_res_pretty(
+                    chain_get_block((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>,
+                );
             }
             <span class="self">Self</span>::Export {
                 tipset,
@@ -235,18 +241,20 @@
                 cmd.run(config).<span class="kw">await
             </span>}
             <span class="self">Self</span>::Genesis =&gt; {
-                print_rpc_res_pretty(chain_get_genesis().<span class="kw">await</span>);
+                print_rpc_res_pretty(chain_get_genesis(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
             }
             <span class="self">Self</span>::Head =&gt; {
-                print_rpc_res_cids(chain_head().<span class="kw">await</span>);
+                print_rpc_res_cids(chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
             }
             <span class="self">Self</span>::Message { cid } =&gt; {
                 <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
-                print_rpc_res_pretty(chain_get_message((CidJson(cid),)).<span class="kw">await</span>);
+                print_rpc_res_pretty(
+                    chain_get_message((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>,
+                );
             }
             <span class="self">Self</span>::ReadObj { cid } =&gt; {
                 <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
-                print_rpc_res(chain_read_obj((CidJson(cid),)).<span class="kw">await</span>);
+                print_rpc_res(chain_read_obj((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
             }
             <span class="self">Self</span>::Fetch { snapshot_dir } =&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;Deprecated, use `forest-cli snapshot fetch` instead.&quot;</span>);

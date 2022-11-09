@@ -20,6 +20,18 @@
 <span id="20">20</span>
 <span id="21">21</span>
 <span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -27,20 +39,32 @@
 <span class="kw">use </span>forest_rpc_api::net_api::<span class="kw-2">*</span>;
 <span class="kw">use </span>jsonrpc_v2::Error;
 
-<span class="kw">pub async fn </span>net_addrs_listen(params: NetAddrsListenParams) -&gt; <span class="prelude-ty">Result</span>&lt;NetAddrsListenResult, Error&gt; {
-    call(NET_ADDRS_LISTEN, params).<span class="kw">await
+<span class="kw">pub async fn </span>net_addrs_listen(
+    params: NetAddrsListenParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;NetAddrsListenResult, Error&gt; {
+    call(NET_ADDRS_LISTEN, params, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>net_peers(params: NetPeersParams) -&gt; <span class="prelude-ty">Result</span>&lt;NetPeersResult, Error&gt; {
-    call(NET_PEERS, params).<span class="kw">await
+<span class="kw">pub async fn </span>net_peers(
+    params: NetPeersParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;NetPeersResult, Error&gt; {
+    call(NET_PEERS, params, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>net_connect(params: NetConnectParams) -&gt; <span class="prelude-ty">Result</span>&lt;NetConnectResult, Error&gt; {
-    call(NET_CONNECT, params).<span class="kw">await
+<span class="kw">pub async fn </span>net_connect(
+    params: NetConnectParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;NetConnectResult, Error&gt; {
+    call(NET_CONNECT, params, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>net_disconnect(params: NetDisconnectParams) -&gt; <span class="prelude-ty">Result</span>&lt;NetDisconnectResult, Error&gt; {
-    call(NET_DISCONNECT, params).<span class="kw">await
+<span class="kw">pub async fn </span>net_disconnect(
+    params: NetDisconnectParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;NetDisconnectResult, Error&gt; {
+    call(NET_DISCONNECT, params, auth_token).<span class="kw">await
 </span>}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc_client" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

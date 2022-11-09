@@ -14,6 +14,12 @@
 <span id="14">14</span>
 <span id="15">15</span>
 <span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -23,12 +29,18 @@
 <span class="kw">use </span><span class="kw">crate</span>::call;
 
 <span class="doccomment">/// Creates a new JWT Token
-</span><span class="kw">pub async fn </span>auth_new(perm: AuthNewParams) -&gt; <span class="prelude-ty">Result</span>&lt;AuthNewResult, JsonRpcError&gt; {
-    call(AUTH_NEW, perm).<span class="kw">await
+</span><span class="kw">pub async fn </span>auth_new(
+    perm: AuthNewParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;AuthNewResult, JsonRpcError&gt; {
+    call(AUTH_NEW, perm, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>auth_verify(token: AuthVerifyParams) -&gt; <span class="prelude-ty">Result</span>&lt;AuthVerifyResult, JsonRpcError&gt; {
-    call(AUTH_VERIFY, (token,)).<span class="kw">await
+<span class="kw">pub async fn </span>auth_verify(
+    token: AuthVerifyParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;AuthVerifyResult, JsonRpcError&gt; {
+    call(AUTH_VERIFY, (token,), auth_token).<span class="kw">await
 </span>}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc_client" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

@@ -36,6 +36,23 @@
 <span id="36">36</span>
 <span id="37">37</span>
 <span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -43,36 +60,53 @@
 <span class="kw">use </span>forest_rpc_api::chain_api::<span class="kw-2">*</span>;
 <span class="kw">use </span>jsonrpc_v2::Error;
 
-<span class="kw">pub async fn </span>chain_get_block(cid: ChainGetBlockParams) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetBlockResult, Error&gt; {
-    call(CHAIN_GET_BLOCK, cid).<span class="kw">await
+<span class="kw">pub async fn </span>chain_get_block(
+    cid: ChainGetBlockParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetBlockResult, Error&gt; {
+    call(CHAIN_GET_BLOCK, cid, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>chain_export(params: ChainExportParams) -&gt; <span class="prelude-ty">Result</span>&lt;ChainExportResult, Error&gt; {
-    call(CHAIN_EXPORT, params).<span class="kw">await
+<span class="kw">pub async fn </span>chain_export(
+    params: ChainExportParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ChainExportResult, Error&gt; {
+    call(CHAIN_EXPORT, params, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>chain_get_genesis() -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetGenesisResult, Error&gt; {
-    call(CHAIN_GET_GENESIS, ()).<span class="kw">await
+<span class="kw">pub async fn </span>chain_get_genesis(
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetGenesisResult, Error&gt; {
+    call(CHAIN_GET_GENESIS, (), auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>chain_head() -&gt; <span class="prelude-ty">Result</span>&lt;ChainHeadResult, Error&gt; {
-    call(CHAIN_HEAD, ()).<span class="kw">await
+<span class="kw">pub async fn </span>chain_head(auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ChainHeadResult, Error&gt; {
+    call(CHAIN_HEAD, (), auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>chain_get_message(cid: ChainGetMessageParams) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetMessageResult, Error&gt; {
-    call(CHAIN_GET_MESSAGE, cid).<span class="kw">await
+<span class="kw">pub async fn </span>chain_get_message(
+    cid: ChainGetMessageParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetMessageResult, Error&gt; {
+    call(CHAIN_GET_MESSAGE, cid, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>chain_read_obj(cid: ChainReadObjParams) -&gt; <span class="prelude-ty">Result</span>&lt;ChainReadObjResult, Error&gt; {
-    call(CHAIN_READ_OBJ, cid).<span class="kw">await
+<span class="kw">pub async fn </span>chain_read_obj(
+    cid: ChainReadObjParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ChainReadObjResult, Error&gt; {
+    call(CHAIN_READ_OBJ, cid, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>chain_get_tipset(keys: ChainGetTipSetParams) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetTipSetResult, Error&gt; {
-    call(CHAIN_GET_TIPSET, keys).<span class="kw">await
+<span class="kw">pub async fn </span>chain_get_tipset(
+    keys: ChainGetTipSetParams,
+    auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetTipSetResult, Error&gt; {
+    call(CHAIN_GET_TIPSET, keys, auth_token).<span class="kw">await
 </span>}
 
-<span class="kw">pub async fn </span>chain_get_name() -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetNameResult, Error&gt; {
-    call(CHAIN_GET_NAME, ()).<span class="kw">await
+<span class="kw">pub async fn </span>chain_get_name(auth_token: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetNameResult, Error&gt; {
+    call(CHAIN_GET_NAME, (), auth_token).<span class="kw">await
 </span>}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc_client" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

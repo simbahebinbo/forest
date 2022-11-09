@@ -56,6 +56,10 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -67,7 +71,7 @@
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>structopt::StructOpt;
 
-<span class="kw">use </span><span class="kw">super</span>::handle_rpc_err;
+<span class="kw">use super</span>::{handle_rpc_err, Config};
 
 <span class="attr">#[derive(Debug, StructOpt)]
 </span><span class="kw">pub struct </span>SendCommand {
@@ -89,11 +93,15 @@
 }
 
 <span class="kw">impl </span>SendCommand {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>from: Address = <span class="kw">if let </span><span class="prelude-val">Some</span>(from) = <span class="self">self</span>.from {
             from
         } <span class="kw">else </span>{
-            Address::from_str(<span class="kw-2">&amp;</span>wallet_default_address().<span class="kw">await</span>.map_err(handle_rpc_err)<span class="question-mark">?</span>)<span class="question-mark">?
+            Address::from_str(
+                <span class="kw-2">&amp;</span>wallet_default_address(<span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>,
+            )<span class="question-mark">?
         </span>};
 
         <span class="kw">let </span>message = Message {
@@ -107,7 +115,7 @@
             ..Default::default()
         };
 
-        mpool_push_message((MessageJson(message), <span class="prelude-val">None</span>))
+        mpool_push_message((MessageJson(message), <span class="prelude-val">None</span>), <span class="kw-2">&amp;</span>config.client.rpc_token)
             .<span class="kw">await
             </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 

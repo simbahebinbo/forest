@@ -117,15 +117,17 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
+</span><span class="kw">use </span><span class="kw">super</span>::Config;
+<span class="kw">use </span><span class="kw">crate</span>::cli::cli_error_and_die;
+<span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
 <span class="kw">use </span>forest_rpc_api::data_types::AddrInfo;
 <span class="kw">use </span>std::collections::HashSet;
 <span class="kw">use </span>structopt::StructOpt;
-
-<span class="kw">use </span><span class="kw">crate</span>::cli::cli_error_and_die;
 
 <span class="kw">use super</span>::{handle_rpc_err, print_stdout};
 <span class="kw">use </span>forest_rpc_client::net_ops::<span class="kw-2">*</span>;
@@ -149,9 +151,9 @@
 }
 
 <span class="kw">impl </span>NetCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Listen =&gt; <span class="kw">match </span>net_addrs_listen(()).<span class="kw">await </span>{
+            <span class="self">Self</span>::Listen =&gt; <span class="kw">match </span>net_addrs_listen((), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
                 <span class="prelude-val">Ok</span>(info) =&gt; {
                     <span class="kw">let </span>addresses: Vec&lt;String&gt; = info
                         .addrs
@@ -163,7 +165,7 @@
                 }
                 <span class="prelude-val">Err</span>(e) =&gt; handle_rpc_err(e),
             },
-            <span class="self">Self</span>::Peers =&gt; <span class="kw">match </span>net_peers(()).<span class="kw">await </span>{
+            <span class="self">Self</span>::Peers =&gt; <span class="kw">match </span>net_peers((), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
                 <span class="prelude-val">Ok</span>(addrs) =&gt; {
                     <span class="kw">let </span>output: Vec&lt;String&gt; = addrs
                         .into_iter()
@@ -220,19 +222,21 @@
                     addrs,
                 };
 
-                <span class="kw">match </span>net_connect((addr_info,)).<span class="kw">await </span>{
+                <span class="kw">match </span>net_connect((addr_info,), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                         <span class="macro">println!</span>(<span class="string">&quot;connect {}: success&quot;</span>, id);
                     }
                     <span class="prelude-val">Err</span>(e) =&gt; handle_rpc_err(e),
                 }
             }
-            <span class="self">Self</span>::Disconnect { id } =&gt; <span class="kw">match </span>net_disconnect((id.to_owned(),)).<span class="kw">await </span>{
-                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="macro">println!</span>(<span class="string">&quot;disconnect {}: success&quot;</span>, id);
+            <span class="self">Self</span>::Disconnect { id } =&gt; {
+                <span class="kw">match </span>net_disconnect((id.to_owned(),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="macro">println!</span>(<span class="string">&quot;disconnect {}: success&quot;</span>, id);
+                    }
+                    <span class="prelude-val">Err</span>(e) =&gt; handle_rpc_err(e),
                 }
-                <span class="prelude-val">Err</span>(e) =&gt; handle_rpc_err(e),
-            },
+            }
         }
     }
 }

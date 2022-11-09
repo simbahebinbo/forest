@@ -382,6 +382,12 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -503,7 +509,7 @@
                 include_old_messages,
                 skip_checksum,
             } =&gt; {
-                <span class="kw">let </span>chain_head = <span class="kw">match </span>chain_head().<span class="kw">await </span>{
+                <span class="kw">let </span>chain_head = <span class="kw">match </span>chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(head) =&gt; head.<span class="number">0</span>,
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; cli_error_and_die(<span class="string">&quot;Could not get network head&quot;</span>, <span class="number">1</span>),
                 };
@@ -515,7 +521,10 @@
                 <span class="kw">let </span>month_string = <span class="macro">format!</span>(<span class="string">&quot;{:02}&quot;</span>, now.month() <span class="kw">as </span>u8);
                 <span class="kw">let </span>year = now.year();
                 <span class="kw">let </span>day_string = <span class="macro">format!</span>(<span class="string">&quot;{:02}&quot;</span>, now.day());
-                <span class="kw">let </span>chain_name = chain_get_name().<span class="kw">await</span>.map_err(handle_rpc_err).unwrap();
+                <span class="kw">let </span>chain_name = chain_get_name(<span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)
+                    .unwrap();
 
                 <span class="kw">let </span>vars = HashMap::from([
                     (<span class="string">&quot;year&quot;</span>.to_string(), year.to_string()),
@@ -541,7 +550,10 @@
                 );
 
                 <span class="comment">// infallible unwrap
-                </span><span class="kw">let </span>out = chain_export(params).<span class="kw">await</span>.map_err(handle_rpc_err).unwrap();
+                </span><span class="kw">let </span>out = chain_export(params, <span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)
+                    .unwrap();
 
                 <span class="macro">println!</span>(<span class="string">&quot;Export completed. Snapshot located at {}&quot;</span>, out.display());
             }
