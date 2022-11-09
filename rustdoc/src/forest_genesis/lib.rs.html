@@ -194,10 +194,20 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>anyhow::bail;
+<span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_db::Store;
@@ -357,6 +367,14 @@
             .tipset_by_height(<span class="number">0</span>, ts.clone(), <span class="bool-val">true</span>)
             .<span class="kw">await</span><span class="question-mark">?</span>;
         sm.chain_store().set_genesis(<span class="kw-2">&amp;</span>gb.blocks()[<span class="number">0</span>])<span class="question-mark">?</span>;
+        <span class="kw">if </span>!<span class="macro">matches!</span>(<span class="kw-2">&amp;</span>sm.chain_config().genesis_cid, <span class="prelude-val">Some</span>(expected_cid) <span class="kw">if </span>expected_cid ==  <span class="kw-2">&amp;</span>gb.blocks()[<span class="number">0</span>].cid().to_string())
+        {
+            <span class="macro">bail!</span>(
+                <span class="string">&quot;Snapshot incompatible with {}. Consider specifying the network with `--chain` flag or 
+                 use a custom config file to set expected genesis CID for selected network&quot;</span>, 
+                sm.chain_config().name
+            );
+        }
     }
 
     <span class="comment">// Update head with snapshot header tipset
