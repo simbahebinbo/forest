@@ -185,12 +185,14 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
+<span id="188">188</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use crate</span>::{tipset_from_keys, Error, TipsetCache};
 <span class="kw">use </span>async_std::task;
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
+<span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>lru::LruCache;
@@ -249,7 +251,7 @@
             <span class="kw">return </span><span class="self">self</span>.walk_back(from, to).<span class="kw">await</span>;
         }
         <span class="kw">let </span>total_size = from.epoch() - to;
-        <span class="kw">let </span><span class="kw-2">mut </span>pb = pbr::ProgressBar::new(total_size <span class="kw">as </span>u64);
+        <span class="kw">let </span>pb = ProgressBar::new(total_size <span class="kw">as </span>u64);
         pb.message(<span class="string">&quot;Scanning blockchain &quot;</span>);
         pb.set_max_refresh_rate(<span class="prelude-val">Some</span>(std::time::Duration::from_millis(<span class="number">500</span>)));
 

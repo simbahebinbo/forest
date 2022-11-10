@@ -76,12 +76,16 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">mod </span>tempfile;
+</span><span class="kw">pub mod </span>progress_bar;
+<span class="kw">mod </span>tempfile;
 <span class="kw">mod </span>writer_checksum;
 
+<span class="kw">pub use </span>progress_bar::{ProgressBar, ProgressBarVisibility};
 <span class="kw">pub use </span>tempfile::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>writer_checksum::<span class="kw-2">*</span>;
 

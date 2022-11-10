@@ -154,6 +154,11 @@
 <span id="154">154</span>
 <span id="155">155</span>
 <span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -168,6 +173,7 @@
     cli::{check_for_unknown_keys, cli_error_and_die, ConfigPath, DaemonConfig, LogConfig},
     logger,
 };
+<span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>log::{info, warn};
 <span class="kw">use </span>raw_sync::events::{Event, EventInit};
@@ -176,9 +182,9 @@
 <span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>tempfile::{Builder, TempPath};
 
-<span class="kw">use </span>std::fs::File;
 <span class="kw">use </span>std::process;
 <span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>std::{error::Error, fs::File};
 
 <span class="kw">const </span>EVENT_TIMEOUT: Timeout = Timeout::Val(Duration::from_secs(<span class="number">20</span>));
 
@@ -248,7 +254,7 @@
     <span class="prelude-val">Ok</span>(daemon)
 }
 
-<span class="kw">fn </span>main() {
+<span class="kw">fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>Error&gt;&gt; {
     <span class="comment">// Capture Cli inputs
     </span><span class="kw">let </span>Cli { opts, cmd } = Cli::from_args();
 
@@ -256,6 +262,8 @@
     </span><span class="kw">match </span>opts.to_config() {
         <span class="prelude-val">Ok</span>((cfg, path)) =&gt; {
             logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, opts.color.into());
+            ProgressBar::set_progress_bars_visibility(cfg.client.show_progress_bars);
+
             <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="kw-2">&amp;</span>path {
                 <span class="kw">match </span>path {
                     ConfigPath::Env(path) =&gt; {
@@ -309,6 +317,8 @@
             cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Error parsing config: {e}&quot;</span>), <span class="number">1</span>);
         }
     };
+
+    <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

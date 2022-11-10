@@ -1675,6 +1675,7 @@
 <span id="1675">1675</span>
 <span id="1676">1676</span>
 <span id="1677">1677</span>
+<span id="1678">1678</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1686,6 +1687,7 @@
 
 <span class="kw">use </span>async_std::stream::{Stream, StreamExt};
 <span class="kw">use </span>async_std::task;
+<span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>futures::TryFutureExt;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
@@ -2532,7 +2534,7 @@
     tracker.write().<span class="kw">await</span>.set_epoch(current_head.epoch());
 
     <span class="kw">let </span>total_size = proposed_head.epoch() - current_head.epoch();
-    <span class="kw">let </span><span class="kw-2">mut </span>pb = pbr::ProgressBar::new(total_size <span class="kw">as </span>u64);
+    <span class="kw">let </span>pb = ProgressBar::new(total_size <span class="kw">as </span>u64);
     pb.message(<span class="string">&quot;Downloading headers &quot;</span>);
     pb.set_max_refresh_rate(<span class="prelude-val">Some</span>(std::time::Duration::from_millis(<span class="number">500</span>)));
 

@@ -232,6 +232,8 @@
 <span id="232">232</span>
 <span id="233">233</span>
 <span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -371,6 +373,7 @@
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>forest_db::rocks_config::RocksDbConfig;
+    <span class="kw">use </span>forest_utils::io::ProgressBarVisibility;
     <span class="kw">use </span>quickcheck::Arbitrary;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>std::{
@@ -421,6 +424,7 @@
                     metrics_address: SocketAddr::arbitrary(g),
                     rpc_address: SocketAddr::arbitrary(g),
                     download_snapshot: bool::arbitrary(g),
+                    show_progress_bars: ProgressBarVisibility::arbitrary(g),
                 },
                 rocks_db: RocksDbConfig {
                     create_if_missing: bool::arbitrary(g),

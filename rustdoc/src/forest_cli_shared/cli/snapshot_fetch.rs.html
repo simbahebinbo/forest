@@ -403,13 +403,12 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
-<span id="406">406</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use super</span>::{Config, SnapshotFetchConfig};
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>chrono::DateTime;
-<span class="kw">use </span>forest_utils::io::TempFile;
+<span class="kw">use </span>forest_utils::io::{progress_bar::Units, ProgressBar, TempFile};
 <span class="kw">use </span>hex::{FromHex, ToHex};
 <span class="kw">use </span>hyper::{
     client::{connect::Connect, HttpConnector},
@@ -417,7 +416,6 @@
 };
 <span class="kw">use </span>hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
 <span class="kw">use </span>log::info;
-<span class="kw">use </span>pbr::ProgressBar;
 <span class="kw">use </span>s3::Bucket;
 <span class="kw">use </span>sha2::{Digest, Sha256};
 <span class="kw">use </span>std::{
@@ -570,10 +568,10 @@
         to_size_string(<span class="kw-2">&amp;</span>total_size.into())<span class="question-mark">?
     </span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>progress_bar = ProgressBar::new(total_size);
+    <span class="kw">let </span>progress_bar = ProgressBar::new(total_size);
     progress_bar.message(<span class="string">&quot;Downloading snapshot &quot;</span>);
     progress_bar.set_max_refresh_rate(<span class="prelude-val">Some</span>(Duration::from_millis(<span class="number">500</span>)));
-    progress_bar.set_units(pbr::Units::Bytes);
+    progress_bar.set_units(Units::Bytes);
 
     <span class="kw">let </span>snapshot_file_tmp = TempFile::new(snapshot_path.with_extension(<span class="string">&quot;car.tmp&quot;</span>));
     <span class="kw">let </span>file = File::create(snapshot_file_tmp.path()).<span class="kw">await</span><span class="question-mark">?</span>;

@@ -383,6 +383,10 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -396,7 +400,7 @@
 <span class="kw">use </span>byte_unit::Byte;
 <span class="kw">use </span>directories::ProjectDirs;
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_utils::io::{read_file_to_string, read_toml};
+<span class="kw">use </span>forest_utils::io::{read_file_to_string, read_toml, ProgressBarVisibility};
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>git_version::git_version;
 <span class="kw">use </span>log::error;
@@ -482,6 +486,9 @@
     <span class="doccomment">/// Enable or disable colored logging in `stdout`
     </span><span class="attr">#[structopt(long, default_value = <span class="string">&quot;auto&quot;</span>)]
     </span><span class="kw">pub </span>color: LoggingColor,
+    <span class="doccomment">/// Display progress bars mode [always, never, auto]. Auto will display if TTY.
+    </span><span class="attr">#[structopt(long, default_value = <span class="string">&quot;auto&quot;</span>)]
+    </span><span class="kw">pub </span>show_progress_bars: ProgressBarVisibility,
     <span class="comment">// env_logger-0.7 can only redirect to stderr or stdout. Version 0.9 can redirect to a file.
     // However, we cannot upgrade to version 0.9 because pretty_env_logger depends on version 0.7
     // and hasn&#39;t been updated in quite a while. See https://github.com/seanmonstar/pretty-env-logger/issues/52
@@ -545,6 +552,7 @@
 
         cfg.client.halt_after_import = <span class="self">self</span>.halt_after_import;
         cfg.client.download_snapshot = <span class="self">self</span>.download_snapshot;
+        cfg.client.show_progress_bars = <span class="self">self</span>.show_progress_bars;
 
         cfg.network.kademlia = <span class="self">self</span>.kademlia.unwrap_or(cfg.network.kademlia);
         cfg.network.mdns = <span class="self">self</span>.mdns.unwrap_or(cfg.network.mdns);
