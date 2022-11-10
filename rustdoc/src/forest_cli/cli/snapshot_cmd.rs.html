@@ -388,6 +388,12 @@
 <span id="388">388</span>
 <span id="389">389</span>
 <span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -444,6 +450,9 @@
         /// in default Forest data location.
         </span><span class="attr">#[structopt(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+        <span class="doccomment">/// Use [`aria2`](https://aria2.github.io/) for downloading, default is false. Requires `aria2c` in PATH.
+        </span><span class="attr">#[structopt(long)]
+        </span>aria2: bool,
     },
 
     <span class="doccomment">/// Shows default snapshot dir
@@ -557,11 +566,14 @@
 
                 <span class="macro">println!</span>(<span class="string">&quot;Export completed. Snapshot located at {}&quot;</span>, out.display());
             }
-            <span class="self">Self</span>::Fetch { snapshot_dir } =&gt; {
+            <span class="self">Self</span>::Fetch {
+                snapshot_dir,
+                aria2: use_aria2,
+            } =&gt; {
                 <span class="kw">let </span>snapshot_dir = snapshot_dir
                     .clone()
                     .unwrap_or_else(|| default_snapshot_dir(<span class="kw-2">&amp;</span>config));
-                <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_dir, <span class="kw-2">&amp;</span>config).<span class="kw">await </span>{
+                <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_dir, <span class="kw-2">&amp;</span>config, <span class="kw-2">*</span>use_aria2).<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(out) =&gt; <span class="macro">println!</span>(<span class="string">&quot;Snapshot successfully downloaded at {}&quot;</span>, out.display()),
                     <span class="prelude-val">Err</span>(e) =&gt; cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Failed fetching the snapshot: {e}&quot;</span>), <span class="number">1</span>),
                 }
@@ -776,7 +788,7 @@
 
 <span class="kw">fn </span>is_car_or_tmp(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
     <span class="kw">let </span>ext = path.extension().unwrap_or_default();
-    ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot;
+    ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot; </span>|| ext == <span class="string">&quot;aria2&quot;
 </span>}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="forest_cli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

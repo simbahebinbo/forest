@@ -132,6 +132,7 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
+<span id="135">135</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -260,6 +261,7 @@
                 <span class="macro">warn!</span>(<span class="string">&quot;Deprecated, use `forest-cli snapshot fetch` instead.&quot;</span>);
                 <span class="kw">let </span>cmd = SnapshotCommands::Fetch {
                     snapshot_dir: snapshot_dir.clone(),
+                    aria2: <span class="bool-val">false</span>,
                 };
                 cmd.run(config).<span class="kw">await
             </span>}

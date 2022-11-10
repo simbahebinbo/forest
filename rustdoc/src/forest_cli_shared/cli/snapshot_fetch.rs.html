@@ -403,6 +403,157 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use super</span>::{Config, SnapshotFetchConfig};
@@ -420,6 +571,7 @@
 <span class="kw">use </span>sha2::{Digest, Sha256};
 <span class="kw">use </span>std::{
     path::{Path, PathBuf},
+    process::Command,
     time::Duration,
 };
 <span class="kw">use </span>tokio::{
@@ -432,15 +584,28 @@
 
 <span class="doccomment">/// Fetches snapshot from a trusted location and saves it to the given directory. Chain is inferred
 /// from configuration.
-</span><span class="kw">pub async fn </span>snapshot_fetch(snapshot_out_dir: <span class="kw-2">&amp;</span>Path, config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;PathBuf&gt; {
+</span><span class="kw">pub async fn </span>snapshot_fetch(
+    snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
+    config: <span class="kw-2">&amp;</span>Config,
+    use_aria2: bool,
+) -&gt; anyhow::Result&lt;PathBuf&gt; {
     <span class="kw">match </span>config.chain.name.to_lowercase().as_ref() {
-        <span class="string">&quot;mainnet&quot; </span>=&gt; snapshot_fetch_mainnet(snapshot_out_dir, <span class="kw-2">&amp;</span>config.snapshot_fetch).<span class="kw">await</span>,
-        <span class="string">&quot;calibnet&quot; </span>=&gt; snapshot_fetch_calibnet(snapshot_out_dir, <span class="kw-2">&amp;</span>config.snapshot_fetch).<span class="kw">await</span>,
+        <span class="string">&quot;mainnet&quot; </span>=&gt; {
+            snapshot_fetch_mainnet(snapshot_out_dir, <span class="kw-2">&amp;</span>config.snapshot_fetch, use_aria2).<span class="kw">await
+        </span>}
+        <span class="string">&quot;calibnet&quot; </span>=&gt; {
+            snapshot_fetch_calibnet(snapshot_out_dir, <span class="kw-2">&amp;</span>config.snapshot_fetch, use_aria2).<span class="kw">await
+        </span>}
         <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
             <span class="string">&quot;Fetch not supported for chain {}&quot;</span>,
             config.chain.name,
         )),
     }
+}
+
+<span class="doccomment">/// Checks whether `aria2c` is available in PATH
+</span><span class="kw">pub fn </span>is_aria2_installed() -&gt; bool {
+    which::which(<span class="string">&quot;aria2c&quot;</span>).is_ok()
 }
 
 <span class="doccomment">/// Fetches snapshot for `calibnet` from a default, trusted location. On success, the snapshot will be
@@ -449,6 +614,7 @@
 </span><span class="kw">async fn </span>snapshot_fetch_calibnet(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     snapshot_fetch_config: <span class="kw-2">&amp;</span>SnapshotFetchConfig,
+    use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
     <span class="kw">let </span>name = <span class="kw-2">&amp;</span>snapshot_fetch_config.calibnet.bucket_name;
     <span class="kw">let </span>region = <span class="kw-2">&amp;</span>snapshot_fetch_config.calibnet.region;
@@ -486,15 +652,19 @@
     <span class="kw">let </span>url = snapshot_spaces_url.join(calibnet_path)<span class="question-mark">?</span>.join(filename)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>snapshot_response = client.get(url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>total_size = last_modified.size;
-    download_snapshot_and_validate_checksum(
-        client,
-        url,
-        <span class="kw-2">&amp;</span>snapshot_path,
-        snapshot_response,
-        total_size,
-    )
-    .<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">if </span>use_aria2 {
+        download_snapshot_and_validate_checksum_with_aria2(client, url, <span class="kw-2">&amp;</span>snapshot_path).<span class="kw">await</span><span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        <span class="kw">let </span>total_size = last_modified.size;
+        download_snapshot_and_validate_checksum(
+            client,
+            url,
+            <span class="kw-2">&amp;</span>snapshot_path,
+            snapshot_response,
+            total_size,
+        )
+        .<span class="kw">await</span><span class="question-mark">?</span>;
+    }
 
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
@@ -505,6 +675,7 @@
 </span><span class="kw">async fn </span>snapshot_fetch_mainnet(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     snapshot_fetch_config: <span class="kw-2">&amp;</span>SnapshotFetchConfig,
+    use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
     <span class="kw">let </span>client = https_client();
 
@@ -525,12 +696,6 @@
     };
 
     <span class="kw">let </span>snapshot_response = client.get(snapshot_url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>total_size = snapshot_response
-        .headers()
-        .get(<span class="string">&quot;content-length&quot;</span>)
-        .and_then(|ct_len| ct_len.to_str().ok())
-        .and_then(|ct_len| ct_len.parse::&lt;u64&gt;().ok())
-        .ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Couldn&#39;t retrieve content length&quot;</span>))<span class="question-mark">?</span>;
 
     <span class="comment">// Grab the snapshot file name
     </span><span class="kw">let </span>snapshot_name = filename_from_url(<span class="kw-2">&amp;</span>snapshot_url)<span class="question-mark">?</span>;
@@ -538,14 +703,26 @@
     </span>create_dir_all(snapshot_out_dir).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>snapshot_path = snapshot_out_dir.join(<span class="kw-2">&amp;</span>snapshot_name);
 
-    download_snapshot_and_validate_checksum(
-        client,
-        snapshot_url,
-        <span class="kw-2">&amp;</span>snapshot_path,
-        snapshot_response,
-        total_size,
-    )
-    .<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">if </span>use_aria2 {
+        download_snapshot_and_validate_checksum_with_aria2(client, snapshot_url, <span class="kw-2">&amp;</span>snapshot_path)
+            .<span class="kw">await</span><span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        <span class="kw">let </span>total_size = snapshot_response
+            .headers()
+            .get(<span class="string">&quot;content-length&quot;</span>)
+            .and_then(|ct_len| ct_len.to_str().ok())
+            .and_then(|ct_len| ct_len.parse::&lt;u64&gt;().ok())
+            .ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Couldn&#39;t retrieve content length&quot;</span>))<span class="question-mark">?</span>;
+
+        download_snapshot_and_validate_checksum(
+            client,
+            snapshot_url,
+            <span class="kw-2">&amp;</span>snapshot_path,
+            snapshot_response,
+            total_size,
+        )
+        .<span class="kw">await</span><span class="question-mark">?</span>;
+    }
 
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
@@ -600,6 +777,66 @@
     std::fs::rename(snapshot_file_tmp.path(), snapshot_path)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
+}
+
+<span class="kw">async fn </span>download_snapshot_and_validate_checksum_with_aria2&lt;C&gt;(
+    client: hyper::Client&lt;C&gt;,
+    url: Url,
+    snapshot_path: <span class="kw-2">&amp;</span>Path,
+) -&gt; anyhow::Result&lt;()&gt;
+<span class="kw">where
+    </span>C: Connect + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+{
+    <span class="macro">info!</span>(<span class="string">&quot;Snapshot url: {url}&quot;</span>);
+    <span class="macro">info!</span>(<span class="string">&quot;Snapshot will be downloaded to {}&quot;</span>, snapshot_path.display());
+
+    <span class="kw">if </span>!is_aria2_installed() {
+        <span class="macro">bail!</span>(<span class="string">&quot;Command aria2c is not in PATH. To install aria2, refer to instructions on https://aria2.github.io/&quot;</span>);
+    }
+
+    <span class="kw">let </span>checksum_url = replace_extension_url(url.clone(), <span class="string">&quot;sha256sum&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>checksum_response = client.get(checksum_url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">if </span>!checksum_response.status().is_success() {
+        <span class="macro">bail!</span>(<span class="string">&quot;Unable to get the checksum file. Url: {checksum_url}&quot;</span>);
+    }
+    <span class="kw">let </span>checksum_bytes = hyper::body::to_bytes(checksum_response.into_body())
+        .<span class="kw">await</span><span class="question-mark">?
+        </span>.to_vec();
+    <span class="kw">let </span>checksum_expected = String::from_utf8(checksum_bytes)<span class="question-mark">?</span>.trim().to_owned();
+    <span class="macro">info!</span>(<span class="string">&quot;Expected sha256 checksum: {checksum_expected}&quot;</span>);
+    download_with_aria2(
+        url.as_str(),
+        snapshot_path
+            .parent()
+            .map(|p| p.to_str().unwrap_or_default())
+            .unwrap_or_default(),
+        <span class="macro">format!</span>(<span class="string">&quot;sha-256={checksum_expected}&quot;</span>).as_str(),
+    )
+}
+
+<span class="kw">fn </span>download_with_aria2(url: <span class="kw-2">&amp;</span>str, dir: <span class="kw-2">&amp;</span>str, checksum: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>child = Command::new(<span class="string">&quot;aria2c&quot;</span>)
+        .args([
+            <span class="string">&quot;--continue=true&quot;</span>,
+            <span class="string">&quot;--max-connection-per-server=5&quot;</span>,
+            <span class="string">&quot;--split=5&quot;</span>,
+            <span class="string">&quot;--max-tries=0&quot;</span>,
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--checksum={checksum}&quot;</span>),
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--dir={dir}&quot;</span>,),
+            url,
+        ])
+        .spawn()<span class="question-mark">?</span>;
+    <span class="kw">let </span>exit_code = child.wait()<span class="question-mark">?</span>;
+    <span class="kw">if </span>exit_code.success() {
+        <span class="prelude-val">Ok</span>(())
+    } <span class="kw">else </span>{
+        <span class="comment">// https://aria2.github.io/manual/en/html/aria2c.html#exit-status
+        </span><span class="macro">bail!</span>(<span class="kw">match </span>exit_code.code() {
+            <span class="prelude-val">Some</span>(<span class="number">32</span>) =&gt; <span class="string">&quot;Checksum validation failed&quot;</span>.into(),
+            <span class="prelude-val">Some</span>(code) =&gt;<span class="macro">format!</span>(<span class="string">&quot;Failed with exit code {code}, checkout https://aria2.github.io/manual/en/html/aria2c.html#exit-status&quot;</span>),
+            <span class="prelude-val">None </span>=&gt; <span class="string">&quot;Failed with unknown exit code.&quot;</span>.into(),
+        });
+    }
 }
 
 <span class="doccomment">/// Tries to extract resource filename from a given URL.
@@ -722,6 +959,11 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>anyhow::{ensure, <span class="prelude-ty">Result</span>};
+    <span class="kw">use </span>axum::{routing::get_service, Router};
+    <span class="kw">use </span>http::StatusCode;
+    <span class="kw">use </span>std::{env::temp_dir, net::TcpListener};
+    <span class="kw">use </span>tower_http::services::ServeDir;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>checksum_from_file_test() {
@@ -806,6 +1048,66 @@
         error_cases.iter().for_each(|case| {
             <span class="macro">assert!</span>(replace_extension_url(case.<span class="number">0</span>.try_into().unwrap(), case.<span class="number">1</span>).is_err())
         });
+    }
+
+    <span class="attr">#[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>)]
+    </span><span class="kw">async fn </span>download_with_aria2_test_wrong_checksum() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">if </span>!is_github_action() &amp;&amp; !is_aria2_installed() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
+
+        <span class="kw">let </span>(url, shutdown_tx) = serve_forest_logo()<span class="question-mark">?</span>;
+        <span class="kw">let </span>r = download_with_aria2(
+            <span class="kw-2">&amp;</span>url,
+            temp_dir().as_os_str().to_str().unwrap_or_default(),
+            <span class="string">&quot;sha-256=f640a228f127a7ad7c3d7c8fa4a9e95c5a2eb8d32561905d97191178ab383a64&quot;</span>,
+        );
+        <span class="macro">ensure!</span>(r.is_err());
+        <span class="kw">let </span>err = r.unwrap_err().to_string();
+        <span class="macro">ensure!</span>(err.contains(<span class="string">&quot;Checksum validation failed&quot;</span>));
+        shutdown_tx.send(()).unwrap();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attr">#[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>)]
+    </span><span class="kw">async fn </span>download_with_aria2_test_good_checksum() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">if </span>!is_github_action() &amp;&amp; !is_aria2_installed() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
+
+        <span class="kw">let </span>(url, shutdown_tx) = serve_forest_logo()<span class="question-mark">?</span>;
+        download_with_aria2(
+            <span class="kw-2">&amp;</span>url,
+            temp_dir().as_os_str().to_str().unwrap_or_default(),
+            <span class="string">&quot;sha-256=124305d4602185addd53df5f39a35b2564baa3f51eb211b266af2db77844266d&quot;</span>,
+        )<span class="question-mark">?</span>;
+        shutdown_tx.send(()).unwrap();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">fn </span>serve_forest_logo() -&gt; <span class="prelude-ty">Result</span>&lt;(String, tokio::sync::oneshot::Sender&lt;()&gt;)&gt; {
+        <span class="kw">let </span>listener = TcpListener::bind(<span class="string">&quot;127.0.0.1:0&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>addr = listener.local_addr()<span class="question-mark">?</span>;
+        <span class="kw">let </span>url = <span class="macro">format!</span>(<span class="string">&quot;http://{}:{}/forest_logo.png&quot;</span>, addr.ip(), addr.port());
+        <span class="kw">let </span>app = {
+            <span class="kw">let </span>serve_dir = get_service(ServeDir::new(<span class="string">&quot;../../.github&quot;</span>)).handle_error(|<span class="kw">_</span>| <span class="kw">async </span>{
+                (StatusCode::INTERNAL_SERVER_ERROR, <span class="string">&quot;Something went wrong...&quot;</span>)
+            });
+            Router::&lt;axum::body::Body&gt;::new().nest(<span class="string">&quot;/&quot;</span>, serve_dir)
+        };
+        <span class="kw">let </span>(shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::&lt;()&gt;();
+        <span class="kw">let </span>server = axum::Server::from_tcp(listener)<span class="question-mark">?
+            </span>.serve(app.into_make_service())
+            .with_graceful_shutdown(<span class="kw">async </span>{
+                shutdown_rx.<span class="kw">await</span>.ok();
+            });
+        tokio::spawn(server);
+        <span class="prelude-val">Ok</span>((url, shutdown_tx))
+    }
+
+    <span class="kw">fn </span>is_github_action() -&gt; bool {
+        <span class="comment">// https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
+        </span>std::env::var(<span class="string">&quot;GITHUB_ACTION&quot;</span>).is_ok()
     }
 }
 </code></pre></div>
