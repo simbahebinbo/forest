@@ -571,6 +571,7 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
+<span id="574">574</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -734,7 +735,8 @@
 
     <span class="comment">// Print admin token
     </span><span class="kw">let </span>ki = ks.get(JWT_IDENTIFIER).unwrap();
-    <span class="kw">let </span>token = create_token(ADMIN.to_owned(), ki.private_key()).unwrap();
+    <span class="kw">let </span>token_exp = config.client.token_exp;
+    <span class="kw">let </span>token = create_token(ADMIN.to_owned(), ki.private_key(), token_exp).unwrap();
     <span class="macro">info!</span>(<span class="string">&quot;Admin token: {}&quot;</span>, token);
 
     <span class="kw">let </span>keystore = Arc::new(RwLock::new(ks));

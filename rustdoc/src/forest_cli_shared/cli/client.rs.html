@@ -61,20 +61,30 @@
 <span id="61">61</span>
 <span id="62">62</span>
 <span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>directories::ProjectDirs;
+</span><span class="kw">use </span>chrono::Duration;
+<span class="kw">use </span>directories::ProjectDirs;
 <span class="kw">use </span>forest_rpc_client::DEFAULT_PORT;
 <span class="kw">use </span>forest_utils::io::ProgressBarVisibility;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>serde_with::{serde_as, DurationSeconds};
 <span class="kw">use </span>std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     path::PathBuf,
     str::FromStr,
 };
 
-<span class="attr">#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+<span class="attr">#[serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default)]
 </span><span class="kw">pub struct </span>Client {
     <span class="kw">pub </span>data_dir: PathBuf,
@@ -98,6 +108,9 @@
     </span><span class="kw">pub </span>rpc_address: SocketAddr,
     <span class="doccomment">/// Download a chain specific snapshot to sync with the Filecoin network
     </span><span class="kw">pub </span>download_snapshot: bool,
+    <span class="comment">// Period of validity for JWT in seconds. Defaults to 60 days.
+    </span><span class="attr">#[serde_as(<span class="kw">as </span>= <span class="string">&quot;DurationSeconds&lt;i64&gt;&quot;</span>)]
+    </span><span class="kw">pub </span>token_exp: Duration,
     <span class="doccomment">/// Display progress bars mode. Auto will display if TTY.
     </span><span class="kw">pub </span>show_progress_bars: ProgressBarVisibility,
 }
@@ -120,7 +133,8 @@
             metrics_address: FromStr::from_str(<span class="string">&quot;127.0.0.1:6116&quot;</span>).unwrap(),
             rpc_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), DEFAULT_PORT),
             download_snapshot: <span class="bool-val">false</span>,
-            show_progress_bars: Default::default(),
+            token_exp: Duration::seconds(<span class="number">5184000</span>), <span class="comment">// 60 Days = 5184000 Seconds
+            </span>show_progress_bars: Default::default(),
         }
     }
 }

@@ -551,6 +551,16 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -696,8 +706,18 @@
 
 /// Authorization API
 </span><span class="kw">pub mod </span>auth_api {
+    <span class="kw">use </span>chrono::Duration;
+    <span class="kw">use </span>serde::{Deserialize, Serialize};
+    <span class="kw">use </span>serde_with::{serde_as, DurationSeconds};
+
     <span class="kw">pub const </span>AUTH_NEW: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.AuthNew&quot;</span>;
-    <span class="kw">pub type </span>AuthNewParams = (Vec&lt;String&gt;,);
+    <span class="attr">#[serde_as]
+    #[derive(Deserialize, Serialize)]
+    </span><span class="kw">pub struct </span>AuthNewParams {
+        <span class="kw">pub </span>perms: Vec&lt;String&gt;,
+        <span class="attr">#[serde_as(<span class="kw">as </span>= <span class="string">&quot;DurationSeconds&lt;i64&gt;&quot;</span>)]
+        </span><span class="kw">pub </span>token_exp: Duration,
+    }
     <span class="kw">pub type </span>AuthNewResult = Vec&lt;u8&gt;;
 
     <span class="kw">pub const </span>AUTH_VERIFY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.AuthVerify&quot;</span>;

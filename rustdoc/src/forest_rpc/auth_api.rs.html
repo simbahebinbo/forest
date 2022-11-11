@@ -59,10 +59,10 @@
     </span>DB: Blockstore,
     B: Beacon,
 {
-    <span class="kw">let </span>(perms,) = params;
+    <span class="kw">let </span>auth_params: AuthNewParams = params;
     <span class="kw">let </span>ks = data.keystore.read().<span class="kw">await</span>;
     <span class="kw">let </span>ki = ks.get(JWT_IDENTIFIER)<span class="question-mark">?</span>;
-    <span class="kw">let </span>token = create_token(perms, ki.private_key())<span class="question-mark">?</span>;
+    <span class="kw">let </span>token = create_token(auth_params.perms, ki.private_key(), auth_params.token_exp)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(token.as_bytes().to_vec())
 }
 
