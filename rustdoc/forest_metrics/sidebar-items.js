@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"fn":[["init_prometheus",""]],"mod":[["db",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["init_prometheus",""]],"mod":[["db",""]]};

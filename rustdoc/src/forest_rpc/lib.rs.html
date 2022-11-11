@@ -188,9 +188,6 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -208,27 +205,24 @@
 <span class="kw">mod </span>sync_api;
 <span class="kw">mod </span>wallet_api;
 
-<span class="kw">use </span>async_std::net::TcpListener;
-<span class="kw">use </span>forest_chain::Scale;
-<span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JSONRPCError, Server};
-<span class="kw">use </span>log::info;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>tide_websockets::WebSocket;
-
-<span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
-<span class="kw">use </span>forest_rpc_api::data_types::RPCState;
-<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-
 <span class="kw">use </span><span class="kw">crate</span>::rpc_http_handler::rpc_http_handler;
 <span class="kw">use </span><span class="kw">crate</span>::rpc_ws_handler::rpc_ws_handler;
 <span class="kw">use crate</span>::{beacon_api::beacon_get_entry, common_api::version, state_api::<span class="kw-2">*</span>};
-
+<span class="kw">use </span>axum::routing::{get, post};
+<span class="kw">use </span>forest_beacon::Beacon;
+<span class="kw">use </span>forest_chain::Scale;
+<span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
+<span class="kw">use </span>forest_rpc_api::data_types::RPCState;
 <span class="kw">use </span>forest_rpc_api::{
     auth_api::<span class="kw-2">*</span>, beacon_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, common_api::<span class="kw-2">*</span>, gas_api::<span class="kw-2">*</span>, mpool_api::<span class="kw-2">*</span>, net_api::<span class="kw-2">*</span>,
     state_api::<span class="kw-2">*</span>, sync_api::<span class="kw-2">*</span>, wallet_api::<span class="kw-2">*</span>,
 };
+<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JSONRPCError, Server};
+<span class="kw">use </span>log::info;
+<span class="kw">use </span>std::net::TcpListener;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">pub async fn </span>start_rpc&lt;DB, B, V, S&gt;(
     state: Arc&lt;RPCState&lt;DB, B&gt;&gt;,
@@ -371,14 +365,14 @@
             .finish_unwrapped(),
     );
 
-    <span class="kw">let </span><span class="kw-2">mut </span>app = tide::with_state(Arc::clone(<span class="kw-2">&amp;</span>rpc_server));
-
-    app.at(<span class="string">&quot;/rpc/v0&quot;</span>)
-        .get(WebSocket::new(rpc_ws_handler::&lt;DB, B&gt;))
-        .post(rpc_http_handler::&lt;DB, B&gt;);
+    <span class="kw">let </span>app = axum::Router::new()
+        .route(<span class="string">&quot;/rpc/v0&quot;</span>, get(rpc_ws_handler::&lt;DB, B&gt;))
+        .route(<span class="string">&quot;/rpc/v0&quot;</span>, post(rpc_http_handler::&lt;DB, B&gt;))
+        .layer(axum::Extension(rpc_server));
 
     <span class="macro">info!</span>(<span class="string">&quot;Ready for RPC connections&quot;</span>);
-    app.listen(rpc_endpoint).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>server = axum::Server::from_tcp(rpc_endpoint)<span class="question-mark">?</span>.serve(app.into_make_service());
+    server.<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="macro">info!</span>(<span class="string">&quot;Stopped accepting RPC connections&quot;</span>);
 

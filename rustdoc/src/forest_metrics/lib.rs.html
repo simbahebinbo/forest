@@ -41,70 +41,34 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
-<span id="44">44</span>
-<span id="45">45</span>
-<span id="46">46</span>
-<span id="47">47</span>
-<span id="48">48</span>
-<span id="49">49</span>
-<span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
-<span id="55">55</span>
-<span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>db;
 
-<span class="kw">use </span>async_std::net::TcpListener;
+<span class="kw">use </span>axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
 <span class="kw">use </span>prometheus::{Encoder, TextEncoder};
-<span class="kw">use </span>thiserror::Error;
-
-<span class="kw">use </span>std::net::SocketAddr;
-
-<span class="attr">#[derive(Debug, Error)]
-</span><span class="kw">pub enum </span>Error {
-    <span class="attr">#[error(<span class="string">&quot;Prometheus error: {0}&quot;</span>)]
-    </span>Prometheus(prometheus::Error),
-    <span class="doccomment">/// Tide internal error.
-    </span><span class="attr">#[error(<span class="string">&quot;Tide error: {0}&quot;</span>)]
-    </span>Tide(tide::Error),
-    <span class="doccomment">/// I/O error.
-    </span><span class="attr">#[error(<span class="string">&quot;IO error: {0}&quot;</span>)]
-    </span>Io(std::io::Error),
-    <span class="doccomment">/// Prometheus port is already in use.
-    </span><span class="attr">#[error(<span class="string">&quot;Prometheus port {0} is already in use.&quot;</span>)]
-    </span>PortInUse(SocketAddr),
-}
+<span class="kw">use </span>std::net::TcpListener;
 
 <span class="kw">pub async fn </span>init_prometheus(
     prometheus_listener: TcpListener,
     db_directory: String,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+) -&gt; anyhow::Result&lt;()&gt; {
     <span class="kw">let </span>registry = prometheus::default_registry();
 
     <span class="comment">// Add the DBCollector to the registry
     </span><span class="kw">let </span>db_collector = <span class="kw">crate</span>::db::DBCollector::new(db_directory);
-    registry
-        .register(Box::new(db_collector))
-        .map_err(Error::Prometheus)<span class="question-mark">?</span>;
+    registry.register(Box::new(db_collector))<span class="question-mark">?</span>;
 
     <span class="comment">// Create an configure HTTP server
-    </span><span class="kw">let </span><span class="kw-2">mut </span>server = tide::with_state(());
-    server.at(<span class="string">&quot;/metrics&quot;</span>).get(collect_metrics);
+    </span><span class="kw">let </span>app = Router::new().route(<span class="string">&quot;/metrics&quot;</span>, get(collect_metrics));
+    <span class="kw">let </span>server = axum::Server::from_tcp(prometheus_listener)<span class="question-mark">?</span>.serve(app.into_make_service());
 
     <span class="comment">// Wait for server to exit
-    </span>server.listen(prometheus_listener).<span class="kw">await</span>.map_err(Error::Io)
+    </span><span class="prelude-val">Ok</span>(server.<span class="kw">await</span><span class="question-mark">?</span>)
 }
 
-<span class="kw">async fn </span>collect_metrics(_req: tide::Request&lt;()&gt;) -&gt; tide::Result {
+<span class="kw">async fn </span>collect_metrics() -&gt; <span class="kw">impl </span>IntoResponse {
     <span class="kw">let </span>registry = prometheus::default_registry();
     <span class="kw">let </span>metric_families = registry.gather();
     <span class="kw">let </span><span class="kw-2">mut </span>metrics = <span class="macro">vec!</span>[];
@@ -113,10 +77,12 @@
     encoder
         .encode(<span class="kw-2">&amp;</span>metric_families, <span class="kw-2">&amp;mut </span>metrics)
         .expect(<span class="string">&quot;Encoding Prometheus metrics must succeed.&quot;</span>);
-    <span class="prelude-val">Ok</span>(tide::Response::builder(tide::StatusCode::Ok)
-        .content_type(<span class="string">&quot;text/plain; version=0.0.4; charset=utf-8&quot;</span>)
-        .body(metrics)
-        .build())
+
+    (
+        StatusCode::OK,
+        [(<span class="string">&quot;content-type&quot;</span>, <span class="string">&quot;text/plain; charset=utf-8&quot;</span>)],
+        metrics,
+    )
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_metrics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

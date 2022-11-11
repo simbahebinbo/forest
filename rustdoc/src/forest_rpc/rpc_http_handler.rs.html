@@ -46,63 +46,53 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
-<span id="49">49</span>
-<span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_rpc_api::data_types::JsonRpcServerState;
-<span class="kw">use </span>jsonrpc_v2::RequestObject <span class="kw">as </span>JsonRpcRequestObject;
-<span class="kw">use </span>tide::http::{format_err, Error <span class="kw">as </span>HttpError, Method};
-
+</span><span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc_str, check_permissions, get_auth_header, is_streaming_method};
+<span class="kw">use </span>axum::response::IntoResponse;
 <span class="kw">use </span>forest_beacon::Beacon;
+<span class="kw">use </span>forest_rpc_api::data_types::JsonRpcServerState;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>http::{HeaderMap, StatusCode};
+<span class="kw">use </span>jsonrpc_v2::RequestObject <span class="kw">as </span>JsonRpcRequestObject;
 
-<span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc_str, check_permissions, get_auth_header, is_streaming_method};
-
-<span class="kw">pub async fn </span>rpc_http_handler&lt;DB, B&gt;(request: tide::Request&lt;JsonRpcServerState&gt;) -&gt; tide::Result
+<span class="kw">pub async fn </span>rpc_http_handler&lt;DB, B&gt;(
+    headers: HeaderMap,
+    axum::Json(rpc_call): axum::Json&lt;JsonRpcRequestObject&gt;,
+    axum::Extension(rpc_server): axum::Extension&lt;JsonRpcServerState&gt;,
+) -&gt; <span class="kw">impl </span>IntoResponse
 <span class="kw">where
     </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
-    <span class="kw">let </span>(auth_header, <span class="kw-2">mut </span>request) = get_auth_header(request);
-    <span class="kw">let </span>rpc_call: JsonRpcRequestObject = request.body_json().<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>rpc_server = request.state();
-
-    <span class="kw">if </span>request.method() != Method::Post {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format_err!</span>(<span class="string">&quot;HTTP JSON RPC calls must use POST HTTP method&quot;</span>));
-    } <span class="kw">else if let </span><span class="prelude-val">Some</span>(content_type) = request.content_type() {
-        <span class="kw">match </span>content_type.essence() {
-            <span class="string">&quot;application/json-rpc&quot; </span>=&gt; {}
-            <span class="string">&quot;application/json&quot; </span>=&gt; {}
-            <span class="string">&quot;application/jsonrequest&quot; </span>=&gt; {}
-            <span class="kw">_ </span>=&gt; {
-                <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format_err!</span>(
-                    <span class="string">&quot;HTTP JSON RPC calls must provide an appropriate Content-Type header&quot;
-                </span>));
-            }
-        }
+    <span class="kw">let </span>response_headers = [(<span class="string">&quot;content-type&quot;</span>, <span class="string">&quot;application/json-rpc;charset=utf-8&quot;</span>)];
+    <span class="kw">if let </span><span class="prelude-val">Err</span>((code, msg)) = check_permissions::&lt;DB, B&gt;(
+        rpc_server.clone(),
+        rpc_call.method_ref(),
+        get_auth_header(headers),
+    )
+    .<span class="kw">await
+    </span>{
+        <span class="kw">return </span>(code, response_headers, msg);
     }
-
-    check_permissions::&lt;DB, B&gt;(rpc_server.clone(), rpc_call.method_ref(), auth_header).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">if </span>is_streaming_method(rpc_call.method_ref()) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(HttpError::from_str(
-            <span class="number">500</span>,
-            <span class="string">&quot;This endpoint cannot handle streaming methods&quot;</span>,
-        ));
+        <span class="kw">return </span>(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            response_headers,
+            <span class="string">&quot;This endpoint cannot handle streaming methods&quot;</span>.into(),
+        );
     }
 
-    <span class="kw">let </span>result = call_rpc_str(rpc_server.clone(), rpc_call).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>response = tide::Response::builder(<span class="number">200</span>)
-        .body(result)
-        .content_type(<span class="string">&quot;application/json-rpc;charset=utf-8&quot;</span>)
-        .build();
-
-    <span class="prelude-val">Ok</span>(response)
+    <span class="kw">match </span>call_rpc_str(rpc_server.clone(), rpc_call).<span class="kw">await </span>{
+        <span class="prelude-val">Ok</span>(result) =&gt; (StatusCode::OK, response_headers, result),
+        <span class="prelude-val">Err</span>(err) =&gt; (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            response_headers,
+            err.to_string(),
+        ),
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

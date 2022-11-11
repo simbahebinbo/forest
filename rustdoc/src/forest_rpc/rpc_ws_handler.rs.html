@@ -192,33 +192,58 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>crossbeam::atomic::AtomicCell;
-<span class="kw">use </span>futures::StreamExt;
-<span class="kw">use </span>log::{debug, error, info, warn};
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>tide::http::headers::HeaderValues;
-<span class="kw">use </span>tide_websockets::{Message, WebSocketConnection};
-
+</span><span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc, call_rpc_str, check_permissions, get_auth_header, get_error_str};
+<span class="kw">use </span>axum::{
+    extract::{
+        ws::{Message, WebSocket},
+        WebSocketUpgrade,
+    },
+    response::IntoResponse,
+};
+<span class="kw">use </span>crossbeam::atomic::AtomicCell;
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_chain::headchange_json::SubscriptionHeadChange;
 <span class="kw">use </span>forest_rpc_api::{
     chain_api::<span class="kw-2">*</span>,
     data_types::{JsonRpcServerState, StreamingData},
 };
+<span class="kw">use </span>futures::{stream::SplitSink, SinkExt, StreamExt};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-
-<span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc, call_rpc_str, check_permissions, get_auth_header, get_error_str};
+<span class="kw">use </span>http::{HeaderMap, HeaderValue};
+<span class="kw">use </span>log::{debug, error, info, warn};
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">async fn </span>rpc_ws_task&lt;DB, B&gt;(
-    authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValues&gt;,
+    authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
     rpc_call: jsonrpc_v2::RequestObject,
     rpc_server: JsonRpcServerState,
     is_socket_active: Arc&lt;AtomicCell&lt;bool&gt;&gt;,
-    ws_sender: WebSocketConnection,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
+    ws_sender: Arc&lt;RwLock&lt;SplitSink&lt;WebSocket, Message&gt;&gt;&gt;,
+) -&gt; anyhow::Result&lt;()&gt;
 <span class="kw">where
     </span>DB: Blockstore,
     B: Beacon,
@@ -226,7 +251,9 @@
     <span class="kw">let </span>call_method = rpc_call.method_ref();
     <span class="kw">let </span>call_id = rpc_call.id_ref();
 
-    check_permissions::&lt;DB, B&gt;(rpc_server.clone(), call_method, authorization_header).<span class="kw">await</span><span class="question-mark">?</span>;
+    check_permissions::&lt;DB, B&gt;(rpc_server.clone(), call_method, authorization_header)
+        .<span class="kw">await
+        </span>.map_err(|(<span class="kw">_</span>, e)| anyhow::Error::msg(e))<span class="question-mark">?</span>;
 
     <span class="kw">match </span>call_method {
         CHAIN_NOTIFY =&gt; {
@@ -250,8 +277,13 @@
                 <span class="string">&quot;Called ChainNotify RPC, got subscription ID {}&quot;</span>,
                 subscription_id
             );
-
-            ws_sender.send(Message::Text(subscription_response)).<span class="kw">await</span><span class="question-mark">?</span>;
+            {
+                ws_sender
+                    .write()
+                    .<span class="kw">await
+                    </span>.send(Message::Text(subscription_response))
+                    .<span class="kw">await</span><span class="question-mark">?</span>;
+            }
 
             <span class="macro">info!</span>(
                 <span class="string">&quot;RPC WS ChainNotify for subscription ID: {}&quot;</span>,
@@ -277,7 +309,9 @@
                 };
 
                 <span class="kw">match </span>ws_sender
-                    .send(Message::Text(serde_json::to_string(<span class="kw-2">&amp;</span>event_response)<span class="question-mark">?</span>))
+                    .write()
+                    .<span class="kw">await
+                    </span>.send(Message::Text(serde_json::to_string(<span class="kw-2">&amp;</span>event_response)<span class="question-mark">?</span>))
                     .<span class="kw">await
                 </span>{
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
@@ -296,7 +330,11 @@
         <span class="kw">_ </span>=&gt; {
             <span class="macro">info!</span>(<span class="string">&quot;RPC WS called method: {}&quot;</span>, call_method);
             <span class="kw">let </span>response = call_rpc_str(rpc_server.clone(), rpc_call).<span class="kw">await</span><span class="question-mark">?</span>;
-            ws_sender.send(Message::Text(response)).<span class="kw">await</span><span class="question-mark">?</span>;
+            ws_sender
+                .write()
+                .<span class="kw">await
+                </span>.send(Message::Text(response))
+                .<span class="kw">await</span><span class="question-mark">?</span>;
         }
     }
 
@@ -304,87 +342,89 @@
 }
 
 <span class="kw">pub async fn </span>rpc_ws_handler&lt;DB, B&gt;(
-    request: tide::Request&lt;JsonRpcServerState&gt;,
-    <span class="kw-2">mut </span>ws_stream: WebSocketConnection,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
+    headers: HeaderMap,
+    axum::Extension(rpc_server): axum::Extension&lt;JsonRpcServerState&gt;,
+    ws: WebSocketUpgrade,
+) -&gt; <span class="kw">impl </span>IntoResponse
 <span class="kw">where
     </span>DB: Blockstore,
     B: Beacon,
 {
-    <span class="kw">let </span>(authorization_header, request) = get_auth_header(request);
-    <span class="kw">let </span>rpc_server = request.state();
-    <span class="kw">let </span>socket_active = Arc::new(AtomicCell::new(<span class="bool-val">true</span>));
-    <span class="kw">let </span>ws_sender = ws_stream.clone();
+    <span class="kw">let </span>authorization_header = get_auth_header(headers);
+    ws.on_upgrade(<span class="kw">move </span>|socket| <span class="kw">async </span>{
+        rpc_ws_handler_inner::&lt;DB, B&gt;(socket, authorization_header, rpc_server).<span class="kw">await
+    </span>})
+}
 
+<span class="kw">async fn </span>rpc_ws_handler_inner&lt;DB, B&gt;(
+    socket: WebSocket,
+    authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
+    rpc_server: JsonRpcServerState,
+) <span class="kw">where
+    </span>DB: Blockstore,
+    B: Beacon,
+{
     <span class="macro">info!</span>(<span class="string">&quot;Accepted WS connection!&quot;</span>);
-
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(message_result) = ws_stream.next().<span class="kw">await </span>{
-        <span class="macro">debug!</span>(<span class="string">&quot;Received new WS RPC message: {:?}&quot;</span>, message_result);
-
-        <span class="kw">match </span>message_result {
-            <span class="prelude-val">Ok</span>(message) =&gt; {
-                <span class="kw">let </span>request_text = message.into_text()<span class="question-mark">?</span>;
-
-                <span class="macro">debug!</span>(<span class="string">&quot;WS RPC Request: {}&quot;</span>, request_text);
-
-                <span class="kw">if </span>!request_text.is_empty() {
-                    <span class="macro">info!</span>(<span class="string">&quot;RPC Request Received: {:?}&quot;</span>, <span class="kw-2">&amp;</span>request_text);
-
-                    <span class="kw">let </span>authorization_header = authorization_header.clone();
-                    <span class="kw">let </span>task_rpc_server = rpc_server.clone();
-                    <span class="kw">let </span>task_socket_active = socket_active.clone();
-                    <span class="kw">let </span>task_ws_sender = ws_sender.clone();
-
-                    <span class="kw">match </span>serde_json::from_str(<span class="kw-2">&amp;</span>request_text)
-                        <span class="kw">as </span><span class="prelude-ty">Result</span>&lt;jsonrpc_v2::RequestObject, serde_json::Error&gt;
-                    {
-                        <span class="prelude-val">Ok</span>(rpc_call) =&gt; {
-                            async_std::task::spawn(<span class="kw">async move </span>{
-                                <span class="kw">match </span>rpc_ws_task::&lt;DB, B&gt;(
-                                    authorization_header,
-                                    rpc_call,
-                                    task_rpc_server,
-                                    task_socket_active,
-                                    task_ws_sender.clone(),
-                                )
-                                .<span class="kw">await
-                                </span>{
-                                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                                        <span class="macro">debug!</span>(<span class="string">&quot;WS RPC task success.&quot;</span>);
-                                    }
-                                    <span class="prelude-val">Err</span>(e) =&gt; {
-                                        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;WS RPC task error: {}&quot;</span>, e);
-                                        <span class="macro">error!</span>(<span class="string">&quot;{}&quot;</span>, msg);
-                                        task_ws_sender
-                                            .send(Message::Text(get_error_str(<span class="number">3</span>, msg)))
-                                            .<span class="kw">await
-                                            </span>.unwrap();
-                                    }
+    <span class="kw">let </span>(sender, <span class="kw-2">mut </span>receiver) = socket.split();
+    <span class="kw">let </span>ws_sender = Arc::new(RwLock::new(sender));
+    <span class="kw">let </span>socket_active = Arc::new(AtomicCell::new(<span class="bool-val">true</span>));
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(message)) = receiver.next().<span class="kw">await </span>{
+        <span class="macro">debug!</span>(<span class="string">&quot;Received new WS RPC message: {:?}&quot;</span>, message);
+        <span class="kw">if let </span>Message::Text(request_text) = message {
+            <span class="macro">debug!</span>(<span class="string">&quot;WS RPC Request: {}&quot;</span>, request_text);
+            <span class="kw">if </span>!request_text.is_empty() {
+                <span class="macro">info!</span>(<span class="string">&quot;RPC Request Received: {:?}&quot;</span>, <span class="kw-2">&amp;</span>request_text);
+                <span class="kw">let </span>authorization_header = authorization_header.clone();
+                <span class="kw">let </span>task_rpc_server = rpc_server.clone();
+                <span class="kw">let </span>task_socket_active = socket_active.clone();
+                <span class="kw">let </span>task_ws_sender = ws_sender.clone();
+                <span class="kw">match </span>serde_json::from_str(<span class="kw-2">&amp;</span>request_text)
+                    <span class="kw">as </span><span class="prelude-ty">Result</span>&lt;jsonrpc_v2::RequestObject, serde_json::Error&gt;
+                {
+                    <span class="prelude-val">Ok</span>(rpc_call) =&gt; {
+                        async_std::task::spawn(<span class="kw">async move </span>{
+                            <span class="kw">match </span>rpc_ws_task::&lt;DB, B&gt;(
+                                authorization_header,
+                                rpc_call,
+                                task_rpc_server,
+                                task_socket_active,
+                                task_ws_sender.clone(),
+                            )
+                            .<span class="kw">await
+                            </span>{
+                                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
+                                    <span class="macro">debug!</span>(<span class="string">&quot;WS RPC task success.&quot;</span>);
                                 }
-                            });
-                        }
-                        <span class="prelude-val">Err</span>(e) =&gt; {
-                            <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;Error deserializing WS request payload: {}&quot;</span>, e);
-                            <span class="macro">error!</span>(<span class="string">&quot;{}&quot;</span>, msg);
-                            task_ws_sender
-                                .send(Message::Text(get_error_str(<span class="number">1</span>, msg)))
-                                .<span class="kw">await</span><span class="question-mark">?</span>;
+                                <span class="prelude-val">Err</span>(e) =&gt; {
+                                    <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;WS RPC task error: {}&quot;</span>, e);
+                                    <span class="macro">error!</span>(<span class="string">&quot;{}&quot;</span>, msg);
+                                    task_ws_sender
+                                        .write()
+                                        .<span class="kw">await
+                                        </span>.send(Message::Text(get_error_str(<span class="number">3</span>, msg)))
+                                        .<span class="kw">await
+                                        </span>.unwrap();
+                                }
+                            }
+                        });
+                    }
+                    <span class="prelude-val">Err</span>(e) =&gt; {
+                        <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;Error deserializing WS request payload: {}&quot;</span>, e);
+                        <span class="macro">error!</span>(<span class="string">&quot;{}&quot;</span>, msg);
+                        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = task_ws_sender
+                            .write()
+                            .<span class="kw">await
+                            </span>.send(Message::Text(get_error_str(<span class="number">1</span>, msg)))
+                            .<span class="kw">await
+                        </span>{
+                            <span class="macro">warn!</span>(<span class="string">&quot;{e}&quot;</span>);
                         }
                     }
                 }
             }
-            <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="kw">let </span>msg = <span class="macro">format!</span>(
-                    <span class="string">&quot;Error in WS socket stream. (Client possibly disconnected): {}&quot;</span>,
-                    e
-                );
-                <span class="macro">error!</span>(<span class="string">&quot;{}&quot;</span>, msg);
-                ws_sender.send(Message::Text(get_error_str(<span class="number">2</span>, msg))).<span class="kw">await</span><span class="question-mark">?</span>;
-            }
         }
     }
-
-    <span class="prelude-val">Ok</span>(())
+    socket_active.store(<span class="bool-val">false</span>);
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

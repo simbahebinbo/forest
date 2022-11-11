@@ -571,12 +571,11 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
-<span id="574">574</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::cli::set_sigint_handler;
-<span class="kw">use </span>async_std::{net::TcpListener, task};
+<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
 <span class="kw">use </span>forest_auth::{create_token, generate_priv_key, ADMIN, JWT_IDENTIFIER};
 <span class="kw">use </span>forest_chain::ChainStore;
@@ -603,6 +602,7 @@
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>raw_sync::events::{Event, EventInit, EventState};
 <span class="kw">use </span>rpassword::read_password;
+<span class="kw">use </span>std::net::TcpListener;
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
@@ -709,9 +709,8 @@
 
     {
         <span class="comment">// Start Prometheus server port
-        </span><span class="kw">let </span>prometheus_listener = TcpListener::bind(config.client.metrics_address)
-            .<span class="kw">await
-            </span>.unwrap_or_else(|<span class="kw">_</span>| {
+        </span><span class="kw">let </span>prometheus_listener =
+            TcpListener::bind(config.client.metrics_address).unwrap_or_else(|<span class="kw">_</span>| {
                 cli_error_and_die(
                     <span class="macro">format!</span>(<span class="string">&quot;could not bind to {}&quot;</span>, config.client.metrics_address),
                     <span class="number">1</span>,
@@ -882,9 +881,8 @@
     <span class="comment">// Start services
     </span><span class="kw">if </span>config.client.enable_rpc {
         <span class="kw">let </span>keystore_rpc = Arc::clone(<span class="kw-2">&amp;</span>keystore);
-        <span class="kw">let </span>rpc_listen = TcpListener::bind(<span class="kw-2">&amp;</span>config.client.rpc_address)
-            .<span class="kw">await
-            </span>.unwrap_or_else(|<span class="kw">_</span>| cli_error_and_die(<span class="string">&quot;could not bind to {rpc_address}&quot;</span>, <span class="number">1</span>));
+        <span class="kw">let </span>rpc_listen = std::net::TcpListener::bind(config.client.rpc_address)
+            .unwrap_or_else(|<span class="kw">_</span>| cli_error_and_die(<span class="string">&quot;could not bind to {rpc_address}&quot;</span>, <span class="number">1</span>));
 
         <span class="kw">let </span>rpc_state_manager = Arc::clone(<span class="kw-2">&amp;</span>state_manager);
         <span class="kw">let </span>rpc_chain_store = Arc::clone(<span class="kw-2">&amp;</span>chain_store);

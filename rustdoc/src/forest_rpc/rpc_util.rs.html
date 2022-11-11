@@ -153,21 +153,17 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>log::{debug, error};
-<span class="kw">use </span>serde::de::DeserializeOwned;
-<span class="kw">use </span>tide::http::headers::HeaderValues;
-
-<span class="kw">use </span>forest_beacon::Beacon;
+</span><span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_rpc_api::{
     auth_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, check_access, data_types::JsonRpcServerState, ACCESS_MAP,
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>http::{HeaderMap, HeaderValue, StatusCode};
+<span class="kw">use </span>log::{debug, error};
+<span class="kw">use </span>serde::de::DeserializeOwned;
 
 <span class="kw">pub fn </span>get_error_obj(code: i64, message: String) -&gt; jsonrpc_v2::Error {
     <span class="macro">debug!</span>(
@@ -205,19 +201,18 @@
 <span class="kw">pub async fn </span>check_permissions&lt;DB, B&gt;(
     rpc_server: JsonRpcServerState,
     method: <span class="kw-2">&amp;</span>str,
-    authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValues&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), tide::Error&gt;
+    authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), (StatusCode, String)&gt;
 <span class="kw">where
     </span>DB: Blockstore,
     B: Beacon,
 {
-    <span class="kw">let </span>claims = <span class="kw">match </span>authorization_header
-        .and_then(|header_values| header_values.get(<span class="number">0</span>).cloned())
-        .map(|token| token.to_string())
-    {
+    <span class="kw">let </span>claims = <span class="kw">match </span>authorization_header {
         <span class="prelude-val">Some</span>(token) =&gt; {
+            <span class="kw">let </span>token = token
+                .to_str()
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))<span class="question-mark">?</span>;
             <span class="macro">debug!</span>(<span class="string">&quot;JWT from HTTP Header: {}&quot;</span>, token);
-
             <span class="kw">let </span>(<span class="kw">_</span>, claims) = call_rpc::&lt;Vec&lt;String&gt;&gt;(
                 rpc_server,
                 jsonrpc_v2::RequestObject::request()
@@ -225,7 +220,8 @@
                     .with_params(<span class="macro">vec!</span>[token])
                     .finish(),
             )
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+            .<span class="kw">await
+            </span>.map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))<span class="question-mark">?</span>;
 
             <span class="macro">debug!</span>(<span class="string">&quot;Decoded JWT Claims: {:?}&quot;</span>, claims);
 
@@ -240,24 +236,22 @@
             <span class="kw">if </span>check_access(access, <span class="kw-2">&amp;</span>claims) {
                 <span class="prelude-val">Ok</span>(())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(tide::Error::from_str(<span class="number">403</span>, <span class="string">&quot;Forbidden&quot;</span>))
+                <span class="prelude-val">Err</span>((StatusCode::FORBIDDEN, <span class="string">&quot;Forbidden&quot;</span>.into()))
             }
         }
-        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(tide::Error::from_str(<span class="number">404</span>, <span class="string">&quot;Not Found&quot;</span>)),
+        <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>((StatusCode::NOT_FOUND, <span class="string">&quot;Not Found&quot;</span>.into())),
     }
 }
 
-<span class="kw">pub fn </span>get_auth_header(
-    request: tide::Request&lt;JsonRpcServerState&gt;,
-) -&gt; (<span class="prelude-ty">Option</span>&lt;HeaderValues&gt;, tide::Request&lt;JsonRpcServerState&gt;) {
-    (request.header(<span class="string">&quot;Authorization&quot;</span>).cloned(), request)
+<span class="kw">pub fn </span>get_auth_header(headers: HeaderMap) -&gt; <span class="prelude-ty">Option</span>&lt;HeaderValue&gt; {
+    headers.get(<span class="string">&quot;Authorization&quot;</span>).cloned()
 }
 
 <span class="comment">// Calls an RPC method and returns the full response as a string.
 </span><span class="kw">pub async fn </span>call_rpc_str(
     rpc_server: JsonRpcServerState,
     rpc_request: jsonrpc_v2::RequestObject,
-) -&gt; <span class="prelude-ty">Result</span>&lt;String, tide::Error&gt; {
+) -&gt; anyhow::Result&lt;String&gt; {
     <span class="kw">let </span>rpc_subscription_response = rpc_server.handle(rpc_request).<span class="kw">await</span>;
     <span class="prelude-val">Ok</span>(serde_json::to_string(<span class="kw-2">&amp;</span>rpc_subscription_response)<span class="question-mark">?</span>)
 }
@@ -266,7 +260,7 @@
 </span><span class="kw">pub async fn </span>call_rpc&lt;T&gt;(
     rpc_server: JsonRpcServerState,
     rpc_request: jsonrpc_v2::RequestObject,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(String, T), tide::Error&gt;
+) -&gt; anyhow::Result&lt;(String, T)&gt;
 <span class="kw">where
     </span>T: DeserializeOwned,
 {
@@ -294,7 +288,7 @@
                             code, <span class="kw-2">&amp;</span>message
                         );
                         <span class="macro">error!</span>(<span class="string">&quot;RPC call error: {}&quot;</span>, msg);
-                        <span class="prelude-val">Err</span>(tide::Error::from_str(<span class="number">500</span>, msg))
+                        <span class="macro">anyhow::bail!</span>(msg)
                     }
                     jsonrpc_v2::Error::Full { code, message, .. } =&gt; {
                         <span class="kw">let </span>msg = <span class="macro">format!</span>(
@@ -302,7 +296,7 @@
                             code, message
                         );
                         <span class="macro">error!</span>(<span class="string">&quot;RPC call error: {}&quot;</span>, msg);
-                        <span class="prelude-val">Err</span>(tide::Error::from_str(<span class="number">500</span>, msg))
+                        <span class="macro">anyhow::bail!</span>(msg)
                     }
                 },
             }
@@ -310,7 +304,7 @@
         <span class="kw">_ </span>=&gt; {
             <span class="kw">let </span>msg = <span class="string">&quot;Unexpected response type after making RPC call&quot;</span>;
             <span class="macro">error!</span>(<span class="string">&quot;RPC call error: {}&quot;</span>, msg);
-            <span class="prelude-val">Err</span>(tide::Error::from_str(<span class="number">500</span>, msg))
+            <span class="macro">anyhow::bail!</span>(msg)
         }
     }
 }
