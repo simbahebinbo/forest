@@ -194,10 +194,19 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>async_std::task;
+<span class="kw">use </span>backoff::{future::retry, ExponentialBackoff};
 <span class="kw">use </span>blake2b_simd::{Hash, State <span class="kw">as </span>Blake2b};
 <span class="kw">use </span>fvm_shared::sector::SectorSize;
 <span class="kw">use </span>log::{debug, warn};
@@ -208,7 +217,7 @@
 <span class="kw">use </span>std::path::{Path, PathBuf};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::fs::{<span class="self">self</span>, File};
-<span class="kw">use </span>tokio::io::{copy, BufWriter};
+<span class="kw">use </span>tokio::io::BufWriter;
 <span class="kw">use </span>tokio_util::compat::FuturesAsyncReadCompatExt;
 
 <span class="kw">const </span>GATEWAY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://proofs.filecoin.io/ipfs/&quot;</span>;
@@ -343,19 +352,26 @@
 <span class="kw">async fn </span>fetch_params(path: <span class="kw-2">&amp;</span>Path, info: <span class="kw-2">&amp;</span>ParameterData) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
     <span class="kw">let </span>gw = std::env::var(GATEWAY_ENV).unwrap_or_else(|<span class="kw">_</span>| GATEWAY.to_owned());
     <span class="macro">debug!</span>(<span class="string">&quot;Fetching {:?} from {}&quot;</span>, path, gw);
-
-    <span class="kw">let </span>file = File::create(path).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>writer = BufWriter::new(file);
-
     <span class="kw">let </span>url = <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, gw, info.cid);
 
+    retry(ExponentialBackoff::default(), || <span class="kw">async </span>{
+        <span class="prelude-val">Ok</span>(fetch_params_inner(<span class="kw-2">&amp;</span>url, path).<span class="kw">await</span><span class="question-mark">?</span>)
+    })
+    .<span class="kw">await
+</span>}
+
+<span class="kw">async fn </span>fetch_params_inner(url: <span class="kw">impl </span>AsRef&lt;str&gt;, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
     <span class="kw">let </span>client: surf::Client = surf::Config::default().set_timeout(<span class="prelude-val">None</span>).try_into()<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>req = client.get(url.as_str());
-
-    <span class="kw">let </span><span class="kw-2">mut </span>source = req.<span class="kw">await</span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(e))<span class="question-mark">?</span>.compat();
-    copy(<span class="kw-2">&amp;mut </span>source, <span class="kw-2">&amp;mut </span>writer).<span class="kw">await</span><span class="question-mark">?</span>;
-
+    <span class="kw">let </span>req = client.get(url);
+    <span class="kw">let </span>response = req.<span class="kw">await</span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(e))<span class="question-mark">?</span>;
+    <span class="macro">anyhow::ensure!</span>(response.status().is_success());
+    <span class="kw">let </span>content_len = response.len();
+    <span class="kw">let </span><span class="kw-2">mut </span>source = response.compat();
+    <span class="kw">let </span>file = File::create(path).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>writer = BufWriter::new(file);
+    tokio::io::copy(<span class="kw-2">&amp;mut </span>source, <span class="kw-2">&amp;mut </span>writer).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>file_metadata = std::fs::metadata(path)<span class="question-mark">?</span>;
+    <span class="macro">anyhow::ensure!</span>(<span class="prelude-val">Some</span>(file_metadata.len() <span class="kw">as </span>usize) == content_len);
     <span class="prelude-val">Ok</span>(())
 }
 
