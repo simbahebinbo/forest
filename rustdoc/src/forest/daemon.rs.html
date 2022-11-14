@@ -915,6 +915,18 @@
         unblock_parent_process();
     }
 
+    <span class="comment">// Fetch and ensure verification keys are downloaded
+    </span><span class="kw">if </span>cns::FETCH_PARAMS {
+        <span class="kw">use </span>forest_paramfetch::{
+            get_params_default, set_proofs_parameter_cache_dir_env, SectorSizeOpt,
+        };
+        set_proofs_parameter_cache_dir_env(<span class="kw-2">&amp;</span>config.client.data_dir);
+
+        get_params_default(<span class="kw-2">&amp;</span>config.client.data_dir, SectorSizeOpt::Keys)
+            .<span class="kw">await
+            </span>.unwrap();
+    }
+
     <span class="kw">let </span>config = maybe_fetch_snapshot(should_fetch_snapshot, config).<span class="kw">await</span>;
 
     <span class="macro">select! </span>{
@@ -936,18 +948,6 @@
         }
         <span class="macro">info!</span>(<span class="string">&quot;Forest finish shutdown&quot;</span>);
         <span class="kw">return</span>;
-    }
-
-    <span class="comment">// Fetch and ensure verification keys are downloaded
-    </span><span class="kw">if </span>cns::FETCH_PARAMS {
-        <span class="kw">use </span>forest_paramfetch::{
-            get_params_default, set_proofs_parameter_cache_dir_env, SectorSizeOpt,
-        };
-        set_proofs_parameter_cache_dir_env(<span class="kw-2">&amp;</span>config.client.data_dir);
-
-        get_params_default(<span class="kw-2">&amp;</span>config.client.data_dir, SectorSizeOpt::Keys)
-            .<span class="kw">await
-            </span>.unwrap();
     }
 
     services.push(task::spawn(p2p_service.run()));
