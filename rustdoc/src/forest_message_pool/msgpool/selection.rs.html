@@ -1358,6 +1358,11 @@
 <span id="1358">1358</span>
 <span id="1359">1359</span>
 <span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2067,6 +2072,7 @@
     }
 
     <span class="attr">#[async_std::test]
+    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>basic_message_selection() {
         <span class="kw">let </span>mpool = make_test_mpool().<span class="kw">await</span>;
 
@@ -2238,6 +2244,7 @@
     <span class="attr">#[async_std::test]
     </span><span class="comment">// #[ignore = &quot;test is incredibly slow&quot;]
     // TODO optimize logic tested in this function
+    </span><span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>message_selection_trimming() {
         <span class="kw">let </span>mpool = make_test_mpool().<span class="kw">await</span>;
 
@@ -2414,6 +2421,7 @@
     }
 
     <span class="attr">#[async_std::test]
+    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>test_optimal_msg_selection1() {
         <span class="comment">// this test uses just a single actor sending messages with a low tq
         // the chain depenent merging algorithm should pick messages from the actor
@@ -2495,6 +2503,7 @@
     }
 
     <span class="attr">#[async_std::test]
+    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>test_optimal_msg_selection2() {
         <span class="comment">// this test uses two actors sending messages to each other, with the first
         // actor paying (much) higher gas premium than the second.
@@ -2610,6 +2619,7 @@
     }
 
     <span class="attr">#[async_std::test]
+    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>test_optimal_message_selection3() {
         <span class="comment">// this test uses 10 actors sending a block of messages to each other, with the the first
         // actors paying higher gas premium than the subsequent actors.

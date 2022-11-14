@@ -571,6 +571,7 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
+<span id="574">574</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1098,6 +1099,7 @@
     }
 
     <span class="attr">#[async_std::test]
+    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>import_snapshot_from_url_not_found() -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">anyhow::ensure!</span>(import_snapshot_from_file(<span class="string">&quot;https://dummy.com/dummy.car&quot;</span>)
             .<span class="kw">await

@@ -125,6 +125,8 @@
 <span id="125">125</span>
 <span id="126">126</span>
 <span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -144,6 +146,7 @@
 <span class="doccomment">/// Calculate the number of winners for each block number, up to [`MAX_BLOCKS`].
 </span><span class="comment">// * This will be needed for optimal message selection
 </span><span class="attr">#[cfg(test)]
+#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
 </span><span class="comment">// TODO following two can be lazy_static
 </span><span class="kw">fn </span>no_winners_prob() -&gt; Vec&lt;f64&gt; {
     (<span class="number">0</span>..MAX_BLOCKS)
@@ -228,6 +231,7 @@
 }
 
 <span class="attr">#[test]
+#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
 </span><span class="kw">fn </span>test_winner_probability() {
     <span class="kw">use </span>rand::thread_rng;
     <span class="kw">use </span>rand::Rng;
