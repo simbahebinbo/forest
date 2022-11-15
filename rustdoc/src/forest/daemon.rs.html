@@ -564,14 +564,6 @@
 <span id="564">564</span>
 <span id="565">565</span>
 <span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -583,8 +575,8 @@
 <span class="kw">use </span>forest_chain_sync::consensus::SyncGossipSubmitter;
 <span class="kw">use </span>forest_chain_sync::ChainMuxer;
 <span class="kw">use </span>forest_cli_shared::cli::{
-    cli_error_and_die, default_snapshot_dir, is_aria2_installed, snapshot_fetch, Client, Config,
-    FOREST_VERSION_STRING,
+    cli_error_and_die, db_path, default_snapshot_dir, is_aria2_installed, snapshot_fetch, Client,
+    Config, FOREST_VERSION_STRING,
 };
 <span class="kw">use </span>forest_db::rocks::RocksDb;
 <span class="kw">use </span>forest_fil_types::verifier::FullVerifier;
@@ -1052,14 +1044,6 @@
             }
         }
     }
-}
-
-<span class="kw">fn </span>db_path(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
-    chain_path(config).join(<span class="string">&quot;db&quot;</span>)
-}
-
-<span class="kw">fn </span>chain_path(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
-    PathBuf::from(<span class="kw-2">&amp;</span>config.client.data_dir).join(<span class="kw-2">&amp;</span>config.chain.name)
 }
 
 <span class="kw">fn </span>get_actual_chain_name(internal_network_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
