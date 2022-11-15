@@ -1044,7 +1044,6 @@
 <span id="1044">1044</span>
 <span id="1045">1045</span>
 <span id="1046">1046</span>
-<span id="1047">1047</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1089,7 +1088,6 @@
 };
 <span class="kw">use </span>tokio::io::AsyncWrite;
 <span class="kw">use </span>tokio::sync::broadcast::{<span class="self">self</span>, Sender <span class="kw">as </span>Publisher};
-<span class="kw">use </span>tokio::sync::mpsc;
 <span class="kw">use </span>tokio::sync::{Mutex, RwLock};
 <span class="kw">use </span>tokio_util::compat::TokioAsyncWriteCompatExt;
 
@@ -1508,7 +1506,7 @@
     {
         <span class="comment">// Channel cap is equal to buffered write size
         </span><span class="kw">const </span>CHANNEL_CAP: usize = <span class="number">1000</span>;
-        <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = mpsc::channel(CHANNEL_CAP);
+        <span class="kw">let </span>(tx, rx) = async_std::channel::bounded(CHANNEL_CAP);
         <span class="kw">let </span>header = CarHeader::from(tipset.key().cids().to_vec());
 
         <span class="kw">let </span>writer = Arc::new(Mutex::new(writer.compat_write()));
@@ -1521,7 +1519,7 @@
                 .write_stream_async(
                     <span class="kw-2">&amp;mut *</span>writer,
                     <span class="kw-2">&amp;mut </span>Box::pin(<span class="macro">stream! </span>{
-                        <span class="kw">while let </span><span class="prelude-val">Some</span>(val) = rx.recv().<span class="kw">await </span>{
+                        <span class="kw">while let </span><span class="prelude-val">Ok</span>(val) = rx.recv().<span class="kw">await </span>{
                             <span class="kw">yield </span>val;
                         }
                     }),
