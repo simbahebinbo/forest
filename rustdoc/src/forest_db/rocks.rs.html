@@ -151,13 +151,23 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::errors::Error;
 <span class="kw">use </span><span class="kw">super</span>::Store;
-<span class="kw">use </span><span class="kw">crate</span>::rocks_config::{
-    compaction_style_from_str, compression_type_from_str, log_level_from_str, RocksDbConfig,
+<span class="kw">use crate</span>::{
+    metrics,
+    rocks_config::{
+        compaction_style_from_str, compression_type_from_str, log_level_from_str, RocksDbConfig,
+    },
 };
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -288,6 +298,7 @@
     }
 
     <span class="kw">fn </span>put_keyed(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Cid, block: <span class="kw-2">&amp;</span>[u8]) -&gt; anyhow::Result&lt;()&gt; {
+        metrics::BLOCK_SIZE_BYTES.observe(block.len() <span class="kw">as </span>f64);
         <span class="self">self</span>.write(k.to_bytes(), block).map_err(|e| e.into())
     }
 
@@ -301,6 +312,9 @@
             .into_iter()
             .map(|(k, v)| (k.to_bytes(), v))
             .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+        <span class="kw">for </span>(_k, v) <span class="kw">in </span><span class="kw-2">&amp;</span>values {
+            metrics::BLOCK_SIZE_BYTES.observe(v.as_ref().len() <span class="kw">as </span>f64);
+        }
         <span class="self">self</span>.bulk_write(<span class="kw-2">&amp;</span>values).map_err(|e| e.into())
     }
 }
