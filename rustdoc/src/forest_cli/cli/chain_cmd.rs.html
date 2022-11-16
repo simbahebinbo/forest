@@ -68,82 +68,15 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
-<span id="90">90</span>
-<span id="91">91</span>
-<span id="92">92</span>
-<span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>log::warn;
-<span class="kw">use </span>structopt::StructOpt;
+</span><span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::path::PathBuf;
 
 <span class="attr">#[derive(Debug, StructOpt)]
 </span><span class="kw">pub enum </span>ChainCommands {
@@ -152,34 +85,6 @@
         <span class="doccomment">/// Input a valid CID
         </span><span class="attr">#[structopt(short)]
         </span>cid: String,
-    },
-
-    <span class="doccomment">/// (Deprecated) Export a snapshot of the chain to `&lt;output_path&gt;`
-    /// Use `forest-cli snapshot export` instead.
-    </span><span class="comment">// TODO: Remove this
-    </span>Export {
-        <span class="doccomment">/// Tipset to start the export from, default is the chain head
-        </span><span class="attr">#[structopt(short, long)]
-        </span>tipset: <span class="prelude-ty">Option</span>&lt;i64&gt;,
-        <span class="doccomment">/// Specify the number of recent state roots to include in the export.
-        </span><span class="attr">#[structopt(short, long, default_value = <span class="string">&quot;2000&quot;</span>)]
-        </span>recent_stateroots: i64,
-        <span class="doccomment">/// Include old messages
-        </span><span class="attr">#[structopt(short, long)]
-        </span>include_old_messages: bool,
-        <span class="doccomment">/// Snapshot output path. Default to `forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car`
-        /// Date is in ISO 8601 date format.
-        /// Arguments:
-        ///  - chain - chain name e.g. `mainnet`
-        ///  - year
-        ///  - month
-        ///  - day
-        ///  - height - the epoch
-        </span><span class="attr">#[structopt(short, default_value = OUTPUT_PATH_DEFAULT_FORMAT, verbatim_doc_comment)]
-        </span>output_path: PathBuf,
-        <span class="doccomment">/// Skip creating the checksum file.
-        </span><span class="attr">#[structopt(long)]
-        </span>skip_checksum: bool,
     },
 
     <span class="doccomment">/// Prints out the genesis tipset
@@ -203,16 +108,6 @@
         </span><span class="attr">#[structopt(short)]
         </span>cid: String,
     },
-
-    <span class="doccomment">/// (Deprecated) Fetches the most recent snapshot from a trusted, pre-defined location.
-    /// Use `forest-cli snapshot fetch` instead.
-    </span><span class="comment">// TODO: Remove this
-    </span>Fetch {
-        <span class="doccomment">/// Directory to which the snapshot should be downloaded. If not provided, it will be saved
-        /// in default Forest data location.
-        </span><span class="attr">#[structopt(short, long)]
-        </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    },
 }
 
 <span class="kw">impl </span>ChainCommands {
@@ -224,23 +119,6 @@
                     chain_get_block((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>,
                 );
             }
-            <span class="self">Self</span>::Export {
-                tipset,
-                recent_stateroots,
-                output_path,
-                include_old_messages,
-                skip_checksum,
-            } =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Deprecated, use `forest-cli snapshot export` instead.&quot;</span>);
-                <span class="kw">let </span>cmd = SnapshotCommands::Export {
-                    tipset: <span class="kw-2">*</span>tipset,
-                    recent_stateroots: <span class="kw-2">*</span>recent_stateroots,
-                    output_path: output_path.clone(),
-                    include_old_messages: <span class="kw-2">*</span>include_old_messages,
-                    skip_checksum: <span class="kw-2">*</span>skip_checksum,
-                };
-                cmd.run(config).<span class="kw">await
-            </span>}
             <span class="self">Self</span>::Genesis =&gt; {
                 print_rpc_res_pretty(chain_get_genesis(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
             }
@@ -257,14 +135,6 @@
                 <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
                 print_rpc_res(chain_read_obj((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
             }
-            <span class="self">Self</span>::Fetch { snapshot_dir } =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;Deprecated, use `forest-cli snapshot fetch` instead.&quot;</span>);
-                <span class="kw">let </span>cmd = SnapshotCommands::Fetch {
-                    snapshot_dir: snapshot_dir.clone(),
-                    aria2: <span class="bool-val">false</span>,
-                };
-                cmd.run(config).<span class="kw">await
-            </span>}
         }
     }
 }
