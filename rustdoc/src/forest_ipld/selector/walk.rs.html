@@ -488,7 +488,7 @@
     <span class="kw">use </span>multihash::Code::Blake2b256;
     <span class="kw">use </span>multihash::MultihashDigest;
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>basic_walk() {
         <span class="kw">let </span>selector = Selector::Matcher;
 
@@ -501,7 +501,7 @@
             </span>.unwrap();
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>explore_fields() {
         <span class="kw">let </span>selector = Selector::ExploreFields {
             fields: IndexMap::from([(<span class="string">&quot;name&quot;</span>.to_owned(), Selector::Matcher)]),
@@ -517,7 +517,7 @@
             </span>.unwrap();
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>explore_index() {
         <span class="kw">let </span>selector = Selector::ExploreIndex {
             index: <span class="number">2</span>,
@@ -533,7 +533,7 @@
             </span>.unwrap();
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>explore_range() {
         <span class="kw">let </span>selector = Selector::ExploreRange {
             start: <span class="number">2</span>,

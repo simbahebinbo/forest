@@ -932,6 +932,11 @@
 <span id="932">932</span>
 <span id="933">933</span>
 <span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1204,7 +1209,7 @@
         repub_trigger
             .send_async(())
             .<span class="kw">await
-            </span>.map_err(|<span class="kw">_</span>| Error::Other(<span class="string">&quot;Republish receiver dropped&quot;</span>.to_string()))<span class="question-mark">?</span>;
+            </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Republish receiver dropped: {e}&quot;</span>)))<span class="question-mark">?</span>;
     }
     <span class="kw">for </span>(<span class="kw">_</span>, hm) <span class="kw">in </span>rmsgs {
         <span class="kw">for </span>(<span class="kw">_</span>, msg) <span class="kw">in </span>hm {
@@ -1277,6 +1282,7 @@
     <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">use </span>std::time::Duration;
     <span class="kw">use </span>test_provider::<span class="kw-2">*</span>;
+    <span class="kw">use </span>tokio::task::JoinSet;
 
     <span class="kw">pub fn </span>create_smsg(
         to: <span class="kw-2">&amp;</span>Address,
@@ -1300,7 +1306,7 @@
         SignedMessage::new_from_parts(umsg, sig).unwrap()
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>test_message_pool() {
         <span class="kw">let </span>keystore = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = Wallet::new(keystore);
@@ -1310,12 +1316,14 @@
         tma.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
 
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
         <span class="kw">let </span>mpool = MessagePool::new(
             tma,
             <span class="string">&quot;mptest&quot;</span>.to_string(),
             tx,
             Default::default(),
             Arc::default(),
+            <span class="kw-2">&amp;mut </span>services,
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -1357,7 +1365,7 @@
         <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">2</span>);
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>test_revert_messages() {
         <span class="kw">let </span>tma = TestApi::default();
         <span class="kw">let </span>keystore = KeyStore::new(KeyStoreConfig::Memory).unwrap();
@@ -1377,13 +1385,14 @@
             smsg_vec.push(msg);
         }
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
-
+        <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
         <span class="kw">let </span>mpool = MessagePool::new(
             tma,
             <span class="string">&quot;mptest&quot;</span>.to_string(),
             tx,
             Default::default(),
             Arc::default(),
+            <span class="kw-2">&amp;mut </span>services,
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -1465,8 +1474,8 @@
         <span class="macro">assert_eq!</span>(p.len(), <span class="number">3</span>);
     }
 
-    <span class="attr">#[async_std::test]
-    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    #[tokio::test]
     </span><span class="kw">async fn </span>test_async_message_pool() {
         <span class="kw">let </span>keystore = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = Wallet::new(keystore);
@@ -1476,13 +1485,14 @@
         <span class="kw">let </span><span class="kw-2">mut </span>tma = TestApi::default();
         tma.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
-
+        <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
         <span class="kw">let </span>mpool = MessagePool::new(
             tma,
             <span class="string">&quot;mptest&quot;</span>.to_string(),
             tx,
             Default::default(),
             Arc::default(),
+            <span class="kw-2">&amp;mut </span>services,
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -1513,14 +1523,14 @@
             .<span class="kw">await</span>;
 
         <span class="comment">// sleep allows for async block to update mpool&#39;s cur_tipset
-        </span>sleep(Duration::new(<span class="number">2</span>, <span class="number">0</span>));
+        </span>tokio::time::sleep(Duration::new(<span class="number">2</span>, <span class="number">0</span>)).<span class="kw">await</span>;
 
         <span class="kw">let </span>cur_ts = mpool.cur_tipset.read().<span class="kw">await</span>.clone();
         <span class="macro">assert_eq!</span>(cur_ts.as_ref(), <span class="kw-2">&amp;</span>tipset);
     }
 
-    <span class="attr">#[async_std::test]
-    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    #[tokio::test]
     </span><span class="kw">async fn </span>test_msg_chains() {
         <span class="kw">let </span>keystore = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = Wallet::new(keystore);

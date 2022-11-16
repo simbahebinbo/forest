@@ -201,12 +201,10 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
-<span id="204">204</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>async_std::task;
-<span class="kw">use </span>backoff::{future::retry, ExponentialBackoff};
+</span><span class="kw">use </span>backoff::{future::retry, ExponentialBackoff};
 <span class="kw">use </span>blake2b_simd::{Hash, State <span class="kw">as </span>Blake2b};
 <span class="kw">use </span>fvm_shared::sector::SectorSize;
 <span class="kw">use </span>log::{debug, warn};
@@ -291,7 +289,7 @@
         })
         .for_each(|(name, info)| {
             <span class="kw">let </span>data_dir_clone = data_dir.to_owned();
-            tasks.push(task::spawn(<span class="kw">async move </span>{
+            tasks.push(tokio::task::spawn(<span class="kw">async move </span>{
                 fetch_verify_params(<span class="kw-2">&amp;</span>data_dir_clone, <span class="kw-2">&amp;</span>name, Arc::new(info)).<span class="kw">await
             </span>}))
         });
@@ -382,14 +380,14 @@
     }
 
     <span class="kw">let </span>cloned_path = path.clone();
-    <span class="kw">let </span>hash = task::spawn_blocking(<span class="kw">move </span>|| -&gt; <span class="prelude-ty">Result</span>&lt;Hash, io::Error&gt; {
+    <span class="kw">let </span>hash = tokio::task::spawn_blocking(<span class="kw">move </span>|| -&gt; <span class="prelude-ty">Result</span>&lt;Hash, io::Error&gt; {
         <span class="kw">let </span>file = SyncFile::open(cloned_path.as_ref())<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>reader = SyncBufReader::new(file);
         <span class="kw">let </span><span class="kw-2">mut </span>hasher = Blake2b::new();
         sync_copy(<span class="kw-2">&amp;mut </span>reader, <span class="kw-2">&amp;mut </span>hasher)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(hasher.finalize())
     })
-    .<span class="kw">await</span><span class="question-mark">?</span>;
+    .<span class="kw">await</span><span class="question-mark">??</span>;
 
     <span class="kw">let </span>str_sum = hash.to_hex();
     <span class="kw">let </span>str_sum = <span class="kw-2">&amp;</span>str_sum[..<span class="number">32</span>];

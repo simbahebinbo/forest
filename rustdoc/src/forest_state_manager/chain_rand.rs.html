@@ -265,11 +265,17 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>anyhow::{bail, Context};
-<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>blake2b_simd::Params;
 <span class="kw">use </span>byteorder::{BigEndian, WriteBytesExt};
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconEntry, BeaconSchedule, DrandBeacon};
@@ -290,6 +296,7 @@
     blks: TipsetKeys,
     cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
     beacon: Arc&lt;BeaconSchedule&lt;DrandBeacon&gt;&gt;,
+    async_handle: tokio::runtime::Handle,
 }
 
 <span class="kw">impl</span>&lt;DB&gt; Clone <span class="kw">for </span>ChainRand&lt;DB&gt; {
@@ -299,6 +306,7 @@
             blks: <span class="self">self</span>.blks.clone(),
             cs: <span class="self">self</span>.cs.clone(),
             beacon: <span class="self">self</span>.beacon.clone(),
+            async_handle: <span class="self">self</span>.async_handle.clone(),
         }
     }
 }
@@ -312,12 +320,14 @@
         blks: TipsetKeys,
         cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
         beacon: Arc&lt;BeaconSchedule&lt;DrandBeacon&gt;&gt;,
+        async_handle: tokio::runtime::Handle,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             chain_config,
             blks,
             cs,
             beacon,
+            async_handle,
         }
     }
 
@@ -500,8 +510,10 @@
         round: ChainEpoch,
         entropy: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; anyhow::Result&lt;[u8; <span class="number">32</span>]&gt; {
-        <span class="comment">// XXX: This `block_on` can be removed by adding a runtime Handle to `ChainRand`.
-        </span>task::block_on(<span class="self">self</span>.get_chain_randomness_v2(<span class="kw-2">&amp;</span><span class="self">self</span>.blks, pers, round, entropy))
+        tokio::task::block_in_place(<span class="kw">move </span>|| {
+            <span class="self">self</span>.async_handle
+                .block_on(<span class="self">self</span>.get_chain_randomness_v2(<span class="kw-2">&amp;</span><span class="self">self</span>.blks, pers, round, entropy))
+        })
     }
 
     <span class="kw">fn </span>get_beacon_randomness(
@@ -510,8 +522,10 @@
         round: ChainEpoch,
         entropy: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; anyhow::Result&lt;[u8; <span class="number">32</span>]&gt; {
-        <span class="comment">// XXX: This `block_on` can be removed by adding a runtime Handle to `ChainRand`.
-        </span>task::block_on(<span class="self">self</span>.get_beacon_randomness_v3(<span class="kw-2">&amp;</span><span class="self">self</span>.blks, pers, round, entropy))
+        tokio::task::block_in_place(<span class="kw">move </span>|| {
+            <span class="self">self</span>.async_handle
+                .block_on(<span class="self">self</span>.get_beacon_randomness_v3(<span class="kw-2">&amp;</span><span class="self">self</span>.blks, pers, round, entropy))
+        })
     }
 }
 

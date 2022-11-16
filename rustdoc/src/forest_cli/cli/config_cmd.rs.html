@@ -77,7 +77,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>given_default_configuration_should_print_valid_toml() {
         <span class="kw">let </span>expected_config = Config::default();
         <span class="kw">let </span><span class="kw-2">mut </span>sink = std::io::BufWriter::new(Vec::new());

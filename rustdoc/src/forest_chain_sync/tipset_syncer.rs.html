@@ -1676,27 +1676,31 @@
 <span id="1676">1676</span>
 <span id="1677">1677</span>
 <span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::cmp::{min, Ordering};
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time::{SystemTime, UNIX_EPOCH};
-
-<span class="kw">use </span>async_std::stream::{Stream, StreamExt};
-<span class="kw">use </span>async_std::task;
-<span class="kw">use </span>forest_utils::io::ProgressBar;
+</span><span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
+<span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>futures::TryFutureExt;
 <span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_aggregate;
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>nonempty::NonEmpty;
+<span class="kw">use </span>std::cmp::{min, Ordering};
+<span class="kw">use </span>std::collections::{HashMap, HashSet};
+<span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::time::{SystemTime, UNIX_EPOCH};
 <span class="kw">use </span>thiserror::Error;
 
 <span class="kw">use </span><span class="kw">crate</span>::bad_block_cache::BadBlockCache;
@@ -1719,6 +1723,7 @@
 <span class="kw">use </span>forest_networks::Height;
 <span class="kw">use </span>forest_state_manager::Error <span class="kw">as </span>StateManagerError;
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>futures::Stream;
 <span class="kw">use </span>fvm::gas::price_list_by_network_version;
 <span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -1796,7 +1801,13 @@
 
 <span class="kw">impl</span>&lt;C: Consensus, T&gt; From&lt;flume::SendError&lt;T&gt;&gt; <span class="kw">for </span>TipsetRangeSyncerError&lt;C&gt; {
     <span class="kw">fn </span>from(err: flume::SendError&lt;T&gt;) -&gt; <span class="self">Self </span>{
-        TipsetRangeSyncerError::NetworkTipsetQueryFailed(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, err))
+        TipsetRangeSyncerError::NetworkTipsetQueryFailed(<span class="macro">format!</span>(<span class="string">&quot;{err}&quot;</span>))
+    }
+}
+
+<span class="kw">impl</span>&lt;C: Consensus&gt; From&lt;tokio::task::JoinError&gt; <span class="kw">for </span>TipsetRangeSyncerError&lt;C&gt; {
+    <span class="kw">fn </span>from(err: tokio::task::JoinError) -&gt; <span class="self">Self </span>{
+        TipsetRangeSyncerError::NetworkTipsetQueryFailed(<span class="macro">format!</span>(<span class="string">&quot;{err}&quot;</span>))
     }
 }
 
@@ -1923,7 +1934,7 @@
     state: TipsetProcessorState&lt;DB, C&gt;,
     tracker: <span class="kw">crate</span>::chain_muxer::WorkerState,
     <span class="doccomment">/// Tipsets pushed into this stream _must_ be validated beforehand by the `TipsetValidator`
-    </span>tipsets: Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = Arc&lt;Tipset&gt;&gt; + Send&gt;&gt;,
+    </span>tipsets: Pin&lt;Box&lt;<span class="kw">dyn </span>futures::Stream&lt;Item = Arc&lt;Tipset&gt;&gt; + Send&gt;&gt;,
     consensus: Arc&lt;C&gt;,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     network: SyncNetworkContext&lt;DB&gt;,
@@ -1940,7 +1951,7 @@
     <span class="attr">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">pub fn </span>new(
         tracker: <span class="kw">crate</span>::chain_muxer::WorkerState,
-        tipsets: Pin&lt;Box&lt;<span class="kw">dyn </span>Stream&lt;Item = Arc&lt;Tipset&gt;&gt; + Send&gt;&gt;,
+        tipsets: Pin&lt;Box&lt;<span class="kw">dyn </span>futures::Stream&lt;Item = Arc&lt;Tipset&gt;&gt; + Send&gt;&gt;,
         consensus: Arc&lt;C&gt;,
         state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
         network: SyncNetworkContext&lt;DB&gt;,
@@ -2754,8 +2765,9 @@
     <span class="kw">let </span>task_chainstore = chainstore.clone();
 
     <span class="comment">// Spawn a background task for the chain_exchange message requests
+
     </span><span class="kw">let </span>(s, r) = flume::bounded(REQUEST_WINDOW * <span class="number">2</span>);
-    <span class="kw">let </span>handle = task::spawn(<span class="kw">async move </span>{
+    <span class="kw">let </span>handle = tokio::task::spawn(<span class="kw">async move </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>batch: Vec&lt;Arc&lt;Tipset&gt;&gt; = Vec::with_capacity(REQUEST_WINDOW);
 
         <span class="comment">// Visit tipsets in chronological order
@@ -2802,7 +2814,7 @@
         metrics::LAST_VALIDATED_TIPSET_EPOCH.set(current_epoch <span class="kw">as </span>u64);
     }
 
-    handle.<span class="kw">await
+    handle.<span class="kw">await</span><span class="question-mark">?
 </span>}
 
 <span class="doccomment">/// Validates full blocks in the tipset in parallel (since the messages are not executed),
@@ -2827,7 +2839,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>validations = FuturesUnordered::new();
     <span class="kw">for </span>b <span class="kw">in </span>full_tipset.into_blocks() {
-        <span class="kw">let </span>validation_fn = task::spawn(validate_block::&lt;<span class="kw">_</span>, C&gt;(
+        <span class="kw">let </span>validation_fn = tokio::task::spawn(validate_block::&lt;<span class="kw">_</span>, C&gt;(
             consensus.clone(),
             state_manager.clone(),
             Arc::new(b),
@@ -2839,7 +2851,7 @@
     <span class="macro">debug!</span>(<span class="string">&quot;Tipset keys: {:?}&quot;</span>, full_tipset_key.cids);
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(result) = validations.next().<span class="kw">await </span>{
-        <span class="kw">match </span>result {
+        <span class="kw">match </span>result<span class="question-mark">? </span>{
             <span class="prelude-val">Ok</span>(block) =&gt; {
                 chainstore.add_to_tipset_tracker(block.header()).<span class="kw">await</span>;
             }
@@ -2945,7 +2957,7 @@
     </span><span class="kw">let </span>validations = FuturesUnordered::new();
 
     <span class="comment">// Check block messages
-    </span>validations.push(task::spawn(check_block_messages::&lt;<span class="kw">_</span>, C&gt;(
+    </span>validations.push(tokio::task::spawn(check_block_messages::&lt;<span class="kw">_</span>, C&gt;(
         Arc::clone(<span class="kw-2">&amp;</span>state_manager),
         Arc::clone(<span class="kw-2">&amp;</span>block),
         Arc::clone(<span class="kw-2">&amp;</span>base_tipset),
@@ -2956,7 +2968,7 @@
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
     <span class="kw">let </span>v_block_store = state_manager.blockstore().clone();
     <span class="kw">let </span>v_block = Arc::clone(<span class="kw-2">&amp;</span>block);
-    validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
+    validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
         <span class="kw">let </span>base_fee = forest_chain::compute_base_fee(<span class="kw-2">&amp;</span>v_block_store, <span class="kw-2">&amp;</span>v_base_tipset, smoke_height)
             .map_err(|e| {
                 TipsetRangeSyncerError::&lt;C&gt;::Validation(<span class="macro">format!</span>(
@@ -2978,7 +2990,7 @@
     </span><span class="kw">let </span>v_block_store = state_manager.blockstore().clone();
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
     <span class="kw">let </span>weight = header.weight().clone();
-    validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
+    validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
         <span class="kw">let </span>calc_weight = C::weight(<span class="kw-2">&amp;</span>v_block_store, <span class="kw-2">&amp;</span>v_base_tipset).map_err(|e| {
             TipsetRangeSyncerError::Calculation(<span class="macro">format!</span>(<span class="string">&quot;Error calculating weight: {}&quot;</span>, e))
         })<span class="question-mark">?</span>;
@@ -2995,7 +3007,7 @@
     </span><span class="kw">let </span>v_state_manager = Arc::clone(<span class="kw-2">&amp;</span>state_manager);
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
     <span class="kw">let </span>v_block = Arc::clone(<span class="kw-2">&amp;</span>block);
-    validations.push(task::spawn(<span class="kw">async move </span>{
+    validations.push(tokio::task::spawn(<span class="kw">async move </span>{
         <span class="kw">let </span>header = v_block.header();
         <span class="kw">let </span>(state_root, receipt_root) = v_state_manager
             .tipset_state(<span class="kw-2">&amp;</span>v_base_tipset)
@@ -3033,13 +3045,13 @@
 
     <span class="comment">// Block signature check
     </span><span class="kw">let </span>v_block = block.clone();
-    validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
+    validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
         v_block.header().check_block_signature(<span class="kw-2">&amp;</span>work_addr)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }));
 
     <span class="kw">let </span>v_block = block.clone();
-    validations.push(task::spawn(<span class="kw">async move </span>{
+    validations.push(tokio::task::spawn(<span class="kw">async move </span>{
         consensus
             .validate_block(state_manager, v_block)
             .map_err(|errs| {

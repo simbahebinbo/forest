@@ -946,7 +946,6 @@
 <span id="946">946</span>
 <span id="947">947</span>
 <span id="948">948</span>
-<span id="949">949</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -959,8 +958,6 @@
     TipsetProcessor, TipsetProcessorError, TipsetRangeSyncer, TipsetRangeSyncerError,
 };
 <span class="kw">use </span><span class="kw">crate</span>::validation::{TipsetValidationError, TipsetValidator};
-
-<span class="kw">use </span>async_std::stream::StreamExt;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{
     Block, Error <span class="kw">as </span>ForestBlockError, FullTipset, GossipBlock, Tipset, TipsetKeys,
@@ -975,6 +972,7 @@
 <span class="kw">use </span>forest_message_pool::{MessagePool, Provider};
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
+<span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>futures::{future::try_join_all, future::Future, try_join};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::message::Message;
@@ -1339,7 +1337,7 @@
                     .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::PEER_CONNECTED])
                     .inc();
                 <span class="comment">// Spawn and immediately move on to the next event
-                </span>async_std::task::spawn(<span class="self">Self</span>::handle_peer_connected_event(
+                </span>tokio::task::spawn(<span class="self">Self</span>::handle_peer_connected_event(
                     network.clone(),
                     chain_store.clone(),
                     peer_id,
@@ -1352,7 +1350,7 @@
                     .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::PEER_DISCONNECTED])
                     .inc();
                 <span class="comment">// Spawn and immediately move on to the next event
-                </span>async_std::task::spawn(<span class="self">Self</span>::handle_peer_disconnected_event(
+                </span>tokio::task::spawn(<span class="self">Self</span>::handle_peer_disconnected_event(
                     network.clone(),
                     peer_id,
                 ));
@@ -1374,7 +1372,7 @@
                         .inc();
                     <span class="kw">if let </span>PubsubMessageProcessingStrategy::Process = message_processing_strategy {
                         <span class="comment">// Spawn and immediately move on to the next event
-                        </span>async_std::task::spawn(<span class="self">Self</span>::handle_pubsub_message(mem_pool.clone(), m));
+                        </span>tokio::task::spawn(<span class="self">Self</span>::handle_pubsub_message(mem_pool.clone(), m));
                     }
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }

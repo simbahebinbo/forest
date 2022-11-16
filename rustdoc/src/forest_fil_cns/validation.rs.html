@@ -388,18 +388,10 @@
 <span id="388">388</span>
 <span id="389">389</span>
 <span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::sync::Arc;
-
-<span class="kw">use </span>async_std::task;
-<span class="kw">use </span>futures::stream::FuturesUnordered;
-
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::DomainSeparationTag;
 <span class="kw">use </span>forest_actor_interface::power;
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconEntry, BeaconSchedule, IGNORE_DRAND_VAR};
@@ -409,6 +401,7 @@
 <span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
@@ -417,6 +410,7 @@
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>fvm_shared::TICKET_RANDOMNESS_LOOKBACK;
 <span class="kw">use </span>nonempty::NonEmpty;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span><span class="kw">crate</span>::FilecoinConsensusError;
 
@@ -486,7 +480,7 @@
     </span><span class="kw">let </span>v_state_manager = state_manager.clone();
     <span class="kw">let </span>v_base_tipset = base_tipset.clone();
     <span class="kw">let </span>v_header = header.clone();
-    validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
+    validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
         validate_miner(
             v_state_manager.as_ref(),
             v_header.miner_address(),
@@ -500,7 +494,7 @@
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
     <span class="kw">let </span>v_state_manager = Arc::clone(<span class="kw-2">&amp;</span>state_manager);
     <span class="kw">let </span>v_lookback_state = lookback_state.clone();
-    validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
+    validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
         validate_winner_election(
             v_block.header(),
             v_base_tipset.as_ref(),
@@ -517,7 +511,7 @@
         <span class="kw">let </span>v_block = Arc::clone(<span class="kw-2">&amp;</span>block);
         <span class="kw">let </span>parent_epoch = base_tipset.epoch();
         <span class="kw">let </span>v_prev_beacon = Arc::clone(<span class="kw-2">&amp;</span>prev_beacon);
-        validations.push(task::spawn(<span class="kw">async move </span>{
+        validations.push(tokio::task::spawn(<span class="kw">async move </span>{
             v_block
                 .header()
                 .validate_block_drand(
@@ -536,7 +530,7 @@
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
     <span class="kw">let </span>v_prev_beacon = Arc::clone(<span class="kw-2">&amp;</span>prev_beacon);
     <span class="kw">let </span>v_state_manager = Arc::clone(<span class="kw-2">&amp;</span>state_manager);
-    validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
+    validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
         validate_ticket_election(
             v_block.header(),
             v_base_tipset.as_ref(),
@@ -549,7 +543,7 @@
     <span class="comment">// Winning PoSt proof validation
     </span><span class="kw">let </span>v_block = block.clone();
     <span class="kw">let </span>v_prev_beacon = Arc::clone(<span class="kw-2">&amp;</span>prev_beacon);
-    validations.push(task::spawn_blocking(<span class="kw">move </span>|| {
+    validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
         verify_winning_post_proof::&lt;<span class="kw">_</span>, V&gt;(
             <span class="kw-2">&amp;</span>state_manager,
             win_p_nv,

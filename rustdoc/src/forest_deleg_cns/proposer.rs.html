@@ -162,18 +162,19 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
+
 </span><span class="kw">use </span>anyhow::anyhow;
-<span class="kw">use </span>async_std::{
-    stream::interval,
-    task::{<span class="self">self</span>, JoinHandle},
-};
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>core::time::Duration;
 <span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>log::{error, info};
 <span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>tokio::task::JoinSet;
+<span class="kw">use </span>tokio_stream::wrappers::IntervalStream;
 
 <span class="kw">use </span>forest_blocks::{BlockHeader, GossipBlock, Tipset};
 <span class="kw">use </span>forest_chain::Scale;
@@ -267,17 +268,18 @@
         state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
         mpool: Arc&lt;MP&gt;,
         submitter: SyncGossipSubmitter,
-    ) -&gt; anyhow::Result&lt;Vec&lt;JoinHandle&lt;()&gt;&gt;&gt;
+        services: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;,
+    ) -&gt; anyhow::Result&lt;()&gt;
     <span class="kw">where
         </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
         MP: MessagePoolApi + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let </span>running = task::spawn(<span class="kw">async move </span>{
+        services.spawn(<span class="kw">async move </span>{
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.run(state_manager, mpool.as_ref(), <span class="kw-2">&amp;</span>submitter).<span class="kw">await </span>{
                 <span class="macro">error!</span>(<span class="string">&quot;block proposal stopped: {}&quot;</span>, e)
             }
         });
-        <span class="prelude-val">Ok</span>(<span class="macro">vec!</span>[running])
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
@@ -296,7 +298,9 @@
         </span><span class="kw">let </span>chain_config = state_manager.chain_config();
         <span class="kw">let </span>chain_store = state_manager.chain_store();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>interval = interval(Duration::from_secs(chain_config.block_delay_secs));
+        <span class="kw">let </span><span class="kw-2">mut </span>interval = IntervalStream::new(tokio::time::interval(Duration::from_secs(
+            chain_config.block_delay_secs,
+        )));
 
         <span class="kw">while </span>interval.next().<span class="kw">await</span>.is_some() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = chain_store.heaviest_tipset().<span class="kw">await </span>{

@@ -1403,6 +1403,26 @@
 <span id="1403">1403</span>
 <span id="1404">1404</span>
 <span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1414,7 +1434,6 @@
 <span class="kw">pub use </span><span class="self">self</span>::errors::<span class="kw-2">*</span>;
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>async_log::span;
-<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>chain_rand::ChainRand;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::{DomainSeparationTag, Policy};
@@ -1450,6 +1469,7 @@
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>tokio::runtime::Handle;
 <span class="kw">use </span>tokio::sync::broadcast::{error::RecvError, Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};
 <span class="kw">use </span>tokio::sync::RwLock;
 <span class="kw">use </span>vm_circ_supply::GenesisInfo;
@@ -1591,7 +1611,7 @@
         round: ChainEpoch,
         entropy: <span class="kw-2">&amp;</span>[u8],
     ) -&gt; anyhow::Result&lt;[u8; <span class="number">32</span>]&gt; {
-        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(blocks.to_owned());
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(blocks.to_owned(), tokio::runtime::Handle::current());
         <span class="kw">match </span><span class="self">self</span>.get_network_version(round) {
             NetworkVersion::V16 | NetworkVersion::V15 | NetworkVersion::V14 =&gt; {
                 chain_rand
@@ -1634,7 +1654,7 @@
         entropy: <span class="kw-2">&amp;</span>[u8],
         lookback: bool,
     ) -&gt; anyhow::Result&lt;[u8; <span class="number">32</span>]&gt; {
-        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(blocks.to_owned());
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(blocks.to_owned(), tokio::runtime::Handle::current());
         chain_rand
             .get_chain_randomness(blocks, pers, round, entropy, lookback)
             .<span class="kw">await
@@ -1759,7 +1779,11 @@
                 <span class="self">self</span>.genesis_info
                     .get_circulating_supply(epoch, <span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>state_root)<span class="question-mark">?</span>,
                 <span class="self">self</span>.reward_calc.clone(),
-                chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
+                chain_epoch_root(
+                    Arc::clone(<span class="self">self</span>),
+                    Arc::clone(tipset),
+                    tokio::runtime::Handle::current(),
+                ),
                 <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
                 Arc::clone(<span class="self">self</span>.chain_config()),
             )
@@ -1880,7 +1904,11 @@
                 <span class="self">self</span>.genesis_info
                     .get_circulating_supply(bheight, <span class="self">self</span>.blockstore(), bstate)<span class="question-mark">?</span>,
                 <span class="self">self</span>.reward_calc.clone(),
-                chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
+                chain_epoch_root(
+                    Arc::clone(<span class="self">self</span>),
+                    Arc::clone(tipset),
+                    tokio::runtime::Handle::current(),
+                ),
                 <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
                 Arc::clone(<span class="self">self</span>.chain_config()),
             )<span class="question-mark">?</span>;
@@ -1926,7 +1954,7 @@
                 .<span class="kw">await
                 </span>.ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned(), tokio::runtime::Handle::current());
         <span class="self">self</span>.call_raw(message, chain_rand, <span class="kw-2">&amp;</span>ts)
     }
 
@@ -1950,11 +1978,12 @@
             </span>.tipset_state(<span class="kw-2">&amp;</span>ts)
             .<span class="kw">await
             </span>.map_err(|<span class="kw">_</span>| Error::Other(<span class="string">&quot;Could not load tipset state&quot;</span>.to_string()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned(), tokio::runtime::Handle::current());
 
         <span class="kw">let </span>store = <span class="self">self</span>.blockstore().clone();
         <span class="comment">// Since we&#39;re simulating a future message, pretend we&#39;re applying it in the &quot;next&quot; tipset
         </span><span class="kw">let </span>epoch = ts.epoch() + <span class="number">1</span>;
+        <span class="kw">let </span>async_handle = tokio::runtime::Handle::current();
         <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::new(
             st,
             store,
@@ -1964,7 +1993,7 @@
             <span class="self">self</span>.genesis_info
                 .get_circulating_supply(epoch, <span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>st)<span class="question-mark">?</span>,
             <span class="self">self</span>.reward_calc.clone(),
-            chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts)),
+            chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts), async_handle),
             <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
             Arc::clone(<span class="self">self</span>.chain_config()),
         )<span class="question-mark">?</span>;
@@ -2256,9 +2285,10 @@
                 Default::default()
             };
 
+            <span class="kw">let </span>async_handle = tokio::runtime::Handle::current();
             <span class="kw">let </span>tipset_keys =
                 TipsetKeys::new(block_headers.iter().map(|s| s.cid()).cloned().collect());
-            <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(tipset_keys);
+            <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(tipset_keys, async_handle);
             <span class="kw">let </span>base_fee = first_block.parent_base_fee().clone();
 
             <span class="kw">let </span>blocks = <span class="self">self
@@ -2270,7 +2300,7 @@
             <span class="kw">let </span>sr = <span class="kw-2">*</span>first_block.state_root();
             <span class="kw">let </span>epoch = first_block.epoch();
             <span class="kw">let </span>ts_cloned = Arc::clone(tipset);
-            task::spawn_blocking(<span class="kw">move </span>|| {
+            tokio::task::spawn_blocking(<span class="kw">move </span>|| {
                 <span class="prelude-val">Ok</span>(sm.apply_blocks(
                     parent_epoch,
                     <span class="kw-2">&amp;</span>sr,
@@ -2283,6 +2313,7 @@
                 )<span class="question-mark">?</span>)
             })
             .<span class="kw">await
+            </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;failed to apply blocks: {e}&quot;</span>)))<span class="question-mark">?
         </span>})
     }
 
@@ -2472,7 +2503,7 @@
         <span class="kw">let </span>address_for_task = <span class="kw-2">*</span>message.from();
         <span class="kw">let </span>sequence_for_task = message.sequence();
         <span class="kw">let </span>height_of_head = current_tipset.epoch();
-        <span class="kw">let </span>task = task::spawn(<span class="kw">async move </span>{
+        <span class="kw">let </span>task = tokio::task::spawn(<span class="kw">async move </span>{
             <span class="kw">let </span>back_tuple = sm_cloned
                 .search_back_for_message(
                     <span class="kw-2">&amp;</span>current_tipset,
@@ -2490,7 +2521,7 @@
         <span class="kw">let </span>sm_cloned = Arc::clone(<span class="self">self</span>);
 
         <span class="comment">// Wait for message to be included in head change.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>subscriber_poll = task::spawn(<span class="kw">async move </span>{
+        </span><span class="kw">let </span><span class="kw-2">mut </span>subscriber_poll = tokio::task::spawn(<span class="kw">async move </span>{
             <span class="kw">loop </span>{
                 <span class="kw">match </span>subscriber.recv().<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(subscriber) =&gt; <span class="kw">match </span>subscriber {
@@ -2544,8 +2575,10 @@
         .fuse();
 
         <span class="comment">// Search backwards for message.
-        </span><span class="kw">let </span><span class="kw-2">mut </span>search_back_poll = task::spawn::&lt;<span class="kw">_</span>, <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, Error&gt;&gt;(<span class="kw">async move </span>{
-            <span class="kw">let </span>back_tuple = task.<span class="kw">await</span><span class="question-mark">?</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>search_back_poll = tokio::task::spawn(<span class="kw">async move </span>{
+            <span class="kw">let </span>back_tuple = task.<span class="kw">await</span>.map_err(|e| {
+                Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not search backwards for message {e}&quot;</span>))
+            })<span class="question-mark">??</span>;
             <span class="kw">if let </span><span class="prelude-val">Some</span>((back_tipset, back_receipt)) = back_tuple {
                 <span class="kw">let </span>should_revert = <span class="kw-2">*</span>reverts
                     .read()
@@ -2554,7 +2587,7 @@
                     .unwrap_or(<span class="kw-2">&amp;</span><span class="bool-val">false</span>);
                 <span class="kw">let </span>larger_height_of_head = height_of_head &gt;= back_tipset.epoch() + confidence;
                 <span class="kw">if </span>!should_revert &amp;&amp; larger_height_of_head {
-                    <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(back_tipset), <span class="prelude-val">Some</span>(back_receipt)));
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, Error&gt;((<span class="prelude-val">Some</span>(back_tipset), <span class="prelude-val">Some</span>(back_receipt)));
                 }
                 <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, <span class="prelude-val">None</span>));
             }
@@ -2568,10 +2601,10 @@
         </span><span class="kw">loop </span>{
             <span class="macro">select! </span>{
                 res = subscriber_poll =&gt; {
-                    <span class="kw">return </span>res;
-                }
+                    <span class="kw">return </span>res<span class="question-mark">?
+                </span>}
                 res = search_back_poll =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(ts), <span class="prelude-val">Some</span>(rct))) = res {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(ts), <span class="prelude-val">Some</span>(rct))) = res<span class="question-mark">? </span>{
                         <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(ts), <span class="prelude-val">Some</span>(rct)));
                     }
                 }
@@ -2766,12 +2799,17 @@
         <span class="prelude-val">Ok</span>(market_state)
     }
 
-    <span class="kw">fn </span>chain_rand(<span class="kw-2">&amp;</span><span class="self">self</span>, blocks: TipsetKeys) -&gt; ChainRand&lt;DB&gt; {
+    <span class="kw">fn </span>chain_rand(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        blocks: TipsetKeys,
+        async_handle: tokio::runtime::Handle,
+    ) -&gt; ChainRand&lt;DB&gt; {
         ChainRand::new(
             <span class="self">self</span>.chain_config.clone(),
             blocks,
             <span class="self">self</span>.cs.clone(),
             <span class="self">self</span>.beacon.clone(),
+            async_handle,
         )
     }
 }
@@ -2793,18 +2831,20 @@
 <span class="kw">fn </span>chain_epoch_root&lt;DB&gt;(
     sm: Arc&lt;StateManager&lt;DB&gt;&gt;,
     tipset: Arc&lt;Tipset&gt;,
+    async_handle: Handle,
 ) -&gt; Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;
 <span class="kw">where
     </span><span class="comment">// Yes, both are needed, because the VM should only use the buffered store
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     Box::new(<span class="kw">move </span>|round| {
-        <span class="comment">// XXX: This `block_on` can be removed by passing in a runtime Handle or (preferably) by
-        //      refactoring the lookback code completely.
-        </span><span class="kw">let </span>(<span class="kw">_</span>, st) = task::block_on(sm.get_lookback_tipset_for_round(tipset.clone(), round))
-            .unwrap_or_else(|err| {
-                <span class="macro">panic!</span>(<span class="string">&quot;Internal Error. Failed to find root CID for epoch {round}: {err}&quot;</span>)
-            });
+        <span class="kw">let </span>(<span class="kw">_</span>, st) = tokio::task::block_in_place(|| {
+            async_handle
+                .block_on(sm.get_lookback_tipset_for_round(tipset.clone(), round))
+                .unwrap_or_else(|err| {
+                    <span class="macro">panic!</span>(<span class="string">&quot;Internal Error. Failed to find root CID for epoch {round}: {err}&quot;</span>)
+                })
+        });
         st
     })
 }

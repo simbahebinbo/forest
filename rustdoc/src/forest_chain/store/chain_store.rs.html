@@ -1044,13 +1044,18 @@
 <span id="1044">1044</span>
 <span id="1045">1045</span>
 <span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">crate</span>::Scale;
 
 <span class="kw">use super</span>::{index::ChainIndex, tipset_tracker::TipsetTracker, Error};
-<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
@@ -1506,26 +1511,27 @@
     {
         <span class="comment">// Channel cap is equal to buffered write size
         </span><span class="kw">const </span>CHANNEL_CAP: usize = <span class="number">1000</span>;
-        <span class="kw">let </span>(tx, rx) = async_std::channel::bounded(CHANNEL_CAP);
+        <span class="kw">let </span>(tx, rx) = flume::bounded(CHANNEL_CAP);
         <span class="kw">let </span>header = CarHeader::from(tipset.key().cids().to_vec());
 
         <span class="kw">let </span>writer = Arc::new(Mutex::new(writer.compat_write()));
         <span class="kw">let </span>writer_clone = writer.clone();
 
         <span class="comment">// Spawns task which receives blocks to write to the car writer.
-        </span><span class="kw">let </span>write_task = task::spawn(<span class="kw">async move </span>{
+        </span><span class="kw">let </span>write_task = tokio::task::spawn(<span class="kw">async move </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>writer = writer_clone.lock().<span class="kw">await</span>;
             header
                 .write_stream_async(
                     <span class="kw-2">&amp;mut *</span>writer,
                     <span class="kw-2">&amp;mut </span>Box::pin(<span class="macro">stream! </span>{
-                        <span class="kw">while let </span><span class="prelude-val">Ok</span>(val) = rx.recv().<span class="kw">await </span>{
+                        <span class="kw">while let </span><span class="prelude-val">Ok</span>(val) = rx.recv_async().<span class="kw">await </span>{
                             <span class="kw">yield </span>val;
                         }
                     }),
                 )
                 .<span class="kw">await
-        </span>});
+                </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Failed to write blocks in export: {e}&quot;</span>)))
+        });
 
         <span class="kw">let </span>global_pre_time = SystemTime::now();
         <span class="macro">info!</span>(<span class="string">&quot;chain export started&quot;</span>);
@@ -1542,11 +1548,17 @@
                 }
             })<span class="question-mark">?</span>;
 
-            <span class="comment">// XXX: This `block_on` can be removed by passing in a runtime Handle in tokio
-            //      or by refactoring `walk_snapshot` to take an async callback.
-            // * If cb can return a generic type, deserializing would remove need to clone.
+            <span class="comment">// XXX: * If cb can return a generic type, deserializing would remove need to clone.
             // Ignore error intentionally, if receiver dropped, error will be handled below
-            </span><span class="kw">let _ </span>= task::block_on(tx.send((cid, block.clone())));
+            </span><span class="kw">let </span>async_handle = tokio::runtime::Handle::current();
+            <span class="kw">let </span>block_clone = block.clone();
+            <span class="kw">let </span>tx_clone = tx.clone();
+            tokio::task::block_in_place(<span class="kw">move </span>|| {
+                async_handle.block_on(<span class="kw">async </span>{
+                    tx_clone.send_async((cid, block_clone)).<span class="kw">await</span>.expect(<span class="string">&quot;failed sending block for export&quot;</span>);
+                });
+            });
+
             <span class="prelude-val">Ok</span>(block)
         })
         .<span class="kw">await</span><span class="question-mark">?</span>;
@@ -1557,7 +1569,7 @@
         <span class="comment">// Await on values being written.
         </span>write_task
             .<span class="kw">await
-            </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Failed to write blocks in export: {}&quot;</span>, e)))<span class="question-mark">?</span>;
+            </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Failed to write blocks in export: {e}&quot;</span>)))<span class="question-mark">??</span>;
 
         <span class="kw">let </span>time = SystemTime::now()
             .duration_since(global_pre_time)
@@ -2057,7 +2069,7 @@
     <span class="kw">use </span>fvm_ipld_encoding::DAG_CBOR;
     <span class="kw">use </span>fvm_shared::address::Address;
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>genesis_test() {
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
 
@@ -2077,7 +2089,7 @@
         <span class="macro">assert_eq!</span>(cs.genesis().unwrap(), <span class="prelude-val">Some</span>(gen_block));
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>block_validation_cache_basic() {
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
 

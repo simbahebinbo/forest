@@ -396,7 +396,7 @@
         (cids, db)
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>compact_messages_test() {
         <span class="kw">let </span>(cids, db) = populate_db().<span class="kw">await</span>;
 

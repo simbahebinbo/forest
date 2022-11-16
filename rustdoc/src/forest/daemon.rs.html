@@ -557,18 +557,10 @@
 <span id="557">557</span>
 <span id="558">558</span>
 <span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::cli::set_sigint_handler;
-<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
 <span class="kw">use </span>forest_auth::{create_token, generate_priv_key, ADMIN, JWT_IDENTIFIER};
 <span class="kw">use </span>forest_chain::ChainStore;
@@ -597,6 +589,7 @@
 <span class="kw">use </span>rpassword::read_password;
 <span class="kw">use </span>std::net::TcpListener;
 <span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>tokio::task::JoinSet;
 
 <span class="kw">use </span>std::io::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>std::path::PathBuf;
@@ -698,7 +691,7 @@
             .unwrap();
     }
 
-    <span class="kw">let </span><span class="kw-2">mut </span>services = <span class="macro">vec!</span>[];
+    <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
 
     {
         <span class="comment">// Start Prometheus server port
@@ -717,12 +710,12 @@
             .into_os_string()
             .into_string()
             .expect(<span class="string">&quot;Failed converting the path to db&quot;</span>);
-        services.push(task::spawn(<span class="kw">async </span>{
+        services.spawn(<span class="kw">async </span>{
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = forest_metrics::init_prometheus(prometheus_listener, db_directory).<span class="kw">await
             </span>{
                 <span class="macro">error!</span>(<span class="string">&quot;Failed to initiate prometheus server: {e}&quot;</span>);
             }
-        }));
+        });
     }
 
     <span class="comment">// Print admin token
@@ -824,17 +817,17 @@
 
     <span class="comment">// Initialize mpool
     </span><span class="kw">let </span>provider = MpoolRpcProvider::new(publisher.clone(), Arc::clone(<span class="kw-2">&amp;</span>state_manager));
-    <span class="kw">let </span>(mpool, head_changes_task, republish_task) = MessagePool::with_tasks(
+    <span class="kw">let </span>mpool = MessagePool::new(
         provider,
         network_name.clone(),
         network_send.clone(),
         MpoolConfig::load_config(<span class="kw-2">&amp;</span>db).unwrap(),
         Arc::clone(state_manager.chain_config()),
+        <span class="kw-2">&amp;mut </span>services,
     )
     .<span class="kw">await
     </span>.unwrap();
-    services.push(head_changes_task);
-    services.push(republish_task);
+
     <span class="kw">let </span>mpool = Arc::new(mpool);
 
     <span class="comment">// For consensus types that do mining, create a component to submit their proposals.
@@ -845,11 +838,9 @@
     );
 
     <span class="comment">// Initialize Consensus. Mining may or may not happen, depending on type.
-    </span><span class="kw">let </span>(consensus, <span class="kw-2">mut </span>mining_tasks) =
-        cns::consensus(<span class="kw-2">&amp;</span>state_manager, <span class="kw-2">&amp;</span>keystore, <span class="kw-2">&amp;</span>mpool, submitter)
-            .<span class="kw">await
-            </span>.unwrap();
-    services.append(<span class="kw-2">&amp;mut </span>mining_tasks);
+    </span><span class="kw">let </span>consensus = cns::consensus(<span class="kw-2">&amp;</span>state_manager, <span class="kw-2">&amp;</span>keystore, <span class="kw-2">&amp;</span>mpool, submitter, <span class="kw-2">&amp;mut </span>services)
+        .<span class="kw">await
+        </span>.unwrap();
 
     <span class="comment">// Initialize ChainMuxer
     </span><span class="kw">let </span>chain_muxer_tipset_sink = tipset_sink.clone();
@@ -867,9 +858,9 @@
     .expect(<span class="string">&quot;Instantiating the ChainMuxer must succeed&quot;</span>);
     <span class="kw">let </span>bad_blocks = chain_muxer.bad_blocks_cloned();
     <span class="kw">let </span>sync_state = chain_muxer.sync_state_cloned();
-    services.push(task::spawn(<span class="kw">async </span>{
+    services.spawn(<span class="kw">async </span>{
         chain_muxer.<span class="kw">await</span>;
-    }));
+    });
 
     <span class="comment">// Start services
     </span><span class="kw">if </span>config.client.enable_rpc {
@@ -880,7 +871,7 @@
         <span class="kw">let </span>rpc_state_manager = Arc::clone(<span class="kw-2">&amp;</span>state_manager);
         <span class="kw">let </span>rpc_chain_store = Arc::clone(<span class="kw-2">&amp;</span>chain_store);
 
-        services.push(task::spawn(<span class="kw">async move </span>{
+        services.spawn(<span class="kw">async move </span>{
             <span class="macro">info!</span>(<span class="string">&quot;JSON-RPC endpoint started at {}&quot;</span>, config.client.rpc_address);
             <span class="comment">// XXX: The JSON error message are a nightmare to print.
             </span><span class="kw">let _ </span>= start_rpc::&lt;<span class="kw">_</span>, <span class="kw">_</span>, FullVerifier, cns::FullConsensus&gt;(
@@ -900,7 +891,7 @@
                 FOREST_VERSION_STRING.as_str(),
             )
             .<span class="kw">await</span>;
-        }))
+        });
     } <span class="kw">else </span>{
         <span class="macro">debug!</span>(<span class="string">&quot;RPC disabled.&quot;</span>);
     };
@@ -926,9 +917,7 @@
         () = sync_from_snapshot(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>state_manager).fuse() =&gt; {},
         <span class="kw">_ </span>= ctrlc_oneshot =&gt; {
             <span class="comment">// Cancel all async services
-            </span><span class="kw">for </span>handle <span class="kw">in </span>services {
-                handle.cancel().<span class="kw">await</span>;
-            }
+            </span>services.shutdown().<span class="kw">await</span>;
             <span class="kw">return</span>;
         },
     }
@@ -936,14 +925,12 @@
     <span class="comment">// Halt
     </span><span class="kw">if </span>config.client.halt_after_import {
         <span class="comment">// Cancel all async services
-        </span><span class="kw">for </span>handle <span class="kw">in </span>services {
-            handle.cancel().<span class="kw">await</span>;
-        }
+        </span>services.shutdown().<span class="kw">await</span>;
         <span class="macro">info!</span>(<span class="string">&quot;Forest finish shutdown&quot;</span>);
         <span class="kw">return</span>;
     }
 
-    services.push(task::spawn(p2p_service.run()));
+    services.spawn(p2p_service.run());
 
     <span class="kw">let </span>db_weak_ref = Arc::downgrade(<span class="kw-2">&amp;</span>db.db);
     drop(db);
@@ -951,15 +938,14 @@
     <span class="comment">// Block until ctrl-c is hit
     </span>ctrlc_oneshot.<span class="kw">await</span>.unwrap();
 
-    <span class="kw">let </span>keystore_write = task::spawn(<span class="kw">async move </span>{
+    <span class="kw">let </span>keystore_write = tokio::task::spawn(<span class="kw">async move </span>{
         keystore.read().<span class="kw">await</span>.flush().unwrap();
     });
 
     <span class="comment">// Cancel all async services
-    </span><span class="kw">for </span>handle <span class="kw">in </span>services {
-        handle.cancel().<span class="kw">await</span>;
-    }
-    keystore_write.<span class="kw">await</span>;
+    </span>services.shutdown().<span class="kw">await</span>;
+
+    keystore_write.<span class="kw">await</span>.expect(<span class="string">&quot;keystore write failed&quot;</span>);
 
     <span class="kw">if </span>db_weak_ref.strong_count() != <span class="number">0 </span>{
         <span class="macro">error!</span>(
@@ -1062,7 +1048,7 @@
     <span class="kw">use </span>forest_networks::ChainConfig;
     <span class="kw">use </span>fvm_shared::address::Address;
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>import_snapshot_from_file_valid() -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">anyhow::ensure!</span>(import_snapshot_from_file(<span class="string">&quot;test_files/chain4.car&quot;</span>)
             .<span class="kw">await
@@ -1070,20 +1056,20 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>import_snapshot_from_file_invalid() -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">anyhow::ensure!</span>(import_snapshot_from_file(<span class="string">&quot;Cargo.toml&quot;</span>).<span class="kw">await</span>.is_err());
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>import_snapshot_from_file_not_found() -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">anyhow::ensure!</span>(import_snapshot_from_file(<span class="string">&quot;dummy.car&quot;</span>).<span class="kw">await</span>.is_err());
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="attr">#[async_std::test]
-    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    #[tokio::test]
     </span><span class="kw">async fn </span>import_snapshot_from_url_not_found() -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">anyhow::ensure!</span>(import_snapshot_from_file(<span class="string">&quot;https://dummy.com/dummy.car&quot;</span>)
             .<span class="kw">await

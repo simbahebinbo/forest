@@ -246,6 +246,8 @@
 <span id="246">246</span>
 <span id="247">247</span>
 <span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -372,7 +374,7 @@
     <span class="kw">use </span>fvm_shared::address::Address;
     <span class="kw">use </span>serde_json::from_str;
     <span class="kw">use </span>std::{sync::Arc, time::Duration};
-    <span class="kw">use </span>tokio::sync::RwLock;
+    <span class="kw">use </span>tokio::{sync::RwLock, task::JoinSet};
 
     <span class="kw">const </span>TEST_NET_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;test&quot;</span>;
 
@@ -386,6 +388,7 @@
         }]));
 
         <span class="kw">let </span>(network_send, network_rx) = flume::bounded(<span class="number">5</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
         <span class="kw">let </span>db = MemoryDB::default();
         <span class="kw">let </span>cs_arc = Arc::new(ChainStore::new(db.clone()).<span class="kw">await</span>);
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
@@ -428,6 +431,7 @@
                 mpool_network_send,
                 Default::default(),
                 Arc::clone(state_manager_for_thread.chain_config()),
+                <span class="kw-2">&amp;mut </span>services,
             )
             .<span class="kw">await
             </span>.unwrap()
@@ -448,7 +452,7 @@
         (state, network_rx)
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>set_check_bad() {
         <span class="kw">let </span>(state, <span class="kw">_</span>) = state_setup().<span class="kw">await</span>;
 
@@ -470,7 +474,7 @@
         }
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>sync_state_test() {
         <span class="kw">let </span>(state, <span class="kw">_</span>) = state_setup().<span class="kw">await</span>;
 

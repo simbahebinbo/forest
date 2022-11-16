@@ -1363,6 +1363,14 @@
 <span id="1363">1363</span>
 <span id="1364">1364</span>
 <span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2054,10 +2062,11 @@
     <span class="kw">use </span>forest_message::Message;
     <span class="kw">use </span>fvm_shared::crypto::signature::SignatureType;
     <span class="kw">use </span>std::sync::Arc;
+    <span class="kw">use </span>tokio::task::JoinSet;
 
     <span class="kw">const </span>TEST_GAS_LIMIT: i64 = <span class="number">6955002</span>;
 
-    <span class="kw">async fn </span>make_test_mpool() -&gt; MessagePool&lt;TestApi&gt; {
+    <span class="kw">async fn </span>make_test_mpool(joinset: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;) -&gt; MessagePool&lt;TestApi&gt; {
         <span class="kw">let </span>tma = TestApi::default();
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
         MessagePool::new(
@@ -2066,15 +2075,17 @@
             tx,
             Default::default(),
             Arc::default(),
+            joinset,
         )
         .<span class="kw">await
         </span>.unwrap()
     }
 
-    <span class="attr">#[async_std::test]
-    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    #[tokio::test]
     </span><span class="kw">async fn </span>basic_message_selection() {
-        <span class="kw">let </span>mpool = make_test_mpool().<span class="kw">await</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
+        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
 
         <span class="kw">let </span>ks1 = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(ks1);
@@ -2241,12 +2252,13 @@
         }
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="comment">// #[ignore = &quot;test is incredibly slow&quot;]
     // TODO optimize logic tested in this function
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>message_selection_trimming() {
-        <span class="kw">let </span>mpool = make_test_mpool().<span class="kw">await</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
+        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
 
         <span class="kw">let </span>ks1 = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(ks1);
@@ -2321,11 +2333,12 @@
         <span class="macro">assert!</span>(m_gas_lim &lt;= fvm_shared::BLOCK_GAS_LIMIT);
     }
 
-    <span class="attr">#[async_std::test]
+    <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>message_selection_priority() {
         <span class="kw">let </span>db = MemoryDB::default();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>mpool = make_test_mpool().<span class="kw">await</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
 
         <span class="kw">let </span>ks1 = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(ks1);
@@ -2420,13 +2433,14 @@
         }
     }
 
-    <span class="attr">#[async_std::test]
-    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    #[tokio::test]
     </span><span class="kw">async fn </span>test_optimal_msg_selection1() {
         <span class="comment">// this test uses just a single actor sending messages with a low tq
         // the chain depenent merging algorithm should pick messages from the actor
         // from the start
-        </span><span class="kw">let </span>mpool = make_test_mpool().<span class="kw">await</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
+        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
 
         <span class="comment">// create two actors
         </span><span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(KeyStore::new(KeyStoreConfig::Memory).unwrap());
@@ -2502,14 +2516,15 @@
         }
     }
 
-    <span class="attr">#[async_std::test]
-    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    #[tokio::test]
     </span><span class="kw">async fn </span>test_optimal_msg_selection2() {
+        <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
         <span class="comment">// this test uses two actors sending messages to each other, with the first
         // actor paying (much) higher gas premium than the second.
         // We select with a low ticket quality; the chain depenent merging algorithm should pick
         // messages from the second actor from the start
-        </span><span class="kw">let </span>mpool = make_test_mpool().<span class="kw">await</span>;
+        </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
 
         <span class="comment">// create two actors
         </span><span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(KeyStore::new(KeyStoreConfig::Memory).unwrap());
@@ -2618,14 +2633,15 @@
         }
     }
 
-    <span class="attr">#[async_std::test]
-    #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    #[tokio::test]
     </span><span class="kw">async fn </span>test_optimal_message_selection3() {
+        <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
         <span class="comment">// this test uses 10 actors sending a block of messages to each other, with the the first
         // actors paying higher gas premium than the subsequent actors.
         // We select with a low ticket quality; the chain depenent merging algorithm should pick
         // messages from the median actor from the start
-        </span><span class="kw">let </span>mpool = make_test_mpool().<span class="kw">await</span>;
+        </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
 
         <span class="kw">let </span>n_actors = <span class="number">10</span>;
 

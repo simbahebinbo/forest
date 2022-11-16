@@ -185,12 +185,10 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
-<span id="188">188</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use crate</span>::{tipset_from_keys, Error, TipsetCache};
-<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -283,7 +281,7 @@
 
             <span class="kw">if </span>counter == MAX_COUNT {
                 counter = <span class="number">0</span>;
-                task::yield_now().<span class="kw">await</span>;
+                tokio::task::yield_now().<span class="kw">await</span>;
             } <span class="kw">else </span>{
                 counter += <span class="number">1</span>;
             }

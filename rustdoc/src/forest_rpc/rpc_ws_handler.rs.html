@@ -382,7 +382,7 @@
                     <span class="kw">as </span><span class="prelude-ty">Result</span>&lt;jsonrpc_v2::RequestObject, serde_json::Error&gt;
                 {
                     <span class="prelude-val">Ok</span>(rpc_call) =&gt; {
-                        async_std::task::spawn(<span class="kw">async move </span>{
+                        tokio::task::spawn(<span class="kw">async move </span>{
                             <span class="kw">match </span>rpc_ws_task::&lt;DB, B&gt;(
                                 authorization_header,
                                 rpc_call,

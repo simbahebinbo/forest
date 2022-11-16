@@ -769,28 +769,6 @@
 <span id="769">769</span>
 <span id="770">770</span>
 <span id="771">771</span>
-<span id="772">772</span>
-<span id="773">773</span>
-<span id="774">774</span>
-<span id="775">775</span>
-<span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
-<span id="780">780</span>
-<span id="781">781</span>
-<span id="782">782</span>
-<span id="783">783</span>
-<span id="784">784</span>
-<span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
-<span id="790">790</span>
-<span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -809,7 +787,6 @@
 <span class="kw">use </span><span class="kw">crate</span>::msgpool::{RBF_DENOM, RBF_NUM};
 <span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
 <span class="kw">use </span><span class="kw">crate</span>::utils::get_base_fee_lower_bound;
-<span class="kw">use </span>async_std::task;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::{HeadChange, MINIMUM_BASE_FEE};
@@ -835,6 +812,7 @@
 <span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>tokio::sync::broadcast::error::RecvError;
 <span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>tokio::task::JoinSet;
 <span class="kw">use </span>tokio::time::interval;
 
 <span class="comment">// LruCache sizes have been taken from the lotus implementation
@@ -963,20 +941,14 @@
     </span>T: Provider + std::marker::Send + std::marker::Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Creates a new `MessagePool` instance.
-    </span><span class="kw">pub async fn </span>with_tasks(
+    </span><span class="kw">pub async fn </span>new(
         <span class="kw-2">mut </span>api: T,
         network_name: String,
         network_sender: flume::Sender&lt;NetworkMessage&gt;,
         config: MpoolConfig,
         chain_config: Arc&lt;ChainConfig&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;
-        (
-            MessagePool&lt;T&gt;,
-            async_std::task::JoinHandle&lt;()&gt;,
-            async_std::task::JoinHandle&lt;()&gt;,
-        ),
-        Error,
-    &gt;
+        services: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;MessagePool&lt;T&gt;, Error&gt;
     <span class="kw">where
         </span>T: Provider,
     {
@@ -1024,7 +996,7 @@
         <span class="kw">let </span>repub_trigger = Arc::new(mp.repub_trigger.clone());
 
         <span class="comment">// Reacts to new HeadChanges
-        </span><span class="kw">let </span>head_changes_task = task::spawn(<span class="kw">async move </span>{
+        </span>services.spawn(<span class="kw">async move </span>{
             <span class="kw">loop </span>{
                 <span class="kw">match </span>subscriber.recv().<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(ts) =&gt; {
@@ -1072,9 +1044,9 @@
         <span class="kw">let </span>network_sender = Arc::new(mp.network_sender.clone());
         <span class="kw">let </span>network_name = mp.network_name.clone();
         <span class="kw">let </span>republish_interval = <span class="number">10 </span>* block_delay + PROPAGATION_DELAY_SECS;
-        <span class="kw">let </span><span class="kw-2">mut </span>repub_trigger_rx = repub_trigger_rx.into_stream();
         <span class="comment">// Reacts to republishing requests
-        </span><span class="kw">let </span>republish_task = task::spawn(<span class="kw">async move </span>{
+        </span>services.spawn(<span class="kw">async move </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>repub_trigger_rx = repub_trigger_rx.stream();
             <span class="kw">let </span><span class="kw-2">mut </span>interval = interval(Duration::from_secs(republish_interval));
             <span class="kw">loop </span>{
                 <span class="macro">tokio::select! </span>{
@@ -1097,23 +1069,7 @@
                 }
             }
         });
-        <span class="prelude-val">Ok</span>((mp, head_changes_task, republish_task))
-    }
-
-    <span class="doccomment">/// Creates a new `MessagePool` instance.
-    </span><span class="kw">pub async fn </span>new(
-        api: T,
-        network_name: String,
-        network_sender: flume::Sender&lt;NetworkMessage&gt;,
-        config: MpoolConfig,
-        chain_config: Arc&lt;ChainConfig&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;MessagePool&lt;T&gt;, Error&gt;
-    <span class="kw">where
-        </span>T: Provider,
-    {
-        <span class="kw">let </span>(mpool, <span class="kw">_</span>, <span class="kw">_</span>) =
-            <span class="self">Self</span>::with_tasks(api, network_name, network_sender, config, chain_config).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(mpool)
+        <span class="prelude-val">Ok</span>(mp)
     }
 
     <span class="doccomment">/// Add a signed message to the pool and its address.

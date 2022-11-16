@@ -34,12 +34,9 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
-<span id="37">37</span>
-<span id="38">38</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span><span class="kw">crate</span>::FilecoinConsensus;
-<span class="kw">use </span>async_std::task::JoinHandle;
 <span class="kw">use </span>forest_beacon::DrandBeacon;
 <span class="kw">use </span>forest_chain_sync::consensus::{MessagePoolApi, SyncGossipSubmitter};
 <span class="kw">use </span>forest_db::Store;
@@ -48,9 +45,7 @@
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>tokio::sync::RwLock;
-
-<span class="kw">type </span>MiningTask = JoinHandle&lt;()&gt;;
+<span class="kw">use </span>tokio::{sync::RwLock, task::JoinSet};
 
 <span class="kw">pub type </span>FullConsensus = FilecoinConsensus&lt;DrandBeacon, FullVerifier&gt;;
 
@@ -65,14 +60,15 @@
     _keystore: <span class="kw-2">&amp;</span>Arc&lt;RwLock&lt;KeyStore&gt;&gt;,
     _mpool: <span class="kw-2">&amp;</span>Arc&lt;MP&gt;,
     _submitter: SyncGossipSubmitter,
-) -&gt; anyhow::Result&lt;(FullConsensus, Vec&lt;MiningTask&gt;)&gt;
+    _services: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;,
+) -&gt; anyhow::Result&lt;FullConsensus&gt;
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     MP: MessagePoolApi + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>consensus = FilecoinConsensus::new(state_manager.beacon_schedule());
 
-    <span class="prelude-val">Ok</span>((consensus, <span class="macro">vec!</span>[]))
+    <span class="prelude-val">Ok</span>(consensus)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_fil_cns" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>
