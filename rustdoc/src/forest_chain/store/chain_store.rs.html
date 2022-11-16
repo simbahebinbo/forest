@@ -1050,11 +1050,19 @@
 <span id="1050">1050</span>
 <span id="1051">1051</span>
 <span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">crate</span>::Scale;
 
+<span class="kw">use </span><span class="kw">super</span>::metrics;
 <span class="kw">use super</span>::{index::ChainIndex, tipset_tracker::TipsetTracker, Error};
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
@@ -1730,6 +1738,9 @@
     </span>BS: Blockstore,
 {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(ts) = cache.write().<span class="kw">await</span>.get(tsk) {
+        metrics::LRU_CACHE_HIT
+            .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::TIPSET])
+            .inc();
         <span class="kw">return </span><span class="prelude-val">Ok</span>(ts.clone());
     }
 
@@ -1747,6 +1758,9 @@
     <span class="comment">// construct new Tipset to return
     </span><span class="kw">let </span>ts = Arc::new(Tipset::new(block_headers)<span class="question-mark">?</span>);
     cache.write().<span class="kw">await</span>.put(tsk.clone(), ts.clone());
+    metrics::LRU_CACHE_MISS
+        .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::TIPSET])
+        .inc();
     <span class="prelude-val">Ok</span>(ts)
 }
 

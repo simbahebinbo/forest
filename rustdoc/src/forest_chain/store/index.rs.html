@@ -185,10 +185,16 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::{tipset_from_keys, Error, TipsetCache};
+</span><span class="kw">use crate</span>::{store::metrics, tipset_from_keys, Error, TipsetCache};
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -261,8 +267,14 @@
         <span class="kw">loop </span>{
             <span class="kw">let </span>entry = <span class="self">self</span>.skip_cache.write().<span class="kw">await</span>.get(<span class="kw-2">&amp;</span>cur).cloned();
             <span class="kw">let </span>lbe = <span class="kw">if let </span><span class="prelude-val">Some</span>(cached) = entry {
+                metrics::LRU_CACHE_HIT
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::SKIP])
+                    .inc();
                 cached
             } <span class="kw">else </span>{
+                metrics::LRU_CACHE_MISS
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::SKIP])
+                    .inc();
                 <span class="self">self</span>.fill_cache(std::mem::take(<span class="kw-2">&amp;mut </span>cur)).<span class="kw">await</span><span class="question-mark">?
             </span>};
 
