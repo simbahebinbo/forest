@@ -460,10 +460,11 @@
 <span id="460">460</span>
 <span id="461">461</span>
 <span id="462">462</span>
-<span id="463">463</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>libp2p::core::transport::ListenerId;
+<span class="kw">use </span>libp2p::kad::record::store::MemoryStore;
+<span class="kw">use </span>libp2p::mdns::Mdns;
 <span class="kw">use </span>libp2p::swarm::behaviour::toggle::ToggleIntoConnectionHandler;
 <span class="kw">use </span>libp2p::swarm::{ConnectionHandler, DialError, IntoConnectionHandler};
 <span class="kw">use </span>libp2p::{
@@ -473,8 +474,8 @@
     multiaddr::Protocol,
     swarm::{behaviour::toggle::Toggle, NetworkBehaviour, NetworkBehaviourAction, PollParameters},
 };
-<span class="kw">use </span>libp2p::{kad::record::store::MemoryStore, mdns::Mdns};
 <span class="kw">use </span>log::{debug, error, trace, warn};
+<span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::{
     cmp,
@@ -489,10 +490,10 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>DiscoveryOut {
     <span class="doccomment">/// Event that notifies that we connected to the node with the given peer id.
-    </span>Connected(PeerId),
+    </span>Connected(PeerId, Vec&lt;Multiaddr&gt;),
 
     <span class="doccomment">/// Event that notifies that we disconnected with the node with the given peer id.
-    </span>Disconnected(PeerId),
+    </span>Disconnected(PeerId, Vec&lt;Multiaddr&gt;),
 }
 
 <span class="doccomment">/// `DiscoveryBehaviour` configuration.
@@ -566,7 +567,7 @@
         </span><span class="kw">let </span>store = MemoryStore::new(local_peer_id.to_owned());
         <span class="kw">let </span><span class="kw-2">mut </span>kad_config = KademliaConfig::default();
         <span class="kw">let </span>network = <span class="macro">format!</span>(<span class="string">&quot;/fil/kad/{}/kad/1.0.0&quot;</span>, network_name);
-        kad_config.set_protocol_name(network.as_bytes().to_vec());
+        kad_config.set_protocol_names(<span class="macro">vec!</span>[Cow::Owned(network.as_bytes().to_vec())]);
 
         <span class="comment">// TODO this parsing should probably be done when parsing config, not initializing node
         </span><span class="kw">let </span>user_defined: Vec&lt;(PeerId, Multiaddr)&gt; = user_defined
@@ -598,11 +599,7 @@
         </span>};
 
         <span class="kw">let </span>mdns_opt = <span class="kw">if </span>enable_mdns {
-            <span class="prelude-val">Some</span>(
-                Mdns::new(Default::default())
-                    .<span class="kw">await
-                    </span>.expect(<span class="string">&quot;Could not start mDNS&quot;</span>),
-            )
+            <span class="prelude-val">Some</span>(Mdns::new(Default::default()).expect(<span class="string">&quot;Could not start mDNS&quot;</span>))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
@@ -711,10 +708,10 @@
 
         <span class="kw">if </span>other_established == <span class="number">0 </span>{
             <span class="kw">let </span>multiaddr = <span class="self">self</span>.addresses_of_peer(peer_id);
-            <span class="self">self</span>.peer_addresses.insert(<span class="kw-2">*</span>peer_id, multiaddr);
+            <span class="self">self</span>.peer_addresses.insert(<span class="kw-2">*</span>peer_id, multiaddr.clone());
             <span class="self">self</span>.peers.insert(<span class="kw-2">*</span>peer_id);
             <span class="self">self</span>.pending_events
-                .push_back(DiscoveryOut::Connected(<span class="kw-2">*</span>peer_id));
+                .push_back(DiscoveryOut::Connected(<span class="kw-2">*</span>peer_id, multiaddr));
         }
 
         <span class="self">self</span>.kademlia.inject_connection_established(
@@ -738,8 +735,9 @@
 
         <span class="kw">if </span>remaining_established == <span class="number">0 </span>{
             <span class="self">self</span>.peers.remove(peer_id);
+            <span class="kw">let </span>addresses = <span class="self">self</span>.peer_addresses.remove(peer_id).unwrap_or_default();
             <span class="self">self</span>.pending_events
-                .push_back(DiscoveryOut::Disconnected(<span class="kw-2">*</span>peer_id));
+                .push_back(DiscoveryOut::Disconnected(<span class="kw-2">*</span>peer_id, addresses));
         }
 
         <span class="self">self</span>.kademlia.inject_connection_closed(

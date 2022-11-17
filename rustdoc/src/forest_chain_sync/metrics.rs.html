@@ -240,6 +240,13 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -440,13 +447,20 @@
 
 <span class="kw">pub mod </span>values {
     <span class="comment">// libp2p_message_total
-    </span><span class="kw">pub const </span>HELLO_REQUEST: <span class="kw-2">&amp;</span>str = <span class="string">&quot;hello_request&quot;</span>;
+    </span><span class="kw">pub const </span>HELLO_REQUEST_INBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;hello_request_in&quot;</span>;
+    <span class="kw">pub const </span>HELLO_RESPONSE_OUTBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;hello_response_out&quot;</span>;
+    <span class="kw">pub const </span>HELLO_REQUEST_OUTBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;hello_request_out&quot;</span>;
+    <span class="kw">pub const </span>HELLO_RESPONSE_INBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;hello_response_in&quot;</span>;
     <span class="kw">pub const </span>PEER_CONNECTED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;peer_connected&quot;</span>;
     <span class="kw">pub const </span>PEER_DISCONNECTED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;peer_disconnected&quot;</span>;
     <span class="kw">pub const </span>PUBSUB_BLOCK: <span class="kw-2">&amp;</span>str = <span class="string">&quot;pubsub_message_block&quot;</span>;
     <span class="kw">pub const </span>PUBSUB_MESSAGE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;pubsub_message_message&quot;</span>;
-    <span class="kw">pub const </span>CHAIN_EXCHANGE_REQUEST: <span class="kw-2">&amp;</span>str = <span class="string">&quot;chain_exchange_request&quot;</span>;
-    <span class="kw">pub const </span>BITSWAP_BLOCK: <span class="kw-2">&amp;</span>str = <span class="string">&quot;bitswap_block&quot;</span>;
+    <span class="kw">pub const </span>CHAIN_EXCHANGE_REQUEST_OUTBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;chain_exchange_request_out&quot;</span>;
+    <span class="kw">pub const </span>CHAIN_EXCHANGE_RESPONSE_INBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;chain_exchange_response_in&quot;</span>;
+    <span class="kw">pub const </span>CHAIN_EXCHANGE_REQUEST_INBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;chain_exchange_request_in&quot;</span>;
+    <span class="kw">pub const </span>CHAIN_EXCHANGE_RESPONSE_OUTBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;chain_exchange_response_out&quot;</span>;
+    <span class="kw">pub const </span>BITSWAP_BLOCK_REQUEST_OUTBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;bitswap_block_request_out&quot;</span>;
+    <span class="kw">pub const </span>BITSWAP_BLOCK_RESPONSE_INBOUND: <span class="kw-2">&amp;</span>str = <span class="string">&quot;bitswap_block_response_in&quot;</span>;
 }
 
 <span class="attr">#[cfg(test)]

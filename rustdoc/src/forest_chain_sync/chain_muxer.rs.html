@@ -946,6 +946,46 @@
 <span id="946">946</span>
 <span id="947">947</span>
 <span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1311,9 +1351,15 @@
         block_delay: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(FullTipset, PeerId)&gt;, ChainMuxerError&lt;C&gt;&gt; {
         <span class="kw">let </span>(tipset, source) = <span class="kw">match </span>event {
-            NetworkEvent::HelloRequest { request, source } =&gt; {
+            NetworkEvent::HelloRequestInbound { .. } =&gt; {
                 metrics::LIBP2P_MESSAGE_TOTAL
-                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST])
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST_INBOUND])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            NetworkEvent::HelloResponseOutbound { request, source } =&gt; {
+                metrics::LIBP2P_MESSAGE_TOTAL
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_RESPONSE_OUTBOUND])
                     .inc();
                 <span class="kw">let </span>tipset_keys = TipsetKeys::new(request.heaviest_tip_set);
                 <span class="kw">let </span>tipset = <span class="kw">match </span><span class="self">Self</span>::get_full_tipset(
@@ -1331,6 +1377,18 @@
                     }
                 };
                 (tipset, source)
+            }
+            NetworkEvent::HelloRequestOutbound { .. } =&gt; {
+                metrics::LIBP2P_MESSAGE_TOTAL
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST_OUTBOUND])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            NetworkEvent::HelloResponseInbound { .. } =&gt; {
+                metrics::LIBP2P_MESSAGE_TOTAL
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_RESPONSE_INBOUND])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
             NetworkEvent::PeerConnected(peer_id) =&gt; {
                 metrics::LIBP2P_MESSAGE_TOTAL
@@ -1377,19 +1435,41 @@
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
             },
-            NetworkEvent::ChainExchangeRequest { .. } =&gt; {
+            NetworkEvent::ChainExchangeRequestOutbound { .. } =&gt; {
                 metrics::LIBP2P_MESSAGE_TOTAL
-                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CHAIN_EXCHANGE_REQUEST])
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CHAIN_EXCHANGE_REQUEST_OUTBOUND])
                     .inc();
-                <span class="comment">// Not supported.
-                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-            NetworkEvent::BitswapBlock { .. } =&gt; {
+            NetworkEvent::ChainExchangeResponseInbound { .. } =&gt; {
                 metrics::LIBP2P_MESSAGE_TOTAL
-                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::BITSWAP_BLOCK])
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CHAIN_EXCHANGE_RESPONSE_INBOUND])
                     .inc();
-                <span class="comment">// Not supported.
-                </span><span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            NetworkEvent::ChainExchangeRequestInbound { .. } =&gt; {
+                metrics::LIBP2P_MESSAGE_TOTAL
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CHAIN_EXCHANGE_REQUEST_INBOUND])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            NetworkEvent::ChainExchangeResponseOutbound { .. } =&gt; {
+                metrics::LIBP2P_MESSAGE_TOTAL
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CHAIN_EXCHANGE_RESPONSE_OUTBOUND])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            NetworkEvent::BitswapRequestOutbound { .. } =&gt; {
+                metrics::LIBP2P_MESSAGE_TOTAL
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::BITSWAP_BLOCK_REQUEST_OUTBOUND])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+            }
+            NetworkEvent::BitswapResponseInbound { .. } =&gt; {
+                metrics::LIBP2P_MESSAGE_TOTAL
+                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::BITSWAP_BLOCK_RESPONSE_INBOUND])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
         };
 

@@ -71,13 +71,39 @@
 <span id="71">71</span>
 <span id="72">72</span>
 <span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::{Error, Store};
+</span><span class="kw">use </span><span class="kw">crate</span>::utils::bitswap_missing_blocks;
+
+<span class="kw">use super</span>::{Error, Store};
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>libp2p_bitswap::BitswapStore;
 <span class="kw">use </span>parking_lot::RwLock;
 <span class="kw">use </span>std::collections::{hash_map::DefaultHasher, HashMap};
 <span class="kw">use </span>std::hash::{Hash, Hasher};
@@ -142,6 +168,26 @@
 
     <span class="kw">fn </span>put_keyed(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Cid, block: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="self">self</span>.write(k.to_bytes(), block).map_err(|e| e.into())
+    }
+}
+
+<span class="kw">impl </span>BitswapStore <span class="kw">for </span>MemoryDB {
+    <span class="kw">type </span>Params = libipld::DefaultParams;
+
+    <span class="kw">fn </span>contains(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;bool&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.exists(cid.to_bytes())<span class="question-mark">?</span>)
+    }
+
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt; {
+        Blockstore::get(<span class="self">self</span>, cid)
+    }
+
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <span class="kw-2">&amp;</span>libipld::Block&lt;<span class="self">Self</span>::Params&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="self">self</span>.put_keyed(block.cid(), block.data())
+    }
+
+    <span class="kw">fn </span>missing_blocks(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Cid&gt;&gt; {
+        bitswap_missing_blocks::&lt;<span class="kw">_</span>, <span class="self">Self</span>::Params&gt;(<span class="self">self</span>, cid)
     }
 }
 </code></pre></div>
