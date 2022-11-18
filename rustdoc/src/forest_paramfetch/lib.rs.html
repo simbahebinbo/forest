@@ -201,11 +201,26 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>backoff::{future::retry, ExponentialBackoff};
 <span class="kw">use </span>blake2b_simd::{Hash, State <span class="kw">as </span>Blake2b};
+<span class="kw">use </span>forest_utils::net::{https_client, hyper};
+<span class="kw">use </span>futures::TryStreamExt;
 <span class="kw">use </span>fvm_shared::sector::SectorSize;
 <span class="kw">use </span>log::{debug, warn};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -359,17 +374,28 @@
 </span>}
 
 <span class="kw">async fn </span>fetch_params_inner(url: <span class="kw">impl </span>AsRef&lt;str&gt;, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
-    <span class="kw">let </span>client: surf::Client = surf::Config::default().set_timeout(<span class="prelude-val">None</span>).try_into()<span class="question-mark">?</span>;
-    <span class="kw">let </span>req = client.get(url);
+    <span class="kw">let </span>client = https_client();
+    <span class="kw">let </span>req = client.get(url.as_ref().try_into()<span class="question-mark">?</span>);
     <span class="kw">let </span>response = req.<span class="kw">await</span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(e))<span class="question-mark">?</span>;
     <span class="macro">anyhow::ensure!</span>(response.status().is_success());
-    <span class="kw">let </span>content_len = response.len();
-    <span class="kw">let </span><span class="kw-2">mut </span>source = response.compat();
+    <span class="kw">let </span>content_len = response
+        .headers()
+        .get(<span class="string">&quot;content-length&quot;</span>)
+        .and_then(|ct_len| ct_len.to_str().ok())
+        .and_then(|ct_len| ct_len.parse::&lt;u64&gt;().ok())
+        .ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Couldn&#39;t retrieve content length&quot;</span>))<span class="question-mark">?</span>;
+    <span class="kw">let </span>map_err: <span class="kw">fn</span>(hyper::Error) -&gt; futures::io::Error =
+        |e| futures::io::Error::new(futures::io::ErrorKind::Other, e);
+    <span class="kw">let </span><span class="kw-2">mut </span>source = response
+        .into_body()
+        .map_err(map_err)
+        .into_async_read()
+        .compat();
     <span class="kw">let </span>file = File::create(path).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>writer = BufWriter::new(file);
     tokio::io::copy(<span class="kw-2">&amp;mut </span>source, <span class="kw-2">&amp;mut </span>writer).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>file_metadata = std::fs::metadata(path)<span class="question-mark">?</span>;
-    <span class="macro">anyhow::ensure!</span>(<span class="prelude-val">Some</span>(file_metadata.len() <span class="kw">as </span>usize) == content_len);
+    <span class="macro">anyhow::ensure!</span>(file_metadata.len() == content_len);
     <span class="prelude-val">Ok</span>(())
 }
 

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FetchProgress","Holds a Reader, tracks read progress and draw a progress bar."]]};
+window.SIDEBAR_ITEMS = {"fn":[["https_client","Constructs [hyper::Client] that supports both `http` and `https`. Note that only `http1` is supported."]],"struct":[["FetchProgress","Holds a Reader, tracks read progress and draw a progress bar."]],"trait":[["HyperBodyExt","Trait that contains extension methods of [Body]"]]};

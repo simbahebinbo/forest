@@ -205,13 +205,6 @@
 <span id="205">205</span>
 <span id="206">206</span>
 <span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -225,6 +218,8 @@
 <span class="kw">pub mod </span>wallet_ops;
 
 <span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
+<span class="kw">use </span>forest_utils::net::hyper::http::HeaderValue;
+<span class="kw">use </span>forest_utils::net::{https_client, hyper, HyperBodyExt};
 <span class="doccomment">/// Filecoin HTTP JSON-RPC client methods
 </span><span class="kw">use </span>jsonrpc_v2::{Error, Id, RequestObject, V2};
 <span class="kw">use </span>log::{debug, error};
@@ -369,43 +364,34 @@
 
     <span class="macro">debug!</span>(<span class="string">&quot;Using JSON-RPC v2 HTTP URL: {}&quot;</span>, api_url);
 
-    <span class="kw">let </span>client: surf::Client = surf::Config::default().set_timeout(<span class="prelude-val">None</span>).try_into()<span class="question-mark">?</span>;
+    <span class="kw">let </span>client = https_client();
     <span class="comment">// Split the JWT off if present, format multiaddress as URL, then post RPC request to URL
-    </span><span class="kw">let </span><span class="kw-2">mut </span>http_res = <span class="kw">match </span>api_info.token.to_owned() {
-        <span class="prelude-val">Some</span>(jwt) =&gt; client
-            .post(api_url)
-            .content_type(<span class="string">&quot;application/json&quot;</span>)
-            .body(surf::Body::from_json(<span class="kw-2">&amp;</span>rpc_req)<span class="question-mark">?</span>)
-            .header(<span class="string">&quot;Authorization&quot;</span>, jwt),
+    </span><span class="kw">let </span><span class="kw-2">mut </span>request =
+        hyper::Request::post(<span class="kw-2">&amp;</span>api_url).body(serde_json::to_string(<span class="kw-2">&amp;</span>rpc_req)<span class="question-mark">?</span>.into())<span class="question-mark">?</span>;
+    <span class="kw">let </span>headers_mut = request.headers_mut();
+    headers_mut.insert(<span class="string">&quot;content-type&quot;</span>, HeaderValue::from_static(<span class="string">&quot;application/json&quot;</span>));
+    <span class="kw">match </span>api_info.token.to_owned() {
+        <span class="prelude-val">Some</span>(jwt) =&gt; {
+            headers_mut.insert(<span class="string">&quot;Authorization&quot;</span>, HeaderValue::from_str(<span class="kw-2">&amp;</span>jwt)<span class="question-mark">?</span>);
+        }
         <span class="prelude-val">None </span>=&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(jwt) = token {
-                surf::post(api_url)
-                    .content_type(<span class="string">&quot;application/json&quot;</span>)
-                    .body(surf::Body::from_json(<span class="kw-2">&amp;</span>rpc_req)<span class="question-mark">?</span>)
-                    .header(<span class="string">&quot;Authorization&quot;</span>, jwt)
-            } <span class="kw">else </span>{
-                surf::post(api_url)
-                    .content_type(<span class="string">&quot;application/json&quot;</span>)
-                    .body(surf::Body::from_json(<span class="kw-2">&amp;</span>rpc_req)<span class="question-mark">?</span>)
+                headers_mut.insert(<span class="string">&quot;Authorization&quot;</span>, HeaderValue::from_str(jwt)<span class="question-mark">?</span>);
             }
         }
     }
-    .<span class="kw">await</span><span class="question-mark">?</span>;
-
-    <span class="kw">let </span>res = http_res.body_string().<span class="kw">await</span><span class="question-mark">?</span>;
-
-    <span class="kw">let </span>code = http_res.status() <span class="kw">as </span>i64;
-
-    <span class="kw">if </span>code != <span class="number">200 </span>{
+    <span class="kw">let </span>response = client.request(request).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>code = response.status();
+    <span class="kw">if </span>!code.is_success() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Full {
-            message: <span class="macro">format!</span>(<span class="string">&quot;Error code from HTTP Response: {}&quot;</span>, code),
-            code,
+            message: <span class="macro">format!</span>(<span class="string">&quot;Error code from HTTP Response: {code}&quot;</span>),
+            code: code.as_u16().into(),
             data: <span class="prelude-val">None</span>,
         });
     }
 
     <span class="comment">// Return the parsed RPC result
-    </span><span class="kw">let </span>rpc_res: JsonRpcResponse&lt;R&gt; = <span class="kw">match </span>serde_json::from_str(<span class="kw-2">&amp;</span>res) {
+    </span><span class="kw">let </span>rpc_res: JsonRpcResponse&lt;R&gt; = <span class="kw">match </span>response.into_body().json().<span class="kw">await </span>{
         <span class="prelude-val">Ok</span>(r) =&gt; r,
         <span class="prelude-val">Err</span>(e) =&gt; {
             <span class="kw">let </span>err = <span class="macro">format!</span>(

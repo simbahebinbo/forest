@@ -804,6 +804,14 @@
 <span id="804">804</span>
 <span id="805">805</span>
 <span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -957,6 +965,7 @@
 
 <span class="doccomment">/// The `Libp2pService` listens to events from the libp2p swarm.
 </span><span class="kw">pub struct </span>Libp2pService&lt;DB, P: StoreParams&gt; {
+    config: Libp2pConfig,
     swarm: Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
     cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
     network_receiver_in: flume::Receiver&lt;NetworkMessage&gt;,
@@ -992,12 +1001,16 @@
             ForestBehaviour::new(<span class="kw-2">&amp;</span>net_keypair, <span class="kw-2">&amp;</span>config, network_name, cs.db.clone()).<span class="kw">await</span>,
             peer_id,
         )
+        <span class="comment">// We want the connection background tasks to be spawned
+        // onto the tokio runtime.
+        // &lt;https://github.com/libp2p/rust-libp2p/discussions/2592&gt;
+        </span>.executor(Box::new(|fut| {
+            tokio::spawn(fut);
+        }))
         .connection_limits(limits)
         .notify_handler_buffer_size(std::num::NonZeroUsize::new(<span class="number">20</span>).expect(<span class="string">&quot;Not zero&quot;</span>))
         .connection_event_buffer_size(<span class="number">64</span>)
         .build();
-
-        Swarm::listen_on(<span class="kw-2">&amp;mut </span>swarm, config.listening_multiaddr).unwrap();
 
         <span class="comment">// Subscribe to gossipsub topics with the network name suffix
         </span><span class="kw">for </span>topic <span class="kw">in </span>PUBSUB_TOPICS.iter() {
@@ -1005,15 +1018,11 @@
             swarm.behaviour_mut().subscribe(<span class="kw-2">&amp;</span>t).unwrap();
         }
 
-        <span class="comment">// Bootstrap with Kademlia
-        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = swarm.behaviour_mut().bootstrap() {
-            <span class="macro">warn!</span>(<span class="string">&quot;Failed to bootstrap with Kademlia: {}&quot;</span>, e);
-        }
-
         <span class="kw">let </span>(network_sender_in, network_receiver_in) = flume::unbounded();
         <span class="kw">let </span>(network_sender_out, network_receiver_out) = flume::unbounded();
 
         Libp2pService {
+            config,
             swarm,
             cs,
             network_receiver_in,
@@ -1025,7 +1034,14 @@
     }
 
     <span class="doccomment">/// Starts the libp2p service networking stack. This Future resolves when shutdown occurs.
-    </span><span class="kw">pub async fn </span>run(<span class="self">self</span>) {
+    </span><span class="kw">pub async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) {
+        <span class="macro">info!</span>(<span class="string">&quot;Running libp2p service&quot;</span>);
+        Swarm::listen_on(<span class="kw-2">&amp;mut </span><span class="self">self</span>.swarm, <span class="self">self</span>.config.listening_multiaddr).unwrap();
+        <span class="comment">// Bootstrap with Kademlia
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.swarm.behaviour_mut().bootstrap() {
+            <span class="macro">warn!</span>(<span class="string">&quot;Failed to bootstrap with Kademlia: {e}&quot;</span>);
+        }
+
         <span class="kw">let </span><span class="kw-2">mut </span>swarm_stream = <span class="self">self</span>.swarm.fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>network_stream = <span class="self">self</span>.network_receiver_in.stream().fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>interval =
@@ -1559,9 +1575,9 @@
 <span class="doccomment">/// Builds the transport stack that libp2p will communicate over.
 </span><span class="kw">pub async fn </span>build_transport(local_key: Keypair) -&gt; Boxed&lt;(PeerId, StreamMuxerBox)&gt; {
     <span class="kw">let </span>tcp_transport =
-        || libp2p::tcp::TcpTransport::new(libp2p::tcp::GenTcpConfig::new().nodelay(<span class="bool-val">true</span>));
+        || libp2p::tcp::TokioTcpTransport::new(libp2p::tcp::GenTcpConfig::new().nodelay(<span class="bool-val">true</span>));
     <span class="kw">let </span>transport = libp2p::websocket::WsConfig::new(tcp_transport()).or_transport(tcp_transport());
-    <span class="kw">let </span>transport = libp2p::dns::DnsConfig::system(transport).<span class="kw">await</span>.unwrap();
+    <span class="kw">let </span>transport = libp2p::dns::TokioDnsConfig::system(transport).unwrap();
     <span class="kw">let </span>auth_config = {
         <span class="kw">let </span>dh_keys = noise::Keypair::&lt;noise::X25519Spec&gt;::new()
             .into_authentic(<span class="kw-2">&amp;</span>local_key)

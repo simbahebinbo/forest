@@ -111,18 +111,13 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>futures::stream::{IntoAsyncRead, MapErr};
+</span><span class="kw">use </span><span class="kw">super</span>::https_client;
+<span class="kw">use </span><span class="kw">crate</span>::io::ProgressBar;
+<span class="kw">use </span>futures::stream::{IntoAsyncRead, MapErr};
 <span class="kw">use </span>futures::TryStreamExt;
-<span class="kw">use </span>hyper_rustls::HttpsConnectorBuilder;
 <span class="kw">use </span>pin_project_lite::pin_project;
 <span class="kw">use </span>std::pin::Pin;
 <span class="kw">use </span>std::task::{Context, Poll};
@@ -133,8 +128,6 @@
 <span class="kw">use </span>tokio::io::{BufReader, ReadBuf};
 <span class="kw">use </span>tokio_util::compat::{Compat, FuturesAsyncReadCompatExt};
 <span class="kw">use </span>url::Url;
-
-<span class="kw">use </span><span class="kw">crate</span>::io::ProgressBar;
 
 <span class="attr">#[derive(Debug, Error)]
 </span><span class="kw">enum </span>DownloadError {
@@ -178,12 +171,7 @@
 
 <span class="kw">impl </span>FetchProgress&lt;DownloadStream&gt; {
     <span class="kw">pub async fn </span>fetch_from_url(url: Url) -&gt; anyhow::Result&lt;FetchProgress&lt;DownloadStream&gt;&gt; {
-        <span class="kw">let </span>https = HttpsConnectorBuilder::new()
-            .with_native_roots()
-            .https_or_http()
-            .enable_http1()
-            .build();
-        <span class="kw">let </span>client = hyper::Client::builder().build::&lt;<span class="kw">_</span>, hyper::Body&gt;(https);
+        <span class="kw">let </span>client = https_client();
         <span class="kw">let </span>total_size = {
             <span class="kw">let </span>resp = client
                 .request(hyper::Request::head(url.as_str()).body(<span class="string">&quot;&quot;</span>.into())<span class="question-mark">?</span>)

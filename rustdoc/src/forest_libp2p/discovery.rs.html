@@ -464,7 +464,7 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>libp2p::core::transport::ListenerId;
 <span class="kw">use </span>libp2p::kad::record::store::MemoryStore;
-<span class="kw">use </span>libp2p::mdns::Mdns;
+<span class="kw">use </span>libp2p::mdns::TokioMdns <span class="kw">as </span>Mdns;
 <span class="kw">use </span>libp2p::swarm::behaviour::toggle::ToggleIntoConnectionHandler;
 <span class="kw">use </span>libp2p::swarm::{ConnectionHandler, DialError, IntoConnectionHandler};
 <span class="kw">use </span>libp2p::{
