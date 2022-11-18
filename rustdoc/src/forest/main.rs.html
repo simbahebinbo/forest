@@ -195,6 +195,11 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -213,7 +218,6 @@
 <span class="kw">use </span>log::{info, warn};
 <span class="kw">use </span>raw_sync::events::{Event, EventInit};
 <span class="kw">use </span>raw_sync::Timeout;
-<span class="kw">use </span>rlimit::{getrlimit, Resource};
 <span class="kw">use </span>shared_memory::ShmemConf;
 <span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>tempfile::{Builder, TempPath};
@@ -291,7 +295,9 @@
     <span class="prelude-val">Ok</span>(daemon)
 }
 
-<span class="kw">fn </span>check_for_low_fd(config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
+<span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
+</span><span class="kw">fn </span>check_for_low_fd(config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
+    <span class="kw">use </span>rlimit::{getrlimit, Resource};
     <span class="comment">// Conservative estimate of how many FD we will need to run a Forest node
     </span><span class="kw">const </span>MAINNET_CHAIN_SIZE: u64 = <span class="number">1000_u64</span>.pow(<span class="number">4</span>); <span class="comment">// 1TB
     </span><span class="kw">const </span>ANOTHER_CHAIN_SIZE: u64 = <span class="number">100 </span>* <span class="number">1000_u64</span>.pow(<span class="number">3</span>); <span class="comment">// 100GB
@@ -320,6 +326,10 @@
         <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Open-file limit is too low. Suggesting `ulimit -n {rounded_estimate}`&quot;</span>);
     }
 
+    <span class="prelude-val">Ok</span>(())
+}
+<span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
+</span><span class="kw">fn </span>check_for_low_fd(_config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
     <span class="prelude-val">Ok</span>(())
 }
 

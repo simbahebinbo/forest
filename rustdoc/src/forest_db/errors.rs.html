@@ -39,6 +39,12 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -52,8 +58,12 @@
     </span>InvalidBulkLen,
     <span class="attr">#[error(<span class="string">&quot;Cannot use unopened database&quot;</span>)]
     </span>Unopened,
-    <span class="attr">#[error(transparent)]
+    <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
+    #[error(transparent)]
     </span>Database(<span class="attr">#[from] </span>rocksdb::Error),
+    <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
+    #[error(transparent)]
+    </span>Database(<span class="attr">#[from] </span>parity_db::Error),
     <span class="attr">#[error(transparent)]
     </span>Encoding(<span class="attr">#[from] </span>CborError),
     <span class="attr">#[error(<span class="string">&quot;{0}&quot;</span>)]
@@ -67,8 +77,10 @@
         <span class="kw">match </span>(<span class="self">self</span>, other) {
             (<span class="kw-2">&amp;</span>InvalidBulkLen, <span class="kw-2">&amp;</span>InvalidBulkLen) =&gt; <span class="bool-val">true</span>,
             (<span class="kw-2">&amp;</span>Unopened, <span class="kw-2">&amp;</span>Unopened) =&gt; <span class="bool-val">true</span>,
-            (<span class="kw-2">&amp;</span>Database(<span class="kw">_</span>), <span class="kw-2">&amp;</span>Database(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
-            (<span class="kw-2">&amp;</span>Encoding(<span class="kw">_</span>), <span class="kw-2">&amp;</span>Encoding(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
+            </span>(<span class="kw-2">&amp;</span>Database(<span class="kw">_</span>), <span class="kw-2">&amp;</span>Database(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
+            <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
+            </span>(<span class="kw-2">&amp;</span>Encoding(<span class="kw">_</span>), <span class="kw-2">&amp;</span>Encoding(<span class="kw">_</span>)) =&gt; <span class="bool-val">true</span>,
             (<span class="kw-2">&amp;</span>Other(<span class="kw-2">ref </span>a), <span class="kw-2">&amp;</span>Other(<span class="kw-2">ref </span>b)) =&gt; a == b,
             <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
         }

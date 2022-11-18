@@ -397,6 +397,13 @@
 <span id="397">397</span>
 <span id="398">398</span>
 <span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -681,9 +688,16 @@
         .join(config.chain.name.clone())
 }
 
-<span class="doccomment">/// Gets database directory
+<span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
+</span><span class="doccomment">/// Gets database directory
 </span><span class="kw">pub fn </span>db_path(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
-    chain_path(config).join(<span class="string">&quot;db&quot;</span>)
+    chain_path(config).join(<span class="string">&quot;rocksdb&quot;</span>)
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
+</span><span class="doccomment">/// Gets database directory
+</span><span class="kw">pub fn </span>db_path(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
+    chain_path(config).join(<span class="string">&quot;paritydb&quot;</span>)
 }
 
 <span class="doccomment">/// Gets chain data directory

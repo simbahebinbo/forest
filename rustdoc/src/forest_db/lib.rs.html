@@ -115,6 +115,11 @@
 <span id="115">115</span>
 <span id="116">116</span>
 <span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -123,8 +128,13 @@
 <span class="kw">mod </span>metrics;
 <span class="kw">mod </span>utils;
 
-<span class="kw">pub mod </span>rocks;
-<span class="kw">pub mod </span>rocks_config;
+<span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
+</span><span class="kw">pub mod </span>rocks;
+<span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
+</span><span class="kw">pub mod </span>rocks_config;
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
+</span><span class="kw">pub mod </span>parity_db;
 
 <span class="kw">pub use </span>errors::Error;
 <span class="kw">pub use </span>memory::MemoryDB;
