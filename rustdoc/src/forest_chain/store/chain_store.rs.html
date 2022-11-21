@@ -1057,13 +1057,18 @@
 <span id="1057">1057</span>
 <span id="1058">1058</span>
 <span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::Scale;
-
+</span><span class="kw">use </span><span class="kw">super</span>::index::checkpoint_tipsets;
 <span class="kw">use </span><span class="kw">super</span>::metrics;
 <span class="kw">use super</span>::{index::ChainIndex, tipset_tracker::TipsetTracker, Error};
+<span class="kw">use </span><span class="kw">crate</span>::Scale;
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
@@ -1264,6 +1269,11 @@
         }
         tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>.ts_cache, <span class="self">self</span>.blockstore(), tsk).<span class="kw">await
     </span>}
+
+    <span class="doccomment">/// Returns Tipset key hash from key-value store from provided CIDs
+    </span><span class="kw">pub async fn </span>tipset_hash_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; String {
+        checkpoint_tipsets::tipset_hash(tsk)
+    }
 
     <span class="doccomment">/// Determines if provided tipset is heavier than existing known heaviest tipset
     </span><span class="kw">async fn </span>update_heaviest&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;

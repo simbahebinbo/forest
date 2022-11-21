@@ -191,6 +191,83 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -199,6 +276,7 @@
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>log::info;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc};
 <span class="kw">use </span>tokio::sync::RwLock;
@@ -208,6 +286,71 @@
 
 <span class="doccomment">/// Configuration which sets the length of tipsets to skip in between each cached entry.
 </span><span class="kw">const </span>SKIP_LENGTH: ChainEpoch = <span class="number">20</span>;
+
+<span class="comment">// this module helps speed up boot times for forest by checkpointing previously seen tipsets from snapshots.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>checkpoint_tipsets {
+    <span class="kw">use </span>cid::Cid;
+    <span class="kw">use </span>forest_blocks::TipsetKeys;
+    <span class="kw">use </span>once_cell::sync::Lazy;
+    <span class="kw">use </span>std::collections::HashMap;
+    <span class="kw">use </span>std::str::FromStr;
+
+    <span class="kw">const </span>CALIBNET_GENESIS_CID: <span class="kw-2">&amp;</span>str =
+        <span class="string">&quot;bafy2bzacecyaggy24wol5ruvs6qm73gjibs2l2iyhcqmvi7r7a4ph7zx3yqd4&quot;</span>;
+    <span class="kw">const </span>MAINNET_GENESIS_CID: <span class="kw-2">&amp;</span>str =
+        <span class="string">&quot;bafy2bzacecnamqgqmifpluoeldx7zzglxcljo6oja4vrmtj7432rphldpdmm2&quot;</span>;
+
+    <span class="macro">macro_rules! </span>add_calibnet {
+        (<span class="macro-nonterminal">$map</span>: ident, <span class="macro-nonterminal">$key_hash</span>:expr) =&gt; {
+            <span class="macro-nonterminal">$map</span>.insert(
+                <span class="macro-nonterminal">$key_hash</span>,
+                <span class="comment">// calibnet genesis tipset keys
+                </span>TipsetKeys::new(<span class="macro">vec!</span>[Cid::from_str(CALIBNET_GENESIS_CID).unwrap()]),
+            );
+        };
+    }
+
+    <span class="macro">macro_rules! </span>add_mainnet {
+        (<span class="macro-nonterminal">$map</span>: ident, <span class="macro-nonterminal">$key_hash</span>:expr) =&gt; {
+            <span class="macro-nonterminal">$map</span>.insert(
+                <span class="macro-nonterminal">$key_hash</span>,
+                <span class="comment">// mainnet genesis tipset keys
+                </span>TipsetKeys::new(<span class="macro">vec!</span>[Cid::from_str(MAINNET_GENESIS_CID).unwrap()]),
+            );
+        };
+    }
+
+    <span class="comment">// The hashes for these checkpoints is obtained by passing the tipset keys&#39; cids (tipset.cids())
+    // through a blake2b hasher.
+    </span><span class="kw">type </span>TipsetKeyHash = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
+    <span class="kw">type </span>GenesisTipsetCids = TipsetKeys;
+    <span class="comment">// A map of validated checkpoints mapping to their genesis tipkeys
+    </span><span class="kw">type </span>TipsetCheckpointsRegistry = HashMap&lt;TipsetKeyHash, GenesisTipsetCids&gt;;
+    <span class="comment">// Represents a static map of validated tipset hashes which helps to remove the need to validate the tipset
+    // back to genesis if it has been validated before, thereby reducing boot times.
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static </span>TIPSET_CHECKPOINTS: Lazy&lt;TipsetCheckpointsRegistry&gt; = Lazy::new(|| {
+        <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
+        <span class="comment">// The numeric suffix in the variable name is the height of the snapshot.
+        // NB: Add desired tipset checkpoints below this by using RPC command: forest-cli chain tipset-hash &lt;cid keys&gt;
+        </span><span class="kw">const </span>CALIBNET_CHECKPOINT_1405400: TipsetKeyHash = <span class="string">&quot;7930ad8bf32b35314b3bc47b9e25249af8ec6ba7f5544c05e8b5bd3b3ec09f76df8bd2278f9b318badf1a08d0a468abd55130465c6c55f99e67badc0e614ca79&quot;</span>;
+        <span class="kw">const </span>MAINNET_CHECKPOINT_2325300: TipsetKeyHash = <span class="string">&quot;319f2351ceaf78fbcc8688dc75a19bdf8ee6e895e547ff5cc2f7b18a3a36b65ff94c1860733137d0244352f82ba6fd9672aec14deee358e7cf6e088bf89a28b1&quot;</span>;
+        <span class="kw">const </span>CALIBNET_CHECKPOINT_41000: TipsetKeyHash = <span class="string">&quot;1a11a07d427348cc14eaa901de1ba9c6a4e18400bb557f5a0fabbcb22352319e31a7bc988a92525339f84275c0ef6dfbffcb50bb9d9843701875eecfa3ccb069&quot;</span>;
+        <span class="macro">add_calibnet!</span>(map, CALIBNET_CHECKPOINT_1405400);
+        <span class="macro">add_calibnet!</span>(map, CALIBNET_CHECKPOINT_41000);
+        <span class="macro">add_mainnet!</span>(map, MAINNET_CHECKPOINT_2325300);
+        map
+    });
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>genesis_from_checkpoint_tipset(tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Option</span>&lt;GenesisTipsetCids&gt; {
+        TIPSET_CHECKPOINTS.get(<span class="kw-2">&amp;</span>tipset_hash(tsk).as_str()).cloned()
+    }
+
+    <span class="kw">pub fn </span>tipset_hash(tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; String {
+        <span class="kw">let </span>ts_bytes: Vec&lt;<span class="kw">_</span>&gt; = tsk.cids().iter().flat_map(|s| s.to_bytes()).collect();
+        <span class="kw">let </span>tipset_keys_hash = blake2b_simd::blake2b(<span class="kw-2">&amp;</span>ts_bytes).to_hex();
+        tipset_keys_hash.to_string()
+    }
+}
 
 <span class="doccomment">/// `Lookback` entry to cache in the `ChainIndex`. Stores all relevant info when doing `lookbacks`.
 </span><span class="attr">#[derive(Clone, PartialEq, Debug)]
@@ -277,6 +420,17 @@
                     .inc();
                 <span class="self">self</span>.fill_cache(std::mem::take(<span class="kw-2">&amp;mut </span>cur)).<span class="kw">await</span><span class="question-mark">?
             </span>};
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(genesis_tipset_keys) =
+                checkpoint_tipsets::genesis_from_checkpoint_tipset(lbe.tipset.key())
+            {
+                <span class="kw">if </span>to == <span class="number">0 </span>{
+                    <span class="kw">let </span>tipset =
+                        tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>.ts_cache, <span class="kw-2">&amp;</span><span class="self">self</span>.db, <span class="kw-2">&amp;</span>genesis_tipset_keys).<span class="kw">await</span><span class="question-mark">?</span>;
+                    <span class="macro">info!</span>(<span class="string">&quot;using checkpoint tipset at height: {}&quot;</span>, lbe.tipset.epoch());
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(tipset);
+                }
+            }
 
             <span class="kw">if </span>lbe.tipset.epoch() == to || lbe.parent_height &lt; to {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(lbe.tipset.clone());

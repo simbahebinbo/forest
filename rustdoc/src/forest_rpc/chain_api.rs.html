@@ -388,6 +388,23 @@
 <span id="388">388</span>
 <span id="389">389</span>
 <span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -726,6 +743,23 @@
         .tipset_from_keys(<span class="kw-2">&amp;</span>tsk)
         .<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(TipsetJson(ts))
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>chain_get_tipset_hash&lt;DB, B&gt;(
+    data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
+    Params(params): Params&lt;ChainGetTipSetHashParams&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetTipSetHashResult, JsonRpcError&gt;
+<span class="kw">where
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
+{
+    <span class="kw">let </span>(TipsetKeysJson(tsk),) = params;
+    <span class="kw">let </span>ts = data
+        .state_manager
+        .chain_store()
+        .tipset_hash_from_keys(<span class="kw-2">&amp;</span>tsk)
+        .<span class="kw">await</span>;
+    <span class="prelude-val">Ok</span>(ts)
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>chain_get_randomness_from_tickets&lt;DB, B&gt;(

@@ -188,6 +188,7 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
+<span id="191">191</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -264,6 +265,7 @@
             .with_method(CHAIN_GET_GENESIS, chain_get_genesis::&lt;DB, B&gt;)
             .with_method(CHAIN_TIPSET_WEIGHT, chain_tipset_weight::&lt;DB, B&gt;)
             .with_method(CHAIN_GET_TIPSET, chain_get_tipset::&lt;DB, B&gt;)
+            .with_method(CHAIN_GET_TIPSET_HASH, chain_get_tipset_hash::&lt;DB, B&gt;)
             .with_method(CHAIN_HEAD, chain_head::&lt;DB, B&gt;)
             <span class="comment">// XXX: CHAIN_HEAD_SUBSCRIPTION disabled since it is unsed
             // .with_method(CHAIN_HEAD_SUBSCRIPTION, chain_head_subscription::&lt;DB, B&gt;)
