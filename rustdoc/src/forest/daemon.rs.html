@@ -576,6 +576,9 @@
 <span id="576">576</span>
 <span id="577">577</span>
 <span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -762,7 +765,8 @@
     )
     .<span class="kw">await
     </span>.unwrap();
-    chain_store.set_genesis(<span class="kw-2">&amp;</span>genesis.blocks()[<span class="number">0</span>]).unwrap();
+    <span class="kw">let </span>genesis_header = <span class="kw-2">&amp;</span>genesis.blocks()[<span class="number">0</span>];
+    chain_store.set_genesis(genesis_header).unwrap();
 
     <span class="comment">// XXX: This code has to be run before starting the background services.
     //      If it isn&#39;t, several threads will be competing for access to stdout.
@@ -822,12 +826,14 @@
         config
     };
 
+    <span class="kw">let </span>genesis_cid = <span class="kw-2">*</span>genesis_header.cid();
     <span class="comment">// Libp2p service setup
     </span><span class="kw">let </span>p2p_service = Libp2pService::new(
         config.network.clone(),
         Arc::clone(<span class="kw-2">&amp;</span>chain_store),
         net_keypair,
         <span class="kw-2">&amp;</span>network_name,
+        genesis_cid,
     )
     .<span class="kw">await</span>;
 

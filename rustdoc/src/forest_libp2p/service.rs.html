@@ -812,6 +812,26 @@
 <span id="812">812</span>
 <span id="813">813</span>
 <span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -973,6 +993,7 @@
     network_receiver_out: flume::Receiver&lt;NetworkEvent&gt;,
     network_sender_out: flume::Sender&lt;NetworkEvent&gt;,
     network_name: String,
+    genesis_cid: Cid,
 }
 
 <span class="kw">impl</span>&lt;DB, P: StoreParams&gt; Libp2pService&lt;DB, P&gt;
@@ -984,6 +1005,7 @@
         cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
         net_keypair: Keypair,
         network_name: <span class="kw-2">&amp;</span>str,
+        genesis_cid: Cid,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>peer_id = PeerId::from(net_keypair.public());
 
@@ -1029,7 +1051,8 @@
             network_sender_in,
             network_receiver_out,
             network_sender_out,
-            network_name: network_name.to_owned(),
+            network_name: network_name.into(),
+            genesis_cid,
         }
     }
 
@@ -1060,9 +1083,10 @@
                     <span class="comment">// outbound events
                     </span><span class="prelude-val">Some</span>(SwarmEvent::Behaviour(event)) =&gt; {
                         handle_forest_behaviour_event(
-                            swarm_stream.get_mut().behaviour_mut(),
+                            swarm_stream.get_mut(),
                             event,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cs,
+                            <span class="kw-2">&amp;</span><span class="self">self</span>.genesis_cid,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out,
                             <span class="kw-2">&amp;mut </span>hello_request_table,
                             <span class="kw-2">&amp;mut </span>cx_request_table,
@@ -1093,8 +1117,8 @@
                 },
                 pair_opt = cx_response_rx_stream.next() =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>((_request_id, channel, cx_response)) = pair_opt {
-                        <span class="kw">let </span>bh_mut = swarm_stream.get_mut().behaviour_mut();
-                        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = bh_mut.chain_exchange.send_response(channel, cx_response) {
+                        <span class="kw">let </span>behaviour = swarm_stream.get_mut().behaviour_mut();
+                        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = behaviour.chain_exchange.send_response(channel, cx_response) {
                             <span class="macro">warn!</span>(<span class="string">&quot;Error sending chain exchange response: {e:?}&quot;</span>);
                         }
                     }
@@ -1115,7 +1139,7 @@
 }
 
 <span class="kw">async fn </span>handle_network_message&lt;P: StoreParams&gt;(
-    st_mut: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
     message: NetworkMessage,
     network_sender_out: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkEvent&gt;,
     hello_request_table: <span class="kw-2">&amp;mut </span>HashMap&lt;
@@ -1130,7 +1154,7 @@
 ) {
     <span class="kw">match </span>message {
         NetworkMessage::PubsubMessage { topic, message } =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = st_mut.behaviour_mut().publish(topic, message) {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = swarm.behaviour_mut().publish(topic, message) {
                 <span class="macro">warn!</span>(<span class="string">&quot;Failed to send gossipsub message: {:?}&quot;</span>, e);
             }
         }
@@ -1139,7 +1163,7 @@
             request,
             response_channel,
         } =&gt; {
-            <span class="kw">let </span>request_id = st_mut.behaviour_mut().hello.send_request(<span class="kw-2">&amp;</span>peer_id, request);
+            <span class="kw">let </span>request_id = swarm.behaviour_mut().hello.send_request(<span class="kw-2">&amp;</span>peer_id, request);
             hello_request_table.insert(request_id, response_channel);
             emit_event(
                 network_sender_out,
@@ -1152,7 +1176,7 @@
             request,
             response_channel,
         } =&gt; {
-            <span class="kw">let </span>request_id = st_mut
+            <span class="kw">let </span>request_id = swarm
                 .behaviour_mut()
                 .chain_exchange
                 .send_request(<span class="kw-2">&amp;</span>peer_id, request);
@@ -1166,7 +1190,7 @@
         NetworkMessage::BitswapRequest {
             cid,
             response_channel: <span class="kw">_</span>,
-        } =&gt; <span class="kw">match </span>st_mut.behaviour_mut().want_block(cid) {
+        } =&gt; <span class="kw">match </span>swarm.behaviour_mut().want_block(cid) {
             <span class="prelude-val">Ok</span>(query_id) =&gt; {
                 outgoing_bitswap_query_ids.insert(query_id, cid);
                 emit_event(
@@ -1179,8 +1203,8 @@
         },
         NetworkMessage::JSONRPCRequest { method } =&gt; <span class="kw">match </span>method {
             NetRPCMethods::NetAddrsListen(response_channel) =&gt; {
-                <span class="kw">let </span>listeners: Vec&lt;<span class="kw">_</span>&gt; = Swarm::listeners(st_mut).cloned().collect();
-                <span class="kw">let </span>peer_id = Swarm::local_peer_id(st_mut);
+                <span class="kw">let </span>listeners: Vec&lt;<span class="kw">_</span>&gt; = Swarm::listeners(swarm).cloned().collect();
+                <span class="kw">let </span>peer_id = Swarm::local_peer_id(swarm);
 
                 <span class="kw">if </span>response_channel.send((<span class="kw-2">*</span>peer_id, listeners)).is_err() {
                     <span class="macro">warn!</span>(<span class="string">&quot;Failed to get Libp2p listeners&quot;</span>);
@@ -1188,7 +1212,7 @@
             }
             NetRPCMethods::NetPeers(response_channel) =&gt; {
                 <span class="kw">let </span>peer_addresses: <span class="kw-2">&amp;</span>HashMap&lt;PeerId, Vec&lt;Multiaddr&gt;&gt; =
-                    st_mut.behaviour_mut().peer_addresses();
+                    swarm.behaviour_mut().peer_addresses();
 
                 <span class="kw">if </span>response_channel.send(peer_addresses.to_owned()).is_err() {
                     <span class="macro">warn!</span>(<span class="string">&quot;Failed to get Libp2p peers&quot;</span>);
@@ -1202,7 +1226,7 @@
                         Multihash::from_bytes(<span class="kw-2">&amp;</span>peer_id.to_bytes()).unwrap(),
                     ));
 
-                    <span class="kw">if </span>Swarm::dial(st_mut, multiaddr.clone()).is_ok() {
+                    <span class="kw">if </span>Swarm::dial(swarm, multiaddr.clone()).is_ok() {
                         success = <span class="bool-val">true</span>;
                         <span class="kw">break</span>;
                     };
@@ -1213,7 +1237,7 @@
                 }
             }
             NetRPCMethods::NetDisconnect(response_channel, peer_id) =&gt; {
-                <span class="kw">let _ </span>= Swarm::disconnect_peer_id(st_mut, peer_id);
+                <span class="kw">let _ </span>= Swarm::disconnect_peer_id(swarm, peer_id);
                 <span class="kw">if </span>response_channel.send(()).is_err() {
                     <span class="macro">warn!</span>(<span class="string">&quot;Failed to disconnect from a peer&quot;</span>);
                 }
@@ -1224,9 +1248,10 @@
 
 <span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P: StoreParams&gt;(
-    bh_mut: <span class="kw-2">&amp;mut </span>ForestBehaviour&lt;P&gt;,
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
     event: ForestBehaviourEvent&lt;P&gt;,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
+    genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkEvent&gt;,
     hello_request_table: <span class="kw-2">&amp;mut </span>HashMap&lt;
         RequestId,
@@ -1247,19 +1272,20 @@
 ) <span class="kw">where
     </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
+    <span class="kw">let </span>behaviour = swarm.behaviour_mut();
     <span class="kw">match </span>event {
         ForestBehaviourEvent::Discovery(discovery_out) =&gt; <span class="kw">match </span>discovery_out {
             DiscoveryOut::Connected(peer_id, addresses) =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot;Peer connected, {:?}&quot;</span>, peer_id);
                 <span class="kw">for </span>addr <span class="kw">in </span>addresses {
-                    bh_mut.bitswap.add_address(<span class="kw-2">&amp;</span>peer_id, addr);
+                    behaviour.bitswap.add_address(<span class="kw-2">&amp;</span>peer_id, addr);
                 }
                 emit_event(network_sender_out, NetworkEvent::PeerConnected(peer_id)).<span class="kw">await</span>;
             }
             DiscoveryOut::Disconnected(peer_id, addresses) =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot;Peer disconnected, {:?}&quot;</span>, peer_id);
                 <span class="kw">for </span>addr <span class="kw">in </span>addresses {
-                    bh_mut.bitswap.remove_address(<span class="kw-2">&amp;</span>peer_id, <span class="kw-2">&amp;</span>addr);
+                    behaviour.bitswap.remove_address(<span class="kw-2">&amp;</span>peer_id, <span class="kw-2">&amp;</span>addr);
                 }
                 emit_event(network_sender_out, NetworkEvent::PeerDisconnected(peer_id)).<span class="kw">await</span>;
             }
@@ -1336,29 +1362,37 @@
                         .expect(<span class="string">&quot;System time since unix epoch should not exceed u64&quot;</span>);
 
                     <span class="macro">trace!</span>(<span class="string">&quot;Received hello request: {:?}&quot;</span>, request);
-                    <span class="kw">let </span>sent = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .expect(<span class="string">&quot;System time before unix epoch&quot;</span>)
-                        .as_nanos()
-                        .try_into()
-                        .expect(<span class="string">&quot;System time since unix epoch should not exceed u64&quot;</span>);
-
-                    <span class="comment">// Send hello response immediately, no need to have the overhead of emitting
-                    // channel and polling future here.
-                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = bh_mut
-                        .hello
-                        .send_response(channel, HelloResponse { arrival, sent })
-                    {
-                        <span class="macro">warn!</span>(<span class="string">&quot;Failed to send HelloResponse: {e:?}&quot;</span>);
+                    <span class="kw">if </span><span class="kw-2">&amp;</span>request.genesis_cid != genesis_cid {
+                        <span class="macro">warn!</span>(
+                            <span class="string">&quot;Genesis hash mismatch: {} received, {genesis_cid} expected. Banning {peer}&quot;</span>,
+                            request.genesis_cid
+                        );
+                        swarm.ban_peer_id(peer);
                     } <span class="kw">else </span>{
-                        emit_event(
-                            network_sender_out,
-                            NetworkEvent::HelloResponseOutbound {
-                                source: peer,
-                                request,
-                            },
-                        )
-                        .<span class="kw">await</span>;
+                        <span class="kw">let </span>sent = SystemTime::now()
+                            .duration_since(UNIX_EPOCH)
+                            .expect(<span class="string">&quot;System time before unix epoch&quot;</span>)
+                            .as_nanos()
+                            .try_into()
+                            .expect(<span class="string">&quot;System time since unix epoch should not exceed u64&quot;</span>);
+
+                        <span class="comment">// Send hello response immediately, no need to have the overhead of emitting
+                        // channel and polling future here.
+                        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = behaviour
+                            .hello
+                            .send_response(channel, HelloResponse { arrival, sent })
+                        {
+                            <span class="macro">warn!</span>(<span class="string">&quot;Failed to send HelloResponse: {e:?}&quot;</span>);
+                        } <span class="kw">else </span>{
+                            emit_event(
+                                network_sender_out,
+                                NetworkEvent::HelloResponseOutbound {
+                                    source: peer,
+                                    request,
+                                },
+                            )
+                            .<span class="kw">await</span>;
+                        }
                     }
                 }
                 RequestResponseMessage::Response {
@@ -1466,7 +1500,13 @@
                 );
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="macro">warn!</span>(<span class="string">&quot;{err}:{}&quot;</span>, ping_event.peer.to_base58());
+                <span class="kw">let </span>err = err.to_string();
+                <span class="kw">let </span>peer = ping_event.peer.to_base58();
+                <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
+                <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
+                    <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
+                    swarm.ban_peer_id(ping_event.peer);
+                }
             }
         },
         ForestBehaviourEvent::Identify(id_event) =&gt; <span class="kw">match </span>id_event {

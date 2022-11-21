@@ -1250,7 +1250,7 @@
                 heaviest_tip_set: heaviest.cids().to_vec(),
                 heaviest_tipset_height: heaviest.epoch(),
                 heaviest_tipset_weight: heaviest.weight().clone(),
-                genesis_hash: genesis_block_cid,
+                genesis_cid: genesis_block_cid,
             };
             <span class="kw">let </span>(peer_id, moment_sent, response) =
                 <span class="kw">match </span>network.hello_request(peer_id, request).<span class="kw">await </span>{

@@ -61,7 +61,7 @@
     <span class="kw">pub </span>heaviest_tipset_height: ChainEpoch,
     <span class="attr">#[serde(with = <span class="string">&quot;fvm_shared::bigint::bigint_ser&quot;</span>)]
     </span><span class="kw">pub </span>heaviest_tipset_weight: BigInt,
-    <span class="kw">pub </span>genesis_hash: Cid,
+    <span class="kw">pub </span>genesis_cid: Cid,
 }
 
 <span class="doccomment">/// Response to a Hello message. This just handles latency of the peer.
@@ -84,7 +84,7 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>hello_default_ser() {
         <span class="kw">let </span>orig_msg = HelloRequest {
-            genesis_hash: Cid::new_v1(DAG_CBOR, Identity.digest(<span class="kw-2">&amp;</span>[])),
+            genesis_cid: Cid::new_v1(DAG_CBOR, Identity.digest(<span class="kw-2">&amp;</span>[])),
             heaviest_tipset_weight: Default::default(),
             heaviest_tipset_height: Default::default(),
             heaviest_tip_set: Default::default(),
