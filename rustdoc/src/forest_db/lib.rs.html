@@ -120,6 +120,11 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -187,6 +192,11 @@
         </span>K: AsRef&lt;[u8]&gt;,
     {
         keys.iter().try_for_each(|key| <span class="self">self</span>.delete(key))
+    }
+
+    <span class="doccomment">/// Flush writing buffer if there is any. Default implementation is blank
+    </span><span class="kw">fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="prelude-val">Ok</span>(())
     }
 }
 

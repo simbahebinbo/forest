@@ -182,6 +182,13 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -316,6 +323,10 @@
         }
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.write(batch)<span class="question-mark">?</span>)
     }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.db.flush().map_err(|e| Error::Other(e.to_string()))
+    }
 }
 
 <span class="kw">impl </span>Blockstore <span class="kw">for </span>RocksDb {
@@ -334,14 +345,17 @@
         D: AsRef&lt;[u8]&gt;,
         I: IntoIterator&lt;Item = (Cid, D)&gt;,
     {
-        <span class="kw">let </span>values = blocks
-            .into_iter()
-            .map(|(k, v)| (k.to_bytes(), v))
-            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
-        <span class="kw">for </span>(_k, v) <span class="kw">in </span><span class="kw-2">&amp;</span>values {
-            metrics::BLOCK_SIZE_BYTES.observe(v.as_ref().len() <span class="kw">as </span>f64);
+        <span class="kw">let </span><span class="kw-2">mut </span>batch = WriteBatch::default();
+        <span class="kw">for </span>(cid, v) <span class="kw">in </span>blocks.into_iter() {
+            <span class="kw">let </span>k = cid.to_bytes();
+            <span class="kw">let </span>v = v.as_ref();
+            metrics::BLOCK_SIZE_BYTES.observe(v.len() <span class="kw">as </span>f64);
+            batch.put(k, v);
         }
-        <span class="self">self</span>.bulk_write(<span class="kw-2">&amp;</span>values).map_err(|e| e.into())
+        <span class="comment">// This function is used in `fvm_ipld_car::load_car`
+        // It reduces time cost of loading mainnet snapshot
+        // by ~10% by not writing to WAL(write ahead log).
+        </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.db.write_without_wal(batch)<span class="question-mark">?</span>)
     }
 }
 
