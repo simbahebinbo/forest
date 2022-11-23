@@ -13,7 +13,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_db":["",[],["errors.rs","lib.rs","memory.rs","metrics.rs","rocks.rs","rocks_config.rs","utils.rs"]],\
 "forest_deleg_cns":["",[],["composition.rs","consensus.rs","lib.rs","proposer.rs","validation.rs"]],\
 "forest_encoding":["",[],["checked_serde_bytes.rs","hash.rs","lib.rs"]],\
-"forest_fil_cns":["",[],["composition.rs","lib.rs","validation.rs","weight.rs"]],\
+"forest_fil_cns":["",[],["composition.rs","lib.rs","metrics.rs","validation.rs","weight.rs"]],\
 "forest_fil_types":["",[["deadlines",[],["mod.rs"]],["genesis",[],["mod.rs"]],["verifier",[],["mod.rs"]]],["lib.rs"]],\
 "forest_genesis":["",[],["lib.rs"]],\
 "forest_interpreter":["",[],["fvm.rs","lib.rs","vm.rs"]],\
@@ -30,7 +30,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_rpc":["",[],["auth_api.rs","beacon_api.rs","chain_api.rs","common_api.rs","gas_api.rs","lib.rs","mpool_api.rs","net_api.rs","rpc_http_handler.rs","rpc_util.rs","rpc_ws_handler.rs","state_api.rs","sync_api.rs","wallet_api.rs"]],\
 "forest_rpc_api":["",[],["data_types.rs","lib.rs"]],\
 "forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
-"forest_state_manager":["",[],["chain_rand.rs","errors.rs","lib.rs","utils.rs","vm_circ_supply.rs"]],\
+"forest_state_manager":["",[],["chain_rand.rs","errors.rs","lib.rs","metrics.rs","utils.rs","vm_circ_supply.rs"]],\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\
 "forest_test_utils":["",[],["chain_structures.rs","lib.rs"]],\

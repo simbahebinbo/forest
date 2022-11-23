@@ -388,6 +388,24 @@
 <span id="388">388</span>
 <span id="389">389</span>
 <span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -412,7 +430,7 @@
 <span class="kw">use </span>nonempty::NonEmpty;
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">use </span><span class="kw">crate</span>::FilecoinConsensusError;
+<span class="kw">use crate</span>::{metrics, FilecoinConsensusError};
 
 <span class="kw">fn </span>to_errs&lt;E: Into&lt;FilecoinConsensusError&gt;&gt;(e: E) -&gt; NonEmpty&lt;FilecoinConsensusError&gt; {
     NonEmpty::new(e.into())
@@ -434,6 +452,8 @@
     beacon_schedule: Arc&lt;BeaconSchedule&lt;B&gt;&gt;,
     block: Arc&lt;Block&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), NonEmpty&lt;FilecoinConsensusError&gt;&gt; {
+    <span class="kw">let </span>_timer = metrics::CONSENSUS_BLOCK_VALIDATION_TIME.start_timer();
+
     <span class="kw">let </span>chain_store = state_manager.chain_store().clone();
     <span class="kw">let </span>header = block.header();
 
@@ -598,6 +618,10 @@
     miner_addr: <span class="kw-2">&amp;</span>Address,
     tipset_state: <span class="kw-2">&amp;</span>Cid,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FilecoinConsensusError&gt; {
+    <span class="kw">let </span>_timer = metrics::CONSENSUS_BLOCK_VALIDATION_TASKS_TIME
+        .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::VALIDATE_MINER])
+        .start_timer();
+
     <span class="kw">let </span>actor = state_manager
         .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS, <span class="kw-2">*</span>tipset_state)<span class="question-mark">?
         </span>.ok_or(FilecoinConsensusError::PowerActorUnavailable)<span class="question-mark">?</span>;
@@ -621,6 +645,10 @@
     work_addr: <span class="kw-2">&amp;</span>Address,
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FilecoinConsensusError&gt; {
+    <span class="kw">let </span>_timer = metrics::CONSENSUS_BLOCK_VALIDATION_TASKS_TIME
+        .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::VALIDATE_WINNER_ELECTION])
+        .start_timer();
+
     <span class="comment">// Safe to unwrap because checked to `Some` in sanity check
     </span><span class="kw">let </span>election_proof = header.election_proof().as_ref().unwrap();
     <span class="kw">if </span>election_proof.win_count &lt; <span class="number">1 </span>{
@@ -673,6 +701,10 @@
     work_addr: <span class="kw-2">&amp;</span>Address,
     chain_config: <span class="kw-2">&amp;</span>ChainConfig,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FilecoinConsensusError&gt; {
+    <span class="kw">let </span>_timer = metrics::CONSENSUS_BLOCK_VALIDATION_TASKS_TIME
+        .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::VALIDATE_TICKET_ELECTION])
+        .start_timer();
+
     <span class="kw">let </span><span class="kw-2">mut </span>miner_address_buf = header.miner_address().marshal_cbor()<span class="question-mark">?</span>;
     <span class="kw">let </span>smoke_height = chain_config.epoch(Height::Smoke);
 
@@ -724,6 +756,10 @@
     prev_beacon_entry: <span class="kw-2">&amp;</span>BeaconEntry,
     lookback_state: <span class="kw-2">&amp;</span>Cid,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FilecoinConsensusError&gt; {
+    <span class="kw">let </span>_timer = metrics::CONSENSUS_BLOCK_VALIDATION_TASKS_TIME
+        .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::VERIFY_WINNING_POST_PROOF])
+        .start_timer();
+
     <span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">&quot;insecure_post&quot;</span>) {
         <span class="kw">let </span>wpp = header.winning_post_proof();
         <span class="kw">if </span>wpp.is_empty() {

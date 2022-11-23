@@ -1682,6 +1682,22 @@
 <span id="1682">1682</span>
 <span id="1683">1683</span>
 <span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2838,7 +2854,15 @@
     <span class="kw">let </span>full_tipset_key = full_tipset.key().clone();
 
     <span class="kw">let </span><span class="kw-2">mut </span>validations = FuturesUnordered::new();
-    <span class="kw">for </span>b <span class="kw">in </span>full_tipset.into_blocks() {
+    <span class="kw">let </span>blocks = full_tipset.into_blocks();
+
+    <span class="macro">info!</span>(
+        <span class="string">&quot;Validating tipset: EPOCH = {epoch}, N blocks = {}&quot;</span>,
+        blocks.len()
+    );
+    <span class="macro">debug!</span>(<span class="string">&quot;Tipset keys: {:?}&quot;</span>, full_tipset_key.cids);
+
+    <span class="kw">for </span>b <span class="kw">in </span>blocks {
         <span class="kw">let </span>validation_fn = tokio::task::spawn(validate_block::&lt;<span class="kw">_</span>, C&gt;(
             consensus.clone(),
             state_manager.clone(),
@@ -2846,9 +2870,6 @@
         ));
         validations.push(validation_fn);
     }
-
-    <span class="macro">info!</span>(<span class="string">&quot;Validating tipset: EPOCH = {epoch}&quot;</span>);
-    <span class="macro">debug!</span>(<span class="string">&quot;Tipset keys: {:?}&quot;</span>, full_tipset_key.cids);
 
     <span class="kw">while let </span><span class="prelude-val">Some</span>(result) = validations.next().<span class="kw">await </span>{
         <span class="kw">match </span>result<span class="question-mark">? </span>{
@@ -2919,6 +2940,8 @@
         <span class="kw">return </span><span class="prelude-val">Ok</span>(block);
     }
 
+    <span class="kw">let </span>_timer = metrics::BLOCK_VALIDATION_TIME.start_timer();
+
     <span class="kw">let </span>header = block.header();
 
     <span class="comment">// Check to ensure all optional values exist
@@ -2969,6 +2992,9 @@
     <span class="kw">let </span>v_block_store = state_manager.blockstore().clone();
     <span class="kw">let </span>v_block = Arc::clone(<span class="kw-2">&amp;</span>block);
     validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+        <span class="kw">let </span>_timer = metrics::BLOCK_VALIDATION_TASKS_TIME
+            .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::BASE_FEE_CHECK])
+            .start_timer();
         <span class="kw">let </span>base_fee = forest_chain::compute_base_fee(<span class="kw-2">&amp;</span>v_block_store, <span class="kw-2">&amp;</span>v_base_tipset, smoke_height)
             .map_err(|e| {
                 TipsetRangeSyncerError::&lt;C&gt;::Validation(<span class="macro">format!</span>(
@@ -2991,6 +3017,9 @@
     <span class="kw">let </span>v_base_tipset = Arc::clone(<span class="kw-2">&amp;</span>base_tipset);
     <span class="kw">let </span>weight = header.weight().clone();
     validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+        <span class="kw">let </span>_timer = metrics::BLOCK_VALIDATION_TASKS_TIME
+            .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::PARENT_WEIGHT_CAL])
+            .start_timer();
         <span class="kw">let </span>calc_weight = C::weight(<span class="kw-2">&amp;</span>v_block_store, <span class="kw-2">&amp;</span>v_base_tipset).map_err(|e| {
             TipsetRangeSyncerError::Calculation(<span class="macro">format!</span>(<span class="string">&quot;Error calculating weight: {}&quot;</span>, e))
         })<span class="question-mark">?</span>;
@@ -3046,6 +3075,9 @@
     <span class="comment">// Block signature check
     </span><span class="kw">let </span>v_block = block.clone();
     validations.push(tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+        <span class="kw">let </span>_timer = metrics::BLOCK_VALIDATION_TASKS_TIME
+            .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::BLOCK_SIGNATURE_CHECK])
+            .start_timer();
         v_block.header().check_block_signature(<span class="kw-2">&amp;</span>work_addr)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }));
