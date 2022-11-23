@@ -830,8 +830,6 @@
 <span id="830">830</span>
 <span id="831">831</span>
 <span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -867,14 +865,13 @@
 <span class="kw">use </span>libp2p::request_response::{
     RequestId, RequestResponseEvent, RequestResponseMessage, ResponseChannel,
 };
-<span class="kw">use </span>libp2p::swarm::SwarmEvent;
 <span class="kw">use </span>libp2p::{
     core,
     core::muxing::StreamMuxerBox,
     core::transport::Boxed,
     identity::{ed25519, Keypair},
     mplex, noise,
-    swarm::ConnectionLimits,
+    swarm::{ConnectionLimits, SwarmEvent},
     yamux, PeerId, Swarm, Transport,
 };
 <span class="kw">use </span>libp2p::{core::Multiaddr, swarm::SwarmBuilder};
@@ -1616,8 +1613,7 @@
 </span><span class="kw">pub async fn </span>build_transport(local_key: Keypair) -&gt; Boxed&lt;(PeerId, StreamMuxerBox)&gt; {
     <span class="kw">let </span>tcp_transport =
         || libp2p::tcp::TokioTcpTransport::new(libp2p::tcp::GenTcpConfig::new().nodelay(<span class="bool-val">true</span>));
-    <span class="kw">let </span>transport = libp2p::websocket::WsConfig::new(tcp_transport()).or_transport(tcp_transport());
-    <span class="kw">let </span>transport = libp2p::dns::TokioDnsConfig::system(transport).unwrap();
+    <span class="kw">let </span>transport = libp2p::dns::TokioDnsConfig::system(tcp_transport()).unwrap();
     <span class="kw">let </span>auth_config = {
         <span class="kw">let </span>dh_keys = noise::Keypair::&lt;noise::X25519Spec&gt;::new()
             .into_authentic(<span class="kw-2">&amp;</span>local_key)
