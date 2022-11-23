@@ -461,6 +461,8 @@
 <span id="461">461</span>
 <span id="462">462</span>
 <span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -504,6 +506,8 @@
     <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
         <span class="comment">// calibnet v9
         </span>Cid::try_from(<span class="string">&quot;bafk2bzacebz4na3nq4gmumghegtkaofrv4nffiihd7sxntrryfneusqkuqodm&quot;</span>).unwrap(),
+        <span class="comment">// mainnet v9
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzacebucngwdhxtod2gvv52adtdssafyg43znsoy4omtfkkqe2hbhvxeu&quot;</span>).unwrap(),
     ];
     known_cids.contains(cid)
 }
