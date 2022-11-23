@@ -386,6 +386,7 @@
 <span id="386">386</span>
 <span id="387">387</span>
 <span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -606,11 +607,12 @@
         .unwrap_or_else(|| default_snapshot_dir(config));
     <span class="macro">println!</span>(<span class="string">&quot;Snapshot dir: {}&quot;</span>, snapshot_dir.display());
     <span class="macro">println!</span>(<span class="string">&quot;\nLocal snapshots:&quot;</span>);
-    fs::read_dir(snapshot_dir)<span class="question-mark">?
-        </span>.flatten()
-        .map(|entry| entry.path())
-        .filter(|p| is_car_or_tmp(p))
-        .for_each(|p| <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, p.display()));
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(dir) = fs::read_dir(snapshot_dir) {
+        dir.flatten()
+            .map(|entry| entry.path())
+            .filter(|p| is_car_or_tmp(p))
+            .for_each(|p| <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, p.display()));
+    };
 
     <span class="prelude-val">Ok</span>(())
 }
