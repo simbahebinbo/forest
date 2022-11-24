@@ -1426,6 +1426,14 @@
 <span id="1426">1426</span>
 <span id="1427">1427</span>
 <span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1468,15 +1476,20 @@
 <span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>fvm_shared::sector::{SectorInfo, SectorSize, StoragePower};
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
-<span class="kw">use </span>log::{debug, info, trace, warn};
+<span class="kw">use </span>log::{debug, error, info, trace, warn};
+<span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num_traits::identities::Zero;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::runtime::Handle;
 <span class="kw">use </span>tokio::sync::broadcast::{error::RecvError, Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};
 <span class="kw">use </span>tokio::sync::RwLock;
 <span class="kw">use </span>vm_circ_supply::GenesisInfo;
+
+<span class="kw">const </span>DEFAULT_TIPSET_CACHE_SIZE: NonZeroUsize =
+    <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">1024</span>));
 
 <span class="doccomment">/// Intermediary for retrieving state objects and updating actor states.
 </span><span class="kw">type </span>CidPair = (Cid, Cid);
@@ -1513,7 +1526,7 @@
     <span class="doccomment">/// This is a cache which indexes tipsets to their calculated state.
     /// The calculated state is wrapped in a mutex to avoid duplicate computation
     /// of the state/receipt root.
-    </span>cache: RwLock&lt;HashMap&lt;TipsetKeys, Arc&lt;RwLock&lt;<span class="prelude-ty">Option</span>&lt;CidPair&gt;&gt;&gt;&gt;&gt;,
+    </span>cache: RwLock&lt;LruCache&lt;TipsetKeys, Arc&lt;once_cell::sync::OnceCell&lt;CidPair&gt;&gt;&gt;&gt;,
     publisher: <span class="prelude-ty">Option</span>&lt;Publisher&lt;HeadChange&gt;&gt;,
     genesis_info: GenesisInfo,
     beacon: Arc&lt;forest_beacon::BeaconSchedule&lt;DrandBeacon&gt;&gt;,
@@ -1540,7 +1553,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             cs,
-            cache: RwLock::new(HashMap::new()),
+            cache: RwLock::new(LruCache::new(DEFAULT_TIPSET_CACHE_SIZE)),
             publisher: <span class="prelude-val">None</span>,
             genesis_info: GenesisInfo::from_chain_config(<span class="kw-2">&amp;</span>chain_config),
             beacon,
@@ -1567,7 +1580,7 @@
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             cs,
-            cache: RwLock::new(HashMap::new()),
+            cache: RwLock::new(LruCache::new(DEFAULT_TIPSET_CACHE_SIZE)),
             publisher: <span class="prelude-val">Some</span>(chain_subs),
             genesis_info: GenesisInfo::from_chain_config(<span class="kw-2">&amp;</span>chain_config),
             beacon,
@@ -1830,10 +1843,7 @@
     <span class="doccomment">/// Returns the pair of (parent state root, message receipt root). This will either be cached
     /// or will be calculated and fill the cache. Tipset state for a given tipset is guaranteed
     /// not to be computed twice.
-    </span><span class="kw">pub async fn </span>tipset_state(
-        <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
-        tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;CidPair, anyhow::Error&gt; {
+    </span><span class="kw">pub async fn </span>tipset_state(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;, tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;) -&gt; anyhow::Result&lt;CidPair&gt; {
         <span class="macro">span!</span>(<span class="string">&quot;tipset_state&quot;</span>, {
             <span class="comment">// Get entry in cache, if it exists.
             // Arc is cloned here to avoid holding the entire cache lock until function ends.
@@ -1844,22 +1854,23 @@
             //
             // If two tasks are computing different tipset states, they will only block computation
             // when accessing/initializing the entry in cache, not during the whole tipset calc.
-            </span><span class="kw">let </span>cache_entry: Arc&lt;<span class="kw">_</span>&gt; = <span class="self">self
-                </span>.cache
-                .write()
-                .<span class="kw">await
-                </span>.entry(tipset.key().clone())
-                .or_default()
-                <span class="comment">// Clone Arc to drop lock of cache
-                </span>.clone();
 
-            <span class="comment">// Try to lock cache entry to ensure task is first to compute state.
-            // If another task has the lock, it will overwrite the state before releasing lock.
-            </span><span class="kw">let </span><span class="kw-2">mut </span>entry_lock = cache_entry.write().<span class="kw">await</span>;
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>entry) = <span class="kw-2">*</span>entry_lock {
-                <span class="comment">// Entry had successfully populated state, return Cid and drop lock
-                </span><span class="macro">trace!</span>(<span class="string">&quot;hit cache for tipset {:?}&quot;</span>, tipset.cids());
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>entry);
+            // first try reading cache
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.cache.write().<span class="kw">await</span>.get(tipset.key()) {
+                <span class="macro">trace!</span>(<span class="string">&quot;hit cache for tipset {:?}&quot;</span>, tipset.cids());
+                forest_metrics::metrics::LRU_CACHE_HIT
+                    .with_label_values(<span class="kw-2">&amp;</span>[forest_metrics::metrics::values::STATE_MANAGER_TIPSET])
+                    .inc();
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>entry.wait());
+            }
+
+            <span class="comment">// write an empty `OnceCell` when cache not hit
+            </span><span class="kw">let </span>cache_entry = Arc::new(once_cell::sync::OnceCell::new());
+            {
+                <span class="self">self</span>.cache
+                    .write()
+                    .<span class="kw">await
+                    </span>.push(tipset.key().clone(), cache_entry.clone());
             }
 
             <span class="comment">// Entry does not have state computed yet, this task will fill entry if successful.
@@ -1886,7 +1897,12 @@
             };
 
             <span class="comment">// Fill entry with calculated cid pair
-            </span><span class="kw-2">*</span>entry_lock = <span class="prelude-val">Some</span>(cid_pair);
+            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = cache_entry.set(cid_pair) {
+                <span class="macro">error!</span>(<span class="string">&quot;Fail to set tipset_state cache: {}, {}&quot;</span>, e.<span class="number">0</span>, e.<span class="number">1</span>);
+            }
+            forest_metrics::metrics::LRU_CACHE_MISS
+                .with_label_values(<span class="kw-2">&amp;</span>[forest_metrics::metrics::values::STATE_MANAGER_TIPSET])
+                .inc();
             <span class="prelude-val">Ok</span>(cid_pair)
         })
     }

@@ -57,10 +57,12 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
+<span id="60">60</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>db;
+<span class="kw">pub mod </span>metrics;
 
 <span class="kw">use </span>axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
 <span class="kw">use </span>log::warn;

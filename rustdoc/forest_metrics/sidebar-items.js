@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["add_metrics_registry",""],["init_prometheus",""]],"mod":[["db",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["add_metrics_registry",""],["init_prometheus",""]],"mod":[["db",""],["metrics",""]]};

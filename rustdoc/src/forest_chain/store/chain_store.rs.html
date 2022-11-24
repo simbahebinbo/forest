@@ -1066,7 +1066,6 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::index::checkpoint_tipsets;
-<span class="kw">use </span><span class="kw">super</span>::metrics;
 <span class="kw">use super</span>::{index::ChainIndex, tipset_tracker::TipsetTracker, Error};
 <span class="kw">use </span><span class="kw">crate</span>::Scale;
 <span class="kw">use </span>async_stream::stream;
@@ -1083,6 +1082,7 @@
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
 <span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
+<span class="kw">use </span>forest_metrics::metrics;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::io::Checksum;
 <span class="kw">use </span>fvm::state_tree::StateTree;
