@@ -310,6 +310,13 @@
 <span id="310">310</span>
 <span id="311">311</span>
 <span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -428,7 +435,8 @@
 }
 
 <span class="kw">impl</span>&lt;DB: Blockstore&gt; Consensus <span class="kw">for </span>ForestExterns&lt;DB&gt; {
-    <span class="kw">fn </span>verify_consensus_fault(
+    <span class="comment">// See https://github.com/filecoin-project/lotus/blob/v1.18.0/chain/vm/fvm.go#L102-L216 for reference implementation
+    </span><span class="kw">fn </span>verify_consensus_fault(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         h1: <span class="kw-2">&amp;</span>[u8],
         h2: <span class="kw-2">&amp;</span>[u8],
@@ -476,27 +484,20 @@
             );
         };
 
-        <span class="comment">// (2) check for the consensus faults themselves
-        </span><span class="kw">let </span><span class="kw-2">mut </span>cf: <span class="prelude-ty">Option</span>&lt;ConsensusFault&gt; = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>fault_type: <span class="prelude-ty">Option</span>&lt;ConsensusFaultType&gt; = <span class="prelude-val">None</span>;
 
-        <span class="comment">// (a) double-fork mining fault
+        <span class="comment">// (2) check for the consensus faults themselves
+
+        // (a) double-fork mining fault
         </span><span class="kw">if </span>bh_1.epoch() == bh_2.epoch() {
-            cf = <span class="prelude-val">Some</span>(ConsensusFault {
-                target: <span class="kw-2">*</span>bh_1.miner_address(),
-                epoch: bh_2.epoch(),
-                fault_type: ConsensusFaultType::DoubleForkMining,
-            })
+            fault_type = <span class="prelude-val">Some</span>(ConsensusFaultType::DoubleForkMining);
         };
 
         <span class="comment">// (b) time-offset mining fault
         // strictly speaking no need to compare heights based on double fork mining check above,
         // but at same height this would be a different fault.
         </span><span class="kw">if </span>bh_1.parents() == bh_2.parents() &amp;&amp; bh_1.epoch() != bh_2.epoch() {
-            cf = <span class="prelude-val">Some</span>(ConsensusFault {
-                target: <span class="kw-2">*</span>bh_1.miner_address(),
-                epoch: bh_2.epoch(),
-                fault_type: ConsensusFaultType::TimeOffsetMining,
-            })
+            fault_type = <span class="prelude-val">Some</span>(ConsensusFaultType::TimeOffsetMining);
         };
 
         <span class="comment">// (c) parent-grinding fault
@@ -510,28 +511,41 @@
                 &amp;&amp; bh_2.parents().cids().contains(bh_3.cid())
                 &amp;&amp; !bh_2.parents().cids().contains(bh_1.cid())
             {
-                cf = <span class="prelude-val">Some</span>(ConsensusFault {
-                    target: <span class="kw-2">*</span>bh_1.miner_address(),
-                    epoch: bh_2.epoch(),
-                    fault_type: ConsensusFaultType::ParentGrinding,
-                })
+                fault_type = <span class="prelude-val">Some</span>(ConsensusFaultType::ParentGrinding);
             }
         };
 
-        <span class="comment">// (3) return if no consensus fault
-        </span><span class="kw">if </span>cf.is_none() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>((cf, total_gas));
+        <span class="kw">match </span>fault_type {
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// (3) return if no consensus fault
+                </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, total_gas))
+            }
+            <span class="prelude-val">Some</span>(fault_type) =&gt; {
+                <span class="comment">// (4) expensive final checks
+
+                // check blocks are properly signed by their respective miner
+                // note we do not need to check extra&#39;s: it is a parent to block b
+                // which itself is signed, so it was willingly included by the miner
+                </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(gas_used) = <span class="self">self</span>.verify_block_signature(<span class="kw-2">&amp;</span>bh_1) {
+                    total_gas += gas_used;
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(gas_used) = <span class="self">self</span>.verify_block_signature(<span class="kw-2">&amp;</span>bh_2) {
+                        total_gas += gas_used;
+                        <span class="kw">let </span>ret = <span class="prelude-val">Some</span>(ConsensusFault {
+                            target: <span class="kw-2">*</span>bh_1.miner_address(),
+                            epoch: bh_2.epoch(),
+                            fault_type,
+                        });
+                        <span class="prelude-val">Ok</span>((ret, total_gas))
+                    } <span class="kw">else </span>{
+                        <span class="comment">// invalid consensus fault: cannot verify second block header signature
+                        </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, total_gas))
+                    }
+                } <span class="kw">else </span>{
+                    <span class="comment">// invalid consensus fault: cannot verify first block header signature
+                    </span><span class="prelude-val">Ok</span>((<span class="prelude-val">None</span>, total_gas))
+                }
+            }
         }
-
-        <span class="comment">// (4) expensive final checks
-
-        // check blocks are properly signed by their respective miner
-        // note we do not need to check extra&#39;s: it is a parent to block b
-        // which itself is signed, so it was willingly included by the miner
-        </span>total_gas += <span class="self">self</span>.verify_block_signature(<span class="kw-2">&amp;</span>bh_1)<span class="question-mark">?</span>;
-        total_gas += <span class="self">self</span>.verify_block_signature(<span class="kw-2">&amp;</span>bh_2)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>((cf, total_gas))
     }
 }
 
