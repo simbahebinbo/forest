@@ -826,10 +826,6 @@
 <span id="826">826</span>
 <span id="827">827</span>
 <span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -858,7 +854,7 @@
 <span class="kw">use </span>libp2p::gossipsub::GossipsubEvent;
 <span class="kw">pub use </span>libp2p::gossipsub::IdentTopic;
 <span class="kw">pub use </span>libp2p::gossipsub::Topic;
-<span class="kw">use </span>libp2p::identify;
+<span class="kw">use </span>libp2p::metrics::{Metrics, Recorder};
 <span class="kw">use </span>libp2p::multiaddr::Protocol;
 <span class="kw">use </span>libp2p::multihash::Multihash;
 <span class="kw">use </span>libp2p::ping::{<span class="self">self</span>};
@@ -1074,6 +1070,9 @@
         <span class="kw">let </span><span class="kw-2">mut </span>outgoing_bitswap_query_ids = HashMap::new();
         <span class="kw">let </span>(cx_response_tx, cx_response_rx) = flume::unbounded();
         <span class="kw">let </span><span class="kw-2">mut </span>cx_response_rx_stream = cx_response_rx.stream().fuse();
+        <span class="kw">let </span><span class="kw-2">mut </span>libp2p_registry = Default::default();
+        <span class="kw">let </span>metrics = Metrics::new(<span class="kw-2">&amp;mut </span>libp2p_registry);
+        forest_metrics::add_metrics_registry(<span class="string">&quot;libp2p&quot;</span>.into(), libp2p_registry).<span class="kw">await</span>;
         <span class="kw">loop </span>{
             <span class="macro">select! </span>{
                 swarm_event = swarm_stream.next() =&gt; <span class="kw">match </span>swarm_event {
@@ -1081,6 +1080,7 @@
                     </span><span class="prelude-val">Some</span>(SwarmEvent::Behaviour(event)) =&gt; {
                         handle_forest_behaviour_event(
                             swarm_stream.get_mut(),
+                            <span class="kw-2">&amp;</span>metrics,
                             event,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cs,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.genesis_cid,
@@ -1246,6 +1246,7 @@
 <span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P: StoreParams&gt;(
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    metrics: <span class="kw-2">&amp;</span>Metrics,
     event: ForestBehaviourEvent&lt;P&gt;,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
@@ -1287,57 +1288,57 @@
                 emit_event(network_sender_out, NetworkEvent::PeerDisconnected(peer_id)).<span class="kw">await</span>;
             }
         },
-        ForestBehaviourEvent::Gossipsub(GossipsubEvent::Message {
-            propagation_source: source,
-            message,
-            message_id: <span class="kw">_</span>,
-        }) =&gt; {
-            <span class="kw">let </span>topic = message.topic.as_str();
-            <span class="kw">let </span>message = message.data;
-            <span class="macro">trace!</span>(<span class="string">&quot;Got a Gossip Message from {:?}&quot;</span>, source);
-            <span class="kw">if </span>topic == pubsub_block_str {
-                <span class="kw">match </span>from_slice::&lt;GossipBlock&gt;(<span class="kw-2">&amp;</span>message) {
-                    <span class="prelude-val">Ok</span>(b) =&gt; {
-                        emit_event(
-                            network_sender_out,
-                            NetworkEvent::PubsubMessage {
-                                source,
-                                message: PubsubMessage::Block(b),
-                            },
-                        )
-                        .<span class="kw">await</span>;
+        ForestBehaviourEvent::Gossipsub(e) =&gt; {
+            metrics.record(<span class="kw-2">&amp;</span>e);
+            <span class="kw">if let </span>GossipsubEvent::Message {
+                propagation_source: source,
+                message,
+                message_id: <span class="kw">_</span>,
+            } = e
+            {
+                <span class="kw">let </span>topic = message.topic.as_str();
+                <span class="kw">let </span>message = message.data;
+                <span class="macro">trace!</span>(<span class="string">&quot;Got a Gossip Message from {:?}&quot;</span>, source);
+                <span class="kw">if </span>topic == pubsub_block_str {
+                    <span class="kw">match </span>from_slice::&lt;GossipBlock&gt;(<span class="kw-2">&amp;</span>message) {
+                        <span class="prelude-val">Ok</span>(b) =&gt; {
+                            emit_event(
+                                network_sender_out,
+                                NetworkEvent::PubsubMessage {
+                                    source,
+                                    message: PubsubMessage::Block(b),
+                                },
+                            )
+                            .<span class="kw">await</span>;
+                        }
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            <span class="macro">warn!</span>(
+                                <span class="string">&quot;Gossip Block from peer {source:?} could not be deserialized: {e}&quot;</span>,
+                            );
+                        }
                     }
-                    <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="macro">warn!</span>(
-                            <span class="string">&quot;Gossip Block from peer {:?} could not be deserialized: {}&quot;</span>,
-                            source, e
-                        );
+                } <span class="kw">else if </span>topic == pubsub_msg_str {
+                    <span class="kw">match </span>from_slice::&lt;SignedMessage&gt;(<span class="kw-2">&amp;</span>message) {
+                        <span class="prelude-val">Ok</span>(m) =&gt; {
+                            emit_event(
+                                network_sender_out,
+                                NetworkEvent::PubsubMessage {
+                                    source,
+                                    message: PubsubMessage::Message(m),
+                                },
+                            )
+                            .<span class="kw">await</span>;
+                        }
+                        <span class="prelude-val">Err</span>(e) =&gt; {
+                            <span class="macro">warn!</span>(
+                                <span class="string">&quot;Gossip Message from peer {source:?} could not be deserialized: {e}&quot;</span>);
+                        }
                     }
+                } <span class="kw">else </span>{
+                    <span class="macro">warn!</span>(<span class="string">&quot;Getting gossip messages from unknown topic: {topic}&quot;</span>);
                 }
-            } <span class="kw">else if </span>topic == pubsub_msg_str {
-                <span class="kw">match </span>from_slice::&lt;SignedMessage&gt;(<span class="kw-2">&amp;</span>message) {
-                    <span class="prelude-val">Ok</span>(m) =&gt; {
-                        emit_event(
-                            network_sender_out,
-                            NetworkEvent::PubsubMessage {
-                                source,
-                                message: PubsubMessage::Message(m),
-                            },
-                        )
-                        .<span class="kw">await</span>;
-                    }
-                    <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="macro">warn!</span>(
-                            <span class="string">&quot;Gossip Message from peer {:?} could not be deserialized: {}&quot;</span>,
-                            source, e
-                        );
-                    }
-                }
-            } <span class="kw">else </span>{
-                <span class="macro">warn!</span>(<span class="string">&quot;Getting gossip messages from unknown topic: {}&quot;</span>, topic);
             }
         }
-        ForestBehaviourEvent::Gossipsub(<span class="kw">_</span>) =&gt; {}
         ForestBehaviourEvent::Hello(rr_event) =&gt; <span class="kw">match </span>rr_event {
             RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
                 RequestResponseMessage::Request {
@@ -1478,47 +1479,38 @@
                 },
             }
         }
-        ForestBehaviourEvent::Ping(ping_event) =&gt; <span class="kw">match </span>ping_event.result {
-            <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
-                <span class="macro">trace!</span>(
-                    <span class="string">&quot;PingSuccess::Ping rtt to {} is {} ms&quot;</span>,
-                    ping_event.peer.to_base58(),
-                    rtt.as_millis()
-                );
-            }
-            <span class="prelude-val">Ok</span>(ping::Success::Pong) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;PingSuccess::Pong from {}&quot;</span>, ping_event.peer.to_base58());
-            }
-            <span class="prelude-val">Err</span>(ping::Failure::Other { error }) =&gt; {
-                <span class="macro">warn!</span>(
-                    <span class="string">&quot;PingFailure::Other {}: {}&quot;</span>,
-                    ping_event.peer.to_base58(),
-                    error
-                );
-            }
-            <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="kw">let </span>err = err.to_string();
-                <span class="kw">let </span>peer = ping_event.peer.to_base58();
-                <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
-                <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
-                    <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
-                    swarm.ban_peer_id(ping_event.peer);
+        ForestBehaviourEvent::Ping(ping_event) =&gt; {
+            metrics.record(<span class="kw-2">&amp;</span>ping_event);
+            <span class="kw">match </span>ping_event.result {
+                <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
+                    <span class="macro">trace!</span>(
+                        <span class="string">&quot;PingSuccess::Ping rtt to {} is {} ms&quot;</span>,
+                        ping_event.peer.to_base58(),
+                        rtt.as_millis()
+                    );
+                }
+                <span class="prelude-val">Ok</span>(ping::Success::Pong) =&gt; {
+                    <span class="macro">trace!</span>(<span class="string">&quot;PingSuccess::Pong from {}&quot;</span>, ping_event.peer.to_base58());
+                }
+                <span class="prelude-val">Err</span>(ping::Failure::Other { error }) =&gt; {
+                    <span class="macro">warn!</span>(
+                        <span class="string">&quot;PingFailure::Other {}: {}&quot;</span>,
+                        ping_event.peer.to_base58(),
+                        error
+                    );
+                }
+                <span class="prelude-val">Err</span>(err) =&gt; {
+                    <span class="kw">let </span>err = err.to_string();
+                    <span class="kw">let </span>peer = ping_event.peer.to_base58();
+                    <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
+                    <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
+                        <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
+                        swarm.ban_peer_id(ping_event.peer);
+                    }
                 }
             }
-        },
-        ForestBehaviourEvent::Identify(id_event) =&gt; <span class="kw">match </span>id_event {
-            identify::Event::Received { peer_id, info } =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;Identified Peer {}&quot;</span>, peer_id);
-                <span class="macro">trace!</span>(<span class="string">&quot;protocol_version {}&quot;</span>, info.protocol_version);
-                <span class="macro">trace!</span>(<span class="string">&quot;agent_version {}&quot;</span>, info.agent_version);
-                <span class="macro">trace!</span>(<span class="string">&quot;listening_ addresses {:?}&quot;</span>, info.listen_addrs);
-                <span class="macro">trace!</span>(<span class="string">&quot;observed_address {}&quot;</span>, info.observed_addr);
-                <span class="macro">trace!</span>(<span class="string">&quot;protocols {:?}&quot;</span>, info.protocols);
-            }
-            identify::Event::Sent { .. } =&gt; (),
-            identify::Event::Pushed { .. } =&gt; (),
-            identify::Event::Error { .. } =&gt; (),
-        },
+        }
+        ForestBehaviourEvent::Identify(id_event) =&gt; metrics.record(<span class="kw-2">&amp;</span>id_event),
         ForestBehaviourEvent::ChainExchange(ce_event) =&gt; <span class="kw">match </span>ce_event {
             RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
                 RequestResponseMessage::Request {
