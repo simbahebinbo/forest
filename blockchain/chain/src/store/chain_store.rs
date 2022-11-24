@@ -21,6 +21,7 @@ use forest_message::Message as MessageTrait;
 use forest_message::{ChainMessage, SignedMessage};
 use forest_utils::db::BlockstoreExt;
 use forest_utils::io::Checksum;
+use futures::Future;
 use fvm::state_tree::StateTree;
 use fvm_ipld_blockstore::Blockstore;
 use fvm_ipld_car::CarHeader;
@@ -491,8 +492,29 @@ where
         info!("chain export started");
 
         // Walks over tipset and historical data, sending all blocks visited into the car writer.
-        let snapshot_walker = SnapshotWalker::new(self.blockstore(), skip_old_msgs, &tx);
-        snapshot_walker.walk(tipset, recent_roots).await?;
+        // let snapshot_walker = SnapshotWalker::new(self.blockstore(), skip_old_msgs, &tx);
+        // snapshot_walker.walk(tipset, recent_roots).await?;
+
+        let tx_clone = tx.clone();
+        Self::walk_snapshot(tipset, recent_roots, skip_old_msgs, |cid| Box::pin(async move {
+            let block = self.blockstore().get(&cid)?.ok_or_else(|| {
+                if skip_old_msgs {
+                    Error::Other("Cid {cid} not found in blockstore".to_string())
+                } else {
+                    Error::Other("Cid {cid} not found in blockstore. \
+                                    Exporting a full snapshot is only possible when the node is initialised with a full one. \
+                                    Consider exporting a lightweight snapshot, e.g. skip the old messages.".to_string())
+                }
+            })?;
+
+            tx_clone
+            .send_async((cid.clone(), block.clone()))
+            .await
+            .expect("failed sending block for export");
+
+            Ok(block)
+
+        })).await?;
 
         // Drop sender, to close the channel to write task, which will end when finished writing
         drop(tx);
@@ -594,6 +616,60 @@ where
     //         None
     //     }
     // }
+
+    /// Walks over tipset and state data and loads all blocks not yet seen.
+    /// This is tracked based on the callback function loading blocks.
+    async fn walk_snapshot<F, T>(
+        tipset: &Tipset,
+        recent_roots: ChainEpoch,
+        skip_old_msgs: bool,
+        mut load_block: F,
+    ) -> Result<(), Error>
+    where
+    F: FnMut(Cid) -> T + Send,
+    T: Future<Output = Result<Vec<u8>, anyhow::Error>> + Send,
+    {
+        let mut seen = HashSet::<Cid>::new();
+        let mut blocks_to_walk: VecDeque<Cid> = tipset.cids().to_vec().into();
+        let mut current_min_height = tipset.epoch();
+        let incl_roots_epoch = tipset.epoch() - recent_roots;
+
+        while let Some(next) = blocks_to_walk.pop_front() {
+            if !seen.insert(next) {
+                continue;
+            }
+
+            let data = load_block(next).await?;
+
+            let h = BlockHeader::unmarshal_cbor(&data)?;
+
+            if current_min_height > h.epoch() {
+                current_min_height = h.epoch();
+                if current_min_height % EPOCHS_IN_DAY == 0 {
+                    info!(target: "chain_api", "export at: {}", current_min_height);
+                }
+            }
+
+            if !skip_old_msgs || h.epoch() > incl_roots_epoch {
+                recurse_links(&mut seen, *h.messages(), &mut load_block).await?;
+            }
+
+            if h.epoch() > 0 {
+                for p in h.parents().cids() {
+                    blocks_to_walk.push_back(*p);
+                }
+            } else {
+                for p in h.parents().cids() {
+                    load_block(*p).await?;
+                }
+            }
+
+            if h.epoch() == 0 || h.epoch() > incl_roots_epoch {
+                recurse_links(&mut seen, *h.state_root(), &mut load_block).await?;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Walks over tipset and state data and loads all blocks not yet seen.
