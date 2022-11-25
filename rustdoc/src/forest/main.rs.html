@@ -223,6 +223,8 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -422,7 +424,9 @@
                     }
 
                     <span class="kw">let </span>rt = Runtime::new().unwrap();
-                    console_subscriber::init();
+                    <span class="kw">if </span>opts.tokio_console {
+                        console_subscriber::init();
+                    }
 
                     <span class="kw">let </span>db: Db = rt.block_on(daemon::start(cfg, opts.detach));
 
