@@ -1407,33 +1407,6 @@
 <span id="1407">1407</span>
 <span id="1408">1408</span>
 <span id="1409">1409</span>
-<span id="1410">1410</span>
-<span id="1411">1411</span>
-<span id="1412">1412</span>
-<span id="1413">1413</span>
-<span id="1414">1414</span>
-<span id="1415">1415</span>
-<span id="1416">1416</span>
-<span id="1417">1417</span>
-<span id="1418">1418</span>
-<span id="1419">1419</span>
-<span id="1420">1420</span>
-<span id="1421">1421</span>
-<span id="1422">1422</span>
-<span id="1423">1423</span>
-<span id="1424">1424</span>
-<span id="1425">1425</span>
-<span id="1426">1426</span>
-<span id="1427">1427</span>
-<span id="1428">1428</span>
-<span id="1429">1429</span>
-<span id="1430">1430</span>
-<span id="1431">1431</span>
-<span id="1432">1432</span>
-<span id="1433">1433</span>
-<span id="1434">1434</span>
-<span id="1435">1435</span>
-<span id="1436">1436</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1555,33 +1528,6 @@
             cs,
             cache: RwLock::new(LruCache::new(DEFAULT_TIPSET_CACHE_SIZE)),
             publisher: <span class="prelude-val">None</span>,
-            genesis_info: GenesisInfo::from_chain_config(<span class="kw-2">&amp;</span>chain_config),
-            beacon,
-            chain_config,
-            engine: fvm::machine::MultiEngine::new(),
-            reward_calc,
-        })
-    }
-
-    <span class="doccomment">/// Creates a constructor that passes in a `HeadChange` publisher.
-    </span><span class="kw">pub async fn </span>new_with_publisher(
-        cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
-        chain_subs: Publisher&lt;HeadChange&gt;,
-        config: ChainConfig,
-        reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
-        <span class="kw">let </span>genesis = cs.genesis()<span class="question-mark">?</span>.context(<span class="string">&quot;genesis header missing&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>chain_config = Arc::new(config);
-        <span class="kw">let </span>beacon = Arc::new(
-            chain_config
-                .get_beacon_schedule(genesis.timestamp())
-                .<span class="kw">await</span><span class="question-mark">?</span>,
-        );
-
-        <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
-            cs,
-            cache: RwLock::new(LruCache::new(DEFAULT_TIPSET_CACHE_SIZE)),
-            publisher: <span class="prelude-val">Some</span>(chain_subs),
             genesis_info: GenesisInfo::from_chain_config(<span class="kw-2">&amp;</span>chain_config),
             beacon,
             chain_config,
