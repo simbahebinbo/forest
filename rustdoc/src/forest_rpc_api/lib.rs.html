@@ -566,6 +566,11 @@
 <span id="566">566</span>
 <span id="567">567</span>
 <span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -609,6 +614,7 @@
     access.insert(chain_api::CHAIN_GET_BLOCK, Access::Read);
     access.insert(chain_api::CHAIN_GET_TIPSET, Access::Read);
     access.insert(chain_api::CHAIN_GET_TIPSET_HASH, Access::Read);
+    access.insert(chain_api::CHAIN_VALIDATE_TIPSET_CHECKPOINTS, Access::Read);
     access.insert(chain_api::CHAIN_GET_RANDOMNESS_FROM_TICKETS, Access::Read);
     access.insert(chain_api::CHAIN_GET_RANDOMNESS_FROM_BEACON, Access::Read);
     access.insert(chain_api::CHAIN_GET_NAME, Access::Read);
@@ -810,6 +816,10 @@
     <span class="kw">pub const </span>CHAIN_GET_TIPSET_HASH: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainGetTipSetHash&quot;</span>;
     <span class="kw">pub type </span>ChainGetTipSetHashParams = (TipsetKeysJson,);
     <span class="kw">pub type </span>ChainGetTipSetHashResult = String;
+
+    <span class="kw">pub const </span>CHAIN_VALIDATE_TIPSET_CHECKPOINTS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainValidateTipSetCheckpoints&quot;</span>;
+    <span class="kw">pub type </span>ChainValidateTipSetCheckpointsParams = ();
+    <span class="kw">pub type </span>ChainValidateTipSetCheckpointsResult = String;
 
     <span class="kw">pub const </span>CHAIN_GET_RANDOMNESS_FROM_TICKETS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainGetRandomnessFromTickets&quot;</span>;
     <span class="kw">pub type </span>ChainGetRandomnessFromTicketsParams =

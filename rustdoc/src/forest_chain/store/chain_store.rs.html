@@ -1059,6 +1059,54 @@
 <span id="1059">1059</span>
 <span id="1060">1060</span>
 <span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1361,6 +1409,54 @@
         } <span class="kw">else </span>{
             <span class="self">self</span>.tipset_from_keys(lbts.parents()).<span class="kw">await
         </span>}
+    }
+
+    <span class="kw">pub async fn </span>validate_tipset_checkpoints(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        from: Arc&lt;Tipset&gt;,
+        network: String,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="macro">info!</span>(
+            <span class="string">&quot;Validating {network} tipset checkpoint hashes from: {}&quot;</span>,
+            from.epoch()
+        );
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>hashes) = checkpoint_tipsets::get_tipset_hashes(<span class="kw-2">&amp;</span>network) <span class="kw">else </span>{
+            <span class="macro">info!</span>(<span class="string">&quot;No checkpoint tipsets found for network: {network}, skipping validation.&quot;</span>);
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>ts = from;
+        <span class="kw">let </span>tipset_hash = checkpoint_tipsets::tipset_hash(ts.key());
+        hashes.remove(<span class="kw-2">&amp;</span>tipset_hash);
+
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>pts = <span class="self">self</span>.chain_index.load_tipset(ts.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="kw">let </span>tipset_hash = checkpoint_tipsets::tipset_hash(ts.key());
+            hashes.remove(<span class="kw-2">&amp;</span>tipset_hash);
+
+            ts = pts;
+
+            <span class="kw">if </span>ts.epoch() == <span class="number">0 </span>{
+                <span class="kw">break</span>;
+            }
+        }
+
+        <span class="kw">if </span>!hashes.is_empty() {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(
+                <span class="string">&quot;Found tipset hash(es) on {network} that are no longer valid: {:?}&quot;</span>,
+                hashes
+            )));
+        }
+
+        <span class="kw">if </span>!checkpoint_tipsets::validate_genesis_cid(ts.key(), <span class="kw-2">&amp;</span>network) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(
+                <span class="string">&quot;Genesis cid {:?} on {network} network does not match with one stored in checkpoint registry&quot;</span>,
+                ts.key().cid()
+            )));
+        }
+
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Finds the latest beacon entry given a tipset up to 20 tipsets behind
