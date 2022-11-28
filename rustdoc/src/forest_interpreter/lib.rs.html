@@ -34,10 +34,18 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">mod </span>fvm;
+<span class="attr">#[cfg(feature = <span class="string">&quot;instrumented_kernel&quot;</span>)]
+</span><span class="kw">mod </span>instrumented_kernel;
+<span class="attr">#[cfg(feature = <span class="string">&quot;instrumented_kernel&quot;</span>)]
+</span><span class="kw">mod </span>metrics;
 <span class="kw">mod </span>vm;
 
 <span class="kw">pub use </span><span class="self">self</span>::vm::<span class="kw-2">*</span>;
