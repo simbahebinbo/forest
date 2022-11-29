@@ -202,6 +202,15 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -218,11 +227,20 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>libp2p_bitswap::BitswapStore;
+<span class="kw">use </span>rocksdb::WriteOptions;
 <span class="kw">pub use </span>rocksdb::{
     BlockBasedOptions, Cache, CompactOptions, DBCompressionType, DataBlockIndexType, Options,
     WriteBatch, DB,
 };
 <span class="kw">use </span>std::{path::Path, sync::Arc};
+
+<span class="macro">lazy_static::lazy_static! </span>{
+    <span class="kw">static </span><span class="kw-2">ref </span>WRITE_OPT_NO_WAL: WriteOptions = {
+        <span class="kw">let </span><span class="kw-2">mut </span>opt = WriteOptions::default();
+        opt.disable_wal(<span class="bool-val">true</span>);
+        opt
+    };
+}
 
 <span class="doccomment">/// `RocksDB` instance this satisfies the [Store] interface.
 </span><span class="attr">#[derive(Clone)]
@@ -312,7 +330,7 @@
         </span>K: AsRef&lt;[u8]&gt;,
         V: AsRef&lt;[u8]&gt;,
     {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.put(key, value)<span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.put_opt(key, value, <span class="kw-2">&amp;</span>WRITE_OPT_NO_WAL)<span class="question-mark">?</span>)
     }
 
     <span class="kw">fn </span>delete&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
@@ -341,7 +359,7 @@
         <span class="kw">for </span>(k, v) <span class="kw">in </span>values {
             batch.put(k, v);
         }
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.write(batch)<span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.write_without_wal(batch)<span class="question-mark">?</span>)
     }
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
@@ -351,12 +369,12 @@
 
 <span class="kw">impl </span>Blockstore <span class="kw">for </span>RocksDb {
     <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt; {
-        <span class="self">self</span>.read(k.to_bytes()).map_err(|e| e.into())
+        <span class="self">self</span>.read(k.to_bytes()).map_err(Into::into)
     }
 
     <span class="kw">fn </span>put_keyed(<span class="kw-2">&amp;</span><span class="self">self</span>, k: <span class="kw-2">&amp;</span>Cid, block: <span class="kw-2">&amp;</span>[u8]) -&gt; anyhow::Result&lt;()&gt; {
         metrics::BLOCK_SIZE_BYTES.observe(block.len() <span class="kw">as </span>f64);
-        <span class="self">self</span>.write(k.to_bytes(), block).map_err(|e| e.into())
+        <span class="self">self</span>.write(k.to_bytes(), block).map_err(Into::into)
     }
 
     <span class="kw">fn </span>put_many_keyed&lt;D, I&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, blocks: I) -&gt; anyhow::Result&lt;()&gt;

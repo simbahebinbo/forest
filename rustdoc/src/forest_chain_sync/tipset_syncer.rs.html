@@ -1698,6 +1698,12 @@
 <span id="1698">1698</span>
 <span id="1699">1699</span>
 <span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2898,7 +2904,13 @@
             }
         }
     }
-    <span class="prelude-val">Ok</span>(())
+    <span class="comment">// Doing flush here creates small sst files at ~20KB
+    // Then we need to manually compact them by calling CompactFiles
+    // which howver is not exposed by rocksdb or librocksdb-sys crates
+    // if let Err(e) = chainstore.db.flush() {
+    //     warn!(&quot;Failed to flush db: {e}&quot;);
+    // }
+    </span><span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Validate the block according to the rules specific to the consensus being used,

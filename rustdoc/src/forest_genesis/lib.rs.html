@@ -203,6 +203,9 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -354,7 +357,7 @@
         <span class="kw">let </span>reader = FetchProgress::fetch_from_file(file).<span class="kw">await</span><span class="question-mark">?</span>;
         load_and_retrieve_header(sm.blockstore(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>};
-    sm.blockstore().flush()<span class="question-mark">?</span>;
+
     <span class="macro">info!</span>(<span class="string">&quot;Loaded .car file in {}s&quot;</span>, stopwatch.elapsed().as_secs());
     <span class="kw">let </span>ts = sm
         .chain_store()
@@ -380,12 +383,15 @@
     <span class="comment">// Update head with snapshot header tipset
     </span>sm.chain_store().set_heaviest_tipset(ts.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
 
+    sm.blockstore().flush()<span class="question-mark">?</span>;
+
     <span class="kw">if let </span><span class="prelude-val">Some</span>(height) = validate_height {
         <span class="macro">info!</span>(<span class="string">&quot;Validating imported chain from height: {}&quot;</span>, height);
         sm.validate_chain::&lt;V&gt;(ts.clone(), height).<span class="kw">await</span><span class="question-mark">?</span>;
     }
 
-    <span class="macro">info!</span>(<span class="string">&quot;Accepting {:?} as new head.&quot;</span>, ts.cids(),);
+    <span class="macro">info!</span>(<span class="string">&quot;Accepting {:?} as new head.&quot;</span>, ts.cids());
+
     <span class="prelude-val">Ok</span>(())
 }
 
