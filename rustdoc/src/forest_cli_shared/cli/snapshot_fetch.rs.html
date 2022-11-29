@@ -545,9 +545,135 @@
 <span id="545">545</span>
 <span id="546">546</span>
 <span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
-</span><span class="kw">use super</span>::{Config, SnapshotFetchConfig};
+</span><span class="kw">use </span><span class="kw">super</span>::Config;
+<span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>chrono::DateTime;
 <span class="kw">use </span>forest_utils::{
@@ -559,39 +685,114 @@
 };
 <span class="kw">use </span>hex::{FromHex, ToHex};
 <span class="kw">use </span>log::info;
+<span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>s3::Bucket;
 <span class="kw">use </span>sha2::{Digest, Sha256};
+<span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>std::{
     path::{Path, PathBuf},
     process::Command,
     time::Duration,
 };
+<span class="kw">use </span>time::{format_description, format_description::well_known::Iso8601, Date};
 <span class="kw">use </span>tokio::{
     fs::{create_dir_all, File},
     io::{AsyncWriteExt, BufWriter},
 };
 <span class="kw">use </span>url::Url;
 
-<span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
+<span class="doccomment">/// Snapshot fetch service provider
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>SnapshotServer {
+    Forest,
+    Filecoin,
+}
+
+<span class="kw">impl </span>FromStr <span class="kw">for </span>SnapshotServer {
+    <span class="kw">type </span><span class="prelude-val">Err </span>= anyhow::Error;
+
+    <span class="kw">fn </span>from_str(provider: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Err&gt; {
+        <span class="kw">match </span>provider.to_lowercase().as_str() {
+            <span class="string">&quot;forest&quot; </span>=&gt; <span class="prelude-val">Ok</span>(SnapshotServer::Forest),
+            <span class="string">&quot;filecoin&quot; </span>=&gt; <span class="prelude-val">Ok</span>(SnapshotServer::Filecoin),
+            <span class="kw">_ </span>=&gt; <span class="macro">bail!</span>(
+                <span class="string">&quot;Failed to fetch snapshot from: {}, Must be one of `forest`|`filecoin`.&quot;</span>,
+                provider
+            ),
+        }
+    }
+}
+
+<span class="doccomment">/// Snapshot attributes
+</span><span class="kw">pub struct </span>SnapshotInfo {
+    <span class="kw">pub </span>network: String,
+    <span class="kw">pub </span>date: Date,
+    <span class="kw">pub </span>height: i64,
+    <span class="kw">pub </span>path: PathBuf,
+}
+
+<span class="doccomment">/// Collection of snapshots
+</span><span class="kw">pub struct </span>SnapshotStore {
+    <span class="kw">pub </span>snapshots: Vec&lt;SnapshotInfo&gt;,
+}
+
+<span class="kw">impl </span>SnapshotStore {
+    <span class="kw">pub fn </span>new(config: <span class="kw-2">&amp;</span>Config, snapshot_dir: <span class="kw-2">&amp;</span>PathBuf) -&gt; SnapshotStore {
+        <span class="kw">let </span><span class="kw-2">mut </span>snapshots = Vec::new();
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(dir) = std::fs::read_dir(snapshot_dir) {
+            dir.flatten()
+            .map(|entry| entry.path())
+            .filter(|p| is_car_or_tmp(p))
+            .for_each(|path|
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = path.file_name().and_then(|n| n.to_str()) {
+                    <span class="kw">let </span>pattern = Regex::new(
+                        <span class="string">r&quot;^([^_]+?)_snapshot_(?P&lt;network&gt;[^_]+?)_(?P&lt;date&gt;\d{4}-\d{2}-\d{2})_height_(?P&lt;height&gt;\d+).car(.tmp|.aria2)?$&quot;</span>,
+                    ).unwrap();
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(captures) = pattern.captures(filename) {
+                        <span class="kw">let </span>network: String = captures.name(<span class="string">&quot;network&quot;</span>).unwrap().as_str().into();
+                        <span class="kw">if </span>network == config.chain.name {
+                            <span class="kw">let </span>date = Date::parse(captures.name(<span class="string">&quot;date&quot;</span>).unwrap().as_str(), <span class="kw-2">&amp;</span>Iso8601::DEFAULT).unwrap();
+                            <span class="kw">let </span>height = captures.name(<span class="string">&quot;height&quot;</span>).unwrap().as_str().parse::&lt;i64&gt;().unwrap();
+                            <span class="kw">let </span>snapshot = SnapshotInfo {
+                                network,
+                                date,
+                                height,
+                                path,
+                            };
+                            snapshots.push(snapshot);
+                        }
+                    }
+                }
+            );
+        }
+        SnapshotStore { snapshots }
+    }
+
+    <span class="kw">pub fn </span>display(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.snapshots
+            .iter()
+            .for_each(|s| <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, s.path.display()));
+    }
+}
+
+<span class="kw">pub fn </span>is_car_or_tmp(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+    <span class="kw">let </span>ext = path.extension().unwrap_or_default();
+    ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot; </span>|| ext == <span class="string">&quot;aria2&quot;
+</span>}
 
 <span class="doccomment">/// Fetches snapshot from a trusted location and saves it to the given directory. Chain is inferred
 /// from configuration.
 </span><span class="kw">pub async fn </span>snapshot_fetch(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
+    server: <span class="kw-2">&amp;</span>SnapshotServer,
     use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
-    <span class="kw">match </span>config.chain.name.to_lowercase().as_ref() {
-        <span class="string">&quot;mainnet&quot; </span>=&gt; {
-            snapshot_fetch_mainnet(snapshot_out_dir, <span class="kw-2">&amp;</span>config.snapshot_fetch, use_aria2).<span class="kw">await
+    <span class="kw">match </span>server {
+        SnapshotServer::Forest =&gt; snapshot_fetch_forest(snapshot_out_dir, config, use_aria2).<span class="kw">await</span>,
+        SnapshotServer::Filecoin =&gt; {
+            snapshot_fetch_filecoin(snapshot_out_dir, config, use_aria2).<span class="kw">await
         </span>}
-        <span class="string">&quot;calibnet&quot; </span>=&gt; {
-            snapshot_fetch_calibnet(snapshot_out_dir, <span class="kw-2">&amp;</span>config.snapshot_fetch, use_aria2).<span class="kw">await
-        </span>}
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(
-            <span class="string">&quot;Fetch not supported for chain {}&quot;</span>,
-            config.chain.name,
-        )),
     }
 }
 
@@ -603,20 +804,24 @@
 <span class="doccomment">/// Fetches snapshot for `calibnet` from a default, trusted location. On success, the snapshot will be
 /// saved in the given directory. In case of failure (e.g. connection interrupted) it will not be
 /// removed.
-</span><span class="kw">async fn </span>snapshot_fetch_calibnet(
+</span><span class="kw">async fn </span>snapshot_fetch_forest(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
-    snapshot_fetch_config: <span class="kw-2">&amp;</span>SnapshotFetchConfig,
+    config: <span class="kw-2">&amp;</span>Config,
     use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
-    <span class="kw">let </span>name = <span class="kw-2">&amp;</span>snapshot_fetch_config.calibnet.bucket_name;
-    <span class="kw">let </span>region = <span class="kw-2">&amp;</span>snapshot_fetch_config.calibnet.region;
+    <span class="kw">let </span>snapshot_fetch_config = <span class="kw">match </span>config.chain.name.to_lowercase().as_str() {
+        <span class="string">&quot;mainnet&quot; </span>=&gt; <span class="macro">bail!</span>(
+            <span class="string">&quot;Mainnet snapshot fetch service not provided by Forest yet. Suggestion: use `--provider=filecoin` to fetch from Filecoin server.&quot;
+        </span>),
+        <span class="string">&quot;calibnet&quot; </span>=&gt; <span class="kw-2">&amp;</span>config.snapshot_fetch.forest.calibnet,
+        <span class="kw">_ </span>=&gt; <span class="macro">bail!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name,),
+    };
+    <span class="kw">let </span>name = <span class="kw-2">&amp;</span>snapshot_fetch_config.bucket_name;
+    <span class="kw">let </span>region = <span class="kw-2">&amp;</span>snapshot_fetch_config.region;
     <span class="kw">let </span>bucket = Bucket::new_public(name, region.parse()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// Grab contents of the bucket
-    </span><span class="kw">let </span>bucket_contents = bucket.list(
-        snapshot_fetch_config.calibnet.path.clone(),
-        <span class="prelude-val">Some</span>(<span class="string">&quot;/&quot;</span>.to_string()),
-    )<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>bucket_contents = bucket.list(snapshot_fetch_config.path.clone(), <span class="prelude-val">Some</span>(<span class="string">&quot;/&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
     <span class="comment">// Find the the last modified file that is not a directory or empty file
     </span><span class="kw">let </span>last_modified = bucket_contents
@@ -639,9 +844,9 @@
     // of writing this code the Stream API is a bit lacking, making adding a progress bar a pain.
     // https://github.com/durch/rust-s3/issues/275
     </span><span class="kw">let </span>client = https_client();
-    <span class="kw">let </span>snapshot_spaces_url = <span class="kw-2">&amp;</span>snapshot_fetch_config.calibnet.snapshot_spaces_url;
-    <span class="kw">let </span>calibnet_path = <span class="kw-2">&amp;</span>snapshot_fetch_config.calibnet.path;
-    <span class="kw">let </span>url = snapshot_spaces_url.join(calibnet_path)<span class="question-mark">?</span>.join(filename)<span class="question-mark">?</span>;
+    <span class="kw">let </span>snapshot_spaces_url = <span class="kw-2">&amp;</span>snapshot_fetch_config.snapshot_spaces_url;
+    <span class="kw">let </span>path = <span class="kw-2">&amp;</span>snapshot_fetch_config.path;
+    <span class="kw">let </span>url = snapshot_spaces_url.join(path)<span class="question-mark">?</span>.join(filename)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>snapshot_response = client.get(url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">if </span>use_aria2 {
@@ -664,38 +869,40 @@
 <span class="doccomment">/// Fetches snapshot for `mainnet` from a default, trusted location. On success, the snapshot will be
 /// saved in the given directory. In case of failure (e.g. checksum verification fiasco) it will
 /// not be removed.
-</span><span class="kw">async fn </span>snapshot_fetch_mainnet(
+</span><span class="kw">async fn </span>snapshot_fetch_filecoin(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
-    snapshot_fetch_config: <span class="kw-2">&amp;</span>SnapshotFetchConfig,
+    config: <span class="kw-2">&amp;</span>Config,
     use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
+    <span class="kw">let </span>service_url = <span class="kw">match </span>config.chain.name.to_lowercase().as_ref() {
+        <span class="string">&quot;mainnet&quot; </span>=&gt; config.snapshot_fetch.filecoin.mainnet.clone(),
+        <span class="string">&quot;calibnet&quot; </span>=&gt; config.snapshot_fetch.filecoin.calibnet.clone(),
+        <span class="kw">_ </span>=&gt; <span class="macro">bail!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name,),
+    };
     <span class="kw">let </span>client = https_client();
 
     <span class="kw">let </span>snapshot_url = {
-        <span class="kw">let </span>url = snapshot_fetch_config.mainnet.snapshot_url.clone();
         <span class="kw">let </span>head_response = client
-            .request(hyper::Request::head(url.as_str()).body(<span class="string">&quot;&quot;</span>.into())<span class="question-mark">?</span>)
+            .request(hyper::Request::head(service_url.as_str()).body(<span class="string">&quot;&quot;</span>.into())<span class="question-mark">?</span>)
             .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="comment">// Use the redirect if available.
-        </span><span class="kw">match </span>head_response
-            .headers()
-            .get(<span class="string">&quot;x-amz-website-redirect-location&quot;</span>)
-        {
+        </span><span class="kw">match </span>head_response.headers().get(<span class="string">&quot;location&quot;</span>) {
             <span class="prelude-val">Some</span>(url) =&gt; url.to_str()<span class="question-mark">?</span>.try_into()<span class="question-mark">?</span>,
-            <span class="prelude-val">None </span>=&gt; url,
+            <span class="prelude-val">None </span>=&gt; service_url,
         }
     };
 
     <span class="kw">let </span>snapshot_response = client.get(snapshot_url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="comment">// Grab the snapshot file name
-    </span><span class="kw">let </span>snapshot_name = filename_from_url(<span class="kw-2">&amp;</span>snapshot_url)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>filename = filename_from_url(<span class="kw-2">&amp;</span>snapshot_url)<span class="question-mark">?</span>;
     <span class="comment">// Create requested directory tree to store the snapshot
     </span>create_dir_all(snapshot_out_dir).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>snapshot_name = normalize_filecoin_snapshot_name(<span class="kw-2">&amp;</span>config.chain.name, <span class="kw-2">&amp;</span>filename)<span class="question-mark">?</span>;
     <span class="kw">let </span>snapshot_path = snapshot_out_dir.join(<span class="kw-2">&amp;</span>snapshot_name);
-
-    <span class="kw">if </span>use_aria2 {
+    <span class="comment">// Download the file
+    </span><span class="kw">if </span>use_aria2 {
         download_snapshot_and_validate_checksum_with_aria2(client, snapshot_url, <span class="kw-2">&amp;</span>snapshot_path)
             .<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
@@ -715,7 +922,6 @@
         )
         .<span class="kw">await</span><span class="question-mark">?</span>;
     }
-
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
 
@@ -800,13 +1006,17 @@
         url.as_str(),
         snapshot_path
             .parent()
-            .map(|p| p.to_str().unwrap_or_default())
+            .and_then(|p| p.to_str())
+            .unwrap_or_default(),
+        snapshot_path
+            .file_name()
+            .and_then(|f| f.to_str())
             .unwrap_or_default(),
         <span class="macro">format!</span>(<span class="string">&quot;sha-256={checksum_expected}&quot;</span>).as_str(),
     )
 }
 
-<span class="kw">fn </span>download_with_aria2(url: <span class="kw-2">&amp;</span>str, dir: <span class="kw-2">&amp;</span>str, checksum: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
+<span class="kw">fn </span>download_with_aria2(url: <span class="kw-2">&amp;</span>str, dir: <span class="kw-2">&amp;</span>str, out: <span class="kw-2">&amp;</span>str, checksum: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>child = Command::new(<span class="string">&quot;aria2c&quot;</span>)
         .args([
             <span class="string">&quot;--continue=true&quot;</span>,
@@ -815,9 +1025,11 @@
             <span class="string">&quot;--max-tries=0&quot;</span>,
             <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--checksum={checksum}&quot;</span>),
             <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--dir={dir}&quot;</span>,),
+            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--out={out}&quot;</span>,),
             url,
         ])
         .spawn()<span class="question-mark">?</span>;
+
     <span class="kw">let </span>exit_code = child.wait()<span class="question-mark">?</span>;
     <span class="kw">if </span>exit_code.success() {
         <span class="prelude-val">Ok</span>(())
@@ -844,6 +1056,36 @@
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;can&#39;t extract filename from {url}&quot;</span>))
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(filename)
+    }
+}
+
+<span class="doccomment">/// Returns a normalized snapshot name
+/// Filecoin snapshot files are named in the format of `&lt;height&gt;_&lt;YYYY_MM_DD&gt;T&lt;HH_MM_SS&gt;Z.car`.
+/// Normalized snapshot name are in the format `filecoin_snapshot_{mainnet|calibnet}_&lt;YYYY-MM-DD&gt;_height_&lt;height&gt;.car`.
+/// # Example
+/// ```
+/// # use forest_cli_shared::cli::normalize_filecoin_snapshot_name;
+/// let actual_name = &quot;64050_2022_11_24T00_00_00Z.car&quot;;
+/// let normalized_name = &quot;filecoin_snapshot_calibnet_2022-11-24_height_64050.car&quot;;
+/// assert_eq!(normalized_name, normalize_filecoin_snapshot_name(&quot;calibnet&quot;, actual_name).unwrap());
+/// ```
+</span><span class="kw">pub fn </span>normalize_filecoin_snapshot_name(network: <span class="kw-2">&amp;</span>str, filename: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;String&gt; {
+    <span class="kw">let </span>pattern = Regex::new(
+        <span class="string">r&quot;(?P&lt;height&gt;\d+)_(?P&lt;date&gt;\d{4}_\d{2}_\d{2})T(?P&lt;time&gt;\d{2}_\d{2}_\d{2})Z.car$&quot;</span>,
+    )
+    .unwrap();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(captures) = pattern.captures(filename) {
+        <span class="kw">let </span>date = Date::parse(
+            captures.name(<span class="string">&quot;date&quot;</span>).unwrap().as_str(),
+            <span class="kw-2">&amp;</span>format_description::parse(<span class="string">&quot;[year]_[month]_[day]&quot;</span>).unwrap(),
+        )<span class="question-mark">?</span>;
+        <span class="kw">let </span>height = captures.name(<span class="string">&quot;height&quot;</span>).unwrap().as_str().parse::&lt;i64&gt;()<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(
+            <span class="string">&quot;filecoin_snapshot_{network}_{}_height_{height}.car&quot;</span>,
+            date.format(<span class="kw-2">&amp;</span>format_description::parse(<span class="string">&quot;[year]-[month]-[day]&quot;</span>).unwrap())<span class="question-mark">?
+        </span>))
+    } <span class="kw">else </span>{
+        <span class="macro">bail!</span>(<span class="string">&quot;Cannot parse filename: {filename}&quot;</span>);
     }
 }
 
@@ -944,6 +1186,7 @@
     <span class="kw">use </span>anyhow::{ensure, <span class="prelude-ty">Result</span>};
     <span class="kw">use </span>axum::{routing::get_service, Router};
     <span class="kw">use </span>http::StatusCode;
+    <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>std::{env::temp_dir, net::TcpListener};
     <span class="kw">use </span>tower_http::services::ServeDir;
 
@@ -995,6 +1238,11 @@
             .for_each(|case| <span class="macro">assert!</span>(filename_from_url(<span class="kw-2">&amp;</span>Url::try_from(<span class="kw-2">*</span>case).unwrap()).is_err()));
     }
 
+    <span class="attr">#[quickcheck]
+    </span><span class="kw">fn </span>test_normalize_filecoin_snapshot_name(filename: String) {
+        <span class="kw">_ </span>= normalize_filecoin_snapshot_name(<span class="string">&quot;calibnet&quot;</span>, <span class="kw-2">&amp;</span>filename);
+    }
+
     <span class="attr">#[test]
     </span><span class="kw">fn </span>replace_extension_url_test() {
         <span class="kw">let </span>correct_cases = [
@@ -1042,6 +1290,7 @@
         <span class="kw">let </span>r = download_with_aria2(
             <span class="kw-2">&amp;</span>url,
             temp_dir().as_os_str().to_str().unwrap_or_default(),
+            <span class="string">&quot;test&quot;</span>,
             <span class="string">&quot;sha-256=f640a228f127a7ad7c3d7c8fa4a9e95c5a2eb8d32561905d97191178ab383a64&quot;</span>,
         );
         <span class="macro">ensure!</span>(r.is_err());
@@ -1061,6 +1310,7 @@
         download_with_aria2(
             <span class="kw-2">&amp;</span>url,
             temp_dir().as_os_str().to_str().unwrap_or_default(),
+            <span class="string">&quot;test&quot;</span>,
             <span class="string">&quot;sha-256=124305d4602185addd53df5f39a35b2564baa3f51eb211b266af2db77844266d&quot;</span>,
         )<span class="question-mark">?</span>;
         shutdown_tx.send(()).unwrap();
