@@ -83,6 +83,8 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -122,7 +124,7 @@
     </span><span class="kw">let </span>app = Router::new()
         .route(<span class="string">&quot;/metrics&quot;</span>, get(collect_prometheus_metrics))
         .route(<span class="string">&quot;/stats/db&quot;</span>, get(collect_db_metrics::&lt;DB&gt;))
-        .layer(axum::Extension(db));
+        .with_state(db);
     <span class="kw">let </span>server = axum::Server::from_tcp(prometheus_listener)<span class="question-mark">?</span>.serve(app.into_make_service());
 
     <span class="comment">// Wait for server to exit
@@ -152,7 +154,9 @@
     )
 }
 
-<span class="kw">async fn </span>collect_db_metrics&lt;DB&gt;(axum::Extension(db): axum::Extension&lt;DB&gt;) -&gt; <span class="kw">impl </span>IntoResponse
+<span class="kw">async fn </span>collect_db_metrics&lt;DB&gt;(
+    axum::extract::State(db): axum::extract::State&lt;DB&gt;,
+) -&gt; <span class="kw">impl </span>IntoResponse
 <span class="kw">where
     </span>DB: DBStatistics + Sync + Send + Clone + <span class="lifetime">&#39;static</span>,
 {

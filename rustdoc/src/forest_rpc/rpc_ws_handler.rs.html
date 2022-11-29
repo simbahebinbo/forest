@@ -343,7 +343,7 @@
 
 <span class="kw">pub async fn </span>rpc_ws_handler&lt;DB, B&gt;(
     headers: HeaderMap,
-    axum::Extension(rpc_server): axum::Extension&lt;JsonRpcServerState&gt;,
+    axum::extract::State(rpc_server): axum::extract::State&lt;JsonRpcServerState&gt;,
     ws: WebSocketUpgrade,
 ) -&gt; <span class="kw">impl </span>IntoResponse
 <span class="kw">where

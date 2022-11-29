@@ -59,8 +59,8 @@
 
 <span class="kw">pub async fn </span>rpc_http_handler&lt;DB, B&gt;(
     headers: HeaderMap,
+    axum::extract::State(rpc_server): axum::extract::State&lt;JsonRpcServerState&gt;,
     axum::Json(rpc_call): axum::Json&lt;JsonRpcRequestObject&gt;,
-    axum::Extension(rpc_server): axum::Extension&lt;JsonRpcServerState&gt;,
 ) -&gt; <span class="kw">impl </span>IntoResponse
 <span class="kw">where
     </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,

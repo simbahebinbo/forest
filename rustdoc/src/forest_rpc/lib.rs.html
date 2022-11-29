@@ -378,7 +378,7 @@
     <span class="kw">let </span>app = axum::Router::new()
         .route(<span class="string">&quot;/rpc/v0&quot;</span>, get(rpc_ws_handler::&lt;DB, B&gt;))
         .route(<span class="string">&quot;/rpc/v0&quot;</span>, post(rpc_http_handler::&lt;DB, B&gt;))
-        .layer(axum::Extension(rpc_server));
+        .with_state(rpc_server);
 
     <span class="macro">info!</span>(<span class="string">&quot;Ready for RPC connections&quot;</span>);
     <span class="kw">let </span>server = axum::Server::from_tcp(rpc_endpoint)<span class="question-mark">?</span>.serve(app.into_make_service());
