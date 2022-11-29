@@ -315,7 +315,7 @@
             <span class="kw">let </span><span class="kw-2">mut </span>proving_sectors = BitField::new();
 
             <span class="kw">if </span>nv &lt; NetworkVersion::V7 {
-                mas.for_each_deadline(store, |<span class="kw">_</span>, deadline| {
+                mas.for_each_deadline(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config.policy, store, |<span class="kw">_</span>, deadline| {
                     <span class="kw">let </span><span class="kw-2">mut </span>fault_sectors = BitField::new();
                     deadline.for_each(store, |<span class="kw">_</span>, partition: miner::Partition| {
                         proving_sectors |= partition.all_sectors();
@@ -327,7 +327,7 @@
                     <span class="prelude-val">Ok</span>(())
                 })<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
-                mas.for_each_deadline(store, |<span class="kw">_</span>, deadline| {
+                mas.for_each_deadline(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config.policy, store, |<span class="kw">_</span>, deadline| {
                     deadline.for_each(store, |<span class="kw">_</span>, partition: miner::Partition| {
                         proving_sectors |= <span class="kw-2">&amp;</span>partition.active_sectors();
                         <span class="prelude-val">Ok</span>(())
@@ -467,7 +467,7 @@
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Miner actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
         <span class="kw">let </span>mas = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
 
-        mas.for_each_deadline(store, |<span class="kw">_</span>, deadline| {
+        mas.for_each_deadline(<span class="kw-2">&amp;</span><span class="self">self</span>.chain_config.policy, store, |<span class="kw">_</span>, deadline| {
             deadline.for_each(store, |<span class="kw">_</span>, partition: miner::Partition| {
                 cb(<span class="kw-2">&amp;</span>partition)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(())

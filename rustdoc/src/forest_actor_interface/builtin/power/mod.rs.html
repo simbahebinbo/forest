@@ -177,23 +177,6 @@
 <span id="177">177</span>
 <span id="178">178</span>
 <span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -249,16 +232,6 @@
     V9(fil_actor_power_v9::State),
 }
 
-<span class="doccomment">/// Converts any `FilterEstimate`, e.g. `actorv0::util::smooth::FilterEstimate` type into
-/// generalized one `crate::FilterEstimate`.
-</span><span class="macro">macro_rules! </span>convert_filter_estimate {
-    (<span class="macro-nonterminal">$from</span>:expr) =&gt; {
-        FilterEstimate {
-            position: <span class="macro-nonterminal">$from</span>.position.clone(),
-            velocity: <span class="macro-nonterminal">$from</span>.velocity.clone(),
-        }
-    };
-}
 <span class="kw">impl </span>State {
     <span class="kw">pub fn </span>load&lt;BS&gt;(store: <span class="kw-2">&amp;</span>BS, actor: <span class="kw-2">&amp;</span>ActorState) -&gt; anyhow::Result&lt;State&gt;
     <span class="kw">where
@@ -335,22 +308,15 @@
     ) -&gt; anyhow::Result&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, miner),
-            State::V9(st) =&gt; {
-                <span class="comment">// Ugly hack because the policy structs aren&#39;t shared. Issue 2147 will fix this.
-                </span><span class="kw">let </span>new_policy = fil_actors_runtime_v9::runtime::Policy {
-                    minimum_consensus_power: policy.minimum_consensus_power.clone(),
-                    ..Default::default()
-                };
-                st.miner_nominal_power_meets_consensus_minimum(<span class="kw-2">&amp;</span>new_policy, <span class="kw-2">&amp;</span>s, miner)
-            }
+            State::V9(st) =&gt; st.miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, miner),
         }
     }
 
     <span class="doccomment">/// Returns `this_epoch_qa_power_smoothed` from the state.
     </span><span class="kw">pub fn </span>total_power_smoothed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; FilterEstimate {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; <span class="macro">convert_filter_estimate!</span>(st.this_epoch_qa_power_smoothed),
-            State::V9(st) =&gt; <span class="macro">convert_filter_estimate!</span>(st.this_epoch_qa_power_smoothed),
+            State::V8(st) =&gt; st.this_epoch_qa_power_smoothed.clone(),
+            State::V9(st) =&gt; st.this_epoch_qa_power_smoothed.clone(),
         }
     }
 

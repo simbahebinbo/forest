@@ -576,26 +576,6 @@
 <span id="576">576</span>
 <span id="577">577</span>
 <span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -784,18 +764,7 @@
             bootstrap_peers: DEFAULT_BOOTSTRAP.iter().map(|x| x.to_string()).collect(),
             block_delay_secs: EPOCH_DURATION_SECONDS <span class="kw">as </span>u64,
             height_infos: HEIGHT_INFOS.to_vec(),
-            policy: Policy {
-                valid_post_proof_type: HashSet::&lt;RegisteredPoStProof&gt;::from([
-                    RegisteredPoStProof::StackedDRGWindow32GiBV1,
-                    RegisteredPoStProof::StackedDRGWindow64GiBV1,
-                ]),
-                valid_pre_commit_proof_type: HashSet::&lt;RegisteredSealProof&gt;::from([
-                    RegisteredSealProof::StackedDRG32GiBV1P1,
-                    RegisteredSealProof::StackedDRG64GiBV1P1,
-                ]),
-                minimum_consensus_power: StoragePower::from(MINIMUM_CONSENSUS_POWER),
-                ..Policy::default()
-            },
+            policy: Policy::calibnet(),
         }
     }
 
@@ -863,23 +832,14 @@
             bootstrap_peers: DEFAULT_BOOTSTRAP.iter().map(|x| x.to_string()).collect(),
             block_delay_secs: EPOCH_DURATION_SECONDS <span class="kw">as </span>u64,
             height_infos: HEIGHT_INFOS.to_vec(),
-            policy: Policy {
-                valid_post_proof_type: HashSet::&lt;RegisteredPoStProof&gt;::from([
-                    RegisteredPoStProof::StackedDRGWindow32GiBV1,
-                    RegisteredPoStProof::StackedDRGWindow64GiBV1,
-                ]),
-                valid_pre_commit_proof_type: HashSet::&lt;RegisteredSealProof&gt;::from([
-                    RegisteredSealProof::StackedDRG32GiBV1P1,
-                    RegisteredSealProof::StackedDRG64GiBV1P1,
-                ]),
-                ..Policy::default()
-            },
+            policy: Policy::mainnet(),
         }
     }
 }
 
-<span class="kw">fn </span>default_policy() -&gt; Policy {
-    Policy::default()
+<span class="comment">// XXX: Dummy default. Will be overwritten later. Wish we could get rid of this.
+</span><span class="kw">fn </span>default_policy() -&gt; Policy {
+    Policy::mainnet()
 }
 
 <span class="kw">mod </span>serde_policy {

@@ -884,8 +884,6 @@
 <span id="884">884</span>
 <span id="885">885</span>
 <span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -995,13 +993,10 @@
         .<span class="kw">await
         </span>.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Could not load miner {:?}&quot;</span>, e))<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>num_deadlines = data
-        .state_manager
-        .chain_config()
-        .policy
-        .wpost_period_deadlines;
+    <span class="kw">let </span>policy = <span class="kw-2">&amp;</span>data.state_manager.chain_config().policy;
+    <span class="kw">let </span>num_deadlines = policy.wpost_period_deadlines;
     <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::with_capacity(num_deadlines <span class="kw">as </span>usize);
-    mas.for_each_deadline(data.state_manager.blockstore(), |<span class="kw">_</span>, dl| {
+    mas.for_each_deadline(policy, data.state_manager.blockstore(), |<span class="kw">_</span>, dl| {
         out.push(Deadline {
             post_submissions: dl.partitions_posted().clone().into(),
             disputable_proof_count: dl.disputable_proof_count(data.state_manager.blockstore())<span class="question-mark">?</span>,
@@ -1203,7 +1198,8 @@
         .miner_load_actor_tsk(<span class="kw-2">&amp;</span>actor, <span class="kw-2">&amp;</span>key.into())
         .<span class="kw">await
         </span>.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Could not load miner {:?}&quot;</span>, e))<span class="question-mark">?</span>;
-    <span class="kw">let </span>dl = mas.load_deadline(db, dl_idx)<span class="question-mark">?</span>;
+    <span class="kw">let </span>policy = <span class="kw-2">&amp;</span>data.state_manager.chain_config().policy;
+    <span class="kw">let </span>dl = mas.load_deadline(policy, db, dl_idx)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::new();
     dl.for_each(db, |<span class="kw">_</span>, part| {
         out.push(Partition {

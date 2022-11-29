@@ -95,6 +95,32 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -176,20 +202,46 @@
 
     <span class="kw">pub fn </span>pre_commit_deposit_for_power(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _network_qa_power: FilterEstimate,
-        _sector_weight: <span class="kw-2">&amp;</span>StoragePower,
+        network_qa_power: FilterEstimate,
+        sector_weight: <span class="kw-2">&amp;</span>StoragePower,
     ) -&gt; TokenAmount {
-        <span class="macro">todo!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            State::V8(st) =&gt; fil_actor_miner_v8::pre_commit_deposit_for_power(
+                <span class="kw-2">&amp;</span>st.this_epoch_reward_smoothed,
+                <span class="kw-2">&amp;</span>network_qa_power,
+                sector_weight,
+            ),
+            State::V9(st) =&gt; fil_actor_miner_v9::pre_commit_deposit_for_power(
+                <span class="kw-2">&amp;</span>st.this_epoch_reward_smoothed,
+                <span class="kw-2">&amp;</span>network_qa_power,
+                sector_weight,
+            ),
+        }
     }
 
     <span class="kw">pub fn </span>initial_pledge_for_power(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _sector_weight: <span class="kw-2">&amp;</span>StoragePower,
+        sector_weight: <span class="kw-2">&amp;</span>StoragePower,
         _network_total_pledge: <span class="kw-2">&amp;</span>TokenAmount,
-        _network_qa_power: FilterEstimate,
-        _circ_supply: <span class="kw-2">&amp;</span>TokenAmount,
+        network_qa_power: FilterEstimate,
+        circ_supply: <span class="kw-2">&amp;</span>TokenAmount,
     ) -&gt; TokenAmount {
-        <span class="macro">todo!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            State::V8(st) =&gt; fil_actor_miner_v8::initial_pledge_for_power(
+                sector_weight,
+                <span class="kw-2">&amp;</span>st.this_epoch_baseline_power,
+                <span class="kw-2">&amp;</span>st.this_epoch_reward_smoothed,
+                <span class="kw-2">&amp;</span>network_qa_power,
+                circ_supply,
+            ),
+            State::V9(st) =&gt; fil_actor_miner_v9::initial_pledge_for_power(
+                sector_weight,
+                <span class="kw-2">&amp;</span>st.this_epoch_baseline_power,
+                <span class="kw-2">&amp;</span>st.this_epoch_reward_smoothed,
+                <span class="kw-2">&amp;</span>network_qa_power,
+                circ_supply,
+            ),
+        }
     }
 }
 </code></pre></div>

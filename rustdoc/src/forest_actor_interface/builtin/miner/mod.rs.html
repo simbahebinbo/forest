@@ -463,10 +463,36 @@
 <span id="463">463</span>
 <span id="464">464</span>
 <span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
+<span class="kw">use </span>fil_actors_runtime::runtime::Policy;
 <span class="kw">use </span>forest_fil_types::deadlines::DeadlineInfo;
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
@@ -543,84 +569,45 @@
 
     <span class="kw">pub fn </span>info&lt;BS: Blockstore&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, store: <span class="kw-2">&amp;</span>BS) -&gt; anyhow::Result&lt;MinerInfo&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; {
-                <span class="kw">let </span>info = st.get_info(store)<span class="question-mark">?</span>;
-
-                <span class="comment">// Deserialize into peer id if valid, `None` if not.
-                </span><span class="kw">let </span>peer_id = PeerId::from_bytes(<span class="kw-2">&amp;</span>info.peer_id).ok();
-
-                <span class="prelude-val">Ok</span>(MinerInfo {
-                    owner: info.owner,
-                    worker: info.worker,
-                    control_addresses: info.control_addresses,
-                    new_worker: info.pending_worker_key.as_ref().map(|k| k.new_worker),
-                    worker_change_epoch: info
-                        .pending_worker_key
-                        .map(|k| k.effective_at)
-                        .unwrap_or(-<span class="number">1</span>),
-                    peer_id,
-                    multiaddrs: info.multi_address,
-                    window_post_proof_type: info.window_post_proof_type,
-                    sector_size: info.sector_size,
-                    window_post_partition_sectors: info.window_post_partition_sectors,
-                    consensus_fault_elapsed: info.consensus_fault_elapsed,
-                })
-            }
-            State::V9(st) =&gt; {
-                <span class="kw">let </span>info = st.get_info(store)<span class="question-mark">?</span>;
-
-                <span class="comment">// Deserialize into peer id if valid, `None` if not.
-                </span><span class="kw">let </span>peer_id = PeerId::from_bytes(<span class="kw-2">&amp;</span>info.peer_id).ok();
-
-                <span class="prelude-val">Ok</span>(MinerInfo {
-                    owner: info.owner,
-                    worker: info.worker,
-                    control_addresses: info.control_addresses,
-                    new_worker: info.pending_worker_key.as_ref().map(|k| k.new_worker),
-                    worker_change_epoch: info
-                        .pending_worker_key
-                        .map(|k| k.effective_at)
-                        .unwrap_or(-<span class="number">1</span>),
-                    peer_id,
-                    multiaddrs: info.multi_address,
-                    window_post_proof_type: info.window_post_proof_type,
-                    sector_size: info.sector_size,
-                    window_post_partition_sectors: info.window_post_partition_sectors,
-                    consensus_fault_elapsed: info.consensus_fault_elapsed,
-                })
-            }
+            State::V8(st) =&gt; <span class="prelude-val">Ok</span>(st.get_info(store)<span class="question-mark">?</span>.into()),
+            State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st.get_info(store)<span class="question-mark">?</span>.into()),
         }
     }
 
     <span class="doccomment">/// Loads deadlines for a miner&#39;s state
     </span><span class="kw">pub fn </span>for_each_deadline&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        policy: <span class="kw-2">&amp;</span>Policy,
         store: <span class="kw-2">&amp;</span>BS,
         <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(u64, Deadline) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;,
     ) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; {
-                st.load_deadlines(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
-                    </span>.for_each(<span class="kw-2">&amp;</span>Default::default(), <span class="kw-2">&amp;</span>store, |idx, dl| {
-                        f(idx, Deadline::V8(dl))
-                    })
-            }
-            State::V9(st) =&gt; {
-                st.load_deadlines(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
-                    </span>.for_each(<span class="kw-2">&amp;</span>Default::default(), <span class="kw-2">&amp;</span>store, |idx, dl| {
-                        f(idx, Deadline::V9(dl))
-                    })
-            }
+            State::V8(st) =&gt; st
+                .load_deadlines(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
+                </span>.for_each(policy, <span class="kw-2">&amp;</span>store, |idx, dl| f(idx, Deadline::V8(dl))),
+            State::V9(st) =&gt; st
+                .load_deadlines(<span class="kw-2">&amp;</span>store)<span class="question-mark">?
+                </span>.for_each(policy, <span class="kw-2">&amp;</span>store, |idx, dl| f(idx, Deadline::V9(dl))),
         }
     }
 
     <span class="doccomment">/// Loads deadline at index for a miner&#39;s state
     </span><span class="kw">pub fn </span>load_deadline&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _store: <span class="kw-2">&amp;</span>BS,
-        _idx: u64,
+        policy: <span class="kw-2">&amp;</span>Policy,
+        store: <span class="kw-2">&amp;</span>BS,
+        idx: u64,
     ) -&gt; anyhow::Result&lt;Deadline&gt; {
-        <span class="macro">unimplemented!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            State::V8(st) =&gt; <span class="prelude-val">Ok</span>(st
+                .load_deadlines(store)<span class="question-mark">?
+                </span>.load_deadline(policy, store, idx)
+                .map(Deadline::V8)<span class="question-mark">?</span>),
+            State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st
+                .load_deadlines(store)<span class="question-mark">?
+                </span>.load_deadline(policy, store, idx)
+                .map(Deadline::V9)<span class="question-mark">?</span>),
+        }
     }
 
     <span class="doccomment">/// Loads sectors corresponding to the bitfield. If no bitfield is passed in, return all.
@@ -679,10 +666,13 @@
     <span class="doccomment">/// Loads a specific sector number
     </span><span class="kw">pub fn </span>get_sector&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _store: <span class="kw-2">&amp;</span>BS,
-        _sector_num: u64,
+        store: <span class="kw-2">&amp;</span>BS,
+        sector_num: u64,
     ) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;SectorOnChainInfo&gt;&gt; {
-        <span class="macro">unimplemented!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            State::V8(st) =&gt; <span class="prelude-val">Ok</span>(st.get_sector(store, sector_num)<span class="question-mark">?</span>.map(From::from)),
+            State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st.get_sector(store, sector_num)<span class="question-mark">?</span>.map(From::from)),
+        }
     }
 
     <span class="doccomment">/// Loads deadline at index for a miner&#39;s state
@@ -722,6 +712,54 @@
     <span class="kw">pub </span>sector_size: SectorSize,
     <span class="kw">pub </span>window_post_partition_sectors: u64,
     <span class="kw">pub </span>consensus_fault_elapsed: ChainEpoch,
+}
+
+<span class="kw">impl </span>From&lt;fil_actor_miner_v8::MinerInfo&gt; <span class="kw">for </span>MinerInfo {
+    <span class="kw">fn </span>from(info: fil_actor_miner_v8::MinerInfo) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Deserialize into peer id if valid, `None` if not.
+        </span><span class="kw">let </span>peer_id = PeerId::from_bytes(<span class="kw-2">&amp;</span>info.peer_id).ok();
+
+        MinerInfo {
+            owner: info.owner,
+            worker: info.worker,
+            control_addresses: info.control_addresses,
+            new_worker: info.pending_worker_key.as_ref().map(|k| k.new_worker),
+            worker_change_epoch: info
+                .pending_worker_key
+                .map(|k| k.effective_at)
+                .unwrap_or(-<span class="number">1</span>),
+            peer_id,
+            multiaddrs: info.multi_address,
+            window_post_proof_type: info.window_post_proof_type,
+            sector_size: info.sector_size,
+            window_post_partition_sectors: info.window_post_partition_sectors,
+            consensus_fault_elapsed: info.consensus_fault_elapsed,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;fil_actor_miner_v9::MinerInfo&gt; <span class="kw">for </span>MinerInfo {
+    <span class="kw">fn </span>from(info: fil_actor_miner_v9::MinerInfo) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Deserialize into peer id if valid, `None` if not.
+        </span><span class="kw">let </span>peer_id = PeerId::from_bytes(<span class="kw-2">&amp;</span>info.peer_id).ok();
+
+        MinerInfo {
+            owner: info.owner,
+            worker: info.worker,
+            control_addresses: info.control_addresses,
+            new_worker: info.pending_worker_key.as_ref().map(|k| k.new_worker),
+            worker_change_epoch: info
+                .pending_worker_key
+                .map(|k| k.effective_at)
+                .unwrap_or(-<span class="number">1</span>),
+            peer_id,
+            multiaddrs: info.multi_address,
+            window_post_proof_type: info.window_post_proof_type,
+            sector_size: info.sector_size,
+            window_post_partition_sectors: info.window_post_partition_sectors,
+            consensus_fault_elapsed: info.consensus_fault_elapsed,
+        }
+    }
 }
 
 <span class="kw">impl </span>MinerInfo {
@@ -780,7 +818,10 @@
     }
 
     <span class="kw">pub fn </span>partitions_posted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BitField {
-        <span class="macro">todo!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            Deadline::V8(dl) =&gt; <span class="kw-2">&amp;</span>dl.partitions_posted,
+            Deadline::V9(dl) =&gt; <span class="kw-2">&amp;</span>dl.partitions_posted,
+        }
     }
 }
 
@@ -793,13 +834,22 @@
 
 <span class="kw">impl </span>Partition&lt;<span class="lifetime">&#39;_</span>&gt; {
     <span class="kw">pub fn </span>all_sectors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BitField {
-        <span class="macro">todo!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            Partition::V8(dl) =&gt; <span class="kw-2">&amp;</span>dl.sectors,
+            Partition::V9(dl) =&gt; <span class="kw-2">&amp;</span>dl.sectors,
+        }
     }
     <span class="kw">pub fn </span>faulty_sectors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BitField {
-        <span class="macro">todo!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            Partition::V8(dl) =&gt; <span class="kw-2">&amp;</span>dl.faults,
+            Partition::V9(dl) =&gt; <span class="kw-2">&amp;</span>dl.faults,
+        }
     }
     <span class="kw">pub fn </span>recovering_sectors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BitField {
-        <span class="macro">todo!</span>()
+        <span class="kw">match </span><span class="self">self </span>{
+            Partition::V8(dl) =&gt; <span class="kw-2">&amp;</span>dl.recoveries,
+            Partition::V9(dl) =&gt; <span class="kw-2">&amp;</span>dl.recoveries,
+        }
     }
     <span class="kw">pub fn </span>live_sectors(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; BitField {
         <span class="kw">match </span><span class="self">self </span>{
