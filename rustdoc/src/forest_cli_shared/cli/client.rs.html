@@ -130,7 +130,7 @@
             snapshot_height: <span class="prelude-val">None</span>,
             skip_load: <span class="bool-val">false</span>,
             encrypt_keystore: <span class="bool-val">true</span>,
-            metrics_address: FromStr::from_str(<span class="string">&quot;127.0.0.1:6116&quot;</span>).unwrap(),
+            metrics_address: FromStr::from_str(<span class="string">&quot;0.0.0.0:6116&quot;</span>).unwrap(),
             rpc_address: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), DEFAULT_PORT),
             download_snapshot: <span class="bool-val">false</span>,
             token_exp: Duration::seconds(<span class="number">5184000</span>), <span class="comment">// 60 Days = 5184000 Seconds
