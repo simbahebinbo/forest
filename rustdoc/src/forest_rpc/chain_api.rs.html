@@ -432,7 +432,6 @@
 <span id="432">432</span>
 <span id="433">433</span>
 <span id="434">434</span>
-<span id="435">435</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -502,8 +501,7 @@
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
-    <span class="kw">let </span>(epoch, recent_roots, include_olds_msgs, out, TipsetKeysJson(tsk), skip_checksum) = params;
-    <span class="kw">let </span>skip_old_msgs = !include_olds_msgs;
+    <span class="kw">let </span>(epoch, recent_roots, out, TipsetKeysJson(tsk), skip_checksum) = params;
 
     <span class="kw">let </span>chain_finality = data.state_manager.chain_config().policy.chain_finality;
     <span class="kw">if </span>recent_roots &lt; chain_finality {
@@ -523,7 +521,7 @@
 
     <span class="kw">match </span>data
         .chain_store
-        .export(<span class="kw-2">&amp;</span>start_ts, recent_roots, skip_old_msgs, writer)
+        .export(<span class="kw-2">&amp;</span>start_ts, recent_roots, writer)
         .<span class="kw">await
     </span>{
         <span class="prelude-val">Ok</span>(checksum) =&gt; {

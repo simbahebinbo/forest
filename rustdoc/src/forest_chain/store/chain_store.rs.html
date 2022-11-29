@@ -1095,18 +1095,6 @@
 <span id="1095">1095</span>
 <span id="1096">1096</span>
 <span id="1097">1097</span>
-<span id="1098">1098</span>
-<span id="1099">1099</span>
-<span id="1100">1100</span>
-<span id="1101">1101</span>
-<span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
-<span id="1105">1105</span>
-<span id="1106">1106</span>
-<span id="1107">1107</span>
-<span id="1108">1108</span>
-<span id="1109">1109</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1614,7 +1602,6 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tipset: <span class="kw-2">&amp;</span>Tipset,
         recent_roots: ChainEpoch,
-        skip_old_msgs: bool,
         writer: W,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;digest::Output&lt;D&gt;, Error&gt;
     <span class="kw">where
@@ -1649,25 +1636,19 @@
         <span class="macro">info!</span>(<span class="string">&quot;chain export started&quot;</span>);
 
         <span class="comment">// Walks over tipset and historical data, sending all blocks visited into the car writer.
-        </span><span class="self">Self</span>::walk_snapshot(tipset, recent_roots, skip_old_msgs, |cid| {
+        </span><span class="self">Self</span>::walk_snapshot(tipset, recent_roots, |cid| {
             <span class="kw">let </span>tx_clone = tx.clone();
             <span class="kw">async move </span>{
-                <span class="kw">let </span>block = <span class="self">self</span>.blockstore().get(<span class="kw-2">&amp;</span>cid)<span class="question-mark">?</span>.ok_or_else(|| {
-                    <span class="kw">if </span>skip_old_msgs {
-                        Error::Other(<span class="string">&quot;Cid {cid} not found in blockstore&quot;</span>.to_string())
-                    } <span class="kw">else </span>{
-                        Error::Other(<span class="string">&quot;Cid {cid} not found in blockstore. \
-                                        Exporting a full snapshot is only possible when the node is initialised with a full one. \
-                                        Consider exporting a lightweight snapshot, e.g. skip the old messages.&quot;</span>.to_string())
-                    }
-                })<span class="question-mark">?</span>;
+                <span class="kw">let </span>block = <span class="self">self
+                    </span>.blockstore()
+                    .get(<span class="kw-2">&amp;</span>cid)<span class="question-mark">?
+                    </span>.ok_or_else(|| Error::Other(<span class="string">&quot;Cid {cid} not found in blockstore&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-                tx_clone
-                    .send_async((cid, block.clone()))
-                    .<span class="kw">await</span><span class="question-mark">?</span>;
+                tx_clone.send_async((cid, block.clone())).<span class="kw">await</span><span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(block)
             }
-        }).<span class="kw">await</span><span class="question-mark">?</span>;
+        })
+        .<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="comment">// Drop sender, to close the channel to write task, which will end when finished writing
         </span>drop(tx);
@@ -1775,7 +1756,6 @@
     </span><span class="kw">async fn </span>walk_snapshot&lt;F, T&gt;(
         tipset: <span class="kw-2">&amp;</span>Tipset,
         recent_roots: ChainEpoch,
-        skip_old_msgs: bool,
         <span class="kw-2">mut </span>load_block: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
@@ -1801,10 +1781,6 @@
                 <span class="kw">if </span>current_min_height % EPOCHS_IN_DAY == <span class="number">0 </span>{
                     <span class="macro">info!</span>(target: <span class="string">&quot;chain_api&quot;</span>, <span class="string">&quot;export at: {}&quot;</span>, current_min_height);
                 }
-            }
-
-            <span class="kw">if </span>!skip_old_msgs || h.epoch() &gt; incl_roots_epoch {
-                recurse_links(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.messages(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
             }
 
             <span class="kw">if </span>h.epoch() &gt; <span class="number">0 </span>{

@@ -389,11 +389,6 @@
 <span id="389">389</span>
 <span id="390">390</span>
 <span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -426,9 +421,6 @@
         <span class="doccomment">/// Specify the number of recent state roots to include in the export.
         </span><span class="attr">#[structopt(short, long, default_value = <span class="string">&quot;2000&quot;</span>)]
         </span>recent_stateroots: i64,
-        <span class="doccomment">/// Include old messages
-        </span><span class="attr">#[structopt(short, long)]
-        </span>include_old_messages: bool,
         <span class="doccomment">/// Snapshot output path. Default to `forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car`
         /// Date is in ISO 8601 date format.
         /// Arguments:
@@ -515,7 +507,6 @@
                 tipset,
                 recent_stateroots,
                 output_path,
-                include_old_messages,
                 skip_checksum,
             } =&gt; {
                 <span class="kw">let </span>chain_head = <span class="kw">match </span>chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
@@ -559,7 +550,6 @@
                 <span class="kw">let </span>params = (
                     epoch,
                     <span class="kw-2">*</span>recent_stateroots,
-                    <span class="kw-2">*</span>include_old_messages,
                     output_path,
                     TipsetKeysJson(chain_head.key().clone()),
                     <span class="kw-2">*</span>skip_checksum,
