@@ -575,6 +575,8 @@
 <span id="575">575</span>
 <span id="576">576</span>
 <span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -710,6 +712,16 @@
             .unwrap();
     }
 
+    <span class="comment">// Print admin token
+    </span><span class="kw">let </span>ki = ks.get(JWT_IDENTIFIER).unwrap();
+    <span class="kw">let </span>token_exp = config.client.token_exp;
+    <span class="kw">let </span>token = create_token(ADMIN.to_owned(), ki.private_key(), token_exp).unwrap();
+    <span class="macro">info!</span>(<span class="string">&quot;Admin token: {}&quot;</span>, token);
+
+    <span class="kw">let </span>keystore = Arc::new(RwLock::new(ks));
+
+    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>config);
+
     <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
 
     {
@@ -729,23 +741,15 @@
             .into_os_string()
             .into_string()
             .expect(<span class="string">&quot;Failed converting the path to db&quot;</span>);
+        <span class="kw">let </span>db = db.clone();
         services.spawn(<span class="kw">async </span>{
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = forest_metrics::init_prometheus(prometheus_listener, db_directory).<span class="kw">await
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) =
+                forest_metrics::init_prometheus(prometheus_listener, db_directory, db).<span class="kw">await
             </span>{
                 <span class="macro">error!</span>(<span class="string">&quot;Failed to initiate prometheus server: {e}&quot;</span>);
             }
         });
     }
-
-    <span class="comment">// Print admin token
-    </span><span class="kw">let </span>ki = ks.get(JWT_IDENTIFIER).unwrap();
-    <span class="kw">let </span>token_exp = config.client.token_exp;
-    <span class="kw">let </span>token = create_token(ADMIN.to_owned(), ki.private_key(), token_exp).unwrap();
-    <span class="macro">info!</span>(<span class="string">&quot;Admin token: {}&quot;</span>, token);
-
-    <span class="kw">let </span>keystore = Arc::new(RwLock::new(ks));
-
-    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>config);
 
     <span class="comment">// Initialize ChainStore
     </span><span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db.clone()).<span class="kw">await</span>);

@@ -58,6 +58,31 @@
 <span id="58">58</span>
 <span id="59">59</span>
 <span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -65,6 +90,7 @@
 <span class="kw">pub mod </span>metrics;
 
 <span class="kw">use </span>axum::{http::StatusCode, response::IntoResponse, routing::get, Router};
+<span class="kw">use </span>forest_db::DBStatistics;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>prometheus::{Encoder, TextEncoder};
 <span class="kw">use </span>std::{collections::HashMap, net::TcpListener};
@@ -78,10 +104,14 @@
     REGISTRIES_EXT.write().<span class="kw">await</span>.insert(name, registry);
 }
 
-<span class="kw">pub async fn </span>init_prometheus(
+<span class="kw">pub async fn </span>init_prometheus&lt;DB&gt;(
     prometheus_listener: TcpListener,
     db_directory: String,
-) -&gt; anyhow::Result&lt;()&gt; {
+    db: DB,
+) -&gt; anyhow::Result&lt;()&gt;
+<span class="kw">where
+    </span>DB: DBStatistics + Sync + Send + Clone + <span class="lifetime">&#39;static</span>,
+{
     <span class="kw">let </span>registry = prometheus::default_registry();
 
     <span class="comment">// Add the DBCollector to the registry
@@ -89,16 +119,19 @@
     registry.register(Box::new(db_collector))<span class="question-mark">?</span>;
 
     <span class="comment">// Create an configure HTTP server
-    </span><span class="kw">let </span>app = Router::new().route(<span class="string">&quot;/metrics&quot;</span>, get(collect_metrics));
+    </span><span class="kw">let </span>app = Router::new()
+        .route(<span class="string">&quot;/metrics&quot;</span>, get(collect_prometheus_metrics))
+        .route(<span class="string">&quot;/stats/db&quot;</span>, get(collect_db_metrics::&lt;DB&gt;))
+        .layer(axum::Extension(db));
     <span class="kw">let </span>server = axum::Server::from_tcp(prometheus_listener)<span class="question-mark">?</span>.serve(app.into_make_service());
 
     <span class="comment">// Wait for server to exit
     </span><span class="prelude-val">Ok</span>(server.<span class="kw">await</span><span class="question-mark">?</span>)
 }
 
-<span class="kw">async fn </span>collect_metrics() -&gt; <span class="kw">impl </span>IntoResponse {
-    <span class="kw">let </span>default_registry = prometheus::default_registry();
-    <span class="kw">let </span>metric_families = default_registry.gather();
+<span class="kw">async fn </span>collect_prometheus_metrics() -&gt; <span class="kw">impl </span>IntoResponse {
+    <span class="kw">let </span>registry = prometheus::default_registry();
+    <span class="kw">let </span>metric_families = registry.gather();
     <span class="kw">let </span><span class="kw-2">mut </span>metrics = <span class="macro">vec!</span>[];
 
     <span class="kw">let </span>encoder = TextEncoder::new();
@@ -112,6 +145,23 @@
         }
     }
 
+    (
+        StatusCode::OK,
+        [(<span class="string">&quot;content-type&quot;</span>, <span class="string">&quot;text/plain; charset=utf-8&quot;</span>)],
+        metrics,
+    )
+}
+
+<span class="kw">async fn </span>collect_db_metrics&lt;DB&gt;(axum::Extension(db): axum::Extension&lt;DB&gt;) -&gt; <span class="kw">impl </span>IntoResponse
+<span class="kw">where
+    </span>DB: DBStatistics + Sync + Send + Clone + <span class="lifetime">&#39;static</span>,
+{
+    <span class="kw">let </span><span class="kw-2">mut </span>metrics = <span class="string">&quot;# RocksDB statistics:\n&quot;</span>.to_owned();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(db_stats) = db.get_statistics() {
+        metrics.push_str(<span class="kw-2">&amp;</span>db_stats);
+    } <span class="kw">else </span>{
+        metrics.push_str(<span class="string">&quot;Not enabled. Set enable_statistics to true in config and restart daemon&quot;</span>);
+    }
     (
         StatusCode::OK,
         [(<span class="string">&quot;content-type&quot;</span>, <span class="string">&quot;text/plain; charset=utf-8&quot;</span>)],
