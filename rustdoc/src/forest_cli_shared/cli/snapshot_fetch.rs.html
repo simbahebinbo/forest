@@ -669,7 +669,6 @@
 <span id="669">669</span>
 <span id="670">670</span>
 <span id="671">671</span>
-<span id="672">672</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span><span class="kw">super</span>::Config;
@@ -677,7 +676,7 @@
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>chrono::DateTime;
 <span class="kw">use </span>forest_utils::{
-    io::{progress_bar::Units, ProgressBar, TempFile},
+    io::{ProgressBar, TempFile},
     net::{
         https_client,
         hyper::{<span class="self">self</span>, client::connect::Connect, Body, Response},
@@ -692,7 +691,6 @@
 <span class="kw">use </span>std::{
     path::{Path, PathBuf},
     process::Command,
-    time::Duration,
 };
 <span class="kw">use </span>time::{format_description, format_description::well_known::Iso8601, Date};
 <span class="kw">use </span>tokio::{
@@ -943,10 +941,10 @@
         to_size_string(<span class="kw-2">&amp;</span>total_size.into())<span class="question-mark">?
     </span>);
 
-    <span class="kw">let </span>progress_bar = ProgressBar::new(total_size);
+    <span class="kw">let </span><span class="kw-2">mut </span>progress_bar = ProgressBar::new(total_size);
     progress_bar.message(<span class="string">&quot;Downloading snapshot &quot;</span>);
-    progress_bar.set_max_refresh_rate(<span class="prelude-val">Some</span>(Duration::from_millis(<span class="number">500</span>)));
-    progress_bar.set_units(Units::Bytes);
+    progress_bar.set_max_refresh_rate_in_hz(<span class="number">2</span>);
+    progress_bar.set_bytes();
 
     <span class="kw">let </span>snapshot_file_tmp = TempFile::new(snapshot_path.with_extension(<span class="string">&quot;car.tmp&quot;</span>));
     <span class="kw">let </span>file = File::create(snapshot_file_tmp.path()).<span class="kw">await</span><span class="question-mark">?</span>;
