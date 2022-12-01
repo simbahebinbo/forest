@@ -803,7 +803,7 @@
         .chain_store()
         .heaviest_tipset()
         .<span class="kw">await
-        </span>.ok_or(forest_chain::Error::NotFound(<span class="string">&quot;heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?</span>;
+        </span>.ok_or_else(|| forest_chain::Error::NotFound(<span class="string">&quot;heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?</span>;
     <span class="kw">let </span>ts = data
         .state_manager
         .chain_store()

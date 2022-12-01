@@ -550,7 +550,7 @@
             }
             <span class="self">Self</span>::Dir =&gt; {
                 <span class="kw">let </span>dir = default_snapshot_dir(<span class="kw-2">&amp;</span>config);
-                <span class="macro">println!</span>(<span class="string">&quot;Default snapshot dir: {}&quot;</span>, dir.display());
+                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, dir.display());
             }
             <span class="self">Self</span>::List { snapshot_dir } =&gt; {
                 list(<span class="kw-2">&amp;</span>config, snapshot_dir).unwrap();
