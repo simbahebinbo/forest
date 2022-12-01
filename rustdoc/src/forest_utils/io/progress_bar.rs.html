@@ -130,31 +130,15 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>std::sync::RwLock;
+<span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>std::{cell::RefCell, io::Stdout};
 
-<span class="kw">use </span>console::Term;
-<span class="kw">use </span>indicatif::{ProgressBar <span class="kw">as </span>IndicatifProgressBar, ProgressDrawTarget, ProgressStyle};
+<span class="kw">pub use </span>pbr::Units;
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;lowercase&quot;</span>)]
@@ -190,63 +174,47 @@
 
 <span class="doccomment">/// Progress bar wrapper, allows suppressing progress bars.
 </span><span class="kw">pub struct </span>ProgressBar {
-    inner: RefCell&lt;IndicatifProgressBar&gt;,
+    inner: RefCell&lt;pbr::ProgressBar&lt;Stdout&gt;&gt;,
     display: bool,
-    size: u64,
 }
 
 <span class="kw">impl </span>ProgressBar {
     <span class="kw">pub fn </span>new(size: u64) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: RefCell::new(IndicatifProgressBar::with_draw_target(
-                <span class="prelude-val">Some</span>(size),
-                ProgressDrawTarget::stdout(),
-            )),
+            inner: RefCell::new(pbr::ProgressBar::new(size)),
             display: <span class="self">Self</span>::should_display(),
-            size,
         }
     }
 
     <span class="kw">pub fn </span>message(<span class="kw-2">&amp;</span><span class="self">self</span>, message: <span class="kw-2">&amp;</span>str) {
         <span class="kw">if </span><span class="self">self</span>.display {
-            <span class="self">self</span>.inner.borrow_mut().set_message(message.to_string());
+            <span class="self">self</span>.inner.borrow_mut().message(message);
         }
     }
 
-    <span class="kw">pub fn </span>set_max_refresh_rate_in_hz(<span class="kw-2">&amp;mut </span><span class="self">self</span>, w: u8) {
+    <span class="kw">pub fn </span>set_max_refresh_rate(<span class="kw-2">&amp;</span><span class="self">self</span>, w: <span class="prelude-ty">Option</span>&lt;Duration&gt;) {
         <span class="kw">if </span><span class="self">self</span>.display {
-            <span class="self">self</span>.inner = RefCell::new(IndicatifProgressBar::with_draw_target(
-                <span class="prelude-val">Some</span>(<span class="self">self</span>.size),
-                ProgressDrawTarget::term(Term::buffered_stdout(), w),
-            ));
+            <span class="self">self</span>.inner.borrow_mut().set_max_refresh_rate(w);
         }
     }
 
     <span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, i: u64) -&gt; u64 {
         <span class="kw">if </span><span class="self">self</span>.display {
-            <span class="self">self</span>.inner.borrow_mut().inc(i);
-            <span class="self">self</span>.inner.borrow_mut().position()
+            <span class="self">self</span>.inner.borrow_mut().add(i)
         } <span class="kw">else </span>{
             <span class="number">0
         </span>}
     }
 
-    <span class="kw">pub fn </span>set_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub fn </span>set_units(<span class="kw-2">&amp;</span><span class="self">self</span>, u: Units) {
         <span class="kw">if </span><span class="self">self</span>.display {
-            <span class="self">self</span>.inner.borrow_mut().set_style(
-                ProgressStyle::with_template(
-                    <span class="string">&quot;{spinner:.green} {msg} {bytes}/{total_bytes} [{wide_bar:.cyan/blue}] {percent}% {bytes_per_sec} {eta}&quot;</span>,
-                )
-                .unwrap()
-                .progress_chars(<span class="string">&quot;=&gt;-&quot;</span>),
-            );
+            <span class="self">self</span>.inner.borrow_mut().set_units(u)
         }
     }
 
     <span class="kw">pub fn </span>set(<span class="kw-2">&amp;</span><span class="self">self</span>, i: u64) -&gt; u64 {
         <span class="kw">if </span><span class="self">self</span>.display {
-            <span class="self">self</span>.inner.borrow_mut().set_position(i);
-            <span class="self">self</span>.inner.borrow_mut().position()
+            <span class="self">self</span>.inner.borrow_mut().set(i)
         } <span class="kw">else </span>{
             <span class="number">0
         </span>}
@@ -260,7 +228,7 @@
 
     <span class="kw">pub fn </span>finish_println(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) {
         <span class="kw">if </span><span class="self">self</span>.display {
-            <span class="self">self</span>.inner.borrow_mut().finish_with_message(s.to_string());
+            <span class="self">self</span>.inner.borrow_mut().finish_println(s);
         }
     }
 

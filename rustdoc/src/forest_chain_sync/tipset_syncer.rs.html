@@ -2567,9 +2567,9 @@
     tracker.write().<span class="kw">await</span>.set_epoch(current_head.epoch());
 
     <span class="kw">let </span>total_size = proposed_head.epoch() - current_head.epoch();
-    <span class="kw">let </span><span class="kw-2">mut </span>pb = ProgressBar::new(total_size <span class="kw">as </span>u64);
+    <span class="kw">let </span>pb = ProgressBar::new(total_size <span class="kw">as </span>u64);
     pb.message(<span class="string">&quot;Downloading headers &quot;</span>);
-    pb.set_max_refresh_rate_in_hz(<span class="number">2</span>);
+    pb.set_max_refresh_rate(<span class="prelude-val">Some</span>(std::time::Duration::from_millis(<span class="number">500</span>)));
 
     <span class="lifetime">&#39;sync</span>: <span class="kw">loop </span>{
         <span class="comment">// Unwrapping is safe here because the tipset vector always

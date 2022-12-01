@@ -469,9 +469,9 @@
             <span class="kw">return </span><span class="self">self</span>.walk_back(from, to).<span class="kw">await</span>;
         }
         <span class="kw">let </span>total_size = from.epoch() - to;
-        <span class="kw">let </span><span class="kw-2">mut </span>pb = ProgressBar::new(total_size <span class="kw">as </span>u64);
+        <span class="kw">let </span>pb = ProgressBar::new(total_size <span class="kw">as </span>u64);
         pb.message(<span class="string">&quot;Scanning blockchain &quot;</span>);
-        pb.set_max_refresh_rate_in_hz(<span class="number">2</span>);
+        pb.set_max_refresh_rate(<span class="prelude-val">Some</span>(std::time::Duration::from_millis(<span class="number">500</span>)));
 
         <span class="kw">let </span>rounded = <span class="self">self</span>.round_down(from).<span class="kw">await</span><span class="question-mark">?</span>;
 
