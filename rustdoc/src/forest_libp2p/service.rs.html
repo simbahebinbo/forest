@@ -815,11 +815,6 @@
 <span id="815">815</span>
 <span id="816">816</span>
 <span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-<span id="820">820</span>
-<span id="821">821</span>
-<span id="822">822</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1066,9 +1061,9 @@
                 swarm_event = swarm_stream.next() =&gt; <span class="kw">match </span>swarm_event {
                     <span class="comment">// outbound events
                     </span><span class="prelude-val">Some</span>(SwarmEvent::Behaviour(event)) =&gt; {
+                        metrics.record(<span class="kw-2">&amp;</span>event);
                         handle_forest_behaviour_event(
                             swarm_stream.get_mut(),
-                            <span class="kw-2">&amp;</span>metrics,
                             event,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cs,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.genesis_cid,
@@ -1234,7 +1229,6 @@
 <span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P: StoreParams&gt;(
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
-    metrics: <span class="kw-2">&amp;</span>Metrics,
     event: ForestBehaviourEvent&lt;P&gt;,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
@@ -1277,7 +1271,6 @@
             }
         },
         ForestBehaviourEvent::Gossipsub(e) =&gt; {
-            metrics.record(<span class="kw-2">&amp;</span>e);
             <span class="kw">if let </span>GossipsubEvent::Message {
                 propagation_source: source,
                 message,
@@ -1467,38 +1460,35 @@
                 },
             }
         }
-        ForestBehaviourEvent::Ping(ping_event) =&gt; {
-            metrics.record(<span class="kw-2">&amp;</span>ping_event);
-            <span class="kw">match </span>ping_event.result {
-                <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
-                    <span class="macro">trace!</span>(
-                        <span class="string">&quot;PingSuccess::Ping rtt to {} is {} ms&quot;</span>,
-                        ping_event.peer.to_base58(),
-                        rtt.as_millis()
-                    );
-                }
-                <span class="prelude-val">Ok</span>(ping::Success::Pong) =&gt; {
-                    <span class="macro">trace!</span>(<span class="string">&quot;PingSuccess::Pong from {}&quot;</span>, ping_event.peer.to_base58());
-                }
-                <span class="prelude-val">Err</span>(ping::Failure::Other { error }) =&gt; {
-                    <span class="macro">warn!</span>(
-                        <span class="string">&quot;PingFailure::Other {}: {}&quot;</span>,
-                        ping_event.peer.to_base58(),
-                        error
-                    );
-                }
-                <span class="prelude-val">Err</span>(err) =&gt; {
-                    <span class="kw">let </span>err = err.to_string();
-                    <span class="kw">let </span>peer = ping_event.peer.to_base58();
-                    <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
-                    <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
-                        <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
-                        swarm.ban_peer_id(ping_event.peer);
-                    }
+        ForestBehaviourEvent::Ping(ping_event) =&gt; <span class="kw">match </span>ping_event.result {
+            <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
+                <span class="macro">trace!</span>(
+                    <span class="string">&quot;PingSuccess::Ping rtt to {} is {} ms&quot;</span>,
+                    ping_event.peer.to_base58(),
+                    rtt.as_millis()
+                );
+            }
+            <span class="prelude-val">Ok</span>(ping::Success::Pong) =&gt; {
+                <span class="macro">trace!</span>(<span class="string">&quot;PingSuccess::Pong from {}&quot;</span>, ping_event.peer.to_base58());
+            }
+            <span class="prelude-val">Err</span>(ping::Failure::Other { error }) =&gt; {
+                <span class="macro">warn!</span>(
+                    <span class="string">&quot;PingFailure::Other {}: {}&quot;</span>,
+                    ping_event.peer.to_base58(),
+                    error
+                );
+            }
+            <span class="prelude-val">Err</span>(err) =&gt; {
+                <span class="kw">let </span>err = err.to_string();
+                <span class="kw">let </span>peer = ping_event.peer.to_base58();
+                <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
+                <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
+                    <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
+                    swarm.ban_peer_id(ping_event.peer);
                 }
             }
-        }
-        ForestBehaviourEvent::Identify(id_event) =&gt; metrics.record(<span class="kw-2">&amp;</span>id_event),
+        },
+        ForestBehaviourEvent::Identify(<span class="kw">_</span>) =&gt; {}
         ForestBehaviourEvent::ChainExchange(ce_event) =&gt; <span class="kw">match </span>ce_event {
             RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
                 RequestResponseMessage::Request {

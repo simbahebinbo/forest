@@ -142,6 +142,23 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -157,7 +174,6 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_encoding::blake2b_256;
 <span class="kw">use </span>libipld::store::StoreParams;
-<span class="kw">use </span>libp2p::request_response::{ProtocolSupport, RequestResponse, RequestResponseConfig};
 <span class="kw">use </span>libp2p::swarm::NetworkBehaviour;
 <span class="kw">use </span>libp2p::{core::identity::Keypair, kad::QueryId};
 <span class="kw">use </span>libp2p::{core::PeerId, gossipsub::GossipsubMessage};
@@ -169,6 +185,10 @@
     Multiaddr,
 };
 <span class="kw">use </span>libp2p::{identify, ping};
+<span class="kw">use </span>libp2p::{
+    metrics::{Metrics, Recorder},
+    request_response::{ProtocolSupport, RequestResponse, RequestResponseConfig},
+};
 <span class="kw">use </span>libp2p_bitswap::{Bitswap, BitswapConfig, BitswapStore};
 <span class="kw">use </span>log::{debug, warn};
 <span class="kw">use </span>std::collections::{HashMap, HashSet};
@@ -184,6 +204,20 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) hello: RequestResponse&lt;HelloCodec&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) chain_exchange: RequestResponse&lt;ChainExchangeCodec&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) bitswap: Bitswap&lt;P&gt;,
+}
+
+<span class="kw">impl</span>&lt;P&gt; Recorder&lt;ForestBehaviourEvent&lt;P&gt;&gt; <span class="kw">for </span>Metrics
+<span class="kw">where
+    </span>P: StoreParams,
+{
+    <span class="kw">fn </span>record(<span class="kw-2">&amp;</span><span class="self">self</span>, event: <span class="kw-2">&amp;</span>ForestBehaviourEvent&lt;P&gt;) {
+        <span class="kw">match </span>event {
+            ForestBehaviourEvent::Gossipsub(e) =&gt; <span class="self">self</span>.record(e),
+            ForestBehaviourEvent::Ping(ping_event) =&gt; <span class="self">self</span>.record(ping_event),
+            ForestBehaviourEvent::Identify(id_event) =&gt; <span class="self">self</span>.record(id_event),
+            <span class="kw">_ </span>=&gt; {}
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;P: StoreParams&gt; ForestBehaviour&lt;P&gt; {
