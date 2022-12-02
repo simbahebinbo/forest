@@ -277,6 +277,7 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -297,7 +298,8 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigUint;
+<span class="kw">use </span>fvm_shared::econ::TokenAmount;
+<span class="kw">use </span>num_traits::Zero;
 
 <span class="doccomment">/// Return the balance from `StateManager` for a given `Address`
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>wallet_balance&lt;DB, B&gt;(
@@ -324,9 +326,9 @@
         <span class="prelude-val">Ok</span>(act) =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(actor) = act {
                 <span class="kw">let </span>actor_balance = actor.balance;
-                <span class="prelude-val">Ok</span>(actor_balance.to_string())
+                <span class="prelude-val">Ok</span>(actor_balance.atto().to_string())
             } <span class="kw">else </span>{
-                <span class="prelude-val">Ok</span>(BigUint::default().to_string())
+                <span class="prelude-val">Ok</span>(TokenAmount::zero().atto().to_string())
             }
         }
         <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e.into()),
@@ -387,7 +389,7 @@
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>wallet_import&lt;DB, B&gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
     Params(params): Params&lt;WalletImportParams&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;WalletBalanceResult, JsonRpcError&gt;
+) -&gt; <span class="prelude-ty">Result</span>&lt;WalletImportResult, JsonRpcError&gt;
 <span class="kw">where
     </span>DB: Blockstore,
     B: Beacon,
