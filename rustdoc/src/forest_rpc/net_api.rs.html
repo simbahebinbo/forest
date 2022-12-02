@@ -103,6 +103,8 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -118,6 +120,8 @@
     net_api::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+
+<span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>net_addrs_listen&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -196,7 +200,7 @@
     Params(params): Params&lt;NetDisconnectParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;NetDisconnectResult, JsonRpcError&gt; {
     <span class="kw">let </span>(id,) = params;
-    <span class="kw">let </span>peer_id = PeerId::from_bytes(id.as_bytes())<span class="question-mark">?</span>;
+    <span class="kw">let </span>peer_id = PeerId::from_str(<span class="kw-2">&amp;</span>id)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>(tx, rx) = oneshot::channel();
     <span class="kw">let </span>req = NetworkMessage::JSONRPCRequest {
