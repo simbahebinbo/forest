@@ -223,13 +223,6 @@
 <span id="223">223</span>
 <span id="224">224</span>
 <span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -237,7 +230,6 @@
 
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>colored::<span class="kw-2">*</span>;
-<span class="kw">use </span>difference::{Changeset, Difference};
 <span class="kw">use </span>forest_ipld::json::{IpldJson, IpldJsonRef};
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
@@ -246,6 +238,8 @@
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 <span class="kw">use </span>resolve::resolve_cids_recursive;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>similar::ChangeTag;
+<span class="kw">use </span>similar::TextDiff;
 
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fmt::Write <span class="kw">as </span>FmtWrite;
@@ -321,12 +315,15 @@
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(other) = e_state.remove(<span class="kw-2">&amp;</span>addr) {
             <span class="kw">if </span><span class="kw-2">&amp;</span>other != actor {
+                <span class="kw">let </span>comma = <span class="string">&quot;,&quot;</span>;
                 <span class="kw">let </span>expected_pp = pp_actor_state(bs, <span class="kw-2">&amp;</span>other, depth)<span class="question-mark">?</span>;
-                <span class="kw">let </span>Changeset { diffs, .. } = Changeset::new(<span class="kw-2">&amp;</span>expected_pp, <span class="kw-2">&amp;</span>calc_pp, <span class="string">&quot;,&quot;</span>);
+                <span class="kw">let </span>expected = expected_pp.split(comma).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;();
+                <span class="kw">let </span>calculated = calc_pp.split(comma).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;();
+                <span class="kw">let </span>diffs = TextDiff::from_slices(<span class="kw-2">&amp;</span>expected, <span class="kw-2">&amp;</span>calculated);
                 <span class="kw">let </span>stdout = stdout();
                 <span class="kw">let </span><span class="kw-2">mut </span>handle = stdout.lock();
                 <span class="macro">writeln!</span>(handle, <span class="string">&quot;Address {} changed: &quot;</span>, addr)<span class="question-mark">?</span>;
-                print_diffs(<span class="kw-2">&amp;mut </span>handle, <span class="kw-2">&amp;</span>diffs)<span class="question-mark">?</span>;
+                print_diffs(<span class="kw-2">&amp;mut </span>handle, diffs)<span class="question-mark">?</span>;
             }
         } <span class="kw">else </span>{
             <span class="comment">// Added actor, print out the json format actor state.
@@ -401,30 +398,18 @@
     <span class="prelude-val">Ok</span>(buffer)
 }
 
-<span class="kw">fn </span>print_diffs(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write, diffs: <span class="kw-2">&amp;</span>[Difference]) -&gt; std::io::Result&lt;()&gt; {
-    <span class="kw">for </span>diff <span class="kw">in </span>diffs.iter() {
-        <span class="kw">match </span>diff {
-            Difference::Same(x) =&gt; <span class="macro">writeln!</span>(handle, <span class="string">&quot; {}&quot;</span>, x)<span class="question-mark">?</span>,
-            Difference::Add(x) =&gt; <span class="macro">writeln!</span>(handle, <span class="string">&quot;{}&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;+{}&quot;</span>, x).green())<span class="question-mark">?</span>,
-            Difference::Rem(x) =&gt; <span class="macro">writeln!</span>(handle, <span class="string">&quot;{}&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, x).red())<span class="question-mark">?</span>,
+<span class="kw">fn </span>print_diffs(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Write, diffs: TextDiff&lt;str&gt;) -&gt; std::io::Result&lt;()&gt; {
+    <span class="kw">for </span>op <span class="kw">in </span>diffs.ops() {
+        <span class="kw">for </span>change <span class="kw">in </span>diffs.iter_changes(op) {
+            <span class="kw">match </span>change.tag() {
+                ChangeTag::Delete =&gt; <span class="macro">writeln!</span>(handle, <span class="string">&quot;{}&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, change.value()).red())<span class="question-mark">?</span>,
+                ChangeTag::Insert =&gt; {
+                    <span class="macro">writeln!</span>(handle, <span class="string">&quot;{}&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;+{}&quot;</span>, change.value()).green())<span class="question-mark">?
+                </span>}
+                ChangeTag::Equal =&gt; <span class="macro">writeln!</span>(handle, <span class="string">&quot; {}&quot;</span>, change.value())<span class="question-mark">?</span>,
+            };
         }
     }
-    <span class="prelude-val">Ok</span>(())
-}
-
-<span class="kw">pub fn </span>print_actor_diff&lt;BS: Blockstore&gt;(
-    bs: <span class="kw-2">&amp;</span>BS,
-    expected: <span class="kw-2">&amp;</span>ActorState,
-    actual: <span class="kw-2">&amp;</span>ActorState,
-    depth: <span class="prelude-ty">Option</span>&lt;u64&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
-    <span class="kw">let </span>expected_pp = pp_actor_state(bs, expected, depth)<span class="question-mark">?</span>;
-    <span class="kw">let </span>actual_pp = pp_actor_state(bs, actual, depth)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>Changeset { diffs, .. } = Changeset::new(<span class="kw-2">&amp;</span>expected_pp, <span class="kw-2">&amp;</span>actual_pp, <span class="string">&quot;\n&quot;</span>);
-    <span class="kw">let </span>stdout = stdout();
-    <span class="kw">let </span><span class="kw-2">mut </span>handle = stdout.lock();
-    print_diffs(<span class="kw-2">&amp;mut </span>handle, <span class="kw-2">&amp;</span>diffs)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -454,10 +439,11 @@
         <span class="kw">let </span>expected_json = serde_json::to_string_pretty(<span class="kw-2">&amp;</span>IpldJsonRef(<span class="kw-2">&amp;</span>expected))<span class="question-mark">?</span>;
         <span class="kw">let </span>actual_json = serde_json::to_string_pretty(<span class="kw-2">&amp;</span>IpldJsonRef(<span class="kw-2">&amp;</span>actual))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>Changeset { diffs, .. } = Changeset::new(<span class="kw-2">&amp;</span>expected_json, <span class="kw-2">&amp;</span>actual_json, <span class="string">&quot;\n&quot;</span>);
+        <span class="kw">let </span>diffs = TextDiff::from_lines(<span class="kw-2">&amp;</span>expected_json, <span class="kw-2">&amp;</span>actual_json);
+
         <span class="kw">let </span>stdout = stdout();
         <span class="kw">let </span><span class="kw-2">mut </span>handle = stdout.lock();
-        print_diffs(<span class="kw-2">&amp;mut </span>handle, <span class="kw-2">&amp;</span>diffs)<span class="question-mark">?
+        print_diffs(<span class="kw-2">&amp;mut </span>handle, diffs)<span class="question-mark">?
     </span>}
 
     <span class="prelude-val">Ok</span>(())
