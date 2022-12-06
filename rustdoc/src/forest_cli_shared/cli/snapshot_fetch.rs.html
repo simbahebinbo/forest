@@ -670,10 +670,29 @@
 <span id="670">670</span>
 <span id="671">671</span>
 <span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span><span class="kw">super</span>::Config;
-<span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
+<span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, to_size_string};
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>chrono::DateTime;
 <span class="kw">use </span>forest_utils::{
@@ -716,9 +735,8 @@
             <span class="string">&quot;forest&quot; </span>=&gt; <span class="prelude-val">Ok</span>(SnapshotServer::Forest),
             <span class="string">&quot;filecoin&quot; </span>=&gt; <span class="prelude-val">Ok</span>(SnapshotServer::Filecoin),
             <span class="kw">_ </span>=&gt; <span class="macro">bail!</span>(
-                <span class="string">&quot;Failed to fetch snapshot from: {}, Must be one of `forest`|`filecoin`.&quot;</span>,
-                provider
-            ),
+                <span class="string">&quot;Failed to fetch snapshot from: {provider}, Must be one of `forest`|`filecoin`.&quot;
+            </span>),
         }
     }
 }
@@ -739,31 +757,40 @@
 <span class="kw">impl </span>SnapshotStore {
     <span class="kw">pub fn </span>new(config: <span class="kw-2">&amp;</span>Config, snapshot_dir: <span class="kw-2">&amp;</span>PathBuf) -&gt; SnapshotStore {
         <span class="kw">let </span><span class="kw-2">mut </span>snapshots = Vec::new();
+        <span class="kw">let </span>pattern = Regex::new(
+            <span class="string">r&quot;^([^_]+?)_snapshot_(?P&lt;network&gt;[^_]+?)_(?P&lt;date&gt;\d{4}-\d{2}-\d{2})_height_(?P&lt;height&gt;\d+).car(.tmp|.aria2)?$&quot;</span>,
+        ).unwrap();
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(dir) = std::fs::read_dir(snapshot_dir) {
             dir.flatten()
-            .map(|entry| entry.path())
-            .filter(|p| is_car_or_tmp(p))
-            .for_each(|path|
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = path.file_name().and_then(|n| n.to_str()) {
-                    <span class="kw">let </span>pattern = Regex::new(
-                        <span class="string">r&quot;^([^_]+?)_snapshot_(?P&lt;network&gt;[^_]+?)_(?P&lt;date&gt;\d{4}-\d{2}-\d{2})_height_(?P&lt;height&gt;\d+).car(.tmp|.aria2)?$&quot;</span>,
-                    ).unwrap();
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(captures) = pattern.captures(filename) {
-                        <span class="kw">let </span>network: String = captures.name(<span class="string">&quot;network&quot;</span>).unwrap().as_str().into();
-                        <span class="kw">if </span>network == config.chain.name {
-                            <span class="kw">let </span>date = Date::parse(captures.name(<span class="string">&quot;date&quot;</span>).unwrap().as_str(), <span class="kw-2">&amp;</span>Iso8601::DEFAULT).unwrap();
-                            <span class="kw">let </span>height = captures.name(<span class="string">&quot;height&quot;</span>).unwrap().as_str().parse::&lt;i64&gt;().unwrap();
-                            <span class="kw">let </span>snapshot = SnapshotInfo {
-                                network,
-                                date,
-                                height,
-                                path,
-                            };
-                            snapshots.push(snapshot);
+                .map(|entry| entry.path())
+                .filter(|p| is_car_or_tmp(p))
+                .for_each(|path| {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = path.file_name().and_then(|n| n.to_str()) {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(captures) = pattern.captures(filename) {
+                            <span class="kw">let </span>network: String = captures.name(<span class="string">&quot;network&quot;</span>).unwrap().as_str().into();
+                            <span class="kw">if </span>network == config.chain.name {
+                                <span class="kw">let </span>date = Date::parse(
+                                    captures.name(<span class="string">&quot;date&quot;</span>).unwrap().as_str(),
+                                    <span class="kw-2">&amp;</span>Iso8601::DEFAULT,
+                                )
+                                .unwrap();
+                                <span class="kw">let </span>height = captures
+                                    .name(<span class="string">&quot;height&quot;</span>)
+                                    .unwrap()
+                                    .as_str()
+                                    .parse::&lt;i64&gt;()
+                                    .unwrap();
+                                <span class="kw">let </span>snapshot = SnapshotInfo {
+                                    network,
+                                    date,
+                                    height,
+                                    path,
+                                };
+                                snapshots.push(snapshot);
+                            }
                         }
                     }
-                }
-            );
+                });
         }
         SnapshotStore { snapshots }
     }
@@ -785,9 +812,20 @@
 </span><span class="kw">pub async fn </span>snapshot_fetch(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
-    server: <span class="kw-2">&amp;</span>SnapshotServer,
+    provider: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;SnapshotServer&gt;,
     use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
+    <span class="kw">let </span>server = <span class="kw">match </span>provider {
+        <span class="prelude-val">Some</span>(s) =&gt; s,
+        <span class="prelude-val">None </span>=&gt; <span class="kw">match </span>config.chain.name.to_lowercase().as_str() {
+            <span class="string">&quot;mainnet&quot; </span>=&gt; <span class="kw-2">&amp;</span>SnapshotServer::Filecoin,
+            <span class="string">&quot;calibnet&quot; </span>=&gt; <span class="kw-2">&amp;</span>SnapshotServer::Forest,
+            <span class="kw">_ </span>=&gt; cli_error_and_die(
+                <span class="macro">format!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name),
+                <span class="number">1</span>,
+            ),
+        },
+    };
     <span class="kw">match </span>server {
         SnapshotServer::Forest =&gt; snapshot_fetch_forest(snapshot_out_dir, config, use_aria2).<span class="kw">await</span>,
         SnapshotServer::Filecoin =&gt; {
