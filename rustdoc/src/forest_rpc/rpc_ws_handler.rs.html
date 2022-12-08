@@ -133,89 +133,10 @@
 <span id="133">133</span>
 <span id="134">134</span>
 <span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc, call_rpc_str, check_permissions, get_auth_header, get_error_str};
+</span><span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc_str, check_permissions, get_auth_header, get_error_str};
 <span class="kw">use </span>axum::{
     extract::{
         ws::{Message, WebSocket},
@@ -225,11 +146,7 @@
 };
 <span class="kw">use </span>crossbeam::atomic::AtomicCell;
 <span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_chain::headchange_json::SubscriptionHeadChange;
-<span class="kw">use </span>forest_rpc_api::{
-    chain_api::<span class="kw-2">*</span>,
-    data_types::{JsonRpcServerState, StreamingData},
-};
+<span class="kw">use </span>forest_rpc_api::data_types::JsonRpcServerState;
 <span class="kw">use </span>futures::{stream::SplitSink, SinkExt, StreamExt};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>http::{HeaderMap, HeaderValue};
@@ -241,7 +158,7 @@
     authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
     rpc_call: jsonrpc_v2::RequestObject,
     rpc_server: JsonRpcServerState,
-    is_socket_active: Arc&lt;AtomicCell&lt;bool&gt;&gt;,
+    _is_socket_active: Arc&lt;AtomicCell&lt;bool&gt;&gt;,
     ws_sender: Arc&lt;RwLock&lt;SplitSink&lt;WebSocket, Message&gt;&gt;&gt;,
 ) -&gt; anyhow::Result&lt;()&gt;
 <span class="kw">where
@@ -249,94 +166,19 @@
     B: Beacon,
 {
     <span class="kw">let </span>call_method = rpc_call.method_ref();
-    <span class="kw">let </span>call_id = rpc_call.id_ref();
+    <span class="kw">let </span>_call_id = rpc_call.id_ref();
 
     check_permissions::&lt;DB, B&gt;(rpc_server.clone(), call_method, authorization_header)
         .<span class="kw">await
         </span>.map_err(|(<span class="kw">_</span>, e)| anyhow::Error::msg(e))<span class="question-mark">?</span>;
 
-    <span class="kw">match </span>call_method {
-        CHAIN_NOTIFY =&gt; {
-            <span class="kw">let </span>request_id = <span class="kw">match </span>call_id {
-                <span class="prelude-val">Some</span>(id) =&gt; id.to_owned(),
-                <span class="prelude-val">None </span>=&gt; jsonrpc_v2::Id::Null,
-            };
-
-            <span class="macro">debug!</span>(<span class="string">&quot;Received ChainNotify request with RPC ID: {:?}&quot;</span>, request_id);
-
-            <span class="kw">let </span>(subscription_response, subscription_id) = call_rpc::&lt;i64&gt;(
-                rpc_server.clone(),
-                jsonrpc_v2::RequestObject::request()
-                    .with_method(CHAIN_HEAD_SUBSCRIPTION)
-                    .with_id(request_id.clone())
-                    .finish(),
-            )
-            .<span class="kw">await</span><span class="question-mark">?</span>;
-
-            <span class="macro">debug!</span>(
-                <span class="string">&quot;Called ChainNotify RPC, got subscription ID {}&quot;</span>,
-                subscription_id
-            );
-            {
-                ws_sender
-                    .write()
-                    .<span class="kw">await
-                    </span>.send(Message::Text(subscription_response))
-                    .<span class="kw">await</span><span class="question-mark">?</span>;
-            }
-
-            <span class="macro">info!</span>(
-                <span class="string">&quot;RPC WS ChainNotify for subscription ID: {}&quot;</span>,
-                subscription_id
-            );
-
-            <span class="kw">while </span>is_socket_active.load() {
-                <span class="kw">let </span>(<span class="kw">_</span>, event) = call_rpc::&lt;SubscriptionHeadChange&gt;(
-                    rpc_server.clone(),
-                    jsonrpc_v2::RequestObject::request()
-                        .with_method(CHAIN_NOTIFY)
-                        .with_id(subscription_id)
-                        .finish(),
-                )
-                .<span class="kw">await</span><span class="question-mark">?</span>;
-
-                <span class="macro">debug!</span>(<span class="string">&quot;Sending RPC WS ChainNotify event response&quot;</span>);
-
-                <span class="kw">let </span>event_response = StreamingData {
-                    json_rpc: <span class="string">&quot;2.0&quot;</span>,
-                    method: <span class="string">&quot;xrpc.ch.val&quot;</span>,
-                    params: event,
-                };
-
-                <span class="kw">match </span>ws_sender
-                    .write()
-                    .<span class="kw">await
-                    </span>.send(Message::Text(serde_json::to_string(<span class="kw-2">&amp;</span>event_response)<span class="question-mark">?</span>))
-                    .<span class="kw">await
-                </span>{
-                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="macro">info!</span>(
-                            <span class="string">&quot;New ChainNotify data sent via subscription ID: {}&quot;</span>,
-                            subscription_id
-                        );
-                    }
-                    <span class="prelude-val">Err</span>(msg) =&gt; {
-                        <span class="macro">warn!</span>(<span class="string">&quot;WS connection closed. {:?}&quot;</span>, msg);
-                        is_socket_active.store(<span class="bool-val">false</span>);
-                    }
-                }
-            }
-        }
-        <span class="kw">_ </span>=&gt; {
-            <span class="macro">info!</span>(<span class="string">&quot;RPC WS called method: {}&quot;</span>, call_method);
-            <span class="kw">let </span>response = call_rpc_str(rpc_server.clone(), rpc_call).<span class="kw">await</span><span class="question-mark">?</span>;
-            ws_sender
-                .write()
-                .<span class="kw">await
-                </span>.send(Message::Text(response))
-                .<span class="kw">await</span><span class="question-mark">?</span>;
-        }
-    }
+    <span class="macro">info!</span>(<span class="string">&quot;RPC WS called method: {}&quot;</span>, call_method);
+    <span class="kw">let </span>response = call_rpc_str(rpc_server.clone(), rpc_call).<span class="kw">await</span><span class="question-mark">?</span>;
+    ws_sender
+        .write()
+        .<span class="kw">await
+        </span>.send(Message::Text(response))
+        .<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }

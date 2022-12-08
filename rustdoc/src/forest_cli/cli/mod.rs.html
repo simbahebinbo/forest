@@ -247,11 +247,6 @@
 <span id="247">247</span>
 <span id="248">248</span>
 <span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -265,7 +260,6 @@
 <span class="kw">mod </span>config_cmd;
 <span class="kw">mod </span>db_cmd;
 <span class="kw">mod </span>fetch_params_cmd;
-<span class="kw">mod </span>genesis_cmd;
 <span class="kw">mod </span>mpool_cmd;
 <span class="kw">mod </span>net_cmd;
 <span class="kw">mod </span>send_cmd;
@@ -278,7 +272,6 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::chain_cmd::ChainCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::db_cmd::DBCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::fetch_params_cmd::FetchCommands;
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::genesis_cmd::GenesisCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::mpool_cmd::MpoolCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::net_cmd::NetCommands;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::send_cmd::SendCommand;
@@ -291,7 +284,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::cli::config_cmd::ConfigCommands;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::tipset_json::TipsetJson;
-<span class="kw">use </span>forest_cli_shared::cli::{to_size_string, CliOpts};
+<span class="kw">use </span>forest_cli_shared::cli::CliOpts;
 <span class="kw">use </span>http::StatusCode;
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
 <span class="kw">use </span>log::error;
@@ -329,9 +322,6 @@
 
     <span class="doccomment">/// Manage RPC permissions
     </span>Auth(AuthCommands),
-
-    <span class="doccomment">/// Work with blockchain genesis
-    </span>Genesis(GenesisCommands),
 
     <span class="doccomment">/// Manage P2P network
     </span>Net(NetCommands),
@@ -471,7 +461,7 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>forest_cli_shared::cli::to_size_string;
     <span class="kw">use </span>fvm_shared::bigint::{BigInt, Zero};
 
     <span class="attr">#[test]

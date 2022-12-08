@@ -428,149 +428,6 @@
 <span id="428">428</span>
 <span id="429">429</span>
 <span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
-<span id="468">468</span>
-<span id="469">469</span>
-<span id="470">470</span>
-<span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -608,9 +465,6 @@
     access.insert(chain_api::CHAIN_GET_TIPSET_BY_HEIGHT, Access::Read);
     access.insert(chain_api::CHAIN_GET_GENESIS, Access::Read);
     access.insert(chain_api::CHAIN_HEAD, Access::Read);
-    access.insert(chain_api::CHAIN_HEAD_SUBSCRIPTION, Access::Read);
-    access.insert(chain_api::CHAIN_NOTIFY, Access::Read);
-    access.insert(chain_api::CHAIN_TIPSET_WEIGHT, Access::Read);
     access.insert(chain_api::CHAIN_GET_BLOCK, Access::Read);
     access.insert(chain_api::CHAIN_GET_TIPSET, Access::Read);
     access.insert(chain_api::CHAIN_GET_TIPSET_HASH, Access::Read);
@@ -620,18 +474,14 @@
     access.insert(chain_api::CHAIN_GET_NAME, Access::Read);
 
     <span class="comment">// Message Pool API
-    </span>access.insert(mpool_api::MPOOL_ESTIMATE_GAS_PRICE, Access::Read);
-    access.insert(mpool_api::MPOOL_GET_NONCE, Access::Read);
-    access.insert(mpool_api::MPOOL_PENDING, Access::Read);
+    </span>access.insert(mpool_api::MPOOL_PENDING, Access::Read);
     access.insert(mpool_api::MPOOL_PUSH, Access::Write);
     access.insert(mpool_api::MPOOL_PUSH_MESSAGE, Access::Sign);
-    access.insert(mpool_api::MPOOL_SELECT, Access::Read);
 
     <span class="comment">// Sync API
     </span>access.insert(sync_api::SYNC_CHECK_BAD, Access::Read);
     access.insert(sync_api::SYNC_MARK_BAD, Access::Admin);
     access.insert(sync_api::SYNC_STATE, Access::Read);
-    access.insert(sync_api::SYNC_SUBMIT_BLOCK, Access::Write);
 
     <span class="comment">// Wallet API
     </span>access.insert(wallet_api::WALLET_BALANCE, Access::Write);
@@ -647,18 +497,7 @@
     access.insert(wallet_api::WALLET_VERIFY, Access::Read);
 
     <span class="comment">// State API
-    </span>access.insert(state_api::STATE_MINER_SECTORS, Access::Read);
-    access.insert(state_api::STATE_CALL, Access::Read);
-    access.insert(state_api::STATE_MINER_DEADLINES, Access::Read);
-    access.insert(state_api::STATE_SECTOR_PRECOMMIT_INFO, Access::Read);
-    access.insert(state_api::STATE_SECTOR_GET_INFO, Access::Read);
-    access.insert(state_api::STATE_MINER_PROVING_DEADLINE, Access::Read);
-    access.insert(state_api::STATE_MINER_INFO, Access::Read);
-    access.insert(state_api::STATE_MINER_FAULTS, Access::Read);
-    access.insert(state_api::STATE_ALL_MINER_FAULTS, Access::Read);
-    access.insert(state_api::STATE_MINER_RECOVERIES, Access::Read);
-    access.insert(state_api::STATE_MINER_PARTITIONS, Access::Read);
-    access.insert(state_api::STATE_MINER_POWER, Access::Read);
+    </span>access.insert(state_api::STATE_CALL, Access::Read);
     access.insert(
         state_api::STATE_MINER_PRE_COMMIT_DEPOSIT_FOR_POWER,
         Access::Read,
@@ -668,18 +507,11 @@
         Access::Read,
     );
     access.insert(state_api::STATE_REPLAY, Access::Read);
-    access.insert(state_api::STATE_GET_ACTOR, Access::Read);
-    access.insert(state_api::STATE_ACCOUNT_KEY, Access::Read);
-    access.insert(state_api::STATE_LOOKUP_ID, Access::Read);
     access.insert(state_api::STATE_MARKET_BALANCE, Access::Read);
     access.insert(state_api::STATE_MARKET_DEALS, Access::Read);
     access.insert(state_api::STATE_GET_RECEIPT, Access::Read);
     access.insert(state_api::STATE_WAIT_MSG, Access::Read);
-    access.insert(state_api::STATE_MINER_SECTOR_ALLOCATED, Access::Read);
     access.insert(state_api::STATE_NETWORK_NAME, Access::Read);
-    access.insert(state_api::MINER_GET_BASE_INFO, Access::Read);
-    access.insert(state_api::STATE_LIST_ACTORS, Access::Read);
-    access.insert(state_api::MINER_CREATE_BLOCK, Access::Write);
     access.insert(state_api::STATE_NETWORK_VERSION, Access::Read);
 
     <span class="comment">// Gas API
@@ -756,7 +588,6 @@
         header::json::BlockHeaderJson, tipset_json::TipsetJson, tipset_keys_json::TipsetKeysJson,
         TipsetKeys,
     };
-    <span class="kw">use </span>forest_chain::headchange_json::SubscriptionHeadChange;
     <span class="kw">use </span>forest_json::cid::CidJson;
     <span class="kw">use </span>forest_json::message::json::MessageJson;
     <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -793,18 +624,6 @@
     <span class="kw">pub type </span>ChainHeadParams = ();
     <span class="kw">pub type </span>ChainHeadResult = TipsetJson;
 
-    <span class="kw">pub const </span>CHAIN_HEAD_SUBSCRIPTION: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainHeadSubscription&quot;</span>;
-    <span class="kw">pub type </span>ChainHeadSubscriptionParams = ();
-    <span class="kw">pub type </span>ChainHeadSubscriptionResult = i64;
-
-    <span class="kw">pub const </span>CHAIN_NOTIFY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainNotify&quot;</span>;
-    <span class="kw">pub type </span>ChainNotifyParams = ();
-    <span class="kw">pub type </span>ChainNotifyResult = SubscriptionHeadChange;
-
-    <span class="kw">pub const </span>CHAIN_TIPSET_WEIGHT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainTipSetWeight&quot;</span>;
-    <span class="kw">pub type </span>ChainTipSetWeightParams = (TipsetKeysJson,);
-    <span class="kw">pub type </span>ChainTipSetWeightResult = String;
-
     <span class="kw">pub const </span>CHAIN_GET_BLOCK: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainGetBlock&quot;</span>;
     <span class="kw">pub type </span>ChainGetBlockParams = (CidJson,);
     <span class="kw">pub type </span>ChainGetBlockResult = BlockHeaderJson;
@@ -838,17 +657,8 @@
 <span class="doccomment">/// Message Pool API
 </span><span class="kw">pub mod </span>mpool_api {
     <span class="kw">use </span><span class="kw">crate</span>::data_types::MessageSendSpec;
-    <span class="kw">use </span>forest_blocks::{tipset_keys_json::TipsetKeysJson, TipsetKeys};
     <span class="kw">use </span>forest_json::signed_message::json::SignedMessageJson;
     <span class="kw">use </span>forest_json::{cid::CidJson, message::json::MessageJson};
-
-    <span class="kw">pub const </span>MPOOL_ESTIMATE_GAS_PRICE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MpoolEstimateGasPrice&quot;</span>;
-    <span class="kw">pub type </span>MpoolEstimateGasPriceParams = (u64, String, u64, TipsetKeys);
-    <span class="kw">pub type </span>MpoolEstimateGasPriceResult = String;
-
-    <span class="kw">pub const </span>MPOOL_GET_NONCE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MpoolGetNonce&quot;</span>;
-    <span class="kw">pub type </span>MpoolGetNonceParams = (String,);
-    <span class="kw">pub type </span>MpoolGetNonceResult = u64;
 
     <span class="kw">use </span>forest_json::cid::vec::CidJsonVec;
     <span class="kw">use </span>forest_message::SignedMessage;
@@ -864,20 +674,11 @@
     <span class="kw">pub const </span>MPOOL_PUSH_MESSAGE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MpoolPushMessage&quot;</span>;
     <span class="kw">pub type </span>MpoolPushMessageParams = (MessageJson, <span class="prelude-ty">Option</span>&lt;MessageSendSpec&gt;);
     <span class="kw">pub type </span>MpoolPushMessageResult = SignedMessageJson;
-
-    <span class="kw">pub const </span>MPOOL_SELECT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MpoolSelect&quot;</span>;
-    <span class="kw">pub type </span>MpoolSelectParams = (TipsetKeysJson, f64);
-    <span class="kw">pub type </span>MpoolSelectResult = Vec&lt;SignedMessageJson&gt;;
-
-    <span class="kw">pub const </span>MPOOL_UPDATES: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MpoolUpdates&quot;</span>;
-    <span class="kw">pub type </span>MpoolUpdatesParams = ();
-    <span class="kw">pub type </span>MpoolUpdatesResult = ();
 }
 
 <span class="doccomment">/// Sync API
 </span><span class="kw">pub mod </span>sync_api {
     <span class="kw">use </span><span class="kw">crate</span>::data_types::RPCSyncState;
-    <span class="kw">use </span>forest_blocks::gossip_block::json::GossipBlockJson;
     <span class="kw">use </span>forest_json::cid::CidJson;
 
     <span class="kw">pub const </span>SYNC_CHECK_BAD: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.SyncCheckBad&quot;</span>;
@@ -891,10 +692,6 @@
     <span class="kw">pub const </span>SYNC_STATE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.SyncState&quot;</span>;
     <span class="kw">pub type </span>SyncStateParams = ();
     <span class="kw">pub type </span>SyncStateResult = RPCSyncState;
-
-    <span class="kw">pub const </span>SYNC_SUBMIT_BLOCK: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.SyncSubmitBlock&quot;</span>;
-    <span class="kw">pub type </span>SyncSubmitBlockParams = (GossipBlockJson,);
-    <span class="kw">pub type </span>SyncSubmitBlockResult = ();
 }
 
 <span class="doccomment">/// Wallet API
@@ -953,70 +750,19 @@
 </span><span class="kw">pub mod </span>state_api {
     <span class="kw">use </span>std::collections::HashMap;
 
-    <span class="kw">use </span><span class="kw">crate</span>::data_types::{
-        ActorStateJson, BlockTemplate, Deadline, Fault, MarketDeal, MessageLookup,
-        MiningBaseInfoJson, Partition,
-    };
-    <span class="kw">use </span>forest_actor_interface::miner::{
-        MinerInfo, MinerPower, SectorOnChainInfo, SectorPreCommitInfo, SectorPreCommitOnChainInfo,
-    };
-    <span class="kw">use </span>forest_blocks::{
-        gossip_block::json::GossipBlockJson <span class="kw">as </span>BlockMsgJson, tipset_keys_json::TipsetKeysJson,
-    };
-    <span class="kw">use </span>forest_fil_types::deadlines::DeadlineInfo;
+    <span class="kw">use </span><span class="kw">crate</span>::data_types::{MarketDeal, MessageLookup};
+    <span class="kw">use </span>forest_actor_interface::miner::SectorPreCommitInfo;
+    <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
     <span class="kw">use </span>forest_json::address::json::AddressJson;
     <span class="kw">use </span>forest_json::cid::CidJson;
     <span class="kw">use </span>forest_json::message::json::MessageJson;
     <span class="kw">use </span>forest_json::message_receipt::json::ReceiptJson;
     <span class="kw">use </span>forest_state_manager::{InvocResult, MarketBalance};
-    <span class="kw">use </span>fvm_ipld_bitfield::json::BitFieldJson;
-    <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-    <span class="kw">use </span>fvm_shared::sector::SectorNumber;
     <span class="kw">use </span>fvm_shared::version::NetworkVersion;
-
-    <span class="kw">pub const </span>STATE_MINER_SECTORS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerSectors&quot;</span>;
-    <span class="kw">pub type </span>StateMinerSectorsParams = (AddressJson, BitFieldJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerSectorsResult = Vec&lt;SectorOnChainInfo&gt;;
 
     <span class="kw">pub const </span>STATE_CALL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateCall&quot;</span>;
     <span class="kw">pub type </span>StateCallParams = (MessageJson, TipsetKeysJson);
     <span class="kw">pub type </span>StateCallResult = InvocResult;
-
-    <span class="kw">pub const </span>STATE_MINER_DEADLINES: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerDeadlines&quot;</span>;
-    <span class="kw">pub type </span>StateMinerDeadlinesParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerDeadlinesResult = Vec&lt;Deadline&gt;;
-
-    <span class="kw">pub const </span>STATE_SECTOR_PRECOMMIT_INFO: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateSectorPrecommitInfo&quot;</span>;
-    <span class="kw">pub type </span>StateSectorPrecommitInfoParams = (AddressJson, SectorNumber, TipsetKeysJson);
-    <span class="kw">pub type </span>StateSectorPrecommitInfoResult = SectorPreCommitOnChainInfo;
-
-    <span class="kw">pub const </span>STATE_MINER_INFO: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerInfo&quot;</span>;
-    <span class="kw">pub type </span>StateMinerInfoParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerInfoResult = MinerInfo;
-
-    <span class="kw">pub const </span>STATE_SECTOR_GET_INFO: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateSectorGetInfo&quot;</span>;
-    <span class="kw">pub type </span>StateSectorGetInfoParams = (AddressJson, SectorNumber, TipsetKeysJson);
-    <span class="kw">pub type </span>StateSectorGetInfoResult = <span class="prelude-ty">Option</span>&lt;SectorOnChainInfo&gt;;
-
-    <span class="kw">pub const </span>STATE_MINER_PROVING_DEADLINE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerProvingDeadline&quot;</span>;
-    <span class="kw">pub type </span>StateMinerProvingDeadlineParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerProvingDeadlineResult = DeadlineInfo;
-
-    <span class="kw">pub const </span>STATE_MINER_FAULTS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerFaults&quot;</span>;
-    <span class="kw">pub type </span>StateMinerFaultsParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerFaultsResult = BitFieldJson;
-
-    <span class="kw">pub const </span>STATE_ALL_MINER_FAULTS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateAllMinerFaults&quot;</span>;
-    <span class="kw">pub type </span>StateAllMinerFaultsParams = (ChainEpoch, TipsetKeysJson);
-    <span class="kw">pub type </span>StateAllMinerFaultsResult = Vec&lt;Fault&gt;;
-
-    <span class="kw">pub const </span>STATE_MINER_RECOVERIES: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerRecoveries&quot;</span>;
-    <span class="kw">pub type </span>StateMinerRecoveriesParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerRecoveriesResult = BitFieldJson;
-
-    <span class="kw">pub const </span>STATE_MINER_PARTITIONS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerPartitions&quot;</span>;
-    <span class="kw">pub type </span>StateMinerPartitionsParams = (AddressJson, u64, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerPartitionsResult = Vec&lt;Partition&gt;;
 
     <span class="kw">pub const </span>STATE_REPLAY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateReplay&quot;</span>;
     <span class="kw">pub type </span>StateReplayParams = (CidJson, TipsetKeysJson);
@@ -1029,22 +775,6 @@
     <span class="kw">pub const </span>STATE_NETWORK_VERSION: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateNetworkVersion&quot;</span>;
     <span class="kw">pub type </span>StateNetworkVersionParams = (TipsetKeysJson,);
     <span class="kw">pub type </span>StateNetworkVersionResult = NetworkVersion;
-
-    <span class="kw">pub const </span>STATE_GET_ACTOR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateGetActor&quot;</span>;
-    <span class="kw">pub type </span>StateGetActorParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateGetActorResult = <span class="prelude-ty">Option</span>&lt;ActorStateJson&gt;;
-
-    <span class="kw">pub const </span>STATE_LIST_ACTORS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateListActors&quot;</span>;
-    <span class="kw">pub type </span>StateListActorsParams = (TipsetKeysJson,);
-    <span class="kw">pub type </span>StateListActorsResult = Vec&lt;AddressJson&gt;;
-
-    <span class="kw">pub const </span>STATE_ACCOUNT_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateAccountKey&quot;</span>;
-    <span class="kw">pub type </span>StateAccountKeyParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateAccountKeyResult = <span class="prelude-ty">Option</span>&lt;AddressJson&gt;;
-
-    <span class="kw">pub const </span>STATE_LOOKUP_ID: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateLookupId&quot;</span>;
-    <span class="kw">pub type </span>StateLookupIdParams = (AddressJson, TipsetKeysJson);
-    <span class="kw">pub type </span>StateLookupIdResult = <span class="prelude-ty">Option</span>&lt;AddressJson&gt;;
 
     <span class="kw">pub const </span>STATE_MARKET_BALANCE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMarketBalance&quot;</span>;
     <span class="kw">pub type </span>StateMarketBalanceParams = (AddressJson, TipsetKeysJson);
@@ -1062,18 +792,6 @@
     <span class="kw">pub type </span>StateWaitMsgParams = (CidJson, i64);
     <span class="kw">pub type </span>StateWaitMsgResult = MessageLookup;
 
-    <span class="kw">pub const </span>MINER_CREATE_BLOCK: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MinerCreateBlock&quot;</span>;
-    <span class="kw">pub type </span>MinerCreateBlockParams = (BlockTemplate,);
-    <span class="kw">pub type </span>MinerCreateBlockResult = BlockMsgJson;
-
-    <span class="kw">pub const </span>STATE_MINER_SECTOR_ALLOCATED: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerSectorAllocated&quot;</span>;
-    <span class="kw">pub type </span>StateMinerSectorAllocatedParams = (AddressJson, u64, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerSectorAllocatedResult = bool;
-
-    <span class="kw">pub const </span>STATE_MINER_POWER: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateMinerPower&quot;</span>;
-    <span class="kw">pub type </span>StateMinerPowerParams = (<span class="prelude-ty">Option</span>&lt;AddressJson&gt;, TipsetKeysJson);
-    <span class="kw">pub type </span>StateMinerPowerResult = MinerPower;
-
     <span class="kw">pub const </span>STATE_MINER_PRE_COMMIT_DEPOSIT_FOR_POWER: <span class="kw-2">&amp;</span>str =
         <span class="string">&quot;Filecoin.StateMinerPreCommitDepositForPower&quot;</span>;
     <span class="kw">pub type </span>StateMinerPreCommitDepositForPowerParams =
@@ -1085,10 +803,6 @@
     <span class="kw">pub type </span>StateMinerInitialPledgeCollateralParams =
         (AddressJson, SectorPreCommitInfo, TipsetKeysJson);
     <span class="kw">pub type </span>StateMinerInitialPledgeCollateralResult = String;
-
-    <span class="kw">pub const </span>MINER_GET_BASE_INFO: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MinerGetBaseInfo&quot;</span>;
-    <span class="kw">pub type </span>MinerGetBaseInfoParams = (AddressJson, ChainEpoch, TipsetKeysJson);
-    <span class="kw">pub type </span>MinerGetBaseInfoResult = <span class="prelude-ty">Option</span>&lt;MiningBaseInfoJson&gt;;
 }
 
 <span class="doccomment">/// Gas API

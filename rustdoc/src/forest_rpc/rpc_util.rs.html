@@ -151,15 +151,11 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_rpc_api::{
-    auth_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, check_access, data_types::JsonRpcServerState, ACCESS_MAP,
-};
+<span class="kw">use </span>forest_rpc_api::{auth_api::<span class="kw-2">*</span>, check_access, data_types::JsonRpcServerState, ACCESS_MAP};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>http::{HeaderMap, HeaderValue, StatusCode};
 <span class="kw">use </span>log::{debug, error};
@@ -192,7 +188,7 @@
     }
 }
 
-<span class="kw">const </span>STREAMING_METHODS: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [CHAIN_HEAD_SUBSCRIPTION, CHAIN_NOTIFY];
+<span class="kw">const </span>STREAMING_METHODS: [<span class="kw-2">&amp;</span>str; <span class="number">0</span>] = [];
 
 <span class="kw">pub fn </span>is_streaming_method(method_name: <span class="kw-2">&amp;</span>str) -&gt; bool {
     STREAMING_METHODS.contains(<span class="kw-2">&amp;</span>method_name)

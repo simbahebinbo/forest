@@ -199,74 +199,17 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_blocks::gossip_block::json::GossipBlockJson;
-<span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_chain_sync::SyncState;
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::cid::CidJson;
-<span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_BLOCK_STR};
-<span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_rpc_api::data_types::{RPCState, RPCSyncState};
 <span class="kw">use </span>forest_rpc_api::sync_api::<span class="kw-2">*</span>;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::message::Message;
 
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
-<span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="doccomment">/// Checks if a given block is marked as bad.
@@ -316,48 +259,6 @@
     <span class="prelude-val">Ok</span>(RPCSyncState { active_syncs })
 }
 
-<span class="doccomment">/// Submits block to be sent through `gossipsub`.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>sync_submit_block&lt;DB, B&gt;(
-    data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
-    Params((GossipBlockJson(blk),)): Params&lt;SyncSubmitBlockParams&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;SyncSubmitBlockResult, JsonRpcError&gt;
-<span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon,
-{
-    <span class="kw">let </span>bls_msgs: Vec&lt;Message&gt; =
-        forest_chain::messages_from_cids(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>blk.bls_messages)<span class="question-mark">?</span>;
-    <span class="kw">let </span>secp_msgs: Vec&lt;SignedMessage&gt; =
-        forest_chain::messages_from_cids(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>blk.secpk_messages)<span class="question-mark">?</span>;
-    <span class="kw">let </span>sm_root = forest_chain_sync::TipsetValidator::compute_msg_root(
-        data.state_manager.blockstore(),
-        <span class="kw-2">&amp;</span>bls_msgs[..],
-        <span class="kw-2">&amp;</span>secp_msgs,
-    )<span class="question-mark">?</span>;
-    <span class="kw">if </span>blk.header.messages() != <span class="kw-2">&amp;</span>sm_root {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;Block message root does not match the computed: Actual: {}, Computed: {}&quot;</span>,
-            blk.header.messages(),
-            sm_root,
-        )
-        .into());
-    }
-
-    forest_chain::persist_objects(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>bls_msgs)<span class="question-mark">?</span>;
-    forest_chain::persist_objects(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>secp_msgs)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>ts = Arc::new(Tipset::new(<span class="macro">vec!</span>[blk.header.clone()])<span class="question-mark">?</span>);
-    data.new_mined_block_tx.send_async(ts).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="comment">// TODO validate by constructing full block and validate (cids of messages could be invalid)
-    </span>data.network_send
-        .send_async(NetworkMessage::PubsubMessage {
-            topic: Topic::new(<span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_BLOCK_STR, data.network_name)),
-            message: blk.marshal_cbor().map_err(|e| e.to_string())<span class="question-mark">?</span>,
-        })
-        .<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(())
-}
-
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -371,6 +272,7 @@
     <span class="kw">use </span>forest_message_pool::{MessagePool, MpoolRpcProvider};
     <span class="kw">use </span>forest_networks::ChainConfig;
     <span class="kw">use </span>forest_state_manager::StateManager;
+    <span class="kw">use </span>fvm_ipld_encoding::Cbor;
     <span class="kw">use </span>fvm_shared::address::Address;
     <span class="kw">use </span>serde_json::from_str;
     <span class="kw">use </span>std::{sync::Arc, time::Duration};

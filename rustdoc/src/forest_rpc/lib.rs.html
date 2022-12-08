@@ -155,44 +155,6 @@
 <span id="155">155</span>
 <span id="156">156</span>
 <span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -267,7 +229,6 @@
                 chain_get_tipset_by_height::&lt;DB, B&gt;,
             )
             .with_method(CHAIN_GET_GENESIS, chain_get_genesis::&lt;DB, B&gt;)
-            .with_method(CHAIN_TIPSET_WEIGHT, chain_tipset_weight::&lt;DB, B&gt;)
             .with_method(CHAIN_GET_TIPSET, chain_get_tipset::&lt;DB, B&gt;)
             .with_method(CHAIN_GET_TIPSET_HASH, chain_get_tipset_hash::&lt;DB, B&gt;)
             .with_method(
@@ -275,13 +236,7 @@
                 chain_validate_tipset_checkpoints::&lt;DB, B&gt;,
             )
             .with_method(CHAIN_HEAD, chain_head::&lt;DB, B&gt;)
-            <span class="comment">// XXX: CHAIN_HEAD_SUBSCRIPTION disabled since it is unsed
-            // .with_method(CHAIN_HEAD_SUBSCRIPTION, chain_head_subscription::&lt;DB, B&gt;)
-            // * Filecoin.ChainNotify is handled specifically in middleware for streaming
-            // XXX: CHAIN_NOTIFY disabled since it is unsed
-            // .with_method(CHAIN_NOTIFY, chain_notify::&lt;DB, B&gt;)
-            // Tracking issue for unused RPC endpoints: https://github.com/ChainSafe/forest/issues/1976
-            </span>.with_method(
+            .with_method(
                 CHAIN_GET_RANDOMNESS_FROM_TICKETS,
                 chain_get_randomness_from_tickets::&lt;DB, B&gt;,
             )
@@ -292,17 +247,13 @@
             .with_method(CHAIN_GET_BLOCK, chain_api::chain_get_block::&lt;DB, B&gt;)
             .with_method(CHAIN_GET_NAME, chain_api::chain_get_name::&lt;DB, B&gt;)
             <span class="comment">// Message Pool API
-            </span>.with_method(MPOOL_ESTIMATE_GAS_PRICE, estimate_gas_premium::&lt;DB, B&gt;)
-            .with_method(MPOOL_GET_NONCE, mpool_get_sequence::&lt;DB, B&gt;)
-            .with_method(MPOOL_PENDING, mpool_pending::&lt;DB, B&gt;)
+            </span>.with_method(MPOOL_PENDING, mpool_pending::&lt;DB, B&gt;)
             .with_method(MPOOL_PUSH, mpool_push::&lt;DB, B&gt;)
             .with_method(MPOOL_PUSH_MESSAGE, mpool_push_message::&lt;DB, B&gt;)
-            .with_method(MPOOL_SELECT, mpool_select::&lt;DB, B&gt;)
             <span class="comment">// Sync API
             </span>.with_method(SYNC_CHECK_BAD, sync_check_bad::&lt;DB, B&gt;)
             .with_method(SYNC_MARK_BAD, sync_mark_bad::&lt;DB, B&gt;)
             .with_method(SYNC_STATE, sync_state::&lt;DB, B&gt;)
-            .with_method(SYNC_SUBMIT_BLOCK, sync_submit_block::&lt;DB, B&gt;)
             <span class="comment">// Wallet API
             </span>.with_method(WALLET_BALANCE, wallet_balance::&lt;DB, B&gt;)
             .with_method(WALLET_DEFAULT_ADDRESS, wallet_default_address::&lt;DB, B&gt;)
@@ -316,41 +267,15 @@
             .with_method(WALLET_SIGN_MESSAGE, wallet_sign_message::&lt;DB, B&gt;)
             .with_method(WALLET_VERIFY, wallet_verify::&lt;DB, B&gt;)
             <span class="comment">// State API
-            </span>.with_method(STATE_MINER_SECTORS, state_miner_sectors::&lt;DB, B&gt;)
-            .with_method(STATE_CALL, state_call::&lt;DB, B&gt;)
-            .with_method(STATE_MINER_DEADLINES, state_miner_deadlines::&lt;DB, B&gt;)
-            .with_method(
-                STATE_SECTOR_PRECOMMIT_INFO,
-                state_sector_precommit_info::&lt;DB, B&gt;,
-            )
-            .with_method(STATE_MINER_INFO, state_miner_info::&lt;DB, B&gt;)
-            .with_method(STATE_SECTOR_GET_INFO, state_sector_info::&lt;DB, B&gt;)
-            .with_method(
-                STATE_MINER_PROVING_DEADLINE,
-                state_miner_proving_deadline::&lt;DB, B&gt;,
-            )
-            .with_method(STATE_MINER_FAULTS, state_miner_faults::&lt;DB, B&gt;)
-            .with_method(STATE_ALL_MINER_FAULTS, state_all_miner_faults::&lt;DB, B&gt;)
-            .with_method(STATE_MINER_RECOVERIES, state_miner_recoveries::&lt;DB, B&gt;)
-            .with_method(STATE_MINER_PARTITIONS, state_miner_partitions::&lt;DB, B&gt;)
+            </span>.with_method(STATE_CALL, state_call::&lt;DB, B&gt;)
             .with_method(STATE_REPLAY, state_replay::&lt;DB, B&gt;)
             .with_method(STATE_NETWORK_NAME, state_network_name::&lt;DB, B&gt;)
             .with_method(STATE_NETWORK_VERSION, state_get_network_version::&lt;DB, B&gt;)
             .with_method(STATE_REPLAY, state_replay::&lt;DB, B&gt;)
-            .with_method(STATE_GET_ACTOR, state_get_actor::&lt;DB, B&gt;)
-            .with_method(STATE_LIST_ACTORS, state_list_actors::&lt;DB, B&gt;)
-            .with_method(STATE_ACCOUNT_KEY, state_account_key::&lt;DB, B&gt;)
-            .with_method(STATE_LOOKUP_ID, state_lookup_id::&lt;DB, B&gt;)
             .with_method(STATE_MARKET_BALANCE, state_market_balance::&lt;DB, B&gt;)
             .with_method(STATE_MARKET_DEALS, state_market_deals::&lt;DB, B&gt;)
             .with_method(STATE_GET_RECEIPT, state_get_receipt::&lt;DB, B&gt;)
             .with_method(STATE_WAIT_MSG, state_wait_msg::&lt;DB, B&gt;)
-            .with_method(MINER_CREATE_BLOCK, miner_create_block::&lt;DB, B, S&gt;)
-            .with_method(
-                STATE_MINER_SECTOR_ALLOCATED,
-                state_miner_sector_allocated::&lt;DB, B&gt;,
-            )
-            .with_method(STATE_MINER_POWER, state_miner_power::&lt;DB, B&gt;)
             .with_method(
                 STATE_MINER_PRE_COMMIT_DEPOSIT_FOR_POWER,
                 state_miner_pre_commit_deposit_for_power::&lt;DB, B&gt;,
@@ -359,7 +284,6 @@
                 STATE_MINER_INITIAL_PLEDGE_COLLATERAL,
                 state_miner_initial_pledge_collateral::&lt;DB, B&gt;,
             )
-            .with_method(MINER_GET_BASE_INFO, miner_get_base_info::&lt;DB, B, V&gt;)
             <span class="comment">// Gas API
             </span>.with_method(GAS_ESTIMATE_FEE_CAP, gas_estimate_fee_cap::&lt;DB, B&gt;)
             .with_method(GAS_ESTIMATE_GAS_LIMIT, gas_estimate_gas_limit::&lt;DB, B&gt;)
