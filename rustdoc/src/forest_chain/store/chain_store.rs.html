@@ -1004,6 +1004,10 @@
 <span id="1004">1004</span>
 <span id="1005">1005</span>
 <span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1599,6 +1603,10 @@
                 <span class="kw">if </span>current_min_height % EPOCHS_IN_DAY == <span class="number">0 </span>{
                     <span class="macro">info!</span>(target: <span class="string">&quot;chain_api&quot;</span>, <span class="string">&quot;export at: {}&quot;</span>, current_min_height);
                 }
+            }
+
+            <span class="kw">if </span>h.epoch() &gt; incl_roots_epoch {
+                recurse_links(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.messages(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
             }
 
             <span class="kw">if </span>h.epoch() &gt; <span class="number">0 </span>{
