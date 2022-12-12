@@ -151,23 +151,26 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>async_trait::async_trait;
-<span class="kw">use </span>asynchronous_codec::FramedRead;
-<span class="kw">use </span>forest_encoding::de::DeserializeOwned;
+</span><span class="kw">mod </span>decoder;
+<span class="kw">use </span>decoder::DagCborDecodingReader;
+
+<span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>futures::prelude::<span class="kw-2">*</span>;
-<span class="kw">use </span>fvm_ipld_encoding::to_vec;
 <span class="kw">use </span>libp2p::core::ProtocolName;
 <span class="kw">use </span>libp2p::request_response::OutboundFailure;
 <span class="kw">use </span>libp2p::request_response::RequestResponseCodec;
+<span class="kw">use </span>serde::de::DeserializeOwned;
 <span class="kw">use </span>serde::Serialize;
 <span class="kw">use </span>std::io;
 <span class="kw">use </span>std::marker::PhantomData;
-
-<span class="kw">mod </span>cbor_codec;
-<span class="kw">use </span>cbor_codec::Decoder;
+<span class="kw">use </span>std::time::Duration;
 
 <span class="doccomment">/// Generic `Cbor` `RequestResponse` type. This is just needed to satisfy [`RequestResponseCodec`]
 /// for Hello and `ChainExchange` protocols without duplication.
@@ -237,16 +240,8 @@
     <span class="kw">where
         </span>T: AsyncRead + Unpin + Send,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = FramedRead::new(io, Decoder::&lt;RQ&gt;::new());
-        <span class="comment">// Expect only one request
-        </span><span class="kw">let </span>req = reader
-            .next()
-            .<span class="kw">await
-            </span>.transpose()
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))<span class="question-mark">?
-            </span>.ok_or_else(|| io::Error::new(io::ErrorKind::Other, <span class="string">&quot;read_request returned none&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(req)
-    }
+        read_and_decode(io).<span class="kw">await
+    </span>}
 
     <span class="kw">async fn </span>read_response&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -256,16 +251,8 @@
     <span class="kw">where
         </span>T: AsyncRead + Unpin + Send,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>reader = FramedRead::new(io, Decoder::&lt;RS&gt;::new());
-        <span class="comment">// Expect only one response
-        </span><span class="kw">let </span>resp = reader
-            .next()
-            .<span class="kw">await
-            </span>.transpose()
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))<span class="question-mark">?
-            </span>.ok_or_else(|| io::Error::new(io::ErrorKind::Other, <span class="string">&quot;read_response returned none&quot;</span>))<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(resp)
-    }
+        read_and_decode(io).<span class="kw">await
+    </span>}
 
     <span class="kw">async fn </span>write_request&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -276,15 +263,8 @@
     <span class="kw">where
         </span>T: AsyncWrite + Unpin + Send,
     {
-        <span class="comment">// TODO: Use FramedWrite to stream write. Dilemma right now is if we should fork the cbor codec so we can replace serde_cbor to our fork of serde_cbor
-
-        </span>io.write_all(
-            <span class="kw-2">&amp;</span>to_vec(<span class="kw-2">&amp;</span>req).map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))<span class="question-mark">?</span>,
-        )
-        .<span class="kw">await</span><span class="question-mark">?</span>;
-        io.close().<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
-    }
+        encode_and_write(io, req).<span class="kw">await
+    </span>}
 
     <span class="kw">async fn </span>write_response&lt;T&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -295,14 +275,42 @@
     <span class="kw">where
         </span>T: AsyncWrite + Unpin + Send,
     {
-        <span class="comment">// TODO: Use FramedWrite to stream write. Dilemma right now is if we should fork the cbor codec so we can replace serde_cbor to our fork of serde_cbor
-        </span>io.write_all(
-            <span class="kw-2">&amp;</span>to_vec(<span class="kw-2">&amp;</span>res).map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))<span class="question-mark">?</span>,
-        )
-        .<span class="kw">await</span><span class="question-mark">?</span>;
-        io.close().<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
+        encode_and_write(io, res).<span class="kw">await
+    </span>}
+}
+
+<span class="kw">async fn </span>read_and_decode&lt;IO, T&gt;(io: <span class="kw-2">&amp;mut </span>IO) -&gt; io::Result&lt;T&gt;
+<span class="kw">where
+    </span>IO: AsyncRead + Unpin,
+    T: serde::de::DeserializeOwned,
+{
+    <span class="kw">const </span>MAX_BYTES_ALLOWED: usize = <span class="number">2 </span>* <span class="number">1024 </span>* <span class="number">1024</span>; <span class="comment">// messages over 2MB are likely malicious
+    </span><span class="kw">const </span>TIMEOUT: Duration = Duration::from_secs(<span class="number">30</span>);
+
+    <span class="comment">// Currently the protocol does not send length encoded message,
+    // and we use `decode-success-with-no-trailing-data` to detect end of frame
+    // just like what `FramedRead` does, so it&#39;s possible to cause deadlock at `io.poll_ready`
+    // Adding timeout here to mitigate the issue
+    </span><span class="kw">match </span>tokio::time::timeout(TIMEOUT, DagCborDecodingReader::new(io, MAX_BYTES_ALLOWED)).<span class="kw">await </span>{
+        <span class="prelude-val">Ok</span>(r) =&gt; r,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+            <span class="kw">let </span>err = io::Error::new(io::ErrorKind::Other, <span class="string">&quot;read_and_decode timeout&quot;</span>);
+            <span class="macro">log::warn!</span>(<span class="string">&quot;{err}&quot;</span>);
+            <span class="prelude-val">Err</span>(err)
+        }
     }
+}
+
+<span class="kw">async fn </span>encode_and_write&lt;IO, T&gt;(io: <span class="kw-2">&amp;mut </span>IO, data: T) -&gt; io::Result&lt;()&gt;
+<span class="kw">where
+    </span>IO: AsyncWrite + Unpin,
+    T: serde::Serialize,
+{
+    <span class="kw">let </span>bytes = fvm_ipld_encoding::to_vec(<span class="kw-2">&amp;</span>data)
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))<span class="question-mark">?</span>;
+    io.write_all(<span class="kw-2">&amp;</span>bytes).<span class="kw">await</span><span class="question-mark">?</span>;
+    io.close().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="forest_libp2p" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

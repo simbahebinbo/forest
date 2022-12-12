@@ -23,15 +23,23 @@
 <span id="23">23</span>
 <span id="24">24</span>
 <span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">mod </span>checked_serde_bytes;
 <span class="kw">mod </span>hash;
+<span class="kw">pub mod </span>error {
+    <span class="kw">pub use </span>serde_ipld_dagcbor::error::{
+        DecodeError <span class="kw">as </span>CborDecodeError, EncodeError <span class="kw">as </span>CborEncodeError,
+    };
+}
 
 <span class="kw">pub use </span>cs_serde_bytes;
 <span class="kw">pub use </span>serde::{de, ser};
-<span class="kw">pub use </span>serde_ipld_dagcbor::error;
 
 <span class="kw">pub use </span><span class="self">self</span>::checked_serde_bytes::serde_byte_array;
 <span class="kw">pub use </span><span class="self">self</span>::hash::<span class="kw-2">*</span>;

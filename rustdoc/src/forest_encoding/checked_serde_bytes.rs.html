@@ -116,6 +116,8 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -165,6 +167,7 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span><span class="kw">super</span>::serde_byte_array;
     <span class="kw">use </span><span class="kw">crate</span>::BYTE_ARRAY_MAX_LEN;
+    <span class="kw">use </span>anyhow::{ensure, <span class="prelude-ty">Result</span>};
     <span class="kw">use </span>serde::{Deserialize, Serialize};
 
     <span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -185,15 +188,17 @@
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>cannot_serialize_byte_array_overflow() {
+    </span><span class="kw">fn </span>cannot_serialize_byte_array_overflow() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>bytes = ByteArray {
             inner: <span class="macro">vec!</span>[<span class="number">0</span>; BYTE_ARRAY_MAX_LEN + <span class="number">1</span>],
         };
 
-        <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, serde_ipld_dagcbor::to_vec(<span class="kw-2">&amp;</span>bytes).err().unwrap()),
-            <span class="string">&quot;Array exceed max length&quot;</span>.to_string()
+        <span class="macro">ensure!</span>(
+            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, serde_ipld_dagcbor::to_vec(<span class="kw-2">&amp;</span>bytes).err().unwrap())
+                .contains(<span class="string">&quot;Array exceed max length&quot;</span>)
         );
+
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attr">#[test]
@@ -212,7 +217,7 @@
     }
 
     <span class="attr">#[test]
-    </span><span class="kw">fn </span>cannot_deserialize_byte_array_overflow() {
+    </span><span class="kw">fn </span>cannot_deserialize_byte_array_overflow() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">let </span>max_length_bytes = ByteArray {
             inner: <span class="macro">vec!</span>[<span class="number">0</span>; BYTE_ARRAY_MAX_LEN],
         };
@@ -223,15 +228,14 @@
         overflow_encoding[encoding_len - BYTE_ARRAY_MAX_LEN - <span class="number">1</span>] = <span class="number">1</span>;
         overflow_encoding.push(<span class="number">0</span>);
 
-        <span class="macro">assert_eq!</span>(
-            <span class="macro">format!</span>(
-                <span class="string">&quot;{}&quot;</span>,
-                serde_ipld_dagcbor::from_slice::&lt;ByteArray&gt;(<span class="kw-2">&amp;</span>overflow_encoding)
-                    .err()
-                    .unwrap()
-            ),
-            <span class="string">&quot;Array exceed max length&quot;</span>.to_string()
-        );
+        <span class="macro">ensure!</span>(<span class="macro">format!</span>(
+            <span class="string">&quot;{}&quot;</span>,
+            serde_ipld_dagcbor::from_slice::&lt;ByteArray&gt;(<span class="kw-2">&amp;</span>overflow_encoding)
+                .err()
+                .unwrap()
+        )
+        .contains(<span class="string">&quot;Array exceed max length&quot;</span>));
+        <span class="prelude-val">Ok</span>(())
     }
 }
 </code></pre></div>
