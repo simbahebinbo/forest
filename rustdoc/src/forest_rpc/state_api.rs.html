@@ -203,102 +203,6 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -306,22 +210,18 @@
 <span class="kw">use </span>std::collections::HashMap;
 
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_actor_interface::{market, power, reward};
+<span class="kw">use </span>forest_actor_interface::market;
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_ipld::json::IpldJson;
-<span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_rpc_api::{
     data_types::{MarketDeal, MessageLookup, RPCState},
     state_api::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>forest_state_manager::InvocResult;
-<span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 
 <span class="comment">// TODO handle using configurable verification implementation in RPC (all defaulting to Full).
@@ -507,98 +407,6 @@
         message: CidJson(cid),
         return_dec: IpldJson(ipld),
     })
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_pre_commit_deposit_for_power&lt;
-    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon,
-&gt;(
-    data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
-    Params(params): Params&lt;StateMinerPreCommitDepositForPowerParams&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;StateMinerPreCommitDepositForPowerResult, JsonRpcError&gt; {
-    <span class="kw">let </span>(AddressJson(maddr), pci, TipsetKeysJson(tsk)) = params;
-    <span class="kw">let </span>ts = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>(state, <span class="kw">_</span>) = data.state_manager.tipset_state(<span class="kw-2">&amp;</span>ts).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>state = StateTree::new_from_root(<span class="kw-2">&amp;</span>data.chain_store.db, <span class="kw-2">&amp;</span>state)<span class="question-mark">?</span>;
-    <span class="kw">let </span>ssize = pci.seal_proof.sector_size()<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>actor = state
-        .get_actor(<span class="kw-2">&amp;</span>market::ADDRESS)<span class="question-mark">?
-        </span>.ok_or(<span class="string">&quot;couldnt load market actor&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>(w, vw) = market::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?
-        </span>.verify_deals_for_activation(
-            data.state_manager.blockstore(),
-            <span class="kw-2">&amp;</span>pci.deal_ids,
-            <span class="kw-2">&amp;</span>maddr,
-            pci.expiration,
-            ts.epoch(),
-        )<span class="question-mark">?</span>;
-    <span class="kw">let </span>duration = pci.expiration - ts.epoch();
-    <span class="kw">let </span>sector_weight = fil_actor_miner_v8::qa_power_for_weight(ssize, duration, <span class="kw-2">&amp;</span>w, <span class="kw-2">&amp;</span>vw);
-
-    <span class="kw">let </span>actor = state
-        .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS)<span class="question-mark">?
-        </span>.ok_or(<span class="string">&quot;couldnt load power actor&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>power_smoothed =
-        power::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>.total_power_smoothed();
-
-    <span class="kw">let </span>reward_actor = state
-        .get_actor(<span class="kw-2">&amp;</span>reward::ADDRESS)<span class="question-mark">?
-        </span>.ok_or(<span class="string">&quot;couldnt load reward actor&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>deposit = reward::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>reward_actor)<span class="question-mark">?
-        </span>.pre_commit_deposit_for_power(power_smoothed, <span class="kw-2">&amp;</span>sector_weight);
-
-    <span class="kw">let </span>ret: TokenAmount = (deposit * <span class="number">110</span>).div_floor(<span class="number">100</span>);
-    <span class="prelude-val">Ok</span>(ret.to_string())
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_miner_initial_pledge_collateral&lt;
-    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    B: Beacon,
-&gt;(
-    data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
-    Params(params): Params&lt;StateMinerInitialPledgeCollateralParams&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;StateMinerInitialPledgeCollateralResult, JsonRpcError&gt; {
-    <span class="kw">let </span>(AddressJson(maddr), pci, TipsetKeysJson(tsk)) = params;
-    <span class="kw">let </span>ts = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>(root_cid, <span class="kw">_</span>) = data.state_manager.tipset_state(<span class="kw-2">&amp;</span>ts).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>state = StateTree::new_from_root(<span class="kw-2">&amp;</span>data.chain_store.db, <span class="kw-2">&amp;</span>root_cid)<span class="question-mark">?</span>;
-    <span class="kw">let </span>ssize = pci.seal_proof.sector_size()<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>actor = state
-        .get_actor(<span class="kw-2">&amp;</span>market::ADDRESS)<span class="question-mark">?
-        </span>.ok_or(<span class="string">&quot;couldnt load market actor&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>(w, vw) = market::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?
-        </span>.verify_deals_for_activation(
-            data.state_manager.blockstore(),
-            <span class="kw-2">&amp;</span>pci.deal_ids,
-            <span class="kw-2">&amp;</span>maddr,
-            pci.expiration,
-            ts.epoch(),
-        )<span class="question-mark">?</span>;
-    <span class="kw">let </span>duration = pci.expiration - ts.epoch();
-    <span class="kw">let </span>sector_weight = fil_actor_miner_v8::qa_power_for_weight(ssize, duration, <span class="kw-2">&amp;</span>w, <span class="kw-2">&amp;</span>vw);
-
-    <span class="kw">let </span>actor = state
-        .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS)<span class="question-mark">?
-        </span>.ok_or(<span class="string">&quot;couldnt load power actor&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>power_state = power::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
-    <span class="kw">let </span>power_smoothed = power_state.total_power_smoothed();
-    <span class="kw">let </span>total_locked = power_state.total_locked();
-
-    <span class="kw">let </span>circ_supply =
-        data.state_manager
-            .get_circulating_supply(ts.epoch(), <span class="kw-2">&amp;</span>data.chain_store.db, <span class="kw-2">&amp;</span>root_cid)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>reward_actor = state
-        .get_actor(<span class="kw-2">&amp;</span>reward::ADDRESS)<span class="question-mark">?
-        </span>.ok_or(<span class="string">&quot;couldnt load reward actor&quot;</span>)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>initial_pledge = reward::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>reward_actor)<span class="question-mark">?
-        </span>.initial_pledge_for_power(<span class="kw-2">&amp;</span>sector_weight, <span class="kw-2">&amp;</span>total_locked, power_smoothed, <span class="kw-2">&amp;</span>circ_supply);
-
-    <span class="kw">let </span>ret: BigInt = (initial_pledge.atto() * <span class="number">110</span>) / <span class="number">100</span>;
-    <span class="prelude-val">Ok</span>(ret.to_string())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="forest_rpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

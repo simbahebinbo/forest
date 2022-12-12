@@ -505,77 +505,6 @@
 <span id="505">505</span>
 <span id="506">506</span>
 <span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -677,7 +606,7 @@
 }
 
 <span class="doccomment">/// Defines all network configuration parameters.
-</span><span class="attr">#[derive(Serialize, Deserialize)]
+</span><span class="attr">#[derive(Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 </span><span class="kw">pub struct </span>ChainConfig {
     <span class="kw">pub </span>name: String,
@@ -688,71 +617,6 @@
     <span class="attr">#[serde(default = <span class="string">&quot;default_policy&quot;</span>)]
     #[serde(with = <span class="string">&quot;serde_policy&quot;</span>)]
     </span><span class="kw">pub </span>policy: Policy,
-}
-
-<span class="comment">// FIXME: remove this trait once builtin-actors Policy have it
-// https://github.com/filecoin-project/builtin-actors/pull/497
-</span><span class="kw">impl </span>PartialEq <span class="kw">for </span>ChainConfig {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        <span class="self">self</span>.name == other.name
-            &amp;&amp; <span class="self">self</span>.bootstrap_peers == other.bootstrap_peers
-            &amp;&amp; <span class="self">self</span>.block_delay_secs == other.block_delay_secs
-            &amp;&amp; sort_by_epoch(<span class="kw-2">&amp;</span><span class="self">self</span>.height_infos) == sort_by_epoch(<span class="kw-2">&amp;</span>other.height_infos)
-            &amp;&amp; (<span class="self">self</span>.policy.max_aggregated_sectors == other.policy.max_aggregated_sectors
-                &amp;&amp; <span class="self">self</span>.policy.min_aggregated_sectors == other.policy.min_aggregated_sectors
-                &amp;&amp; <span class="self">self</span>.policy.max_aggregated_proof_size == other.policy.max_aggregated_proof_size
-                &amp;&amp; <span class="self">self</span>.policy.max_replica_update_proof_size
-                    == other.policy.max_replica_update_proof_size
-                &amp;&amp; <span class="self">self</span>.policy.pre_commit_sector_batch_max_size
-                    == other.policy.pre_commit_sector_batch_max_size
-                &amp;&amp; <span class="self">self</span>.policy.prove_replica_updates_max_size
-                    == other.policy.prove_replica_updates_max_size
-                &amp;&amp; <span class="self">self</span>.policy.expired_pre_commit_clean_up_delay
-                    == other.policy.expired_pre_commit_clean_up_delay
-                &amp;&amp; <span class="self">self</span>.policy.wpost_proving_period == other.policy.wpost_proving_period
-                &amp;&amp; <span class="self">self</span>.policy.wpost_challenge_window == other.policy.wpost_challenge_window
-                &amp;&amp; <span class="self">self</span>.policy.wpost_period_deadlines == other.policy.wpost_period_deadlines
-                &amp;&amp; <span class="self">self</span>.policy.wpost_max_chain_commit_age
-                    == other.policy.wpost_max_chain_commit_age
-                &amp;&amp; <span class="self">self</span>.policy.wpost_dispute_window == other.policy.wpost_dispute_window
-                &amp;&amp; <span class="self">self</span>.policy.sectors_max == other.policy.sectors_max
-                &amp;&amp; <span class="self">self</span>.policy.max_partitions_per_deadline
-                    == other.policy.max_partitions_per_deadline
-                &amp;&amp; <span class="self">self</span>.policy.max_control_addresses == other.policy.max_control_addresses
-                &amp;&amp; <span class="self">self</span>.policy.max_peer_id_length == other.policy.max_peer_id_length
-                &amp;&amp; <span class="self">self</span>.policy.max_multiaddr_data == other.policy.max_multiaddr_data
-                &amp;&amp; <span class="self">self</span>.policy.addressed_partitions_max == other.policy.addressed_partitions_max
-                &amp;&amp; <span class="self">self</span>.policy.declarations_max == other.policy.declarations_max
-                &amp;&amp; <span class="self">self</span>.policy.addressed_sectors_max == other.policy.addressed_sectors_max
-                &amp;&amp; <span class="self">self</span>.policy.max_pre_commit_randomness_lookback
-                    == other.policy.max_pre_commit_randomness_lookback
-                &amp;&amp; <span class="self">self</span>.policy.pre_commit_challenge_delay
-                    == other.policy.pre_commit_challenge_delay
-                &amp;&amp; <span class="self">self</span>.policy.wpost_challenge_lookback == other.policy.wpost_challenge_lookback
-                &amp;&amp; <span class="self">self</span>.policy.fault_declaration_cutoff == other.policy.fault_declaration_cutoff
-                &amp;&amp; <span class="self">self</span>.policy.fault_max_age == other.policy.fault_max_age
-                &amp;&amp; <span class="self">self</span>.policy.worker_key_change_delay == other.policy.worker_key_change_delay
-                &amp;&amp; <span class="self">self</span>.policy.min_sector_expiration == other.policy.min_sector_expiration
-                &amp;&amp; <span class="self">self</span>.policy.max_sector_expiration_extension
-                    == other.policy.max_sector_expiration_extension
-                &amp;&amp; <span class="self">self</span>.policy.deal_limit_denominator == other.policy.deal_limit_denominator
-                &amp;&amp; <span class="self">self</span>.policy.consensus_fault_ineligibility_duration
-                    == other.policy.consensus_fault_ineligibility_duration
-                &amp;&amp; <span class="self">self</span>.policy.new_sectors_per_period_max
-                    == other.policy.new_sectors_per_period_max
-                &amp;&amp; <span class="self">self</span>.policy.chain_finality == other.policy.chain_finality
-                &amp;&amp; <span class="self">self</span>.policy.valid_post_proof_type == other.policy.valid_post_proof_type
-                &amp;&amp; <span class="self">self</span>.policy.valid_pre_commit_proof_type
-                    == other.policy.valid_pre_commit_proof_type
-                &amp;&amp; <span class="self">self</span>.policy.minimum_verified_allocation_size
-                    == other.policy.minimum_verified_allocation_size
-                &amp;&amp; <span class="self">self</span>.policy.deal_updates_interval == other.policy.deal_updates_interval
-                &amp;&amp; <span class="self">self</span>.policy.prov_collateral_percent_supply_num
-                    == other.policy.prov_collateral_percent_supply_num
-                &amp;&amp; <span class="self">self</span>.policy.prov_collateral_percent_supply_denom
-                    == other.policy.prov_collateral_percent_supply_denom
-                &amp;&amp; <span class="self">self</span>.policy.minimum_consensus_power == other.policy.minimum_consensus_power)
-    }
 }
 
 <span class="kw">impl </span>ChainConfig {
@@ -810,14 +674,8 @@
 
     <span class="kw">pub fn </span>genesis_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
         <span class="kw">match </span><span class="self">self</span>.name.as_ref() {
-            <span class="string">&quot;mainnet&quot; </span>=&gt; {
-                <span class="kw">use </span>mainnet::DEFAULT_GENESIS;
-                <span class="prelude-val">Some</span>(DEFAULT_GENESIS)
-            }
-            <span class="string">&quot;calibnet&quot; </span>=&gt; {
-                <span class="kw">use </span>calibnet::DEFAULT_GENESIS;
-                <span class="prelude-val">Some</span>(DEFAULT_GENESIS)
-            }
+            <span class="string">&quot;mainnet&quot; </span>=&gt; <span class="prelude-val">Some</span>(mainnet::DEFAULT_GENESIS),
+            <span class="string">&quot;calibnet&quot; </span>=&gt; <span class="prelude-val">Some</span>(calibnet::DEFAULT_GENESIS),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

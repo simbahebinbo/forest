@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["deadlines",""],["genesis",""],["verifier",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["verifier",""]]};

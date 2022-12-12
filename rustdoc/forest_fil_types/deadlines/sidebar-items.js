@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["DeadlineInfo","Deadline calculations with respect to a current epoch. “Deadline” refers to the window during which proofs may be submitted. Windows are non-overlapping ranges [Open, Close), but the challenge epoch for a window occurs before the window opens."],["QuantSpec","A spec for epoch quantization."]]};

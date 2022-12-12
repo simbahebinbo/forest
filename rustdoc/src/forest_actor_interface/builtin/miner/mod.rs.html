@@ -479,21 +479,11 @@
 <span id="479">479</span>
 <span id="480">480</span>
 <span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::Policy;
-<span class="kw">use </span>forest_fil_types::deadlines::DeadlineInfo;
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::json::go_vec_visitor;
@@ -672,14 +662,6 @@
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; <span class="prelude-val">Ok</span>(st.get_sector(store, sector_num)<span class="question-mark">?</span>.map(From::from)),
             State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st.get_sector(store, sector_num)<span class="question-mark">?</span>.map(From::from)),
-        }
-    }
-
-    <span class="doccomment">/// Loads deadline at index for a miner&#39;s state
-    </span><span class="kw">pub fn </span>deadline_info(<span class="kw-2">&amp;</span><span class="self">self</span>, _epoch: ChainEpoch) -&gt; DeadlineInfo {
-        <span class="kw">match </span><span class="self">self </span>{
-            State::V8(_st) =&gt; <span class="macro">todo!</span>(),
-            State::V9(_st) =&gt; <span class="macro">todo!</span>(),
         }
     }
 

@@ -220,53 +220,11 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::market::{DealProposal, DealState};
-<span class="kw">use </span>forest_beacon::BeaconEntry;
 <span class="kw">use </span>forest_beacon::{json::BeaconEntryJson, Beacon, BeaconSchedule};
 <span class="kw">use </span>forest_blocks::{
     election_proof::json::ElectionProofJson, ticket::json::TicketJson,
@@ -278,7 +236,7 @@
 <span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_json::message_receipt::json::ReceiptJson;
-<span class="kw">use </span>forest_json::sector::json::{PoStProofJson, SectorInfoJson};
+<span class="kw">use </span>forest_json::sector::json::PoStProofJson;
 <span class="kw">use </span>forest_json::signed_message::json::SignedMessageJson;
 <span class="kw">use </span>forest_json::token_amount::json;
 <span class="kw">use </span>forest_key_management::KeyStore;
@@ -286,7 +244,7 @@
 <span class="kw">use </span>forest_libp2p::{Multihash, NetworkMessage};
 <span class="kw">use </span>forest_message::signed_message::SignedMessage;
 <span class="kw">use </span>forest_message_pool::{MessagePool, MpoolRpcProvider};
-<span class="kw">use </span>forest_state_manager::{MiningBaseInfo, StateManager};
+<span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>fvm::state_tree::ActorState;
 <span class="kw">use </span>fvm_ipld_bitfield::json::BitFieldJson;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -294,7 +252,6 @@
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::sector::{SectorSize, StoragePower};
 <span class="kw">use </span>jsonrpc_v2::{MapRouter <span class="kw">as </span>JsonRpcMapRouter, Server <span class="kw">as </span>JsonRpcServer};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::sync::Arc;
@@ -450,45 +407,6 @@
     <span class="kw">pub </span>timestamp: u64,
     <span class="attr">#[serde(rename = <span class="string">&quot;WinningPoStProof&quot;</span>)]
     </span><span class="kw">pub </span>winning_post_proof: Vec&lt;PoStProofJson&gt;,
-}
-<span class="attr">#[derive(Serialize)]
-#[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
-</span><span class="kw">pub struct </span>MiningBaseInfoJson {
-    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::bigint::json::option&quot;</span>)]
-    </span><span class="kw">pub </span>miner_power: <span class="prelude-ty">Option</span>&lt;StoragePower&gt;,
-    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::bigint::json::option&quot;</span>)]
-    </span><span class="kw">pub </span>network_power: <span class="prelude-ty">Option</span>&lt;StoragePower&gt;,
-    <span class="kw">pub </span>sectors: Vec&lt;SectorInfoJson&gt;,
-    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::address::json&quot;</span>)]
-    </span><span class="kw">pub </span>worker_key: Address,
-    <span class="kw">pub </span>sector_size: SectorSize,
-    <span class="attr">#[serde(with = <span class="string">&quot;forest_beacon::json&quot;</span>)]
-    </span><span class="kw">pub </span>prev_beacon_entry: BeaconEntry,
-    <span class="kw">pub </span>beacon_entries: Vec&lt;BeaconEntryJson&gt;,
-    <span class="kw">pub </span>eligible_for_mining: bool,
-}
-
-<span class="kw">impl </span>From&lt;MiningBaseInfo&gt; <span class="kw">for </span>MiningBaseInfoJson {
-    <span class="kw">fn </span>from(info: MiningBaseInfo) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            miner_power: info.miner_power,
-            network_power: info.network_power,
-            sectors: info
-                .sectors
-                .into_iter()
-                .map(From::from)
-                .collect::&lt;Vec&lt;SectorInfoJson&gt;&gt;(),
-            worker_key: info.worker_key,
-            sector_size: info.sector_size,
-            prev_beacon_entry: info.prev_beacon_entry,
-            beacon_entries: info
-                .beacon_entries
-                .into_iter()
-                .map(BeaconEntryJson)
-                .collect::&lt;Vec&lt;BeaconEntryJson&gt;&gt;(),
-            eligible_for_mining: info.eligible_for_mining,
-        }
-    }
 }
 
 <span class="comment">// Net API
