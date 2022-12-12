@@ -79,8 +79,6 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -107,11 +105,11 @@
 }
 
 <span class="kw">impl </span>FetchCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>sizes = <span class="kw">if </span><span class="self">self</span>.all {
             SectorSizeOpt::All
         } <span class="kw">else if let </span><span class="prelude-val">Some</span>(size) = <span class="kw-2">&amp;</span><span class="self">self</span>.params_size {
-            <span class="kw">let </span>sector_size = ram_to_int(size).unwrap();
+            <span class="kw">let </span>sector_size = ram_to_int(size)<span class="question-mark">?</span>;
             SectorSizeOpt::Size(sector_size)
         } <span class="kw">else if </span><span class="self">self</span>.keys {
             SectorSizeOpt::Keys
@@ -122,14 +120,12 @@
             );
         };
 
-        get_params_default(<span class="kw-2">&amp;</span>config.client.data_dir, sizes)
-            .<span class="kw">await
-            </span>.unwrap();
-    }
+        get_params_default(<span class="kw-2">&amp;</span>config.client.data_dir, sizes).<span class="kw">await
+    </span>}
 }
 
 <span class="doccomment">/// Converts a human readable string to a `u64` size.
-</span><span class="kw">fn </span>ram_to_int(size: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;SectorSize, String&gt; {
+</span><span class="kw">fn </span>ram_to_int(size: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;SectorSize&gt; {
     <span class="comment">// * there is no library to do this, but if other sector sizes are supported in future
     // this should probably be changed to parse from string to `SectorSize`
     </span><span class="kw">let </span><span class="kw-2">mut </span>trimmed = size.trim_end_matches(<span class="string">&#39;B&#39;</span>);
@@ -141,10 +137,10 @@
         <span class="string">&quot;536870912&quot; </span>| <span class="string">&quot;512Mi&quot; </span>| <span class="string">&quot;512mi&quot; </span>=&gt; <span class="prelude-val">Ok</span>(SectorSize::_512MiB),
         <span class="string">&quot;34359738368&quot; </span>| <span class="string">&quot;32Gi&quot; </span>| <span class="string">&quot;32gi&quot; </span>=&gt; <span class="prelude-val">Ok</span>(SectorSize::_32GiB),
         <span class="string">&quot;68719476736&quot; </span>| <span class="string">&quot;64Gi&quot; </span>| <span class="string">&quot;64gi&quot; </span>=&gt; <span class="prelude-val">Ok</span>(SectorSize::_64GiB),
-        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(anyhow::Error::msg(<span class="macro">format!</span>(
             <span class="string">&quot;Failed to parse: {}. Must be a valid sector size&quot;</span>,
             size
-        )),
+        ))),
     }
 }
 

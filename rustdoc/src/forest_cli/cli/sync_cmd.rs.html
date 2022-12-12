@@ -151,6 +151,7 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -193,7 +194,7 @@
 }
 
 <span class="kw">impl </span>SyncCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Wait { watch } =&gt; {
                 <span class="kw">let </span>watch = <span class="kw-2">*</span>watch;
@@ -204,8 +205,7 @@
                 <span class="kw">for _ in </span>ticker {
                     <span class="kw">let </span>response = sync_status((), <span class="kw-2">&amp;</span>config.client.rpc_token)
                         .<span class="kw">await
-                        </span>.map_err(handle_rpc_err)
-                        .unwrap();
+                        </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
                     <span class="kw">let </span>state = <span class="kw-2">&amp;</span>response.active_syncs[<span class="number">0</span>];
 
                     <span class="kw">let </span>target_height = <span class="kw">if let </span><span class="prelude-val">Some</span>(tipset) = state.target() {
@@ -234,7 +234,7 @@
                     );
 
                     <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">2 </span>{
-                        stdout.write_all(<span class="string">&quot;\r\x1b[2K\x1b[A&quot;</span>.as_bytes()).unwrap();
+                        stdout.write_all(<span class="string">&quot;\r\x1b[2K\x1b[A&quot;</span>.as_bytes())<span class="question-mark">?</span>;
                     }
 
                     <span class="kw">if </span>state.stage() == SyncStage::Complete &amp;&amp; !watch {
@@ -242,12 +242,12 @@
                         <span class="kw">break</span>;
                     };
                 }
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::Status =&gt; {
                 <span class="kw">let </span>response = sync_status((), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
-                    </span>.map_err(handle_rpc_err)
-                    .unwrap();
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>state = <span class="kw-2">&amp;</span>response.active_syncs[<span class="number">0</span>];
                 <span class="kw">let </span>base = state.base();
@@ -280,26 +280,28 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(duration) = elapsed_time {
                     <span class="macro">println!</span>(<span class="string">&quot;Elapsed time:\t{}s&quot;</span>, duration.whole_seconds());
                 }
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::CheckBad { cid } =&gt; {
-                <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
+                <span class="kw">let </span>cid: Cid = cid.parse()<span class="question-mark">?</span>;
                 <span class="kw">let </span>response = sync_check_bad((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
-                    </span>.map_err(handle_rpc_err)
-                    .unwrap();
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 
                 <span class="kw">if </span>response.is_empty() {
                     <span class="macro">println!</span>(<span class="string">&quot;Block \&quot;{}\&quot; is not marked as a bad block&quot;</span>, cid);
                 } <span class="kw">else </span>{
                     <span class="macro">println!</span>(<span class="string">&quot;response&quot;</span>);
                 }
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::MarkBad { cid } =&gt; {
-                <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
-                <span class="kw">match </span>sync_mark_bad((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
-                    <span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">println!</span>(<span class="string">&quot;OK&quot;</span>),
-                    <span class="prelude-val">Err</span>(error) =&gt; handle_rpc_err(error),
-                }
+                <span class="kw">let </span>cid: Cid = cid.parse()<span class="question-mark">?</span>;
+                sync_mark_bad((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
+                <span class="macro">println!</span>(<span class="string">&quot;OK&quot;</span>);
+                <span class="prelude-val">Ok</span>(())
             }
         }
     }

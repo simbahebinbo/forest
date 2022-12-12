@@ -451,7 +451,7 @@
 }
 
 <span class="kw">impl </span>SnapshotCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Export {
                 tipset,
@@ -473,8 +473,7 @@
                 <span class="kw">let </span>day_string = <span class="macro">format!</span>(<span class="string">&quot;{:02}&quot;</span>, now.day());
                 <span class="kw">let </span>chain_name = chain_get_name(<span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
-                    </span>.map_err(handle_rpc_err)
-                    .unwrap();
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>vars = HashMap::from([
                     (<span class="string">&quot;year&quot;</span>.to_string(), year.to_string()),
@@ -505,13 +504,12 @@
                     <span class="kw-2">*</span>skip_checksum,
                 );
 
-                <span class="comment">// infallible unwrap
-                </span><span class="kw">let </span>out = chain_export(params, <span class="kw-2">&amp;</span>config.client.rpc_token)
+                <span class="kw">let </span>out = chain_export(params, <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
-                    </span>.map_err(handle_rpc_err)
-                    .unwrap();
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 
                 <span class="macro">println!</span>(<span class="string">&quot;Export completed. Snapshot located at {}&quot;</span>, out.display());
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::Fetch {
                 snapshot_dir,
@@ -522,36 +520,38 @@
                     .clone()
                     .unwrap_or_else(|| default_snapshot_dir(<span class="kw-2">&amp;</span>config));
                 <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_dir, <span class="kw-2">&amp;</span>config, provider, <span class="kw-2">*</span>use_aria2).<span class="kw">await </span>{
-                    <span class="prelude-val">Ok</span>(out) =&gt; <span class="macro">println!</span>(<span class="string">&quot;Snapshot successfully downloaded at {}&quot;</span>, out.display()),
+                    <span class="prelude-val">Ok</span>(out) =&gt; {
+                        <span class="macro">println!</span>(<span class="string">&quot;Snapshot successfully downloaded at {}&quot;</span>, out.display());
+                        <span class="prelude-val">Ok</span>(())
+                    }
                     <span class="prelude-val">Err</span>(e) =&gt; cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Failed fetching the snapshot: {e}&quot;</span>), <span class="number">1</span>),
                 }
             }
             <span class="self">Self</span>::Dir =&gt; {
                 <span class="kw">let </span>dir = default_snapshot_dir(<span class="kw-2">&amp;</span>config);
                 <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, dir.display());
+                <span class="prelude-val">Ok</span>(())
             }
-            <span class="self">Self</span>::List { snapshot_dir } =&gt; {
-                list(<span class="kw-2">&amp;</span>config, snapshot_dir).unwrap();
-            }
+            <span class="self">Self</span>::List { snapshot_dir } =&gt; list(<span class="kw-2">&amp;</span>config, snapshot_dir),
             <span class="self">Self</span>::Remove {
                 filename,
                 snapshot_dir,
                 force,
             } =&gt; {
                 remove(<span class="kw-2">&amp;</span>config, filename, snapshot_dir, <span class="kw-2">*</span>force);
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::Prune {
                 snapshot_dir,
                 force,
             } =&gt; {
                 prune(<span class="kw-2">&amp;</span>config, snapshot_dir, <span class="kw-2">*</span>force);
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::Clean {
                 snapshot_dir,
                 force,
-            } =&gt; {
-                clean(<span class="kw-2">&amp;</span>config, snapshot_dir, <span class="kw-2">*</span>force).unwrap();
-            }
+            } =&gt; clean(<span class="kw-2">&amp;</span>config, snapshot_dir, <span class="kw-2">*</span>force),
         }
     }
 }

@@ -68,9 +68,6 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -110,36 +107,33 @@
 }
 
 <span class="kw">impl </span>AuthCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::CreateToken { perm } =&gt; {
-                <span class="kw">let </span>perm: String = perm.parse().unwrap();
-                <span class="kw">let </span>perms = process_perms(perm).map_err(handle_rpc_err).unwrap();
+                <span class="kw">let </span>perm: String = perm.parse()<span class="question-mark">?</span>;
+                <span class="kw">let </span>perms = process_perms(perm).map_err(handle_rpc_err)<span class="question-mark">?</span>;
                 <span class="kw">let </span>token_exp = config.client.token_exp;
                 <span class="kw">let </span>auth_params = AuthNewParams { perms, token_exp };
-                print_rpc_res_bytes(auth_new(auth_params, <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
+                print_rpc_res_bytes(auth_new(auth_params, <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>)
             }
             <span class="self">Self</span>::ApiInfo { perm } =&gt; {
-                <span class="kw">let </span>perm: String = perm.parse().unwrap();
-                <span class="kw">let </span>perms = process_perms(perm).map_err(handle_rpc_err).unwrap();
+                <span class="kw">let </span>perm: String = perm.parse()<span class="question-mark">?</span>;
+                <span class="kw">let </span>perms = process_perms(perm).map_err(handle_rpc_err)<span class="question-mark">?</span>;
                 <span class="kw">let </span>token_exp = config.client.token_exp;
                 <span class="kw">let </span>auth_params = AuthNewParams { perms, token_exp };
-                <span class="kw">match </span>auth_new(auth_params, <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
-                    <span class="prelude-val">Ok</span>(token) =&gt; {
-                        <span class="kw">let </span><span class="kw-2">mut </span>addr = Multiaddr::empty();
-                        addr.push(config.client.rpc_address.ip().into());
-                        addr.push(Protocol::Tcp(config.client.rpc_address.port()));
-                        addr.push(Protocol::Http);
-                        <span class="macro">println!</span>(
-                            <span class="string">&quot;FULLNODE_API_INFO=\&quot;{}:{}\&quot;&quot;</span>,
-                            String::from_utf8(token)
-                                .map_err(|e| handle_rpc_err(e.into()))
-                                .unwrap(),
-                            addr
-                        );
-                    }
-                    <span class="prelude-val">Err</span>(e) =&gt; handle_rpc_err(e),
-                };
+                <span class="kw">let </span>token = auth_new(auth_params, <span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>addr = Multiaddr::empty();
+                addr.push(config.client.rpc_address.ip().into());
+                addr.push(Protocol::Tcp(config.client.rpc_address.port()));
+                addr.push(Protocol::Http);
+                <span class="macro">println!</span>(
+                    <span class="string">&quot;FULLNODE_API_INFO=\&quot;{}:{}\&quot;&quot;</span>,
+                    String::from_utf8(token).map_err(|e| handle_rpc_err(e.into()))<span class="question-mark">?</span>,
+                    addr
+                );
+                <span class="prelude-val">Ok</span>(())
             }
         }
     }

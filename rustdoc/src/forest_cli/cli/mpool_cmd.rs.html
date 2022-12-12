@@ -12,6 +12,7 @@
 <span id="12">12</span>
 <span id="13">13</span>
 <span id="14">14</span>
+<span id="15">15</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -22,9 +23,10 @@
 </span><span class="kw">pub enum </span>MpoolCommands {}
 
 <span class="kw">impl </span>MpoolCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, _config: Config) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, _config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="comment">// match self {}
-    </span>}
+        </span><span class="prelude-val">Ok</span>(())
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="forest_cli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (11ebe6512 2022-11-01)" ></div></body></html>

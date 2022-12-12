@@ -93,8 +93,6 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -145,20 +143,18 @@
 }
 
 <span class="kw">impl </span>ChainCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Block { cid } =&gt; {
-                <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
+                <span class="kw">let </span>cid: Cid = cid.parse()<span class="question-mark">?</span>;
                 print_rpc_res_pretty(
                     chain_get_block((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>,
-                );
+                )
             }
             <span class="self">Self</span>::Genesis =&gt; {
-                print_rpc_res_pretty(chain_get_genesis(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
+                print_rpc_res_pretty(chain_get_genesis(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>)
             }
-            <span class="self">Self</span>::Head =&gt; {
-                print_rpc_res_cids(chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
-            }
+            <span class="self">Self</span>::Head =&gt; print_rpc_res_cids(chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>),
             <span class="self">Self</span>::TipsetHash { cids } =&gt; {
                 <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
 
@@ -173,21 +169,21 @@
                     chain_get_tipset_hash((tsk_json,), <span class="kw-2">&amp;</span>config.client.rpc_token)
                         .<span class="kw">await
                         </span>.map(|s| <span class="macro">format!</span>(<span class="string">&quot;blake2b hash: {s}&quot;</span>)),
-                );
+                )
             }
             <span class="self">Self</span>::ValidateTipsetCheckpoints =&gt; {
                 <span class="kw">let </span>result = chain_validate_tipset_checkpoints((), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>;
-                print_rpc_res(result);
+                print_rpc_res(result)
             }
             <span class="self">Self</span>::Message { cid } =&gt; {
-                <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
+                <span class="kw">let </span>cid: Cid = cid.parse()<span class="question-mark">?</span>;
                 print_rpc_res_pretty(
                     chain_get_message((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>,
-                );
+                )
             }
             <span class="self">Self</span>::ReadObj { cid } =&gt; {
-                <span class="kw">let </span>cid: Cid = cid.parse().unwrap();
-                print_rpc_res(chain_read_obj((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>);
+                <span class="kw">let </span>cid: Cid = cid.parse()<span class="question-mark">?</span>;
+                print_rpc_res(chain_read_obj((CidJson(cid),), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>)
             }
         }
     }

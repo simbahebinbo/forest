@@ -277,7 +277,6 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
-<span id="280">280</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -551,9 +550,8 @@
     </span>DB: Blockstore,
     B: Beacon,
 {
-    <span class="kw">let </span>(addr_str, msg_str, SignatureJson(sig)) = params;
-    <span class="kw">let </span>address = Address::from_str(<span class="kw-2">&amp;</span>addr_str)<span class="question-mark">?</span>;
-    <span class="kw">let </span>msg = hex::decode(msg_str)<span class="question-mark">?</span>;
+    <span class="kw">let </span>(addr, msg, SignatureJson(sig)) = params;
+    <span class="kw">let </span>address = addr.<span class="number">0</span>;
 
     <span class="kw">let </span>ret = sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>address).is_ok();
     <span class="prelude-val">Ok</span>(ret)

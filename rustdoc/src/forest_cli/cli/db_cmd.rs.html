@@ -56,6 +56,9 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -78,7 +81,7 @@
 }
 
 <span class="kw">impl </span>DBCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: <span class="kw-2">&amp;</span>Config) {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Stats =&gt; {
                 <span class="kw">use </span>human_repr::HumanCount;
@@ -87,6 +90,7 @@
                 <span class="macro">println!</span>(<span class="string">&quot;Database path: {}&quot;</span>, dir.display());
                 <span class="kw">let </span>size = fs_extra::dir::get_size(dir).unwrap_or_default();
                 <span class="macro">println!</span>(<span class="string">&quot;Database size: {}&quot;</span>, size.human_count_bytes());
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::Clean { force } =&gt; {
                 <span class="kw">let </span>dir = db_path(config);
@@ -95,19 +99,21 @@
                         <span class="string">&quot;Aborted. Database path {} is not a valid directory&quot;</span>,
                         dir.display()
                     );
-                    <span class="kw">return</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
                 <span class="macro">println!</span>(<span class="string">&quot;Deleting {}&quot;</span>, dir.display());
                 <span class="kw">if </span>!force &amp;&amp; !prompt_confirm() {
                     <span class="macro">println!</span>(<span class="string">&quot;Aborted.&quot;</span>);
-                    <span class="kw">return</span>;
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
                 <span class="kw">match </span>fs_extra::dir::remove(<span class="kw-2">&amp;</span>dir) {
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
                         <span class="macro">println!</span>(<span class="string">&quot;Deleted {}&quot;</span>, dir.display());
+                        <span class="prelude-val">Ok</span>(())
                     }
                     <span class="prelude-val">Err</span>(err) =&gt; {
                         <span class="macro">error!</span>(<span class="string">&quot;{err}&quot;</span>);
+                        <span class="prelude-val">Ok</span>(())
                     }
                 }
             }
