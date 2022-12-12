@@ -167,7 +167,7 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>anyhow::anyhow;
+</span><span class="kw">use </span>anyhow::{anyhow, Context};
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>core::time::Duration;
 <span class="kw">use </span>futures::StreamExt;
@@ -268,16 +268,16 @@
         state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
         mpool: Arc&lt;MP&gt;,
         submitter: SyncGossipSubmitter,
-        services: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;,
+        services: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;,
     ) -&gt; anyhow::Result&lt;()&gt;
     <span class="kw">where
         </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
         MP: MessagePoolApi + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
         services.spawn(<span class="kw">async move </span>{
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.run(state_manager, mpool.as_ref(), <span class="kw-2">&amp;</span>submitter).<span class="kw">await </span>{
-                <span class="macro">error!</span>(<span class="string">&quot;block proposal stopped: {}&quot;</span>, e)
-            }
+            <span class="self">self</span>.run(state_manager, mpool.as_ref(), <span class="kw-2">&amp;</span>submitter)
+                .<span class="kw">await
+                </span>.context(<span class="string">&quot;block proposal stopped&quot;</span>)
         });
         <span class="prelude-val">Ok</span>(())
     }

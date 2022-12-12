@@ -60,7 +60,7 @@
     _keystore: <span class="kw-2">&amp;</span>Arc&lt;RwLock&lt;KeyStore&gt;&gt;,
     _mpool: <span class="kw-2">&amp;</span>Arc&lt;MP&gt;,
     _submitter: SyncGossipSubmitter,
-    _services: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;,
+    _services: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;,
 ) -&gt; anyhow::Result&lt;FullConsensus&gt;
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,

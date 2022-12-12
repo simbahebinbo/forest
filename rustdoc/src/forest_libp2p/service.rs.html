@@ -815,6 +815,7 @@
 <span id="815">815</span>
 <span id="816">816</span>
 <span id="817">817</span>
+<span id="818">818</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1033,9 +1034,9 @@
     }
 
     <span class="doccomment">/// Starts the libp2p service networking stack. This Future resolves when shutdown occurs.
-    </span><span class="kw">pub async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) {
+    </span><span class="kw">pub async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">info!</span>(<span class="string">&quot;Running libp2p service&quot;</span>);
-        Swarm::listen_on(<span class="kw-2">&amp;mut </span><span class="self">self</span>.swarm, <span class="self">self</span>.config.listening_multiaddr).unwrap();
+        Swarm::listen_on(<span class="kw-2">&amp;mut </span><span class="self">self</span>.swarm, <span class="self">self</span>.config.listening_multiaddr)<span class="question-mark">?</span>;
         <span class="comment">// Bootstrap with Kademlia
         </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.swarm.behaviour_mut().bootstrap() {
             <span class="macro">warn!</span>(<span class="string">&quot;Failed to bootstrap with Kademlia: {e}&quot;</span>);
@@ -1105,6 +1106,7 @@
                 },
             };
         }
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Returns a sender which allows sending messages to the libp2p service.

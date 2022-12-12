@@ -2066,7 +2066,7 @@
 
     <span class="kw">const </span>TEST_GAS_LIMIT: i64 = <span class="number">6955002</span>;
 
-    <span class="kw">async fn </span>make_test_mpool(joinset: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;) -&gt; MessagePool&lt;TestApi&gt; {
+    <span class="kw">async fn </span>make_test_mpool(joinset: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;) -&gt; MessagePool&lt;TestApi&gt; {
         <span class="kw">let </span>tma = TestApi::default();
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
         MessagePool::new(

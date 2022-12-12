@@ -578,10 +578,35 @@
 <span id="578">578</span>
 <span id="579">579</span>
 <span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::cli::set_sigint_handler;
+<span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
 <span class="kw">use </span>forest_auth::{create_token, generate_priv_key, ADMIN, JWT_IDENTIFIER};
 <span class="kw">use </span>forest_chain::ChainStore;
@@ -610,6 +635,7 @@
 <span class="kw">use </span>raw_sync::events::{Event, EventInit, EventState};
 <span class="kw">use </span>rpassword::read_password;
 <span class="kw">use </span>std::net::TcpListener;
+<span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>tokio::sync::RwLock;
 <span class="kw">use </span>tokio::task::JoinSet;
 
@@ -744,11 +770,9 @@
             .expect(<span class="string">&quot;Failed converting the path to db&quot;</span>);
         <span class="kw">let </span>db = db.clone();
         services.spawn(<span class="kw">async </span>{
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) =
-                forest_metrics::init_prometheus(prometheus_listener, db_directory, db).<span class="kw">await
-            </span>{
-                <span class="macro">error!</span>(<span class="string">&quot;Failed to initiate prometheus server: {e}&quot;</span>);
-            }
+            forest_metrics::init_prometheus(prometheus_listener, db_directory, db)
+                .<span class="kw">await
+                </span>.context(<span class="string">&quot;Failed to initiate prometheus server&quot;</span>)
         });
     }
 
@@ -884,9 +908,7 @@
     .expect(<span class="string">&quot;Instantiating the ChainMuxer must succeed&quot;</span>);
     <span class="kw">let </span>bad_blocks = chain_muxer.bad_blocks_cloned();
     <span class="kw">let </span>sync_state = chain_muxer.sync_state_cloned();
-    services.spawn(<span class="kw">async </span>{
-        chain_muxer.<span class="kw">await</span>;
-    });
+    services.spawn(<span class="kw">async </span>{ <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{}&quot;</span>, chain_muxer.<span class="kw">await</span>)) });
 
     <span class="comment">// Start services
     </span><span class="kw">if </span>config.client.enable_rpc {
@@ -900,7 +922,7 @@
         services.spawn(<span class="kw">async move </span>{
             <span class="macro">info!</span>(<span class="string">&quot;JSON-RPC endpoint started at {}&quot;</span>, config.client.rpc_address);
             <span class="comment">// XXX: The JSON error message are a nightmare to print.
-            </span><span class="kw">let _ </span>= start_rpc::&lt;<span class="kw">_</span>, <span class="kw">_</span>, FullVerifier, cns::FullConsensus&gt;(
+            </span>start_rpc::&lt;<span class="kw">_</span>, <span class="kw">_</span>, FullVerifier, cns::FullConsensus&gt;(
                 Arc::new(RPCState {
                     state_manager: Arc::clone(<span class="kw-2">&amp;</span>rpc_state_manager),
                     keystore: keystore_rpc,
@@ -916,7 +938,8 @@
                 rpc_listen,
                 FOREST_VERSION_STRING.as_str(),
             )
-            .<span class="kw">await</span>;
+            .<span class="kw">await
+            </span>.map_err(|err| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{:?}&quot;</span>, serde_json::to_string(<span class="kw-2">&amp;</span>err)))
         });
     } <span class="kw">else </span>{
         <span class="macro">debug!</span>(<span class="string">&quot;RPC disabled.&quot;</span>);
@@ -957,8 +980,12 @@
 
     services.spawn(p2p_service.run());
 
-    <span class="comment">// Block until ctrl-c is hit
-    </span>ctrlc_oneshot.<span class="kw">await</span>.unwrap();
+    <span class="comment">// blocking until any of the services returns an error,
+    // or CTRL-C is pressed
+    </span><span class="macro">select! </span>{
+        err = propagate_error(<span class="kw-2">&amp;mut </span>services).fuse() =&gt; <span class="macro">error!</span>(<span class="string">&quot;services failure: {}&quot;</span>, err),
+        <span class="kw">_ </span>= ctrlc_oneshot =&gt; {}
+    }
 
     <span class="kw">let </span>keystore_write = tokio::task::spawn(<span class="kw">async move </span>{
         keystore.read().<span class="kw">await</span>.flush().unwrap();
@@ -970,6 +997,27 @@
     keystore_write.<span class="kw">await</span>.expect(<span class="string">&quot;keystore write failed&quot;</span>);
 
     db
+}
+
+<span class="comment">// returns the first error with which any of the services end
+// in case all services finished without an error sleeps for more than 2 years
+// and then returns with an error
+</span><span class="kw">async fn </span>propagate_error(services: <span class="kw-2">&amp;mut </span>JoinSet&lt;<span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;&gt;) -&gt; anyhow::Error {
+    <span class="kw">while </span>!services.is_empty() {
+        <span class="macro">select! </span>{
+            option = services.join_next().fuse() =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(error_message))) = option {
+                    <span class="kw">return </span>error_message
+                }
+            },
+        }
+    }
+    <span class="comment">// In case all services are down without errors we are still willing
+    // to wait indefinitely for CTRL-C signal. As `tokio::time::sleep` has
+    // a limit of approximately 2.2 years we have to loop
+    </span><span class="kw">loop </span>{
+        tokio::time::sleep(Duration::new(<span class="number">64000000</span>, <span class="number">0</span>)).<span class="kw">await</span>;
+    }
 }
 
 <span class="doccomment">/// Optionally fetches the snapshot. Returns the configuration (modified accordingly if a snapshot was fetched).

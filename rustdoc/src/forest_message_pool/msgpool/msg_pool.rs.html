@@ -692,6 +692,7 @@
 <span id="692">692</span>
 <span id="693">693</span>
 <span id="694">694</span>
+<span id="695">695</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -710,6 +711,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::msgpool::{RBF_DENOM, RBF_NUM};
 <span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
 <span class="kw">use </span><span class="kw">crate</span>::utils::get_base_fee_lower_bound;
+<span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::{HeadChange, MINIMUM_BASE_FEE};
@@ -856,7 +858,7 @@
         network_sender: flume::Sender&lt;NetworkMessage&gt;,
         config: MpoolConfig,
         chain_config: Arc&lt;ChainConfig&gt;,
-        services: <span class="kw-2">&amp;mut </span>JoinSet&lt;()&gt;,
+        services: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;MessagePool&lt;T&gt;, Error&gt;
     <span class="kw">where
         </span>T: Provider,
@@ -933,13 +935,13 @@
                             app,
                         )
                         .<span class="kw">await
-                        </span>.unwrap_or_else(|err| <span class="macro">warn!</span>(<span class="string">&quot;Error changing head: {:?}&quot;</span>, err));
+                        </span>.context(<span class="string">&quot;Error changing head&quot;</span>)<span class="question-mark">?</span>;
                     }
                     <span class="prelude-val">Err</span>(RecvError::Lagged(e)) =&gt; {
                         <span class="macro">warn!</span>(<span class="string">&quot;Head change subscriber lagged: skipping {} events&quot;</span>, e);
                     }
                     <span class="prelude-val">Err</span>(RecvError::Closed) =&gt; {
-                        <span class="kw">break</span>;
+                        <span class="kw">break </span><span class="prelude-val">Ok</span>(());
                     }
                 }
             }
