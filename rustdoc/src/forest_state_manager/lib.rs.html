@@ -1407,6 +1407,12 @@
 <span id="1407">1407</span>
 <span id="1408">1408</span>
 <span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2699,6 +2705,12 @@
         <span class="kw-2">mut </span>ts: Arc&lt;Tipset&gt;,
         height: i64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
+        <span class="kw">if </span>height &gt; ts.epoch() {
+            <span class="macro">anyhow::bail!</span>(
+                <span class="string">&quot;height {height} cannot be greater than tipset epoch {}&quot;</span>,
+                ts.epoch()
+            );
+        }
         <span class="kw">let </span><span class="kw-2">mut </span>ts_chain = Vec::&lt;Arc&lt;Tipset&gt;&gt;::new();
         <span class="kw">while </span>ts.epoch() != height {
             <span class="kw">let </span>next = <span class="self">self</span>.cs.tipset_from_keys(ts.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
