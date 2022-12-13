@@ -317,6 +317,51 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -340,12 +385,15 @@
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::{Duration, SystemTime};
-<span class="kw">use </span>tokio::time::timeout;
+<span class="kw">use </span>tokio::{task::JoinSet, time::timeout};
 
 <span class="doccomment">/// Timeout for response from an RPC request
 </span><span class="comment">// TODO this value can be tweaked, this is just set pretty low to avoid peers timing out
 // requests from slowing the node down. If increase, should create a countermeasure for this.
 </span><span class="kw">const </span>RPC_TIMEOUT: u64 = <span class="number">5</span>;
+
+<span class="doccomment">/// Maximum number of concurrent chain exchange request being sent to the network
+</span><span class="kw">const </span>MAX_CONCURRENT_CHAIN_EXCHANGE_REQUESTS: usize = <span class="number">2</span>;
 
 <span class="doccomment">/// Context used in chain sync to handle network requests.
 /// This contains the peer manager, P2P service interface, and [`BlockStore`] required to make
@@ -480,7 +528,7 @@
         options: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;T&gt;, String&gt;
     <span class="kw">where
-        </span>T: TryFrom&lt;TipsetBundle, Error = String&gt;,
+        </span>T: TryFrom&lt;TipsetBundle, Error = String&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>request = ChainExchangeRequest {
             start: tsk.cids().to_vec(),
@@ -489,38 +537,77 @@
         };
 
         <span class="kw">let </span>global_pre_time = SystemTime::now();
-        <span class="kw">let </span>bs_res = <span class="kw">match </span>peer_id {
+        <span class="kw">let </span>chain_exchange_result = <span class="kw">match </span>peer_id {
             <span class="comment">// Specific peer is given to send request, send specifically to that peer.
-            </span><span class="prelude-val">Some</span>(id) =&gt; <span class="self">self
-                </span>.chain_exchange_request(id, request)
-                .<span class="kw">await</span><span class="question-mark">?
-                </span>.into_result()<span class="question-mark">?</span>,
+            </span><span class="prelude-val">Some</span>(id) =&gt; <span class="self">Self</span>::chain_exchange_request(
+                <span class="self">self</span>.peer_manager.clone(),
+                <span class="self">self</span>.network_send.clone(),
+                id,
+                request,
+            )
+            .<span class="kw">await</span><span class="question-mark">?
+            </span>.into_result()<span class="question-mark">?</span>,
             <span class="prelude-val">None </span>=&gt; {
+                <span class="comment">// Control max num of concurrent jobs
+                </span><span class="kw">let </span>(n_task_control_tx, n_task_control_rx) =
+                    flume::bounded(MAX_CONCURRENT_CHAIN_EXCHANGE_REQUESTS);
+                <span class="kw">let </span>(result_tx, result_rx) = flume::bounded::&lt;Vec&lt;T&gt;&gt;(<span class="number">1</span>);
                 <span class="comment">// No specific peer set, send requests to a shuffled set of top peers until
                 // a request succeeds.
                 </span><span class="kw">let </span>peers = <span class="self">self</span>.peer_manager.top_peers_shuffled().<span class="kw">await</span>;
-                <span class="kw">let </span><span class="kw-2">mut </span>res = <span class="prelude-val">None</span>;
-                <span class="kw">for </span>p <span class="kw">in </span>peers.into_iter() {
-                    <span class="kw">match </span><span class="self">self</span>.chain_exchange_request(p, request.clone()).<span class="kw">await </span>{
-                        <span class="prelude-val">Ok</span>(bs_res) =&gt; <span class="kw">match </span>bs_res.into_result() {
-                            <span class="prelude-val">Ok</span>(r) =&gt; {
-                                res = <span class="prelude-val">Some</span>(r);
-                                <span class="kw">break</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>tasks = JoinSet::new();
+                <span class="kw">for </span>peer_id <span class="kw">in </span>peers.into_iter() {
+                    <span class="kw">let </span>n_task_control_tx = n_task_control_tx.clone();
+                    <span class="kw">let </span>n_task_control_rx = n_task_control_rx.clone();
+                    <span class="kw">let </span>result_tx = result_tx.clone();
+                    <span class="kw">let </span>peer_manager = <span class="self">self</span>.peer_manager.clone();
+                    <span class="kw">let </span>network_send = <span class="self">self</span>.network_send.clone();
+                    <span class="kw">let </span>request = request.clone();
+                    tasks.spawn(<span class="kw">async move </span>{
+                        <span class="kw">if </span>n_task_control_tx.send_async(()).<span class="kw">await</span>.is_ok() {
+                            <span class="kw">match </span><span class="self">Self</span>::chain_exchange_request(
+                                peer_manager,
+                                network_send,
+                                peer_id,
+                                request,
+                            )
+                            .<span class="kw">await
+                            </span>{
+                                <span class="prelude-val">Ok</span>(chain_exchange_result) =&gt; {
+                                    <span class="kw">match </span>chain_exchange_result.into_result() {
+                                        <span class="prelude-val">Ok</span>(r) =&gt; {
+                                            <span class="kw">_ </span>= result_tx.send_async(r).<span class="kw">await</span>;
+                                        }
+                                        <span class="prelude-val">Err</span>(e) =&gt; {
+                                            <span class="kw">_ </span>= n_task_control_rx.recv_async().<span class="kw">await</span>;
+                                            <span class="macro">debug!</span>(<span class="string">&quot;Failed chain_exchange response: {e}&quot;</span>);
+                                        }
+                                    }
+                                }
+                                <span class="prelude-val">Err</span>(e) =&gt; {
+                                    <span class="kw">_ </span>= n_task_control_rx.recv_async().<span class="kw">await</span>;
+                                    <span class="macro">debug!</span>(
+                                        <span class="string">&quot;Failed chain_exchange request to peer {peer_id:?}: {e}&quot;
+                                    </span>);
+                                }
                             }
-                            <span class="prelude-val">Err</span>(e) =&gt; {
-                                <span class="macro">debug!</span>(<span class="string">&quot;Failed chain_exchange response: {}&quot;</span>, e);
-                                <span class="kw">continue</span>;
-                            }
-                        },
-                        <span class="prelude-val">Err</span>(e) =&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Failed chain_exchange request to peer {:?}: {}&quot;</span>, p, e);
-                            <span class="kw">continue</span>;
                         }
-                    }
+                    });
                 }
 
-                res.ok_or_else(|| <span class="string">&quot;ChainExchange request failed for all top peers&quot;</span>.to_string())<span class="question-mark">?
-            </span>}
+                <span class="kw">async fn </span>wait_all&lt;T: <span class="lifetime">&#39;static</span>&gt;(tasks: <span class="kw-2">&amp;mut </span>JoinSet&lt;T&gt;) {
+                    <span class="kw">while </span>tasks.join_next().<span class="kw">await</span>.is_some() {}
+                }
+
+                <span class="macro">tokio::select! </span>{
+                    result = result_rx.recv_async() =&gt; {
+                        tasks.abort_all();
+                        <span class="macro">log::debug!</span>(<span class="string">&quot;Succeed: handle_chain_exchange_request&quot;</span>);
+                        result.map_err(|e| e.to_string())<span class="question-mark">?
+                    </span>},
+                    <span class="kw">_ </span>= wait_all(<span class="kw-2">&amp;mut </span>tasks) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;ChainExchange request failed for all top peers&quot;</span>.into()),
+                }
+            }
         };
 
         <span class="comment">// Log success for the global request with the latency from before sending.
@@ -531,22 +618,22 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(bs_res)
+        <span class="prelude-val">Ok</span>(chain_exchange_result)
     }
 
     <span class="doccomment">/// Send a `chain_exchange` request to the network and await response.
     </span><span class="kw">async fn </span>chain_exchange_request(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        peer_manager: Arc&lt;PeerManager&gt;,
+        network_send: flume::Sender&lt;NetworkMessage&gt;,
         peer_id: PeerId,
         request: ChainExchangeRequest,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, String&gt; {
-        <span class="macro">trace!</span>(<span class="string">&quot;Sending ChainExchange Request {:?} to {}&quot;</span>, request, peer_id);
+        <span class="macro">log::debug!</span>(<span class="string">&quot;Sending ChainExchange Request to {peer_id}&quot;</span>);
 
         <span class="kw">let </span>req_pre_time = SystemTime::now();
 
         <span class="kw">let </span>(tx, rx) = oneshot_channel();
-        <span class="kw">if </span><span class="self">self
-            </span>.network_send
+        <span class="kw">if </span>network_send
             .send_async(NetworkMessage::ChainExchangeRequest {
                 peer_id,
                 request,
@@ -567,7 +654,8 @@
         <span class="kw">match </span>res {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(bs_res))) =&gt; {
                 <span class="comment">// Successful response
-                </span><span class="self">self</span>.peer_manager.log_success(peer_id, res_duration).<span class="kw">await</span>;
+                </span>peer_manager.log_success(peer_id, res_duration).<span class="kw">await</span>;
+                <span class="macro">log::debug!</span>(<span class="string">&quot;Succeded: ChainExchange Request to {peer_id}&quot;</span>);
                 <span class="prelude-val">Ok</span>(bs_res)
             }
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(e))) =&gt; {
@@ -576,21 +664,23 @@
                     RequestResponseError::ConnectionClosed
                     | RequestResponseError::DialFailure
                     | RequestResponseError::UnsupportedProtocols =&gt; {
-                        <span class="self">self</span>.peer_manager.mark_peer_bad(peer_id).<span class="kw">await</span>;
+                        peer_manager.mark_peer_bad(peer_id).<span class="kw">await</span>;
                     }
                     <span class="comment">// Ignore dropping peer on timeout for now. Can&#39;t be confident yet that the
                     // specified timeout is adequate time.
                     </span>RequestResponseError::Timeout =&gt; {
-                        <span class="self">self</span>.peer_manager.log_failure(peer_id, res_duration).<span class="kw">await</span>;
+                        peer_manager.log_failure(peer_id, res_duration).<span class="kw">await</span>;
                     }
                 }
+                <span class="macro">log::debug!</span>(<span class="string">&quot;Failed: ChainExchange Request to {peer_id}&quot;</span>);
                 <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Internal libp2p error: {:?}&quot;</span>, e))
             }
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>)) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                 <span class="comment">// Sender channel internally dropped or timeout, both should log failure which will
                 // negatively score the peer, but not drop yet.
-                </span><span class="self">self</span>.peer_manager.log_failure(peer_id, res_duration).<span class="kw">await</span>;
-                <span class="prelude-val">Err</span>(<span class="string">&quot;Chain exchange request timed out&quot;</span>.to_string())
+                </span>peer_manager.log_failure(peer_id, res_duration).<span class="kw">await</span>;
+                <span class="macro">log::debug!</span>(<span class="string">&quot;Timeout: ChainExchange Request to {peer_id}&quot;</span>);
+                <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Chain exchange request to {peer_id} timed out&quot;</span>))
             }
         }
     }

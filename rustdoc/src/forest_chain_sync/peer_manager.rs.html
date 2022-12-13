@@ -225,7 +225,6 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-<span id="228">228</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -238,7 +237,6 @@
 <span class="kw">use </span>forest_libp2p::PeerId;
 <span class="kw">use </span>log::{debug, trace};
 <span class="kw">use </span>rand::seq::SliceRandom;
-<span class="kw">use </span>smallvec::SmallVec;
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">use </span><span class="kw">crate</span>::metrics;
@@ -246,7 +244,7 @@
 </span><span class="kw">const </span>NEW_PEER_MUL: f64 = <span class="number">0.9</span>;
 
 <span class="doccomment">/// Defines max number of peers to send each chain exchange request to.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SHUFFLE_PEERS_PREFIX: usize = <span class="number">16</span>;
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>SHUFFLE_PEERS_PREFIX: usize = <span class="number">100</span>;
 
 <span class="doccomment">/// Local duration multiplier, affects duration delta change.
 </span><span class="kw">const </span>LOCAL_INV_ALPHA: u32 = <span class="number">5</span>;
@@ -343,8 +341,8 @@
 
     <span class="doccomment">/// Return shuffled slice of ordered peers from the peer manager. Ordering is based
     /// on failure rate and latency of the peer.
-    </span><span class="kw">pub async fn </span>top_peers_shuffled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SmallVec&lt;[PeerId; SHUFFLE_PEERS_PREFIX]&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>peers: SmallVec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+    </span><span class="kw">pub async fn </span>top_peers_shuffled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;PeerId&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>peers: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
             </span>.sorted_peers()
             .<span class="kw">await
             </span>.into_iter()
@@ -352,7 +350,7 @@
             .collect();
 
         <span class="comment">// Shuffle top peers, to avoid sending all requests to same predictable peer.
-        </span>peers.shuffle(<span class="kw-2">&amp;mut </span>rand::thread_rng());
+        </span>peers.shuffle(<span class="kw-2">&amp;mut </span>rand::rngs::OsRng);
 
         peers
     }
