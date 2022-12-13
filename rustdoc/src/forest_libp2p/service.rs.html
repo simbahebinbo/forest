@@ -816,6 +816,76 @@
 <span id="816">816</span>
 <span id="817">817</span>
 <span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -875,6 +945,12 @@
 </span><span class="kw">pub const </span>PUBSUB_MSG_STR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;/fil/msgs&quot;</span>;
 
 <span class="kw">const </span>PUBSUB_TOPICS: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [PUBSUB_BLOCK_STR, PUBSUB_MSG_STR];
+
+<span class="kw">type </span>HelloRequestTable =
+    HashMap&lt;RequestId, OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;HelloResponse, RequestResponseError&gt;&gt;&gt;;
+
+<span class="kw">type </span>CxRequestTable =
+    HashMap&lt;RequestId, OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;&gt;;
 
 <span class="doccomment">/// Events emitted by this Service.
 </span><span class="attr">#[allow(clippy::large_enum_variant)]
@@ -972,9 +1048,9 @@
     swarm: Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
     cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
     network_receiver_in: flume::Receiver&lt;NetworkMessage&gt;,
-    network_sender_in: flume::Sender&lt;NetworkMessage&gt;,
+    network_sender_in: Sender&lt;NetworkMessage&gt;,
     network_receiver_out: flume::Receiver&lt;NetworkEvent&gt;,
-    network_sender_out: flume::Sender&lt;NetworkEvent&gt;,
+    network_sender_out: Sender&lt;NetworkEvent&gt;,
     network_name: String,
     genesis_cid: Cid,
 }
@@ -1110,7 +1186,7 @@
     }
 
     <span class="doccomment">/// Returns a sender which allows sending messages to the libp2p service.
-    </span><span class="kw">pub fn </span>network_sender(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; flume::Sender&lt;NetworkMessage&gt; {
+    </span><span class="kw">pub fn </span>network_sender(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Sender&lt;NetworkMessage&gt; {
         <span class="self">self</span>.network_sender_in.clone()
     }
 
@@ -1123,15 +1199,9 @@
 <span class="kw">async fn </span>handle_network_message&lt;P: StoreParams&gt;(
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
     message: NetworkMessage,
-    network_sender_out: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkEvent&gt;,
-    hello_request_table: <span class="kw-2">&amp;mut </span>HashMap&lt;
-        RequestId,
-        futures::channel::oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;HelloResponse, RequestResponseError&gt;&gt;,
-    &gt;,
-    cx_request_table: <span class="kw-2">&amp;mut </span>HashMap&lt;
-        RequestId,
-        futures::channel::oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;,
-    &gt;,
+    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
+    hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
+    cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
     outgoing_bitswap_query_ids: <span class="kw-2">&amp;mut </span>HashMap&lt;libp2p_bitswap::QueryId, Cid&gt;,
 ) {
     <span class="kw">match </span>message {
@@ -1228,271 +1298,286 @@
     }
 }
 
-<span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P: StoreParams&gt;(
+<span class="kw">async fn </span>handle_discovery_event&lt;P: StoreParams&gt;(
+    discovery_out: DiscoveryOut,
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
-    event: ForestBehaviourEvent&lt;P&gt;,
-    db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
-    genesis_cid: <span class="kw-2">&amp;</span>Cid,
-    network_sender_out: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkEvent&gt;,
-    hello_request_table: <span class="kw-2">&amp;mut </span>HashMap&lt;
-        RequestId,
-        futures::channel::oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;HelloResponse, RequestResponseError&gt;&gt;,
-    &gt;,
-    cx_request_table: <span class="kw-2">&amp;mut </span>HashMap&lt;
-        RequestId,
-        futures::channel::oneshot::Sender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;,
-    &gt;,
-    outgoing_bitswap_query_ids: <span class="kw-2">&amp;mut </span>HashMap&lt;libp2p_bitswap::QueryId, Cid&gt;,
-    cx_response_tx: Sender&lt;(
-        RequestId,
-        ResponseChannel&lt;ChainExchangeResponse&gt;,
-        ChainExchangeResponse,
-    )&gt;,
+    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
+) {
+    <span class="kw">let </span>behaviour = swarm.behaviour_mut();
+    <span class="kw">match </span>discovery_out {
+        DiscoveryOut::Connected(peer_id, addresses) =&gt; {
+            <span class="macro">debug!</span>(<span class="string">&quot;Peer connected, {:?}&quot;</span>, peer_id);
+            <span class="kw">for </span>addr <span class="kw">in </span>addresses {
+                behaviour.bitswap.add_address(<span class="kw-2">&amp;</span>peer_id, addr);
+            }
+            emit_event(network_sender_out, NetworkEvent::PeerConnected(peer_id)).<span class="kw">await</span>;
+        }
+        DiscoveryOut::Disconnected(peer_id, addresses) =&gt; {
+            <span class="macro">debug!</span>(<span class="string">&quot;Peer disconnected, {:?}&quot;</span>, peer_id);
+            <span class="kw">for </span>addr <span class="kw">in </span>addresses {
+                behaviour.bitswap.remove_address(<span class="kw-2">&amp;</span>peer_id, <span class="kw-2">&amp;</span>addr);
+            }
+            emit_event(network_sender_out, NetworkEvent::PeerDisconnected(peer_id)).<span class="kw">await</span>;
+        }
+    }
+}
+
+<span class="kw">async fn </span>handle_gossip_event(
+    e: GossipsubEvent,
+    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
     pubsub_block_str: <span class="kw-2">&amp;</span>str,
     pubsub_msg_str: <span class="kw-2">&amp;</span>str,
-) <span class="kw">where
-    </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
-{
-    <span class="kw">let </span>behaviour = swarm.behaviour_mut();
-    <span class="kw">match </span>event {
-        ForestBehaviourEvent::Discovery(discovery_out) =&gt; <span class="kw">match </span>discovery_out {
-            DiscoveryOut::Connected(peer_id, addresses) =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;Peer connected, {:?}&quot;</span>, peer_id);
-                <span class="kw">for </span>addr <span class="kw">in </span>addresses {
-                    behaviour.bitswap.add_address(<span class="kw-2">&amp;</span>peer_id, addr);
-                }
-                emit_event(network_sender_out, NetworkEvent::PeerConnected(peer_id)).<span class="kw">await</span>;
-            }
-            DiscoveryOut::Disconnected(peer_id, addresses) =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;Peer disconnected, {:?}&quot;</span>, peer_id);
-                <span class="kw">for </span>addr <span class="kw">in </span>addresses {
-                    behaviour.bitswap.remove_address(<span class="kw-2">&amp;</span>peer_id, <span class="kw-2">&amp;</span>addr);
-                }
-                emit_event(network_sender_out, NetworkEvent::PeerDisconnected(peer_id)).<span class="kw">await</span>;
-            }
-        },
-        ForestBehaviourEvent::Gossipsub(e) =&gt; {
-            <span class="kw">if let </span>GossipsubEvent::Message {
-                propagation_source: source,
-                message,
-                message_id: <span class="kw">_</span>,
-            } = e
-            {
-                <span class="kw">let </span>topic = message.topic.as_str();
-                <span class="kw">let </span>message = message.data;
-                <span class="macro">trace!</span>(<span class="string">&quot;Got a Gossip Message from {:?}&quot;</span>, source);
-                <span class="kw">if </span>topic == pubsub_block_str {
-                    <span class="kw">match </span>from_slice::&lt;GossipBlock&gt;(<span class="kw-2">&amp;</span>message) {
-                        <span class="prelude-val">Ok</span>(b) =&gt; {
-                            emit_event(
-                                network_sender_out,
-                                NetworkEvent::PubsubMessage {
-                                    source,
-                                    message: PubsubMessage::Block(b),
-                                },
-                            )
-                            .<span class="kw">await</span>;
-                        }
-                        <span class="prelude-val">Err</span>(e) =&gt; {
-                            <span class="macro">warn!</span>(
-                                <span class="string">&quot;Gossip Block from peer {source:?} could not be deserialized: {e}&quot;</span>,
-                            );
-                        }
-                    }
-                } <span class="kw">else if </span>topic == pubsub_msg_str {
-                    <span class="kw">match </span>from_slice::&lt;SignedMessage&gt;(<span class="kw-2">&amp;</span>message) {
-                        <span class="prelude-val">Ok</span>(m) =&gt; {
-                            emit_event(
-                                network_sender_out,
-                                NetworkEvent::PubsubMessage {
-                                    source,
-                                    message: PubsubMessage::Message(m),
-                                },
-                            )
-                            .<span class="kw">await</span>;
-                        }
-                        <span class="prelude-val">Err</span>(e) =&gt; {
-                            <span class="macro">warn!</span>(
-                                <span class="string">&quot;Gossip Message from peer {source:?} could not be deserialized: {e}&quot;</span>);
-                        }
-                    }
-                } <span class="kw">else </span>{
-                    <span class="macro">warn!</span>(<span class="string">&quot;Getting gossip messages from unknown topic: {topic}&quot;</span>);
-                }
-            }
-        }
-        ForestBehaviourEvent::Hello(rr_event) =&gt; <span class="kw">match </span>rr_event {
-            RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
-                RequestResponseMessage::Request {
-                    request,
-                    channel,
-                    request_id: <span class="kw">_</span>,
-                } =&gt; {
+) {
+    <span class="kw">if let </span>GossipsubEvent::Message {
+        propagation_source: source,
+        message,
+        message_id: <span class="kw">_</span>,
+    } = e
+    {
+        <span class="kw">let </span>topic = message.topic.as_str();
+        <span class="kw">let </span>message = message.data;
+        <span class="macro">trace!</span>(<span class="string">&quot;Got a Gossip Message from {:?}&quot;</span>, source);
+        <span class="kw">if </span>topic == pubsub_block_str {
+            <span class="kw">match </span>from_slice::&lt;GossipBlock&gt;(<span class="kw-2">&amp;</span>message) {
+                <span class="prelude-val">Ok</span>(b) =&gt; {
                     emit_event(
                         network_sender_out,
-                        NetworkEvent::HelloRequestInbound { source: peer },
+                        NetworkEvent::PubsubMessage {
+                            source,
+                            message: PubsubMessage::Block(b),
+                        },
                     )
                     .<span class="kw">await</span>;
+                }
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">warn!</span>(<span class="string">&quot;Gossip Block from peer {source:?} could not be deserialized: {e}&quot;</span>,);
+                }
+            }
+        } <span class="kw">else if </span>topic == pubsub_msg_str {
+            <span class="kw">match </span>from_slice::&lt;SignedMessage&gt;(<span class="kw-2">&amp;</span>message) {
+                <span class="prelude-val">Ok</span>(m) =&gt; {
+                    emit_event(
+                        network_sender_out,
+                        NetworkEvent::PubsubMessage {
+                            source,
+                            message: PubsubMessage::Message(m),
+                        },
+                    )
+                    .<span class="kw">await</span>;
+                }
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">warn!</span>(<span class="string">&quot;Gossip Message from peer {source:?} could not be deserialized: {e}&quot;</span>);
+                }
+            }
+        } <span class="kw">else </span>{
+            <span class="macro">warn!</span>(<span class="string">&quot;Getting gossip messages from unknown topic: {topic}&quot;</span>);
+        }
+    }
+}
 
-                    <span class="kw">let </span>arrival = SystemTime::now()
+<span class="kw">async fn </span>handle_hello_event&lt;P: StoreParams&gt;(
+    rr_event: RequestResponseEvent&lt;HelloRequest, HelloResponse, HelloResponse&gt;,
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    genesis_cid: <span class="kw-2">&amp;</span>Cid,
+    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
+    hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
+) {
+    <span class="kw">let </span>behaviour = swarm.behaviour_mut();
+    <span class="kw">match </span>rr_event {
+        RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
+            RequestResponseMessage::Request {
+                request,
+                channel,
+                request_id: <span class="kw">_</span>,
+            } =&gt; {
+                emit_event(
+                    network_sender_out,
+                    NetworkEvent::HelloRequestInbound { source: peer },
+                )
+                .<span class="kw">await</span>;
+
+                <span class="kw">let </span>arrival = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .expect(<span class="string">&quot;System time before unix epoch&quot;</span>)
+                    .as_nanos()
+                    .try_into()
+                    .expect(<span class="string">&quot;System time since unix epoch should not exceed u64&quot;</span>);
+
+                <span class="macro">trace!</span>(<span class="string">&quot;Received hello request: {:?}&quot;</span>, request);
+                <span class="kw">if </span><span class="kw-2">&amp;</span>request.genesis_cid != genesis_cid {
+                    <span class="macro">warn!</span>(
+                        <span class="string">&quot;Genesis hash mismatch: {} received, {genesis_cid} expected. Banning {peer}&quot;</span>,
+                        request.genesis_cid
+                    );
+                    swarm.ban_peer_id(peer);
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>sent = SystemTime::now()
                         .duration_since(UNIX_EPOCH)
                         .expect(<span class="string">&quot;System time before unix epoch&quot;</span>)
                         .as_nanos()
                         .try_into()
                         .expect(<span class="string">&quot;System time since unix epoch should not exceed u64&quot;</span>);
 
-                    <span class="macro">trace!</span>(<span class="string">&quot;Received hello request: {:?}&quot;</span>, request);
-                    <span class="kw">if </span><span class="kw-2">&amp;</span>request.genesis_cid != genesis_cid {
-                        <span class="macro">warn!</span>(
-                            <span class="string">&quot;Genesis hash mismatch: {} received, {genesis_cid} expected. Banning {peer}&quot;</span>,
-                            request.genesis_cid
-                        );
-                        swarm.ban_peer_id(peer);
+                    <span class="comment">// Send hello response immediately, no need to have the overhead of emitting
+                    // channel and polling future here.
+                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = behaviour
+                        .hello
+                        .send_response(channel, HelloResponse { arrival, sent })
+                    {
+                        <span class="macro">warn!</span>(<span class="string">&quot;Failed to send HelloResponse: {e:?}&quot;</span>);
                     } <span class="kw">else </span>{
-                        <span class="kw">let </span>sent = SystemTime::now()
-                            .duration_since(UNIX_EPOCH)
-                            .expect(<span class="string">&quot;System time before unix epoch&quot;</span>)
-                            .as_nanos()
-                            .try_into()
-                            .expect(<span class="string">&quot;System time since unix epoch should not exceed u64&quot;</span>);
-
-                        <span class="comment">// Send hello response immediately, no need to have the overhead of emitting
-                        // channel and polling future here.
-                        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = behaviour
-                            .hello
-                            .send_response(channel, HelloResponse { arrival, sent })
-                        {
-                            <span class="macro">warn!</span>(<span class="string">&quot;Failed to send HelloResponse: {e:?}&quot;</span>);
-                        } <span class="kw">else </span>{
-                            emit_event(
-                                network_sender_out,
-                                NetworkEvent::HelloResponseOutbound {
-                                    source: peer,
-                                    request,
-                                },
-                            )
-                            .<span class="kw">await</span>;
-                        }
+                        emit_event(
+                            network_sender_out,
+                            NetworkEvent::HelloResponseOutbound {
+                                source: peer,
+                                request,
+                            },
+                        )
+                        .<span class="kw">await</span>;
                     }
                 }
-                RequestResponseMessage::Response {
-                    request_id,
-                    response,
-                } =&gt; {
-                    <span class="comment">// Send the sucessful response through channel out.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id) {
-                        <span class="kw">if </span>tx.send(<span class="prelude-val">Ok</span>(response)).is_err() {
-                            <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive timed out&quot;</span>);
-                        } <span class="kw">else </span>{
-                            emit_event(
-                                network_sender_out,
-                                NetworkEvent::HelloResponseInbound { request_id },
-                            )
-                            .<span class="kw">await</span>;
-                        }
-                    } <span class="kw">else </span>{
-                        <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed: channel not found&quot;</span>);
-                    };
-                }
-            },
-            RequestResponseEvent::OutboundFailure {
-                peer,
+            }
+            RequestResponseMessage::Response {
                 request_id,
-                error,
+                response,
             } =&gt; {
-                <span class="macro">debug!</span>(
-                    <span class="string">&quot;Hello outbound error (peer: {:?}) (id: {:?}): {:?}&quot;</span>,
-                    peer, request_id, error
-                );
-
-                <span class="comment">// Send error through channel out.
-                </span><span class="kw">let </span>tx = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id);
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
-                    <span class="kw">if </span>tx.send(<span class="prelude-val">Err</span>(error.into())).is_err() {
-                        <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed&quot;</span>);
+                <span class="comment">// Send the sucessful response through channel out.
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id) {
+                    <span class="kw">if </span>tx.send(<span class="prelude-val">Ok</span>(response)).is_err() {
+                        <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive timed out&quot;</span>);
+                    } <span class="kw">else </span>{
+                        emit_event(
+                            network_sender_out,
+                            NetworkEvent::HelloResponseInbound { request_id },
+                        )
+                        .<span class="kw">await</span>;
                     }
-                }
+                } <span class="kw">else </span>{
+                    <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed: channel not found&quot;</span>);
+                };
             }
-            RequestResponseEvent::InboundFailure {
-                peer,
-                error,
-                request_id: <span class="kw">_</span>,
-            } =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;Hello inbound error (peer: {:?}): {:?}&quot;</span>, peer, error);
-            }
-            RequestResponseEvent::ResponseSent { .. } =&gt; (),
         },
-        ForestBehaviourEvent::Bitswap(bs_event) =&gt; {
-            <span class="kw">let </span>get_prefix = |query_id: <span class="kw-2">&amp;</span>libp2p_bitswap::QueryId| {
-                <span class="kw">if </span>outgoing_bitswap_query_ids.contains_key(query_id) {
-                    <span class="string">&quot;Outgoing&quot;
-                </span>} <span class="kw">else </span>{
-                    <span class="string">&quot;Inbound&quot;
-                </span>}
-            };
-            <span class="kw">match </span>bs_event {
-                BitswapEvent::Progress(query_id, num_missing) =&gt; {
-                    <span class="kw">let </span>prefix = get_prefix(<span class="kw-2">&amp;</span>query_id);
-                    <span class="macro">debug!</span>(<span class="string">&quot;{prefix} bitswap query {query_id} in progress, {num_missing} blocks pending&quot;</span>);
+        RequestResponseEvent::OutboundFailure {
+            peer,
+            request_id,
+            error,
+        } =&gt; {
+            <span class="macro">debug!</span>(
+                <span class="string">&quot;Hello outbound error (peer: {:?}) (id: {:?}): {:?}&quot;</span>,
+                peer, request_id, error
+            );
+
+            <span class="comment">// Send error through channel out.
+            </span><span class="kw">let </span>tx = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
+                <span class="kw">if </span>tx.send(<span class="prelude-val">Err</span>(error.into())).is_err() {
+                    <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed&quot;</span>);
                 }
-                BitswapEvent::Complete(query_id, result) =&gt; <span class="kw">match </span>result {
-                    <span class="prelude-val">Ok</span>(()) =&gt; {
-                        <span class="kw">let </span>prefix = get_prefix(<span class="kw-2">&amp;</span>query_id);
-                        <span class="macro">debug!</span>(<span class="string">&quot;{prefix} bitswap query {query_id} completed successfully&quot;</span>);
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(cid) = outgoing_bitswap_query_ids.remove(<span class="kw-2">&amp;</span>query_id) {
-                            emit_event(
-                                network_sender_out,
-                                NetworkEvent::BitswapResponseInbound { query_id, cid },
-                            )
-                            .<span class="kw">await</span>;
-                        }
-                    }
-                    <span class="prelude-val">Err</span>(err) =&gt; {
-                        <span class="kw">let </span>prefix = get_prefix(<span class="kw-2">&amp;</span>query_id);
-                        <span class="kw">let </span>msg = <span class="macro">format!</span>(
-                            <span class="string">&quot;{prefix} bitswap query {query_id} completed with error: {err}&quot;
-                        </span>);
-                        <span class="kw">if </span>outgoing_bitswap_query_ids.contains_key(<span class="kw-2">&amp;</span>query_id) {
-                            <span class="macro">warn!</span>(<span class="string">&quot;{msg}&quot;</span>);
-                        } <span class="kw">else </span>{
-                            <span class="macro">debug!</span>(<span class="string">&quot;{msg}&quot;</span>);
-                        }
-                    }
-                },
             }
         }
-        ForestBehaviourEvent::Ping(ping_event) =&gt; <span class="kw">match </span>ping_event.result {
-            <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
-                <span class="macro">trace!</span>(
-                    <span class="string">&quot;PingSuccess::Ping rtt to {} is {} ms&quot;</span>,
-                    ping_event.peer.to_base58(),
-                    rtt.as_millis()
-                );
-            }
-            <span class="prelude-val">Ok</span>(ping::Success::Pong) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;PingSuccess::Pong from {}&quot;</span>, ping_event.peer.to_base58());
-            }
-            <span class="prelude-val">Err</span>(ping::Failure::Other { error }) =&gt; {
-                <span class="macro">warn!</span>(
-                    <span class="string">&quot;PingFailure::Other {}: {}&quot;</span>,
-                    ping_event.peer.to_base58(),
-                    error
-                );
+        RequestResponseEvent::InboundFailure {
+            peer,
+            error,
+            request_id: <span class="kw">_</span>,
+        } =&gt; {
+            <span class="macro">debug!</span>(<span class="string">&quot;Hello inbound error (peer: {:?}): {:?}&quot;</span>, peer, error);
+        }
+        RequestResponseEvent::ResponseSent { .. } =&gt; (),
+    }
+}
+
+<span class="kw">async fn </span>handle_bitswap_event(
+    bs_event: BitswapEvent,
+    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
+    outgoing_bitswap_query_ids: <span class="kw-2">&amp;mut </span>HashMap&lt;libp2p_bitswap::QueryId, Cid&gt;,
+) {
+    <span class="kw">let </span>get_prefix = |query_id: <span class="kw-2">&amp;</span>libp2p_bitswap::QueryId| {
+        <span class="kw">if </span>outgoing_bitswap_query_ids.contains_key(query_id) {
+            <span class="string">&quot;Outgoing&quot;
+        </span>} <span class="kw">else </span>{
+            <span class="string">&quot;Inbound&quot;
+        </span>}
+    };
+    <span class="kw">match </span>bs_event {
+        BitswapEvent::Progress(query_id, num_missing) =&gt; {
+            <span class="kw">let </span>prefix = get_prefix(<span class="kw-2">&amp;</span>query_id);
+            <span class="macro">debug!</span>(<span class="string">&quot;{prefix} bitswap query {query_id} in progress, {num_missing} blocks pending&quot;</span>);
+        }
+        BitswapEvent::Complete(query_id, result) =&gt; <span class="kw">match </span>result {
+            <span class="prelude-val">Ok</span>(()) =&gt; {
+                <span class="kw">let </span>prefix = get_prefix(<span class="kw-2">&amp;</span>query_id);
+                <span class="macro">debug!</span>(<span class="string">&quot;{prefix} bitswap query {query_id} completed successfully&quot;</span>);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(cid) = outgoing_bitswap_query_ids.remove(<span class="kw-2">&amp;</span>query_id) {
+                    emit_event(
+                        network_sender_out,
+                        NetworkEvent::BitswapResponseInbound { query_id, cid },
+                    )
+                    .<span class="kw">await</span>;
+                }
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="kw">let </span>err = err.to_string();
-                <span class="kw">let </span>peer = ping_event.peer.to_base58();
-                <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
-                <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
-                    <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
-                    swarm.ban_peer_id(ping_event.peer);
+                <span class="kw">let </span>prefix = get_prefix(<span class="kw-2">&amp;</span>query_id);
+                <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;{prefix} bitswap query {query_id} completed with error: {err}&quot;</span>);
+                <span class="kw">if </span>outgoing_bitswap_query_ids.contains_key(<span class="kw-2">&amp;</span>query_id) {
+                    <span class="macro">warn!</span>(<span class="string">&quot;{msg}&quot;</span>);
+                } <span class="kw">else </span>{
+                    <span class="macro">debug!</span>(<span class="string">&quot;{msg}&quot;</span>);
                 }
             }
         },
-        ForestBehaviourEvent::Identify(<span class="kw">_</span>) =&gt; {}
-        ForestBehaviourEvent::ChainExchange(ce_event) =&gt; <span class="kw">match </span>ce_event {
-            RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
+    }
+}
+
+<span class="kw">fn </span>handle_ping_event&lt;P: StoreParams&gt;(
+    ping_event: ping::Event,
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+) {
+    <span class="kw">match </span>ping_event.result {
+        <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
+            <span class="macro">trace!</span>(
+                <span class="string">&quot;PingSuccess::Ping rtt to {} is {} ms&quot;</span>,
+                ping_event.peer.to_base58(),
+                rtt.as_millis()
+            );
+        }
+        <span class="prelude-val">Ok</span>(ping::Success::Pong) =&gt; {
+            <span class="macro">trace!</span>(<span class="string">&quot;PingSuccess::Pong from {}&quot;</span>, ping_event.peer.to_base58());
+        }
+        <span class="prelude-val">Err</span>(ping::Failure::Other { error }) =&gt; {
+            <span class="macro">warn!</span>(
+                <span class="string">&quot;PingFailure::Other {}: {}&quot;</span>,
+                ping_event.peer.to_base58(),
+                error
+            );
+        }
+        <span class="prelude-val">Err</span>(err) =&gt; {
+            <span class="kw">let </span>err = err.to_string();
+            <span class="kw">let </span>peer = ping_event.peer.to_base58();
+            <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
+            <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
+                <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
+                swarm.ban_peer_id(ping_event.peer);
+            }
+        }
+    }
+}
+
+<span class="kw">async fn </span>handle_chain_exchange_event&lt;DB, P: StoreParams&gt;(
+    ce_event: RequestResponseEvent&lt;ChainExchangeRequest, ChainExchangeResponse&gt;,
+    db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
+    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
+    cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
+    cx_response_tx: Sender&lt;(
+        RequestId,
+        ResponseChannel&lt;ChainExchangeResponse&gt;,
+        ChainExchangeResponse,
+    )&gt;,
+) <span class="kw">where
+    </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+{
+    <span class="kw">match </span>ce_event {
+        RequestResponseEvent::Message { peer, message } =&gt; {
+            <span class="kw">match </span>message {
                 RequestResponseMessage::Request {
                     request,
                     channel,
@@ -1534,48 +1619,103 @@
                         <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed: channel not found&quot;</span>);
                     };
                 }
-            },
-            RequestResponseEvent::OutboundFailure {
-                peer,
-                request_id,
-                error,
-            } =&gt; {
-                <span class="macro">warn!</span>(
-                    <span class="string">&quot;ChainExchange outbound error (peer: {:?}) (id: {:?}): {:?}&quot;</span>,
-                    peer, request_id, error
-                );
+            }
+        }
+        RequestResponseEvent::OutboundFailure {
+            peer,
+            request_id,
+            error,
+        } =&gt; {
+            <span class="macro">warn!</span>(
+                <span class="string">&quot;ChainExchange outbound error (peer: {:?}) (id: {:?}): {:?}&quot;</span>,
+                peer, request_id, error
+            );
 
-                <span class="kw">let </span>tx = cx_request_table.remove(<span class="kw-2">&amp;</span>request_id);
+            <span class="kw">let </span>tx = cx_request_table.remove(<span class="kw-2">&amp;</span>request_id);
 
-                <span class="comment">// Send error through channel out.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
-                    <span class="kw">if </span>tx.send(<span class="prelude-val">Err</span>(error.into())).is_err() {
-                        <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed&quot;</span>)
-                    }
+            <span class="comment">// Send error through channel out.
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
+                <span class="kw">if </span>tx.send(<span class="prelude-val">Err</span>(error.into())).is_err() {
+                    <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed&quot;</span>)
                 }
             }
-            RequestResponseEvent::InboundFailure {
-                peer,
-                error,
-                request_id: <span class="kw">_</span>,
-            } =&gt; {
-                <span class="macro">debug!</span>(
-                    <span class="string">&quot;ChainExchange inbound error (peer: {:?}): {:?}&quot;</span>,
-                    peer, error
-                );
-            }
-            RequestResponseEvent::ResponseSent { request_id, .. } =&gt; {
-                emit_event(
-                    network_sender_out,
-                    NetworkEvent::ChainExchangeResponseOutbound { request_id },
-                )
-                .<span class="kw">await</span>;
-            }
-        },
+        }
+        RequestResponseEvent::InboundFailure {
+            peer,
+            error,
+            request_id: <span class="kw">_</span>,
+        } =&gt; {
+            <span class="macro">debug!</span>(
+                <span class="string">&quot;ChainExchange inbound error (peer: {:?}): {:?}&quot;</span>,
+                peer, error
+            );
+        }
+        RequestResponseEvent::ResponseSent { request_id, .. } =&gt; {
+            emit_event(
+                network_sender_out,
+                NetworkEvent::ChainExchangeResponseOutbound { request_id },
+            )
+            .<span class="kw">await</span>;
+        }
     }
 }
 
-<span class="kw">async fn </span>emit_event(sender: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkEvent&gt;, event: NetworkEvent) {
+<span class="attr">#[allow(clippy::too_many_arguments)]
+</span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P: StoreParams&gt;(
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    event: ForestBehaviourEvent&lt;P&gt;,
+    db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
+    genesis_cid: <span class="kw-2">&amp;</span>Cid,
+    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
+    hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
+    cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
+    outgoing_bitswap_query_ids: <span class="kw-2">&amp;mut </span>HashMap&lt;libp2p_bitswap::QueryId, Cid&gt;,
+    cx_response_tx: Sender&lt;(
+        RequestId,
+        ResponseChannel&lt;ChainExchangeResponse&gt;,
+        ChainExchangeResponse,
+    )&gt;,
+    pubsub_block_str: <span class="kw-2">&amp;</span>str,
+    pubsub_msg_str: <span class="kw-2">&amp;</span>str,
+) <span class="kw">where
+    </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+{
+    <span class="kw">match </span>event {
+        ForestBehaviourEvent::Discovery(discovery_out) =&gt; {
+            handle_discovery_event(discovery_out, swarm, network_sender_out).<span class="kw">await
+        </span>}
+        ForestBehaviourEvent::Gossipsub(e) =&gt; {
+            handle_gossip_event(e, network_sender_out, pubsub_block_str, pubsub_msg_str).<span class="kw">await
+        </span>}
+        ForestBehaviourEvent::Hello(rr_event) =&gt; {
+            handle_hello_event(
+                rr_event,
+                swarm,
+                genesis_cid,
+                network_sender_out,
+                hello_request_table,
+            )
+            .<span class="kw">await
+        </span>}
+        ForestBehaviourEvent::Bitswap(bs_event) =&gt; {
+            handle_bitswap_event(bs_event, network_sender_out, outgoing_bitswap_query_ids).<span class="kw">await
+        </span>}
+        ForestBehaviourEvent::Ping(ping_event) =&gt; handle_ping_event(ping_event, swarm),
+        ForestBehaviourEvent::Identify(<span class="kw">_</span>) =&gt; {}
+        ForestBehaviourEvent::ChainExchange(ce_event) =&gt; {
+            handle_chain_exchange_event(
+                ce_event,
+                db,
+                network_sender_out,
+                cx_request_table,
+                cx_response_tx,
+            )
+            .<span class="kw">await
+        </span>}
+    }
+}
+
+<span class="kw">async fn </span>emit_event(sender: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;, event: NetworkEvent) {
     <span class="kw">if </span>sender.send_async(event).<span class="kw">await</span>.is_err() {
         <span class="macro">error!</span>(<span class="string">&quot;Failed to emit event: Network channel receiver has been dropped&quot;</span>);
     }
