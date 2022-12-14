@@ -155,6 +155,8 @@
 <span id="155">155</span>
 <span id="156">156</span>
 <span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -284,7 +286,9 @@
     </span>IO: AsyncRead + Unpin,
     T: serde::de::DeserializeOwned,
 {
-    <span class="kw">const </span>MAX_BYTES_ALLOWED: usize = <span class="number">2 </span>* <span class="number">1024 </span>* <span class="number">1024</span>; <span class="comment">// messages over 2MB are likely malicious
+    <span class="comment">// FIXME: investigate the best value here, 2MB is not enough for mainnet epoch 2419928
+    // Issue: https://github.com/ChainSafe/forest/issues/2362
+    </span><span class="kw">const </span>MAX_BYTES_ALLOWED: usize = <span class="number">200 </span>* <span class="number">1024 </span>* <span class="number">1024</span>; <span class="comment">// messages over 200MB are likely malicious
     </span><span class="kw">const </span>TIMEOUT: Duration = Duration::from_secs(<span class="number">30</span>);
 
     <span class="comment">// Currently the protocol does not send length encoded message,

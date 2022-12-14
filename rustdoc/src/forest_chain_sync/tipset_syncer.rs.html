@@ -2782,7 +2782,7 @@
     invalid_block_strategy: InvalidBlockStrategy,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), TipsetRangeSyncerError&lt;C&gt;&gt; {
     <span class="comment">// Sync the messages for one or many tipsets @ a time
-    </span><span class="kw">const </span>REQUEST_WINDOW: usize = <span class="number">8</span>;
+    </span><span class="kw">const </span>REQUEST_WINDOW: usize = <span class="number">4</span>;
 
     <span class="kw">let </span>task_chainstore = chainstore.clone();
 

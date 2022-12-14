@@ -886,6 +886,10 @@
 <span id="886">886</span>
 <span id="887">887</span>
 <span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -962,6 +966,7 @@
     },
     HelloRequestInbound {
         source: PeerId,
+        request: HelloRequest,
     },
     HelloResponseOutbound {
         source: PeerId,
@@ -1392,7 +1397,10 @@
             } =&gt; {
                 emit_event(
                     network_sender_out,
-                    NetworkEvent::HelloRequestInbound { source: peer },
+                    NetworkEvent::HelloRequestInbound {
+                        source: peer,
+                        request: request.clone(),
+                    },
                 )
                 .<span class="kw">await</span>;
 
@@ -1444,7 +1452,7 @@
                 <span class="comment">// Send the sucessful response through channel out.
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id) {
                     <span class="kw">if </span>tx.send(<span class="prelude-val">Ok</span>(response)).is_err() {
-                        <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive timed out&quot;</span>);
+                        <span class="macro">warn!</span>(<span class="string">&quot;Fail to send Hello response&quot;</span>);
                     } <span class="kw">else </span>{
                         emit_event(
                             network_sender_out,
@@ -1613,7 +1621,7 @@
                     <span class="comment">// Send the sucessful response through channel out.
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
                         <span class="kw">if </span>tx.send(<span class="prelude-val">Ok</span>(response)).is_err() {
-                            <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive timed out&quot;</span>)
+                            <span class="macro">warn!</span>(<span class="string">&quot;Fail to send ChainExchange response&quot;</span>)
                         }
                     } <span class="kw">else </span>{
                         <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed: channel not found&quot;</span>);

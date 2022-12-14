@@ -986,6 +986,12 @@
 <span id="986">986</span>
 <span id="987">987</span>
 <span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1351,10 +1357,13 @@
         block_delay: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(FullTipset, PeerId)&gt;, ChainMuxerError&lt;C&gt;&gt; {
         <span class="kw">let </span>(tipset, source) = <span class="kw">match </span>event {
-            NetworkEvent::HelloRequestInbound { .. } =&gt; {
+            NetworkEvent::HelloRequestInbound { source, request } =&gt; {
                 metrics::LIBP2P_MESSAGE_TOTAL
                     .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST_INBOUND])
                     .inc();
+                metrics::PEER_TIPSET_EPOCH
+                    .with_label_values(<span class="kw-2">&amp;</span>[source.to_string().as_str()])
+                    .set(request.heaviest_tipset_height);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
             NetworkEvent::HelloResponseOutbound { request, source } =&gt; {
@@ -1504,6 +1513,9 @@
             .peer_manager()
             .update_peer_head(source, Arc::new(tipset.clone().into_tipset()))
             .<span class="kw">await</span>;
+        metrics::PEER_TIPSET_EPOCH
+            .with_label_values(<span class="kw-2">&amp;</span>[source.to_string().as_str()])
+            .set(tipset.epoch());
 
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((tipset, source)))
     }
