@@ -262,6 +262,26 @@
 <span id="262">262</span>
 <span id="263">263</span>
 <span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -281,6 +301,16 @@
     <span class="kw">pub </span>filters: Vec&lt;LogValue&gt;,
 }
 
+<span class="kw">impl </span>LogConfig {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>to_filter_string(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="self">self</span>.filters
+            .iter()
+            .map(|f| <span class="macro">format!</span>(<span class="string">&quot;{}={}&quot;</span>, f.module, f.level))
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            .join(<span class="string">&quot;,&quot;</span>)
+    }
+}
+
 <span class="kw">impl </span>Default <span class="kw">for </span>LogConfig {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -290,8 +320,9 @@
                 LogValue::new(<span class="string">&quot;storage_proofs_core&quot;</span>, LevelFilter::Warn),
                 LogValue::new(<span class="string">&quot;bellperson::groth16::aggregate::verify&quot;</span>, LevelFilter::Warn),
                 LogValue::new(<span class="string">&quot;axum&quot;</span>, LevelFilter::Warn),
-                LogValue::new(<span class="string">&quot;libp2p_bitswap&quot;</span>, LevelFilter::Warn),
+                LogValue::new(<span class="string">&quot;libp2p_bitswap&quot;</span>, LevelFilter::Off),
                 LogValue::new(<span class="string">&quot;rpc&quot;</span>, LevelFilter::Error),
+                LogValue::new(<span class="string">&quot;tracing_loki&quot;</span>, LevelFilter::Off),
             ],
         }
     }
@@ -432,6 +463,7 @@
         net::{Ipv4Addr, SocketAddr},
         path::PathBuf,
     };
+    <span class="kw">use </span>tracing_subscriber::EnvFilter;
 
     <span class="doccomment">/// Partial configuration, as some parts of the proper one don&#39;t implement required traits (i.e.
     /// Debug)
@@ -524,6 +556,14 @@
                 .expect(<span class="string">&quot;configuration empty&quot;</span>),
             <span class="string">&#39;[&#39;
         </span>)
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>test_default_log_filters() {
+        <span class="kw">let </span>config = LogConfig::default();
+        EnvFilter::builder()
+            .parse(config.to_filter_string())
+            .unwrap();
     }
 }
 </code></pre></div>

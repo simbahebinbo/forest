@@ -407,6 +407,12 @@
 <span id="407">407</span>
 <span id="408">408</span>
 <span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -512,6 +518,12 @@
     <span class="doccomment">/// Turn on tokio-console support for debugging
     </span><span class="attr">#[structopt(long)]
     </span><span class="kw">pub </span>tokio_console: bool,
+    <span class="doccomment">/// Send telemetry to `grafana loki`
+    </span><span class="attr">#[structopt(long)]
+    </span><span class="kw">pub </span>loki: bool,
+    <span class="doccomment">/// Endpoint of `grafana loki`
+    </span><span class="attr">#[structopt(long, default_value = <span class="string">&quot;http://127.0.0.1:3100&quot;</span>)]
+    </span><span class="kw">pub </span>loki_endpoint: String,
     <span class="comment">// env_logger-0.7 can only redirect to stderr or stdout. Version 0.9 can redirect to a file.
     // However, we cannot upgrade to version 0.9 because pretty_env_logger depends on version 0.7
     // and hasn&#39;t been updated in quite a while. See https://github.com/seanmonstar/pretty-env-logger/issues/52

@@ -186,8 +186,6 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -208,14 +206,13 @@
 <span class="kw">use </span>raw_sync::events::{Event, EventInit};
 <span class="kw">use </span>raw_sync::Timeout;
 <span class="kw">use </span>shared_memory::ShmemConf;
-<span class="kw">use </span>structopt::StructOpt;
-<span class="kw">use </span>tempfile::{Builder, TempPath};
-<span class="kw">use </span>tokio::runtime::Runtime;
-
 <span class="kw">use </span>std::fs::File;
 <span class="kw">use </span>std::process;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::Duration;
+<span class="kw">use </span>structopt::StructOpt;
+<span class="kw">use </span>tempfile::{Builder, TempPath};
+<span class="kw">use </span>tokio::runtime::Runtime;
 
 <span class="kw">const </span>EVENT_TIMEOUT: Timeout = Timeout::Val(Duration::from_secs(<span class="number">20</span>));
 
@@ -298,7 +295,7 @@
     <span class="comment">// Run forest as a daemon if no other subcommands are used. Otherwise, run the subcommand.
     </span><span class="kw">match </span>opts.to_config() {
         <span class="prelude-val">Ok</span>((cfg, path)) =&gt; {
-            logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, opts.color.into());
+            <span class="kw">let </span>(loki_task, ..) = logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, <span class="kw-2">&amp;</span>opts);
             ProgressBar::set_progress_bars_visibility(cfg.client.show_progress_bars);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="kw-2">&amp;</span>path {
@@ -347,10 +344,9 @@
                     }
 
                     <span class="kw">let </span>rt = Runtime::new().unwrap();
-                    <span class="kw">if </span>opts.tokio_console {
-                        console_subscriber::init();
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(loki_task) = loki_task {
+                        rt.spawn(loki_task);
                     }
-
                     <span class="kw">let </span>db: Db = rt.block_on(daemon::start(cfg, opts.detach));
 
                     <span class="macro">info!</span>(<span class="string">&quot;Shutting down tokio...&quot;</span>);
@@ -373,7 +369,7 @@
             }
         }
         <span class="prelude-val">Err</span>(e) =&gt; {
-            logger::setup_logger(<span class="kw-2">&amp;</span>LogConfig::default(), opts.color.into());
+            logger::setup_logger(<span class="kw-2">&amp;</span>LogConfig::default(), <span class="kw-2">&amp;</span>opts);
             cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Error parsing config: {e}&quot;</span>), <span class="number">1</span>);
         }
     };

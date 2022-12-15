@@ -1220,12 +1220,6 @@
 <span id="1220">1220</span>
 <span id="1221">1221</span>
 <span id="1222">1222</span>
-<span id="1223">1223</span>
-<span id="1224">1224</span>
-<span id="1225">1225</span>
-<span id="1226">1226</span>
-<span id="1227">1227</span>
-<span id="1228">1228</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1237,7 +1231,6 @@
 
 <span class="kw">pub use </span><span class="self">self</span>::errors::<span class="kw-2">*</span>;
 <span class="kw">use </span>anyhow::Context;
-<span class="kw">use </span>async_log::span;
 <span class="kw">use </span>chain_rand::ChainRand;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::Policy;
@@ -1266,7 +1259,6 @@
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
-<span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num_traits::identities::Zero;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -1276,6 +1268,7 @@
 <span class="kw">use </span>tokio::runtime::Handle;
 <span class="kw">use </span>tokio::sync::broadcast::error::RecvError;
 <span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>tracing::{debug, error, info, instrument, trace, warn};
 <span class="kw">use </span>vm_circ_supply::GenesisInfo;
 
 <span class="kw">const </span>DEFAULT_TIPSET_CACHE_SIZE: NonZeroUsize =
@@ -1513,7 +1506,7 @@
                 <span class="kw">let </span><span class="kw-2">mut </span>vm = create_vm(parent_state, epoch_i)<span class="question-mark">?</span>;
                 <span class="comment">// run cron for null rounds if any
                 </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = vm.run_cron(epoch_i, callback.as_mut()) {
-                    <span class="macro">log::error!</span>(<span class="string">&quot;Beginning of epoch cron failed to run: {}&quot;</span>, e);
+                    <span class="macro">error!</span>(<span class="string">&quot;Beginning of epoch cron failed to run: {}&quot;</span>, e);
                 }
 
                 parent_state = vm.flush()<span class="question-mark">?</span>;
@@ -1541,122 +1534,119 @@
     <span class="doccomment">/// Returns the pair of (parent state root, message receipt root). This will either be cached
     /// or will be calculated and fill the cache. Tipset state for a given tipset is guaranteed
     /// not to be computed twice.
+    </span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
     </span><span class="kw">pub async fn </span>tipset_state(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;, tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;) -&gt; anyhow::Result&lt;CidPair&gt; {
-        <span class="macro">span!</span>(<span class="string">&quot;tipset_state&quot;</span>, {
-            <span class="comment">// Get entry in cache, if it exists.
-            // Arc is cloned here to avoid holding the entire cache lock until function ends.
-            // (tasks should be able to compute different tipset state&#39;s in parallel)
-            //
-            // In the case of task `A` computing the same tipset as task `B`, `A` will hold the
-            // mutex until the value is updated, which task `B` will await.
-            //
-            // If two tasks are computing different tipset states, they will only block computation
-            // when accessing/initializing the entry in cache, not during the whole tipset calc.
+        <span class="comment">// Get entry in cache, if it exists.
+        // Arc is cloned here to avoid holding the entire cache lock until function ends.
+        // (tasks should be able to compute different tipset state&#39;s in parallel)
+        //
+        // In the case of task `A` computing the same tipset as task `B`, `A` will hold the
+        // mutex until the value is updated, which task `B` will await.
+        //
+        // If two tasks are computing different tipset states, they will only block computation
+        // when accessing/initializing the entry in cache, not during the whole tipset calc.
 
-            // first try reading cache
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.cache.write().<span class="kw">await</span>.get(tipset.key()) {
-                <span class="macro">trace!</span>(<span class="string">&quot;hit cache for tipset {:?}&quot;</span>, tipset.cids());
-                forest_metrics::metrics::LRU_CACHE_HIT
-                    .with_label_values(<span class="kw-2">&amp;</span>[forest_metrics::metrics::values::STATE_MANAGER_TIPSET])
-                    .inc();
-                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>entry.wait());
-            }
-
-            <span class="comment">// write an empty `OnceCell` when cache not hit
-            </span><span class="kw">let </span>cache_entry = Arc::new(once_cell::sync::OnceCell::new());
-            {
-                <span class="self">self</span>.cache
-                    .write()
-                    .<span class="kw">await
-                    </span>.push(tipset.key().clone(), cache_entry.clone());
-            }
-
-            <span class="comment">// Entry does not have state computed yet, this task will fill entry if successful.
-            </span><span class="macro">debug!</span>(<span class="string">&quot;calculating tipset state {:?}&quot;</span>, tipset.cids());
-
-            <span class="kw">let </span>cid_pair = <span class="kw">if </span>tipset.epoch() == <span class="number">0 </span>{
-                <span class="comment">// NB: This is here because the process that executes blocks requires that the
-                // block miner reference a valid miner in the state tree. Unless we create some
-                // magical genesis miner, this won&#39;t work properly, so we short circuit here
-                // This avoids the question of &#39;who gets paid the genesis block reward&#39;
-                </span><span class="kw">let </span>message_receipts = tipset
-                    .blocks()
-                    .first()
-                    .ok_or_else(|| Error::Other(<span class="string">&quot;Could not get message receipts&quot;</span>.to_string()))<span class="question-mark">?</span>;
-
-                (<span class="kw-2">*</span>tipset.parent_state(), <span class="kw-2">*</span>message_receipts.message_receipts())
-            } <span class="kw">else </span>{
-                <span class="comment">// generic constants are not implemented yet this is a lowcost method for now
-                </span><span class="kw">let </span>no_func =
-                    <span class="prelude-val">None</span>::&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;&gt;;
-                <span class="kw">let </span>ts_state = <span class="self">self</span>.compute_tipset_state(tipset, no_func).<span class="kw">await</span><span class="question-mark">?</span>;
-                <span class="macro">debug!</span>(<span class="string">&quot;completed tipset state calculation {:?}&quot;</span>, tipset.cids());
-                ts_state
-            };
-
-            <span class="comment">// Fill entry with calculated cid pair
-            </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = cache_entry.set(cid_pair) {
-                <span class="macro">error!</span>(<span class="string">&quot;Fail to set tipset_state cache: {}, {}&quot;</span>, e.<span class="number">0</span>, e.<span class="number">1</span>);
-            }
-            forest_metrics::metrics::LRU_CACHE_MISS
+        // first try reading cache
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = <span class="self">self</span>.cache.write().<span class="kw">await</span>.get(tipset.key()) {
+            <span class="macro">trace!</span>(<span class="string">&quot;hit cache for tipset {:?}&quot;</span>, tipset.cids());
+            forest_metrics::metrics::LRU_CACHE_HIT
                 .with_label_values(<span class="kw-2">&amp;</span>[forest_metrics::metrics::values::STATE_MANAGER_TIPSET])
                 .inc();
-            <span class="prelude-val">Ok</span>(cid_pair)
-        })
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>entry.wait());
+        }
+
+        <span class="comment">// write an empty `OnceCell` when cache not hit
+        </span><span class="kw">let </span>cache_entry = Arc::new(once_cell::sync::OnceCell::new());
+        {
+            <span class="self">self</span>.cache
+                .write()
+                .<span class="kw">await
+                </span>.push(tipset.key().clone(), cache_entry.clone());
+        }
+
+        <span class="comment">// Entry does not have state computed yet, this task will fill entry if successful.
+        </span><span class="macro">debug!</span>(<span class="string">&quot;calculating tipset state {:?}&quot;</span>, tipset.cids());
+
+        <span class="kw">let </span>cid_pair = <span class="kw">if </span>tipset.epoch() == <span class="number">0 </span>{
+            <span class="comment">// NB: This is here because the process that executes blocks requires that the
+            // block miner reference a valid miner in the state tree. Unless we create some
+            // magical genesis miner, this won&#39;t work properly, so we short circuit here
+            // This avoids the question of &#39;who gets paid the genesis block reward&#39;
+            </span><span class="kw">let </span>message_receipts = tipset
+                .blocks()
+                .first()
+                .ok_or_else(|| Error::Other(<span class="string">&quot;Could not get message receipts&quot;</span>.to_string()))<span class="question-mark">?</span>;
+
+            (<span class="kw-2">*</span>tipset.parent_state(), <span class="kw-2">*</span>message_receipts.message_receipts())
+        } <span class="kw">else </span>{
+            <span class="comment">// generic constants are not implemented yet this is a lowcost method for now
+            </span><span class="kw">let </span>no_func = <span class="prelude-val">None</span>::&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;&gt;;
+            <span class="kw">let </span>ts_state = <span class="self">self</span>.compute_tipset_state(tipset, no_func).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="macro">debug!</span>(<span class="string">&quot;completed tipset state calculation {:?}&quot;</span>, tipset.cids());
+            ts_state
+        };
+
+        <span class="comment">// Fill entry with calculated cid pair
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = cache_entry.set(cid_pair) {
+            <span class="macro">error!</span>(<span class="string">&quot;Fail to set tipset_state cache: {}, {}&quot;</span>, e.<span class="number">0</span>, e.<span class="number">1</span>);
+        }
+        forest_metrics::metrics::LRU_CACHE_MISS
+            .with_label_values(<span class="kw-2">&amp;</span>[forest_metrics::metrics::values::STATE_MANAGER_TIPSET])
+            .inc();
+        <span class="prelude-val">Ok</span>(cid_pair)
     }
 
-    <span class="kw">fn </span>call_raw(
+    <span class="attr">#[instrument(skip(<span class="self">self</span>, rand))]
+    </span><span class="kw">fn </span>call_raw(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         msg: <span class="kw-2">&amp;mut </span>Message,
         rand: ChainRand&lt;DB&gt;,
         tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
     ) -&gt; StateCallResult {
-        <span class="macro">span!</span>(<span class="string">&quot;state_call_raw&quot;</span>, {
-            <span class="kw">let </span>bstate = tipset.parent_state();
-            <span class="kw">let </span>bheight = tipset.epoch();
-            <span class="kw">let </span>store = <span class="self">self</span>.blockstore().clone();
-            <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::new(
-                <span class="kw-2">*</span>bstate,
-                store,
-                bheight,
-                rand,
-                TokenAmount::zero(),
-                <span class="self">self</span>.genesis_info
-                    .get_circulating_supply(bheight, <span class="self">self</span>.blockstore(), bstate)<span class="question-mark">?</span>,
-                <span class="self">self</span>.reward_calc.clone(),
-                chain_epoch_root(
-                    Arc::clone(<span class="self">self</span>),
-                    Arc::clone(tipset),
-                    tokio::runtime::Handle::current(),
-                ),
-                <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
-                Arc::clone(<span class="self">self</span>.chain_config()),
-            )<span class="question-mark">?</span>;
+        <span class="kw">let </span>bstate = tipset.parent_state();
+        <span class="kw">let </span>bheight = tipset.epoch();
+        <span class="kw">let </span>store = <span class="self">self</span>.blockstore().clone();
+        <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::new(
+            <span class="kw-2">*</span>bstate,
+            store,
+            bheight,
+            rand,
+            TokenAmount::zero(),
+            <span class="self">self</span>.genesis_info
+                .get_circulating_supply(bheight, <span class="self">self</span>.blockstore(), bstate)<span class="question-mark">?</span>,
+            <span class="self">self</span>.reward_calc.clone(),
+            chain_epoch_root(
+                Arc::clone(<span class="self">self</span>),
+                Arc::clone(tipset),
+                tokio::runtime::Handle::current(),
+            ),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
+            Arc::clone(<span class="self">self</span>.chain_config()),
+        )<span class="question-mark">?</span>;
 
-            <span class="kw">if </span>msg.gas_limit == <span class="number">0 </span>{
-                msg.gas_limit = <span class="number">10000000000</span>;
-            }
+        <span class="kw">if </span>msg.gas_limit == <span class="number">0 </span>{
+            msg.gas_limit = <span class="number">10000000000</span>;
+        }
 
-            <span class="kw">let </span>actor = <span class="self">self
-                </span>.get_actor(<span class="kw-2">&amp;</span>msg.from, <span class="kw-2">*</span>bstate)<span class="question-mark">?
-                </span>.ok_or_else(|| Error::Other(<span class="string">&quot;Could not get actor&quot;</span>.to_string()))<span class="question-mark">?</span>;
-            msg.sequence = actor.sequence;
-            <span class="kw">let </span>apply_ret = vm.apply_implicit_message(msg)<span class="question-mark">?</span>;
-            <span class="macro">trace!</span>(
-                <span class="string">&quot;gas limit {:},gas premium{:?},value {:?}&quot;</span>,
-                msg.gas_limit,
-                msg.gas_premium,
-                msg.value
-            );
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <span class="kw-2">&amp;</span>apply_ret.failure_info {
-                <span class="macro">warn!</span>(<span class="string">&quot;chain call failed: {:?}&quot;</span>, err);
-            }
+        <span class="kw">let </span>actor = <span class="self">self
+            </span>.get_actor(<span class="kw-2">&amp;</span>msg.from, <span class="kw-2">*</span>bstate)<span class="question-mark">?
+            </span>.ok_or_else(|| Error::Other(<span class="string">&quot;Could not get actor&quot;</span>.to_string()))<span class="question-mark">?</span>;
+        msg.sequence = actor.sequence;
+        <span class="kw">let </span>apply_ret = vm.apply_implicit_message(msg)<span class="question-mark">?</span>;
+        <span class="macro">trace!</span>(
+            <span class="string">&quot;gas limit {:},gas premium{:?},value {:?}&quot;</span>,
+            msg.gas_limit,
+            msg.gas_premium,
+            msg.value
+        );
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <span class="kw-2">&amp;</span>apply_ret.failure_info {
+            <span class="macro">warn!</span>(<span class="string">&quot;chain call failed: {:?}&quot;</span>, err);
+        }
 
-            <span class="prelude-val">Ok</span>(InvocResult {
-                msg: msg.clone(),
-                msg_rct: <span class="prelude-val">Some</span>(apply_ret.msg_receipt.clone()),
-                error: apply_ret.failure_info.map(|e| e.to_string()),
-            })
+        <span class="prelude-val">Ok</span>(InvocResult {
+            msg: msg.clone(),
+            msg_rct: <span class="prelude-val">Some</span>(apply_ret.msg_receipt.clone()),
+            error: apply_ret.failure_info.map(|e| e.to_string()),
         })
     }
 
@@ -1880,6 +1870,7 @@
     }
 
     <span class="doccomment">/// Performs a state transition, and returns the state and receipt root of the transition.
+    </span><span class="attr">#[instrument(skip(<span class="self">self</span>, callback))]
     </span><span class="kw">pub async fn </span>compute_tipset_state&lt;CB: <span class="lifetime">&#39;static</span>&gt;(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
@@ -1888,70 +1879,67 @@
     <span class="kw">where
         </span>CB: FnMut(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; + Send,
     {
-        <span class="macro">span!</span>(<span class="string">&quot;compute_tipset_state&quot;</span>, {
-            <span class="kw">let </span>block_headers = tipset.blocks();
-            <span class="kw">let </span>first_block = block_headers
-                .first()
-                .ok_or_else(|| Error::Other(<span class="string">&quot;Empty tipset in compute_tipset_state&quot;</span>.to_string()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>block_headers = tipset.blocks();
+        <span class="kw">let </span>first_block = block_headers
+            .first()
+            .ok_or_else(|| Error::Other(<span class="string">&quot;Empty tipset in compute_tipset_state&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>check_for_duplicates = |s: <span class="kw-2">&amp;</span>BlockHeader| {
-                block_headers
-                    .iter()
-                    .filter(|val| val.miner_address() == s.miner_address())
-                    .take(<span class="number">2</span>)
-                    .count()
-            };
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(a) = block_headers.iter().find(|s| check_for_duplicates(s) &gt; <span class="number">1</span>) {
-                <span class="comment">// Duplicate Miner found
-                </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(<span class="string">&quot;duplicate miner in a tipset ({})&quot;</span>, a)));
-            }
+        <span class="kw">let </span>check_for_duplicates = |s: <span class="kw-2">&amp;</span>BlockHeader| {
+            block_headers
+                .iter()
+                .filter(|val| val.miner_address() == s.miner_address())
+                .take(<span class="number">2</span>)
+                .count()
+        };
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(a) = block_headers.iter().find(|s| check_for_duplicates(s) &gt; <span class="number">1</span>) {
+            <span class="comment">// Duplicate Miner found
+            </span><span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(<span class="string">&quot;duplicate miner in a tipset ({})&quot;</span>, a)));
+        }
 
-            <span class="kw">let </span>parent_epoch = <span class="kw">if </span>first_block.epoch() &gt; <span class="number">0 </span>{
-                <span class="kw">let </span>parent_cid = first_block
-                    .parents()
-                    .cids()
-                    .get(<span class="number">0</span>)
-                    .ok_or_else(|| Error::Other(<span class="string">&quot;block must have parents&quot;</span>.to_string()))<span class="question-mark">?</span>;
-                <span class="kw">let </span>parent: BlockHeader = <span class="self">self
-                    </span>.blockstore()
-                    .get_obj(parent_cid)<span class="question-mark">?
-                    </span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Could not find parent block with cid {parent_cid}&quot;</span>))<span class="question-mark">?</span>;
-                parent.epoch()
-            } <span class="kw">else </span>{
-                Default::default()
-            };
+        <span class="kw">let </span>parent_epoch = <span class="kw">if </span>first_block.epoch() &gt; <span class="number">0 </span>{
+            <span class="kw">let </span>parent_cid = first_block
+                .parents()
+                .cids()
+                .get(<span class="number">0</span>)
+                .ok_or_else(|| Error::Other(<span class="string">&quot;block must have parents&quot;</span>.to_string()))<span class="question-mark">?</span>;
+            <span class="kw">let </span>parent: BlockHeader = <span class="self">self
+                </span>.blockstore()
+                .get_obj(parent_cid)<span class="question-mark">?
+                </span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Could not find parent block with cid {parent_cid}&quot;</span>))<span class="question-mark">?</span>;
+            parent.epoch()
+        } <span class="kw">else </span>{
+            Default::default()
+        };
 
-            <span class="kw">let </span>async_handle = tokio::runtime::Handle::current();
-            <span class="kw">let </span>tipset_keys =
-                TipsetKeys::new(block_headers.iter().map(|s| s.cid()).cloned().collect());
-            <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(tipset_keys, async_handle);
-            <span class="kw">let </span>base_fee = first_block.parent_base_fee().clone();
+        <span class="kw">let </span>async_handle = tokio::runtime::Handle::current();
+        <span class="kw">let </span>tipset_keys = TipsetKeys::new(block_headers.iter().map(|s| s.cid()).cloned().collect());
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(tipset_keys, async_handle);
+        <span class="kw">let </span>base_fee = first_block.parent_base_fee().clone();
 
-            <span class="kw">let </span>blocks = <span class="self">self
-                </span>.chain_store()
-                .block_msgs_for_tipset(tipset)
-                .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
+        <span class="kw">let </span>blocks = <span class="self">self
+            </span>.chain_store()
+            .block_msgs_for_tipset(tipset)
+            .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>sm = Arc::clone(<span class="self">self</span>);
-            <span class="kw">let </span>sr = <span class="kw-2">*</span>first_block.state_root();
-            <span class="kw">let </span>epoch = first_block.epoch();
-            <span class="kw">let </span>ts_cloned = Arc::clone(tipset);
-            tokio::task::spawn_blocking(<span class="kw">move </span>|| {
-                <span class="prelude-val">Ok</span>(sm.apply_blocks(
-                    parent_epoch,
-                    <span class="kw-2">&amp;</span>sr,
-                    <span class="kw-2">&amp;</span>blocks,
-                    epoch,
-                    chain_rand,
-                    base_fee,
-                    callback,
-                    <span class="kw-2">&amp;</span>ts_cloned,
-                )<span class="question-mark">?</span>)
-            })
-            .<span class="kw">await
-            </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;failed to apply blocks: {e}&quot;</span>)))<span class="question-mark">?
-        </span>})
-    }
+        <span class="kw">let </span>sm = Arc::clone(<span class="self">self</span>);
+        <span class="kw">let </span>sr = <span class="kw-2">*</span>first_block.state_root();
+        <span class="kw">let </span>epoch = first_block.epoch();
+        <span class="kw">let </span>ts_cloned = Arc::clone(tipset);
+        tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+            <span class="prelude-val">Ok</span>(sm.apply_blocks(
+                parent_epoch,
+                <span class="kw-2">&amp;</span>sr,
+                <span class="kw-2">&amp;</span>blocks,
+                epoch,
+                chain_rand,
+                base_fee,
+                callback,
+                <span class="kw-2">&amp;</span>ts_cloned,
+            )<span class="question-mark">?</span>)
+        })
+        .<span class="kw">await
+        </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;failed to apply blocks: {e}&quot;</span>)))<span class="question-mark">?
+    </span>}
 
     <span class="doccomment">/// Check if tipset had executed the message, by loading the receipt based on the index of
     /// the message in the block.
