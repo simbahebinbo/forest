@@ -144,9 +144,10 @@
                         <h1 id="trouble-shooting"><a class="header" href="#trouble-shooting">Trouble Shooting</a></h1>
 <h2 id="common-issues"><a class="header" href="#common-issues">Common Issues</a></h2>
 <h4 id="file-descriptor-limits"><a class="header" href="#file-descriptor-limits">File Descriptor Limits</a></h4>
-<p>To properly manage the Filecoin state tree with RocksDB, Forest requires a custom allocation of file descriptors. Please set the process file descriptor limits to <code>1048576</code> to avoid stalling the node.</p>
-<p>For MacOS and Linux distributions, this can be done by using the <code>usize</code> command. Using this command will set it for the current session. On MacOS, setting the limit too high will default it to a max of 
-<code>12288</code>. There are many guides online to override this along with specific Linux guides to make the new max persistent.</p>
+<p>By default, Forest will use large database files (roughly 1GiB each). Lowering
+the size of these files lets RocksDB use less memory but runs the risk of
+hitting the open-files limit. If you do hit this limit, either increase the file
+size or use <code>ulimit</code> to increase the open-files limit.</p>
 
                     </main>
 

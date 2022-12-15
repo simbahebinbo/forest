@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["EVENT_TIMEOUT",""]],"fn":[["build_daemon",""],["check_for_low_fd",""],["create_ipc_lock",""],["ipc_shmem_conf",""],["main",""]],"mod":[["cli",""],["daemon",""]],"struct":[["IPC_PATH",""]],"type":[["Db",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["EVENT_TIMEOUT",""]],"fn":[["build_daemon",""],["create_ipc_lock",""],["ipc_shmem_conf",""],["main",""]],"mod":[["cli",""],["daemon",""]],"struct":[["IPC_PATH",""]],"type":[["Db",""]]};
