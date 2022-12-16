@@ -282,6 +282,9 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -442,8 +445,8 @@
 #[serde(default)]
 </span><span class="kw">pub struct </span>Config {
     <span class="kw">pub </span>client: Client,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-    </span><span class="kw">pub </span>rocks_db: forest_db::rocks_config::RocksDbConfig,
+    <span class="kw">pub </span>rocks_db: forest_db::rocks_config::RocksDbConfig,
+    <span class="kw">pub </span>parity_db: forest_db::parity_db_config::ParityDbConfig,
     <span class="kw">pub </span>network: Libp2pConfig,
     <span class="kw">pub </span>sync: SyncConfig,
     <span class="kw">pub </span>chain: Arc&lt;ChainConfig&gt;,
@@ -470,8 +473,8 @@
     </span><span class="attr">#[derive(Clone, Debug)]
     </span><span class="kw">struct </span>ConfigPartial {
         client: Client,
-        <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-        </span>rocks_db: forest_db::rocks_config::RocksDbConfig,
+        rocks_db: forest_db::rocks_config::RocksDbConfig,
+        parity_db: forest_db::parity_db_config::ParityDbConfig,
         network: forest_libp2p::Libp2pConfig,
         sync: forest_chain_sync::SyncConfig,
     }
@@ -480,8 +483,8 @@
         <span class="kw">fn </span>from(val: ConfigPartial) -&gt; <span class="self">Self </span>{
             Config {
                 client: val.client,
-                <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-                </span>rocks_db: val.rocks_db,
+                rocks_db: val.rocks_db,
+                parity_db: val.parity_db,
                 network: val.network,
                 sync: val.sync,
                 chain: Arc::new(ChainConfig::default()),
@@ -513,8 +516,7 @@
                     token_exp: Duration::milliseconds(i64::arbitrary(g)),
                     show_progress_bars: ProgressBarVisibility::arbitrary(g),
                 },
-                <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-                </span>rocks_db: forest_db::rocks_config::RocksDbConfig {
+                rocks_db: forest_db::rocks_config::RocksDbConfig {
                     create_if_missing: bool::arbitrary(g),
                     parallelism: i32::arbitrary(g),
                     write_buffer_size: usize::arbitrary(g),
@@ -527,6 +529,10 @@
                     log_level: String::arbitrary(g),
                     optimize_filters_for_hits: bool::arbitrary(g),
                     optimize_for_point_lookup: i32::arbitrary(g),
+                },
+                parity_db: forest_db::parity_db_config::ParityDbConfig {
+                    stats: bool::arbitrary(g),
+                    compression: String::arbitrary(g),
                 },
                 network: Libp2pConfig {
                     listening_multiaddr: Ipv4Addr::arbitrary(g).into(),

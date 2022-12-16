@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ParityDbConfig","`ParityDb` configuration exposed in Forest."]]};
