@@ -97,6 +97,20 @@
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
 <a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -142,15 +156,6 @@
     log_config: <span class="kw-2">&amp;</span>LogConfig,
     opts: <span class="kw-2">&amp;</span>CliOpts,
 ) -&gt; (<span class="prelude-ty">Option</span>&lt;tracing_loki::BackgroundTask&gt;,) {
-    <span class="kw">let </span>env_filter = EnvFilter::builder().parse_lossy(
-        [
-            <span class="string">&quot;info&quot;</span>.into(),
-            log_config.to_filter_string(),
-            std::env::var(EnvFilter::DEFAULT_ENV).unwrap_or_default(),
-        ]
-        .join(<span class="string">&quot;,&quot;</span>),
-    );
-
     <span class="kw">let </span><span class="kw-2">mut </span>loki_task = <span class="prelude-val">None</span>;
     <span class="kw">let </span>tracing_tokio_console = <span class="kw">if </span>opts.tokio_console {
         <span class="prelude-val">Some</span>(
@@ -184,17 +189,40 @@
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>};
+    <span class="kw">let </span>tracing_rolling_file = <span class="kw">if let </span><span class="prelude-val">Some</span>(log_dir) = <span class="kw-2">&amp;</span>opts.log_dir {
+        <span class="kw">let </span>file_appender = tracing_appender::rolling::hourly(log_dir, <span class="string">&quot;forest.log&quot;</span>);
+        <span class="prelude-val">Some</span>(
+            tracing_subscriber::fmt::Layer::new()
+                .with_ansi(<span class="bool-val">false</span>)
+                .with_writer(file_appender)
+                .with_filter(build_env_filter(log_config)),
+        )
+    } <span class="kw">else </span>{
+        <span class="prelude-val">None
+    </span>};
 
     tracing_subscriber::registry()
         .with(tracing_tokio_console)
         .with(tracing_loki)
+        .with(tracing_rolling_file)
         .with(
             tracing_subscriber::fmt::Layer::new()
                 .with_ansi(opts.color.coloring_enabled())
-                .with_filter(env_filter),
+                .with_filter(build_env_filter(log_config)),
         )
         .init();
     (loki_task,)
+}
+
+<span class="kw">fn </span>build_env_filter(log_config: <span class="kw-2">&amp;</span>LogConfig) -&gt; EnvFilter {
+    EnvFilter::builder().parse_lossy(
+        [
+            <span class="string">&quot;info&quot;</span>.into(),
+            log_config.to_filter_string(),
+            std::env::var(EnvFilter::DEFAULT_ENV).unwrap_or_default(),
+        ]
+        .join(<span class="string">&quot;,&quot;</span>),
+    )
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="forest_cli_shared" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (b70baa4f9 2022-12-14)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

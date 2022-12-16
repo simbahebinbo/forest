@@ -411,8 +411,6 @@
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
 <a href="#413" id="413">413</a>
-<a href="#414" id="414">414</a>
-<a href="#415" id="415">415</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -524,14 +522,12 @@
     <span class="doccomment">/// Endpoint of `grafana loki`
     </span><span class="attr">#[structopt(long, default_value = <span class="string">&quot;http://127.0.0.1:3100&quot;</span>)]
     </span><span class="kw">pub </span>loki_endpoint: String,
-    <span class="comment">// env_logger-0.7 can only redirect to stderr or stdout. Version 0.9 can redirect to a file.
-    // However, we cannot upgrade to version 0.9 because pretty_env_logger depends on version 0.7
-    // and hasn&#39;t been updated in quite a while. See https://github.com/seanmonstar/pretty-env-logger/issues/52
-    // #[structopt(
-    //     help = &quot;Specify a filename into which logging should be appended&quot;
-    // )]
-    // pub log_file: Option&lt;PathBuf&gt;,
-</span>}
+    <span class="attr">#[structopt(
+        long,
+        help = <span class="string">&quot;Specify a directory into which rolling log files should be appended&quot;
+    </span>)]
+    </span><span class="kw">pub </span>log_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+}
 
 <span class="kw">impl </span>CliOpts {
     <span class="kw">pub fn </span>to_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Config, <span class="prelude-ty">Option</span>&lt;ConfigPath&gt;), anyhow::Error&gt; {
