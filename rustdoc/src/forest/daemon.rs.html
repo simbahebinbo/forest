@@ -570,33 +570,6 @@
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
-<a href="#573" id="573">573</a>
-<a href="#574" id="574">574</a>
-<a href="#575" id="575">575</a>
-<a href="#576" id="576">576</a>
-<a href="#577" id="577">577</a>
-<a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
-<a href="#582" id="582">582</a>
-<a href="#583" id="583">583</a>
-<a href="#584" id="584">584</a>
-<a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -608,8 +581,8 @@
 <span class="kw">use </span>forest_chain_sync::consensus::SyncGossipSubmitter;
 <span class="kw">use </span>forest_chain_sync::ChainMuxer;
 <span class="kw">use </span>forest_cli_shared::cli::{
-    cli_error_and_die, db_path, default_snapshot_dir, is_aria2_installed, snapshot_fetch, Client,
-    Config, FOREST_VERSION_STRING,
+    db_path, default_snapshot_dir, is_aria2_installed, snapshot_fetch, Client, Config,
+    FOREST_VERSION_STRING,
 };
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_genesis::{get_network_name_from_genesis, import_chain, read_genesis_header};
@@ -625,7 +598,7 @@
 <span class="kw">use </span>futures::{select, FutureExt};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::version::NetworkVersion;
-<span class="kw">use </span>log::{debug, error, info, trace, warn};
+<span class="kw">use </span>log::{debug, error, info, warn};
 <span class="kw">use </span>raw_sync::events::{Event, EventInit, EventState};
 <span class="kw">use </span>rpassword::read_password;
 <span class="kw">use </span>std::net::TcpListener;
@@ -649,16 +622,18 @@
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;forest_deleg_cns&quot;</span>)]
 </span><span class="kw">use </span>forest_deleg_cns::composition <span class="kw">as </span>cns;
 
-<span class="kw">fn </span>unblock_parent_process() {
-    <span class="kw">let </span>shmem = <span class="kw">super</span>::ipc_shmem_conf().open().expect(<span class="string">&quot;open must succeed&quot;</span>);
+<span class="kw">fn </span>unblock_parent_process() -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let </span>shmem = <span class="kw">super</span>::ipc_shmem_conf().open()<span class="question-mark">?</span>;
     <span class="kw">let </span>(event, <span class="kw">_</span>) =
-        <span class="kw">unsafe </span>{ Event::from_existing(shmem.as_ptr()).expect(<span class="string">&quot;from_existing must succeed&quot;</span>) };
+        <span class="kw">unsafe </span>{ Event::from_existing(shmem.as_ptr()).map_err(|err| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{err}&quot;</span>)) }<span class="question-mark">?</span>;
 
-    event.set(EventState::Signaled).expect(<span class="string">&quot;set must succeed&quot;</span>);
+    event
+        .set(EventState::Signaled)
+        .map_err(|err| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{err}&quot;</span>))
 }
 
 <span class="doccomment">/// Starts daemon process
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>start(config: Config, detached: bool) -&gt; Db {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>start(config: Config, detached: bool) -&gt; anyhow::Result&lt;Db&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>ctrlc_oneshot = set_sigint_handler();
 
     <span class="macro">info!</span>(
@@ -667,24 +642,18 @@
     );
 
     <span class="kw">let </span>path: PathBuf = config.client.data_dir.join(<span class="string">&quot;libp2p&quot;</span>);
-    <span class="kw">let </span>net_keypair = get_keypair(<span class="kw-2">&amp;</span>path.join(<span class="string">&quot;keypair&quot;</span>)).unwrap_or_else(|| {
-        <span class="comment">// Keypair not found, generate and save generated keypair
-        </span><span class="kw">let </span>gen_keypair = ed25519::Keypair::generate();
-        <span class="comment">// Save Ed25519 keypair to file
-        // TODO rename old file to keypair.old(?)
-        </span><span class="kw">match </span>write_to_file(<span class="kw-2">&amp;</span>gen_keypair.encode(), <span class="kw-2">&amp;</span>path, <span class="string">&quot;keypair&quot;</span>) {
-            <span class="prelude-val">Ok</span>(file) =&gt; {
-                <span class="comment">// Restrict permissions on files containing private keys
-                </span><span class="attr">#[cfg(unix)]
-                </span>forest_utils::io::set_user_perm(<span class="kw-2">&amp;</span>file).expect(<span class="string">&quot;Set user perms on unix systems&quot;</span>);
-            }
-            <span class="prelude-val">Err</span>(e) =&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;Could not write keystore to disk!&quot;</span>);
-                <span class="macro">trace!</span>(<span class="string">&quot;Error {:?}&quot;</span>, e);
-            }
-        };
-        Keypair::Ed25519(gen_keypair)
-    });
+    <span class="kw">let </span>net_keypair = <span class="kw">match </span>get_keypair(<span class="kw-2">&amp;</span>path.join(<span class="string">&quot;keypair&quot;</span>)) {
+        <span class="prelude-val">Some</span>(keypair) =&gt; <span class="prelude-val">Ok</span>::&lt;forest_libp2p::Keypair, std::io::Error&gt;(keypair),
+        <span class="prelude-val">None </span>=&gt; {
+            <span class="kw">let </span>gen_keypair = ed25519::Keypair::generate();
+            <span class="comment">// Save Ed25519 keypair to file
+            // TODO rename old file to keypair.old(?)
+            </span><span class="kw">let </span>file = write_to_file(<span class="kw-2">&amp;</span>gen_keypair.encode(), <span class="kw-2">&amp;</span>path, <span class="string">&quot;keypair&quot;</span>)<span class="question-mark">?</span>;
+            <span class="comment">// Restrict permissions on files containing private keys
+            </span>forest_utils::io::set_user_perm(<span class="kw-2">&amp;</span>file)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(Keypair::Ed25519(gen_keypair))
+        }
+    }<span class="question-mark">?</span>;
 
     <span class="comment">// Hint at the multihash which has to go in the `/p2p/&lt;multihash&gt;` part of the peer&#39;s multiaddress.
     // Useful if others want to use this node to bootstrap from.
@@ -693,16 +662,16 @@
     <span class="kw">let </span><span class="kw-2">mut </span>ks = <span class="kw">if </span>config.client.encrypt_keystore {
         <span class="kw">loop </span>{
             <span class="macro">print!</span>(<span class="string">&quot;Enter the keystore passphrase: &quot;</span>);
-            std::io::stdout().flush().unwrap();
+            std::io::stdout().flush()<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>passphrase = read_password().expect(<span class="string">&quot;Error reading passphrase&quot;</span>);
+            <span class="kw">let </span>passphrase = read_password()<span class="question-mark">?</span>;
 
             <span class="kw">let </span>data_dir = PathBuf::from(<span class="kw-2">&amp;</span>config.client.data_dir).join(ENCRYPTED_KEYSTORE_NAME);
             <span class="kw">if </span>!data_dir.exists() {
                 <span class="macro">print!</span>(<span class="string">&quot;Confirm passphrase: &quot;</span>);
-                std::io::stdout().flush().unwrap();
+                std::io::stdout().flush()<span class="question-mark">?</span>;
 
-                <span class="kw">if </span>passphrase != read_password().unwrap() {
+                <span class="kw">if </span>passphrase != read_password()<span class="question-mark">? </span>{
                     <span class="macro">error!</span>(<span class="string">&quot;Passphrases do not match. Please retry.&quot;</span>);
                     <span class="kw">continue</span>;
                 }
@@ -724,44 +693,35 @@
         <span class="macro">warn!</span>(<span class="string">&quot;Warning: Keystore encryption disabled!&quot;</span>);
         KeyStore::new(KeyStoreConfig::Persistent(PathBuf::from(
             <span class="kw-2">&amp;</span>config.client.data_dir,
-        )))
-        .expect(<span class="string">&quot;Error initializing keystore&quot;</span>)
-    };
+        )))<span class="question-mark">?
+    </span>};
 
     <span class="kw">if </span>ks.get(JWT_IDENTIFIER).is_err() {
-        ks.put(JWT_IDENTIFIER.to_owned(), generate_priv_key())
-            .unwrap();
+        ks.put(JWT_IDENTIFIER.to_owned(), generate_priv_key())<span class="question-mark">?</span>;
     }
 
     <span class="comment">// Print admin token
-    </span><span class="kw">let </span>ki = ks.get(JWT_IDENTIFIER).unwrap();
+    </span><span class="kw">let </span>ki = ks.get(JWT_IDENTIFIER)<span class="question-mark">?</span>;
     <span class="kw">let </span>token_exp = config.client.token_exp;
-    <span class="kw">let </span>token = create_token(ADMIN.to_owned(), ki.private_key(), token_exp).unwrap();
+    <span class="kw">let </span>token = create_token(ADMIN.to_owned(), ki.private_key(), token_exp)<span class="question-mark">?</span>;
     <span class="macro">info!</span>(<span class="string">&quot;Admin token: {}&quot;</span>, token);
 
     <span class="kw">let </span>keystore = Arc::new(RwLock::new(ks));
 
-    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>config);
+    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
 
     {
         <span class="comment">// Start Prometheus server port
-        </span><span class="kw">let </span>prometheus_listener =
-            TcpListener::bind(config.client.metrics_address).unwrap_or_else(|<span class="kw">_</span>| {
-                cli_error_and_die(
-                    <span class="macro">format!</span>(<span class="string">&quot;could not bind to {}&quot;</span>, config.client.metrics_address),
-                    <span class="number">1</span>,
-                )
-            });
+        </span><span class="kw">let </span>prometheus_listener = TcpListener::bind(config.client.metrics_address).context(
+            <span class="macro">format!</span>(<span class="string">&quot;could not bind to {}&quot;</span>, config.client.metrics_address),
+        )<span class="question-mark">?</span>;
         <span class="macro">info!</span>(
             <span class="string">&quot;Prometheus server started at {}&quot;</span>,
             config.client.metrics_address
         );
-        <span class="kw">let </span>db_directory = db_path(<span class="kw-2">&amp;</span>config)
-            .into_os_string()
-            .into_string()
-            .expect(<span class="string">&quot;Failed converting the path to db&quot;</span>);
+        <span class="kw">let </span>db_directory = db_path(<span class="kw-2">&amp;</span>config);
         <span class="kw">let </span>db = db.clone();
         services.spawn(<span class="kw">async </span>{
             forest_metrics::init_prometheus(prometheus_listener, db_directory, db)
@@ -782,21 +742,20 @@
         config.chain.genesis_bytes(),
         <span class="kw-2">&amp;</span>chain_store,
     )
-    .<span class="kw">await
-    </span>.unwrap();
+    .<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>genesis_header = <span class="kw-2">&amp;</span>genesis.blocks()[<span class="number">0</span>];
-    chain_store.set_genesis(genesis_header).unwrap();
+    chain_store.set_genesis(genesis_header)<span class="question-mark">?</span>;
 
     <span class="comment">// XXX: This code has to be run before starting the background services.
     //      If it isn&#39;t, several threads will be competing for access to stdout.
     // Terminate if no snapshot is provided or DB isn&#39;t recent enough
     </span><span class="kw">let </span>should_fetch_snapshot = <span class="kw">match </span>chain_store.heaviest_tipset().<span class="kw">await </span>{
-        <span class="prelude-val">None </span>=&gt; prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span>,
+        <span class="prelude-val">None </span>=&gt; prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span><span class="question-mark">?</span>,
         <span class="prelude-val">Some</span>(tipset) =&gt; {
             <span class="kw">let </span>epoch = tipset.epoch();
             <span class="kw">let </span>nv = config.chain.network_version(epoch);
             <span class="kw">if </span>nv &lt; NetworkVersion::V16 {
-                prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await
+                prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span><span class="question-mark">?
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
@@ -813,14 +772,11 @@
         Arc::clone(<span class="kw-2">&amp;</span>config.chain),
         reward_calc,
     )
-    .<span class="kw">await
-    </span>.unwrap();
+    .<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let </span>state_manager = Arc::new(sm);
 
-    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>genesis, <span class="kw-2">&amp;</span>state_manager)
-        .<span class="kw">await
-        </span>.unwrap();
+    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>genesis, <span class="kw-2">&amp;</span>state_manager).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="macro">info!</span>(<span class="string">&quot;Using network :: {}&quot;</span>, get_actual_chain_name(<span class="kw-2">&amp;</span>network_name));
 
@@ -832,8 +788,8 @@
             .chain
             .bootstrap_peers
             .iter()
-            .map(|node| node.parse().unwrap())
-            .collect();
+            .map(|node| node.parse())
+            .collect::&lt;<span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;()<span class="question-mark">?</span>;
         Config {
             network: Libp2pConfig {
                 bootstrap_peers,
@@ -865,12 +821,11 @@
         provider,
         network_name.clone(),
         network_send.clone(),
-        MpoolConfig::load_config(<span class="kw-2">&amp;</span>db).unwrap(),
+        MpoolConfig::load_config(<span class="kw-2">&amp;</span>db)<span class="question-mark">?</span>,
         Arc::clone(state_manager.chain_config()),
         <span class="kw-2">&amp;mut </span>services,
     )
-    .<span class="kw">await
-    </span>.unwrap();
+    .<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let </span>mpool = Arc::new(mpool);
 
@@ -882,9 +837,8 @@
     );
 
     <span class="comment">// Initialize Consensus. Mining may or may not happen, depending on type.
-    </span><span class="kw">let </span>consensus = cns::consensus(<span class="kw-2">&amp;</span>state_manager, <span class="kw-2">&amp;</span>keystore, <span class="kw-2">&amp;</span>mpool, submitter, <span class="kw-2">&amp;mut </span>services)
-        .<span class="kw">await
-        </span>.unwrap();
+    </span><span class="kw">let </span>consensus =
+        cns::consensus(<span class="kw-2">&amp;</span>state_manager, <span class="kw-2">&amp;</span>keystore, <span class="kw-2">&amp;</span>mpool, submitter, <span class="kw-2">&amp;mut </span>services).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="comment">// Initialize ChainMuxer
     </span><span class="kw">let </span>chain_muxer_tipset_sink = tipset_sink.clone();
@@ -898,8 +852,7 @@
         chain_muxer_tipset_sink,
         tipset_stream,
         config.sync.clone(),
-    )
-    .expect(<span class="string">&quot;Instantiating the ChainMuxer must succeed&quot;</span>);
+    )<span class="question-mark">?</span>;
     <span class="kw">let </span>bad_blocks = chain_muxer.bad_blocks_cloned();
     <span class="kw">let </span>sync_state = chain_muxer.sync_state_cloned();
     services.spawn(<span class="kw">async </span>{ <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{}&quot;</span>, chain_muxer.<span class="kw">await</span>)) });
@@ -907,8 +860,11 @@
     <span class="comment">// Start services
     </span><span class="kw">if </span>config.client.enable_rpc {
         <span class="kw">let </span>keystore_rpc = Arc::clone(<span class="kw-2">&amp;</span>keystore);
-        <span class="kw">let </span>rpc_listen = std::net::TcpListener::bind(config.client.rpc_address)
-            .unwrap_or_else(|<span class="kw">_</span>| cli_error_and_die(<span class="string">&quot;could not bind to {rpc_address}&quot;</span>, <span class="number">1</span>));
+        <span class="kw">let </span>rpc_listen =
+            std::net::TcpListener::bind(config.client.rpc_address).context(<span class="macro">format!</span>(
+                <span class="string">&quot;could not bind to rpc address {}&quot;</span>,
+                config.client.rpc_address
+            ))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>rpc_state_manager = Arc::clone(<span class="kw-2">&amp;</span>state_manager);
         <span class="kw">let </span>rpc_chain_store = Arc::clone(<span class="kw-2">&amp;</span>chain_store);
@@ -939,7 +895,7 @@
         <span class="macro">debug!</span>(<span class="string">&quot;RPC disabled.&quot;</span>);
     };
     <span class="kw">if </span>detached {
-        unblock_parent_process();
+        unblock_parent_process()<span class="question-mark">?</span>;
     }
 
     <span class="comment">// Fetch and ensure verification keys are downloaded
@@ -949,19 +905,17 @@
         };
         set_proofs_parameter_cache_dir_env(<span class="kw-2">&amp;</span>config.client.data_dir);
 
-        get_params_default(<span class="kw-2">&amp;</span>config.client.data_dir, SectorSizeOpt::Keys)
-            .<span class="kw">await
-            </span>.unwrap();
+        get_params_default(<span class="kw-2">&amp;</span>config.client.data_dir, SectorSizeOpt::Keys).<span class="kw">await</span><span class="question-mark">?</span>;
     }
 
-    <span class="kw">let </span>config = maybe_fetch_snapshot(should_fetch_snapshot, config).<span class="kw">await</span>;
+    <span class="kw">let </span>config = maybe_fetch_snapshot(should_fetch_snapshot, config).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="macro">select! </span>{
         () = sync_from_snapshot(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>state_manager).fuse() =&gt; {},
         <span class="kw">_ </span>= ctrlc_oneshot =&gt; {
             <span class="comment">// Cancel all async services
             </span>services.shutdown().<span class="kw">await</span>;
-            <span class="kw">return </span>db;
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(db);
         },
     }
 
@@ -969,7 +923,7 @@
     </span><span class="kw">if </span>config.client.halt_after_import {
         <span class="comment">// Cancel all async services
         </span>services.shutdown().<span class="kw">await</span>;
-        <span class="kw">return </span>db;
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(db);
     }
 
     services.spawn(p2p_service.run());
@@ -981,16 +935,10 @@
         <span class="kw">_ </span>= ctrlc_oneshot =&gt; {}
     }
 
-    <span class="kw">let </span>keystore_write = tokio::task::spawn(<span class="kw">async move </span>{
-        keystore.read().<span class="kw">await</span>.flush().unwrap();
-    });
-
     <span class="comment">// Cancel all async services
     </span>services.shutdown().<span class="kw">await</span>;
 
-    keystore_write.<span class="kw">await</span>.expect(<span class="string">&quot;keystore write failed&quot;</span>);
-
-    db
+    <span class="prelude-val">Ok</span>(db)
 }
 
 <span class="comment">// returns the first error with which any of the services end
@@ -1015,32 +963,31 @@
 }
 
 <span class="doccomment">/// Optionally fetches the snapshot. Returns the configuration (modified accordingly if a snapshot was fetched).
-</span><span class="kw">async fn </span>maybe_fetch_snapshot(should_fetch_snapshot: bool, config: Config) -&gt; Config {
+</span><span class="kw">async fn </span>maybe_fetch_snapshot(
+    should_fetch_snapshot: bool,
+    config: Config,
+) -&gt; anyhow::Result&lt;Config&gt; {
     <span class="kw">if </span>should_fetch_snapshot {
         <span class="kw">let </span>snapshot_path = default_snapshot_dir(<span class="kw-2">&amp;</span>config);
-        <span class="kw">let </span>path = <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_path, <span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span><span class="prelude-val">None</span>, is_aria2_installed()).<span class="kw">await
-        </span>{
-            <span class="prelude-val">Ok</span>(path) =&gt; path,
-            <span class="prelude-val">Err</span>(err) =&gt; cli_error_and_die(err.to_string(), <span class="number">1</span>),
-        };
-        Config {
+        <span class="kw">let </span>path = snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_path, <span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span><span class="prelude-val">None</span>, is_aria2_installed()).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(Config {
             client: Client {
                 snapshot_path: <span class="prelude-val">Some</span>(path),
                 snapshot: <span class="bool-val">true</span>,
                 ..config.client
             },
             ..config
-        }
+        })
     } <span class="kw">else </span>{
-        config
+        <span class="prelude-val">Ok</span>(config)
     }
 }
 
 <span class="doccomment">/// Last resort in case a snapshot is needed. If it is not to be downloaded, this method fails and
 /// exits the process.
-</span><span class="kw">async fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; bool {
+</span><span class="kw">async fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;bool&gt; {
     <span class="kw">if </span>config.client.snapshot_path.is_some() {
-        <span class="kw">return </span><span class="bool-val">false</span>;
+        <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
     }
     <span class="kw">let </span>should_download = <span class="kw">if </span>!config.client.download_snapshot &amp;&amp; atty::is(atty::Stream::Stdin) {
         Confirm::with_theme(<span class="kw-2">&amp;</span>ColorfulTheme::default())
@@ -1055,9 +1002,9 @@
     };
 
     <span class="kw">if </span>should_download {
-        <span class="bool-val">true
-    </span>} <span class="kw">else </span>{
-        cli_error_and_die(<span class="string">&quot;Forest cannot sync without a snapshot. Download a snapshot from a trusted source and import with --import-snapshot=[file] or --download-snapshot to download one automatically&quot;</span>, <span class="number">1</span>);
+        <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+    } <span class="kw">else </span>{
+        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Forest cannot sync without a snapshot. Download a snapshot from a trusted source and import with --import-snapshot=[file] or --download-snapshot to download one automatically&quot;</span>);
     }
 }
 
@@ -1103,15 +1050,14 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-</span><span class="kw">fn </span>open_db(config: <span class="kw-2">&amp;</span>Config) -&gt; forest_db::rocks::RocksDb {
-    forest_db::rocks::RocksDb::open(db_path(config), <span class="kw-2">&amp;</span>config.rocks_db)
-        .expect(<span class="string">&quot;Opening RocksDB must succeed&quot;</span>)
+</span><span class="kw">fn </span>open_db(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;forest_db::rocks::RocksDb&gt; {
+    forest_db::rocks::RocksDb::open(db_path(config), <span class="kw-2">&amp;</span>config.rocks_db).map_err(Into::into)
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
-</span><span class="kw">fn </span>open_db(config: <span class="kw-2">&amp;</span>Config) -&gt; forest_db::parity_db::ParityDb {
+</span><span class="kw">fn </span>open_db(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;forest_db::parity_db::ParityDb&gt; {
     <span class="kw">use </span>forest_db::parity_db::<span class="kw-2">*</span>;
-    ParityDb::open(db_path(config), <span class="kw-2">&amp;</span>config.parity_db).expect(<span class="string">&quot;Opening ParityDb must succeed&quot;</span>)
+    ParityDb::open(db_path(config), <span class="kw-2">&amp;</span>config.parity_db)
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]

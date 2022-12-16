@@ -50,6 +50,7 @@
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -57,15 +58,16 @@
 <span class="kw">use </span>prometheus::core::{Collector, Desc};
 <span class="kw">use </span>prometheus::proto;
 <span class="kw">use </span>prometheus::{Gauge, Opts};
+<span class="kw">use </span>std::path::PathBuf;
 
 <span class="kw">pub struct </span>DBCollector {
-    db_directory: String,
+    db_directory: PathBuf,
     descs: Vec&lt;Desc&gt;,
     db_size: Gauge,
 }
 
 <span class="kw">impl </span>DBCollector {
-    <span class="kw">pub fn </span>new(db_directory: String) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(db_directory: PathBuf) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>descs: Vec&lt;Desc&gt; = <span class="macro">vec!</span>[];
         <span class="kw">let </span>db_size = Gauge::with_opts(Opts::new(
             <span class="string">&quot;forest_db_size&quot;</span>,

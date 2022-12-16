@@ -95,7 +95,7 @@
 <span class="kw">use </span>forest_db::DBStatistics;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>prometheus::{Encoder, TextEncoder};
-<span class="kw">use </span>std::{collections::HashMap, net::TcpListener};
+<span class="kw">use </span>std::{collections::HashMap, net::TcpListener, path::PathBuf};
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="macro">lazy_static::lazy_static! </span>{
@@ -108,7 +108,7 @@
 
 <span class="kw">pub async fn </span>init_prometheus&lt;DB&gt;(
     prometheus_listener: TcpListener,
-    db_directory: String,
+    db_directory: PathBuf,
     db: DB,
 ) -&gt; anyhow::Result&lt;()&gt;
 <span class="kw">where

@@ -686,13 +686,10 @@
 <a href="#686" id="686">686</a>
 <a href="#687" id="687">687</a>
 <a href="#688" id="688">688</a>
-<a href="#689" id="689">689</a>
-<a href="#690" id="690">690</a>
-<a href="#691" id="691">691</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span><span class="kw">super</span>::Config;
-<span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, to_size_string};
+<span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>chrono::DateTime;
 <span class="kw">use </span>forest_utils::{
@@ -820,10 +817,7 @@
         <span class="prelude-val">None </span>=&gt; <span class="kw">match </span>config.chain.name.to_lowercase().as_str() {
             <span class="string">&quot;mainnet&quot; </span>=&gt; <span class="kw-2">&amp;</span>SnapshotServer::Filecoin,
             <span class="string">&quot;calibnet&quot; </span>=&gt; <span class="kw-2">&amp;</span>SnapshotServer::Forest,
-            <span class="kw">_ </span>=&gt; cli_error_and_die(
-                <span class="macro">format!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name),
-                <span class="number">1</span>,
-            ),
+            <span class="kw">_ </span>=&gt; <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name),
         },
     };
     <span class="kw">match </span>server {

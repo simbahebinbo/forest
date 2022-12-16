@@ -164,28 +164,6 @@
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -194,9 +172,10 @@
 
 <span class="kw">use </span>cli::Cli;
 
+<span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>daemonize_me::{Daemon, Group, User};
 <span class="kw">use </span>forest_cli_shared::{
-    cli::{check_for_unknown_keys, cli_error_and_die, ConfigPath, DaemonConfig, LogConfig},
+    cli::{check_for_unknown_keys, cli_error_and_die, ConfigPath, DaemonConfig},
     logger,
 };
 <span class="kw">use </span>forest_db::Store;
@@ -236,14 +215,13 @@
 }
 
 <span class="comment">// Initiate an Event object in shared memory.
-</span><span class="kw">fn </span>create_ipc_lock() {
-    <span class="kw">let </span><span class="kw-2">mut </span>shmem = ipc_shmem_conf().create().expect(<span class="string">&quot;create must succeed&quot;</span>);
+</span><span class="kw">fn </span>create_ipc_lock() -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>shmem = ipc_shmem_conf().create()<span class="question-mark">?</span>;
     <span class="comment">// The shared memory object will not be deleted when &#39;shmem&#39; is dropped
     // because we&#39;re not the owner.
     </span>shmem.set_owner(<span class="bool-val">false</span>);
-    <span class="kw">unsafe </span>{
-        Event::new(shmem.as_ptr(), <span class="bool-val">true</span>).expect(<span class="string">&quot;new must succeed&quot;</span>);
-    }
+    <span class="kw">unsafe </span>{ Event::new(shmem.as_ptr(), <span class="bool-val">true</span>).map_err(|err| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{err}&quot;</span>)) }<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">fn </span>build_daemon&lt;<span class="lifetime">&#39;a</span>&gt;(config: <span class="kw-2">&amp;</span>DaemonConfig) -&gt; anyhow::Result&lt;Daemon&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
@@ -288,91 +266,69 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
 </span><span class="kw">type </span>Db = forest_db::parity_db::ParityDb;
 
-<span class="kw">fn </span>main() {
+<span class="kw">fn </span>main() -&gt; anyhow::Result&lt;()&gt; {
     <span class="comment">// Capture Cli inputs
     </span><span class="kw">let </span>Cli { opts, cmd } = Cli::from_args();
 
+    <span class="kw">let </span>(cfg, path) = opts.to_config().context(<span class="string">&quot;Error parsing config&quot;</span>)<span class="question-mark">?</span>;
+
     <span class="comment">// Run forest as a daemon if no other subcommands are used. Otherwise, run the subcommand.
-    </span><span class="kw">match </span>opts.to_config() {
-        <span class="prelude-val">Ok</span>((cfg, path)) =&gt; {
-            <span class="kw">let </span>(loki_task, ..) = logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, <span class="kw-2">&amp;</span>opts);
-            ProgressBar::set_progress_bars_visibility(cfg.client.show_progress_bars);
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="kw-2">&amp;</span>path {
-                <span class="kw">match </span>path {
-                    ConfigPath::Env(path) =&gt; {
-                        <span class="macro">info!</span>(<span class="string">&quot;FOREST_CONFIG_PATH loaded: {}&quot;</span>, path.display())
-                    }
-                    ConfigPath::Project(path) =&gt; {
-                        <span class="macro">info!</span>(<span class="string">&quot;Project config loaded: {}&quot;</span>, path.display())
-                    }
-                    <span class="kw">_ </span>=&gt; (),
-                }
-                check_for_unknown_keys(path.to_path_buf(), <span class="kw-2">&amp;</span>cfg);
-            } <span class="kw">else </span>{
-                <span class="macro">info!</span>(<span class="string">&quot;Using default {} config&quot;</span>, cfg.chain.name);
+    </span><span class="kw">let </span>(loki_task, ..) = logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, <span class="kw-2">&amp;</span>opts);
+    ProgressBar::set_progress_bars_visibility(cfg.client.show_progress_bars);
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(path) = <span class="kw-2">&amp;</span>path {
+        <span class="kw">match </span>path {
+            ConfigPath::Env(path) =&gt; {
+                <span class="macro">info!</span>(<span class="string">&quot;FOREST_CONFIG_PATH loaded: {}&quot;</span>, path.display())
             }
-            <span class="kw">match </span>cmd {
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="macro">warn!</span>(<span class="string">&quot;All subcommands have been moved to forest-cli tool&quot;</span>);
-                }
-                <span class="prelude-val">None </span>=&gt; {
-                    <span class="kw">if </span>opts.detach {
-                        create_ipc_lock();
-                        <span class="macro">info!</span>(
-                            <span class="string">&quot;Redirecting stdout and stderr to files {} and {}.&quot;</span>,
-                            cfg.daemon.stdout.display(),
-                            cfg.daemon.stderr.display()
-                        );
-                        <span class="kw">let </span>result = build_daemon(<span class="kw-2">&amp;</span>cfg.daemon)
-                            .unwrap_or_else(|e| {
-                                cli_error_and_die(
-                                    <span class="macro">format!</span>(<span class="string">&quot;Error building daemon. Error was: {e}&quot;</span>),
-                                    <span class="number">1</span>,
-                                )
-                            })
-                            .start();
-                        <span class="kw">match </span>result {
-                            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">info!</span>(<span class="string">&quot;Process detached&quot;</span>),
-                            <span class="prelude-val">Err</span>(e) =&gt; {
-                                cli_error_and_die(
-                                    <span class="macro">format!</span>(<span class="string">&quot;Error when detaching. Error was: {e}&quot;</span>),
-                                    <span class="number">1</span>,
-                                );
-                            }
-                        }
-                    }
-
-                    <span class="kw">let </span>rt = Runtime::new().unwrap();
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(loki_task) = loki_task {
-                        rt.spawn(loki_task);
-                    }
-                    <span class="kw">let </span>db: Db = rt.block_on(daemon::start(cfg, opts.detach));
-
-                    <span class="macro">info!</span>(<span class="string">&quot;Shutting down tokio...&quot;</span>);
-                    rt.shutdown_timeout(Duration::from_secs(<span class="number">10</span>));
-
-                    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = db.flush() {
-                        <span class="macro">error!</span>(<span class="string">&quot;Error flushing db: {e}&quot;</span>);
-                    }
-                    <span class="kw">let </span>db_weak_ref = Arc::downgrade(<span class="kw-2">&amp;</span>db.db);
-                    drop(db);
-
-                    <span class="kw">if </span>db_weak_ref.strong_count() != <span class="number">0 </span>{
-                        <span class="macro">error!</span>(
-                            <span class="string">&quot;Dangling reference to DB detected: {}. Tracking issue: https://github.com/ChainSafe/forest/issues/1891&quot;</span>,
-                            db_weak_ref.strong_count()
-                        );
-                    }
-                    <span class="macro">info!</span>(<span class="string">&quot;Forest finish shutdown&quot;</span>);
-                }
+            ConfigPath::Project(path) =&gt; {
+                <span class="macro">info!</span>(<span class="string">&quot;Project config loaded: {}&quot;</span>, path.display())
             }
+            <span class="kw">_ </span>=&gt; (),
         }
-        <span class="prelude-val">Err</span>(e) =&gt; {
-            logger::setup_logger(<span class="kw-2">&amp;</span>LogConfig::default(), <span class="kw-2">&amp;</span>opts);
-            cli_error_and_die(<span class="macro">format!</span>(<span class="string">&quot;Error parsing config: {e}&quot;</span>), <span class="number">1</span>);
+        check_for_unknown_keys(path.to_path_buf(), <span class="kw-2">&amp;</span>cfg);
+    } <span class="kw">else </span>{
+        <span class="macro">info!</span>(<span class="string">&quot;Using default {} config&quot;</span>, cfg.chain.name);
+    }
+    <span class="kw">match </span>cmd {
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
+            <span class="macro">warn!</span>(<span class="string">&quot;All subcommands have been moved to forest-cli tool&quot;</span>);
         }
-    };
+        <span class="prelude-val">None </span>=&gt; {
+            <span class="kw">if </span>opts.detach {
+                create_ipc_lock()<span class="question-mark">?</span>;
+                <span class="macro">info!</span>(
+                    <span class="string">&quot;Redirecting stdout and stderr to files {} and {}.&quot;</span>,
+                    cfg.daemon.stdout.display(),
+                    cfg.daemon.stderr.display()
+                );
+                build_daemon(<span class="kw-2">&amp;</span>cfg.daemon)<span class="question-mark">?</span>.start()<span class="question-mark">?</span>;
+            }
+
+            <span class="kw">let </span>rt = Runtime::new()<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(loki_task) = loki_task {
+                rt.spawn(loki_task);
+            }
+            <span class="kw">let </span>db: Db = rt.block_on(daemon::start(cfg, opts.detach))<span class="question-mark">?</span>;
+
+            <span class="macro">info!</span>(<span class="string">&quot;Shutting down tokio...&quot;</span>);
+            rt.shutdown_timeout(Duration::from_secs(<span class="number">10</span>));
+
+            db.flush()<span class="question-mark">?</span>;
+            <span class="kw">let </span>db_weak_ref = Arc::downgrade(<span class="kw-2">&amp;</span>db.db);
+            drop(db);
+
+            <span class="kw">if </span>db_weak_ref.strong_count() != <span class="number">0 </span>{
+                <span class="macro">error!</span>(
+                    <span class="string">&quot;Dangling reference to DB detected: {}. Tracking issue: https://github.com/ChainSafe/forest/issues/1891&quot;</span>,
+                    db_weak_ref.strong_count()
+                );
+            }
+            <span class="macro">info!</span>(<span class="string">&quot;Forest finish shutdown&quot;</span>);
+        }
+    }
+    <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (b70baa4f9 2022-12-14)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
