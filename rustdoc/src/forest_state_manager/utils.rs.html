@@ -105,9 +105,6 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -116,7 +113,7 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::miner;
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
+<span class="kw">use </span>forest_fil_types::verifier::generate_winning_post_sector_challenge;
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
@@ -129,16 +126,13 @@
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Retrieves and generates a vector of sector info for the winning `PoSt` verification.
-    </span><span class="kw">pub fn </span>get_sectors_for_winning_post&lt;V&gt;(
+    </span><span class="kw">pub fn </span>get_sectors_for_winning_post(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         st: <span class="kw-2">&amp;</span>Cid,
         nv: NetworkVersion,
         miner_address: <span class="kw-2">&amp;</span>Address,
         rand: Randomness,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SectorInfo&gt;, anyhow::Error&gt;
-    <span class="kw">where
-        </span>V: ProofVerifier,
-    {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SectorInfo&gt;, anyhow::Error&gt; {
         <span class="kw">let </span>store = <span class="self">self</span>.blockstore();
 
         <span class="kw">let </span>actor = <span class="self">self
@@ -189,7 +183,7 @@
 
         <span class="kw">let </span>m_id = miner_address.id()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>ids = V::generate_winning_post_sector_challenge(wpt, m_id, rand, num_prov_sect)<span class="question-mark">?</span>;
+        <span class="kw">let </span>ids = generate_winning_post_sector_challenge(wpt, m_id, rand, num_prov_sect)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>iter = proving_sectors.iter();
 

@@ -137,8 +137,6 @@
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -163,7 +161,6 @@
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_rpc_api::data_types::RPCState;
 <span class="kw">use </span>forest_rpc_api::{
     auth_api::<span class="kw-2">*</span>, beacon_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, common_api::<span class="kw-2">*</span>, gas_api::<span class="kw-2">*</span>, mpool_api::<span class="kw-2">*</span>, net_api::<span class="kw-2">*</span>,
@@ -175,7 +172,7 @@
 <span class="kw">use </span>std::net::TcpListener;
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">pub async fn </span>start_rpc&lt;DB, B, V, S&gt;(
+<span class="kw">pub async fn </span>start_rpc&lt;DB, B, S&gt;(
     state: Arc&lt;RPCState&lt;DB, B&gt;&gt;,
     rpc_endpoint: TcpListener,
     forest_version: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
@@ -183,7 +180,6 @@
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
-    V: ProofVerifier,
     S: Scale + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">use </span>auth_api::<span class="kw-2">*</span>;

@@ -1217,7 +1217,6 @@
 <a href="#1217" id="1217">1217</a>
 <a href="#1218" id="1218">1218</a>
 <a href="#1219" id="1219">1219</a>
-<a href="#1220" id="1220">1220</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1237,7 +1236,6 @@
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::{ChainStore, HeadChange};
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_interpreter::{resolve_to_key_addr, BlockMessages, RewardCalc, VM};
 <span class="kw">use </span>forest_json::message_receipt;
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
@@ -2346,7 +2344,7 @@
         ps.miner_nominal_power_meets_consensus_minimum(policy, <span class="self">self</span>.blockstore(), addr)
     }
 
-    <span class="kw">pub async fn </span>validate_chain&lt;V: ProofVerifier&gt;(
+    <span class="kw">pub async fn </span>validate_chain(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         <span class="kw-2">mut </span>ts: Arc&lt;Tipset&gt;,
         height: i64,

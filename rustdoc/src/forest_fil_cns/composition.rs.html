@@ -33,21 +33,19 @@
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
 <a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span><span class="kw">crate</span>::FilecoinConsensus;
 <span class="kw">use </span>forest_beacon::DrandBeacon;
 <span class="kw">use </span>forest_chain_sync::consensus::{MessagePoolApi, SyncGossipSubmitter};
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_fil_types::verifier::FullVerifier;
 <span class="kw">use </span>forest_key_management::KeyStore;
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::{sync::RwLock, task::JoinSet};
 
-<span class="kw">pub type </span>FullConsensus = FilecoinConsensus&lt;DrandBeacon, FullVerifier&gt;;
+<span class="kw">pub type </span>FullConsensus = FilecoinConsensus&lt;DrandBeacon&gt;;
 
 <span class="kw">pub const </span>FETCH_PARAMS: bool = <span class="bool-val">true</span>;
 

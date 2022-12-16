@@ -210,7 +210,6 @@
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
 <a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -219,7 +218,6 @@
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_fil_types::verifier::ProofVerifier;
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::net::FetchProgress;
@@ -337,7 +335,7 @@
 
 <span class="doccomment">/// Import a chain from a CAR file. If the snapshot boolean is set, it will not verify the chain
 /// state and instead accept the largest height as genesis.
-</span><span class="kw">pub async fn </span>import_chain&lt;V: ProofVerifier, DB&gt;(
+</span><span class="kw">pub async fn </span>import_chain&lt;DB&gt;(
     sm: <span class="kw-2">&amp;</span>Arc&lt;StateManager&lt;DB&gt;&gt;,
     path: <span class="kw-2">&amp;</span>str,
     validate_height: <span class="prelude-ty">Option</span>&lt;i64&gt;,
@@ -397,7 +395,7 @@
             (ts.epoch() + height).max(<span class="number">0</span>)
         };
         <span class="macro">info!</span>(<span class="string">&quot;Validating imported chain from height: {}&quot;</span>, height);
-        sm.validate_chain::&lt;V&gt;(ts.clone(), height).<span class="kw">await</span><span class="question-mark">?</span>;
+        sm.validate_chain(ts.clone(), height).<span class="kw">await</span><span class="question-mark">?</span>;
     }
 
     <span class="macro">info!</span>(<span class="string">&quot;Accepting {:?} as new head.&quot;</span>, ts.cids());
