@@ -1684,15 +1684,6 @@
 <a href="#1684" id="1684">1684</a>
 <a href="#1685" id="1685">1685</a>
 <a href="#1686" id="1686">1686</a>
-<a href="#1687" id="1687">1687</a>
-<a href="#1688" id="1688">1688</a>
-<a href="#1689" id="1689">1689</a>
-<a href="#1690" id="1690">1690</a>
-<a href="#1691" id="1691">1691</a>
-<a href="#1692" id="1692">1692</a>
-<a href="#1693" id="1693">1693</a>
-<a href="#1694" id="1694">1694</a>
-<a href="#1695" id="1695">1695</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -3042,15 +3033,6 @@
             })<span class="question-mark">?</span>;
 
         <span class="kw">if </span><span class="kw-2">&amp;</span>state_root != header.state_root() {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = forest_statediff::print_state_diff(
-                v_state_manager.blockstore(),
-                <span class="kw-2">&amp;</span>state_root,
-                header.state_root(),
-                <span class="prelude-val">Some</span>(<span class="number">1</span>),
-            ) {
-                <span class="macro">eprintln!</span>(<span class="string">&quot;Failed to print state-diff: {err}&quot;</span>);
-            }
-
             <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::&lt;C&gt;::Validation(<span class="macro">format!</span>(
                 <span class="string">&quot;Parent state root did not match computed state: {} (header), {} (computed)&quot;</span>,
                 header.state_root(),

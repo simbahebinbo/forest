@@ -1209,14 +1209,6 @@
 <a href="#1209" id="1209">1209</a>
 <a href="#1210" id="1210">1210</a>
 <a href="#1211" id="1211">1211</a>
-<a href="#1212" id="1212">1212</a>
-<a href="#1213" id="1213">1213</a>
-<a href="#1214" id="1214">1214</a>
-<a href="#1215" id="1215">1215</a>
-<a href="#1216" id="1216">1216</a>
-<a href="#1217" id="1217">1217</a>
-<a href="#1218" id="1218">1218</a>
-<a href="#1219" id="1219">1219</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2366,14 +2358,6 @@
         <span class="kw">let </span><span class="kw-2">mut </span>last_receipt = <span class="kw-2">*</span>ts_chain.last().unwrap().blocks()[<span class="number">0</span>].message_receipts();
         <span class="kw">for </span>ts <span class="kw">in </span>ts_chain.iter().rev() {
             <span class="kw">if </span>ts.parent_state() != <span class="kw-2">&amp;</span>last_state {
-                forest_statediff::print_state_diff(
-                    <span class="self">self</span>.blockstore(),
-                    <span class="kw-2">&amp;</span>last_state,
-                    ts.parent_state(),
-                    <span class="prelude-val">Some</span>(<span class="number">1</span>),
-                )
-                .unwrap();
-
                 <span class="macro">anyhow::bail!</span>(
                     <span class="string">&quot;Tipset chain has state mismatch at height: {}, {} != {}, \
                         receipts mismatched: {}&quot;</span>,
