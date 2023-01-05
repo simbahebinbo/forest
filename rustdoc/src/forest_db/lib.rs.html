@@ -133,7 +133,6 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -145,12 +144,11 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
 </span><span class="kw">pub mod </span>rocks;
 
-<span class="kw">pub mod </span>rocks_config;
-
 <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
 </span><span class="kw">pub mod </span>parity_db;
 
 <span class="kw">pub mod </span>parity_db_config;
+<span class="kw">pub mod </span>rocks_config;
 
 <span class="kw">pub use </span>errors::Error;
 <span class="kw">pub use </span>memory::MemoryDB;
