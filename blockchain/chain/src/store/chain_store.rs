@@ -564,9 +564,39 @@ where
         Ok(digest)
     }
 
+    pub async fn prune(&self, tipset: &Tipset, recent_roots: ChainEpoch) -> Result<(), Error> {
+        let global_pre_time = SystemTime::now();
+        info!("chain prune started");
+
+        let mut cid_counter = 0;
+        Self::walk_snapshot(tipset, recent_roots, |cid| {
+            cid_counter += 1;
+            async move {
+                let block = self
+                    .blockstore()
+                    .get(&cid)?
+                    .ok_or_else(|| Error::Other("Cid {cid} not found in blockstore".to_string()))?;
+                if cid_counter % 10000 == 0 && cid_counter > 0 {
+                    info!("counter is at {cid_counter}");
+                }
+                Ok(block)
+            }
+        })
+        .await?;
+
+        info!("cids: {cid_counter}");
+
+        let time = SystemTime::now()
+            .duration_since(global_pre_time)
+            .expect("time cannot go backwards");
+        info!("prune finished, took {} seconds", time.as_secs());
+
+        Ok(())
+    }
+
     /// Walks over tipset and state data and loads all blocks not yet seen.
     /// This is tracked based on the callback function loading blocks.
-    async fn walk_snapshot<F, T>(
+    pub async fn walk_snapshot<F, T>(
         tipset: &Tipset,
         recent_roots: ChainEpoch,
         mut load_block: F,
