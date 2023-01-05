@@ -123,121 +123,18 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::market::{DealProposal, DealState};
-<span class="kw">use </span>forest_beacon::{json::BeaconEntryJson, Beacon, BeaconSchedule};
-<span class="kw">use </span>forest_blocks::{
-    election_proof::json::ElectionProofJson, ticket::json::TicketJson,
-    tipset_keys_json::TipsetKeysJson, Tipset,
-};
-<span class="kw">use </span>forest_chain::{headchange_json::SubscriptionHeadChange, ChainStore};
+<span class="kw">use </span>forest_beacon::{Beacon, BeaconSchedule};
+<span class="kw">use </span>forest_blocks::{tipset_keys_json::TipsetKeysJson, Tipset};
+<span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_chain_sync::{BadBlockCache, SyncState};
 <span class="kw">use </span>forest_ipld::json::IpldJson;
-<span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_json::message_receipt::json::ReceiptJson;
-<span class="kw">use </span>forest_json::sector::json::PoStProofJson;
-<span class="kw">use </span>forest_json::signed_message::json::SignedMessageJson;
 <span class="kw">use </span>forest_json::token_amount::json;
 <span class="kw">use </span>forest_key_management::KeyStore;
 <span class="kw">pub use </span>forest_libp2p::{Multiaddr, Protocol};
@@ -245,25 +142,13 @@
 <span class="kw">use </span>forest_message::signed_message::SignedMessage;
 <span class="kw">use </span>forest_message_pool::{MessagePool, MpoolRpcProvider};
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>fvm::state_tree::ActorState;
-<span class="kw">use </span>fvm_ipld_bitfield::json::BitFieldJson;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>jsonrpc_v2::{MapRouter <span class="kw">as </span>JsonRpcMapRouter, Server <span class="kw">as </span>JsonRpcServer};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::RwLock;
-
-<span class="comment">// RPC State
-</span><span class="attr">#[derive(Serialize)]
-</span><span class="kw">pub struct </span>StreamingData&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>json_rpc: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-    <span class="kw">pub </span>method: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-    <span class="kw">pub </span>params: SubscriptionHeadChange,
-}
 
 <span class="doccomment">/// This is where you store persistent data, or at least access to stateful data.
 </span><span class="kw">pub struct </span>RPCState&lt;DB, B&gt;
@@ -312,70 +197,6 @@
     </span>max_fee: TokenAmount,
 }
 
-<span class="comment">// State API
-</span><span class="attr">#[derive(Serialize)]
-#[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
-</span><span class="kw">pub struct </span>Deadline {
-    <span class="kw">pub </span>post_submissions: BitFieldJson,
-    <span class="kw">pub </span>disputable_proof_count: usize,
-}
-
-<span class="attr">#[derive(Serialize)]
-</span><span class="kw">pub struct </span>Fault {
-    miner: Address,
-    epoch: ChainEpoch,
-}
-
-<span class="attr">#[derive(Serialize)]
-#[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
-</span><span class="kw">pub struct </span>Partition {
-    <span class="kw">pub </span>all_sectors: BitFieldJson,
-    <span class="kw">pub </span>faulty_sectors: BitFieldJson,
-    <span class="kw">pub </span>recovering_sectors: BitFieldJson,
-    <span class="kw">pub </span>live_sectors: BitFieldJson,
-    <span class="kw">pub </span>active_sectors: BitFieldJson,
-}
-
-<span class="attr">#[derive(Serialize, Deserialize)]
-#[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
-</span><span class="kw">pub struct </span>ActorStateJson {
-    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::cid&quot;</span>)]
-    </span>code: Cid,
-    <span class="attr">#[serde(with = <span class="string">&quot;forest_json::cid&quot;</span>)]
-    </span>head: Cid,
-    nonce: u64,
-    <span class="attr">#[serde(with = <span class="string">&quot;json&quot;</span>)]
-    </span>balance: TokenAmount,
-}
-
-<span class="kw">impl </span>ActorStateJson {
-    <span class="kw">pub fn </span>nonce(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
-        <span class="self">self</span>.nonce
-    }
-}
-
-<span class="kw">impl </span>From&lt;ActorStateJson&gt; <span class="kw">for </span>ActorState {
-    <span class="kw">fn </span>from(a: ActorStateJson) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            code: a.code,
-            state: a.head,
-            sequence: a.nonce,
-            balance: a.balance,
-        }
-    }
-}
-
-<span class="kw">impl </span>From&lt;ActorState&gt; <span class="kw">for </span>ActorStateJson {
-    <span class="kw">fn </span>from(a: ActorState) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            code: a.code,
-            head: a.state,
-            nonce: a.sequence,
-            balance: a.balance,
-        }
-    }
-}
-
 <span class="attr">#[derive(Serialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>MarketDeal {
@@ -392,21 +213,6 @@
     <span class="kw">pub </span>height: i64,
     <span class="kw">pub </span>message: CidJson,
     <span class="kw">pub </span>return_dec: IpldJson,
-}
-
-<span class="attr">#[derive(Deserialize)]
-#[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
-</span><span class="kw">pub struct </span>BlockTemplate {
-    <span class="kw">pub </span>miner: AddressJson,
-    <span class="kw">pub </span>parents: TipsetKeysJson,
-    <span class="kw">pub </span>ticket: TicketJson,
-    <span class="kw">pub </span>eproof: ElectionProofJson,
-    <span class="kw">pub </span>beacon_values: Vec&lt;BeaconEntryJson&gt;,
-    <span class="kw">pub </span>messages: Vec&lt;SignedMessageJson&gt;,
-    <span class="kw">pub </span>epoch: i64,
-    <span class="kw">pub </span>timestamp: u64,
-    <span class="attr">#[serde(rename = <span class="string">&quot;WinningPoStProof&quot;</span>)]
-    </span><span class="kw">pub </span>winning_post_proof: Vec&lt;PoStProofJson&gt;,
 }
 
 <span class="comment">// Net API

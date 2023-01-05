@@ -532,15 +532,6 @@
 <a href="#532" id="532">532</a>
 <a href="#533" id="533">533</a>
 <a href="#534" id="534">534</a>
-<a href="#535" id="535">535</a>
-<a href="#536" id="536">536</a>
-<a href="#537" id="537">537</a>
-<a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a>
-<a href="#540" id="540">540</a>
-<a href="#541" id="541">541</a>
-<a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -666,12 +657,8 @@
 
     <span class="doccomment">/// Retrieves the `msg` chain node at the given index
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_mut_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>MsgChainNode&gt; {
-        <span class="kw">if </span>i &lt; <span class="self">self</span>.key_vec.len() {
-            <span class="kw">let </span>key = <span class="self">self</span>.key_vec[i];
-            <span class="self">self</span>.get_mut(key)
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+        <span class="kw">let </span>key = <span class="self">self</span>.key_vec.get(i)<span class="question-mark">?</span>;
+        <span class="self">self</span>.get_mut(<span class="kw-2">*</span>key)
     }
 
     <span class="comment">// Retrieves a msg chain node at the given index in the provided NodeKey vec
@@ -686,17 +673,12 @@
 
     <span class="comment">// Retrieves the node key at the given index
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_key_at(<span class="kw-2">&amp;</span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;NodeKey&gt; {
-        <span class="kw">if </span>i &lt; <span class="self">self</span>.key_vec.len() {
-            <span class="prelude-val">Some</span>(<span class="self">self</span>.key_vec[i])
-        } <span class="kw">else </span>{
-            <span class="prelude-val">None
-        </span>}
+        <span class="self">self</span>.key_vec.get(i).copied()
     }
 
     <span class="doccomment">/// Retrieves the `msg` chain node at the given index
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MsgChainNode&gt; {
-        <span class="kw">let </span>key = <span class="self">self</span>.key_vec[i];
-        <span class="self">self</span>.map.get(key)
+        <span class="self">self</span>.map.get(<span class="self">self</span>.get_key_at(i)<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Retrieves the amount of items.

@@ -136,7 +136,6 @@
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -236,7 +235,6 @@
             .with_method(WALLET_NEW, wallet_new::&lt;DB, B&gt;)
             .with_method(WALLET_SET_DEFAULT, wallet_set_default::&lt;DB, B&gt;)
             .with_method(WALLET_SIGN, wallet_sign::&lt;DB, B&gt;)
-            .with_method(WALLET_SIGN_MESSAGE, wallet_sign_message::&lt;DB, B&gt;)
             .with_method(WALLET_VERIFY, wallet_verify::&lt;DB, B&gt;)
             <span class="comment">// State API
             </span>.with_method(STATE_CALL, state_call::&lt;DB, B&gt;)
