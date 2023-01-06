@@ -309,6 +309,8 @@
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -320,8 +322,9 @@
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>lru::LruCache;
-<span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc};
-<span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>std::num::NonZeroUsize;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>tokio::sync::Mutex;
 
 <span class="kw">const </span>DEFAULT_CHAIN_INDEX_CACHE_SIZE: NonZeroUsize =
     <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">32 </span>&lt;&lt; <span class="number">10</span>));
@@ -444,7 +447,7 @@
 /// at the chain to retrieve an old tipset.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ChainIndex&lt;BS&gt; {
     <span class="doccomment">/// Cache of look-back entries to speed up lookup.
-    </span>skip_cache: RwLock&lt;LruCache&lt;TipsetKeys, Arc&lt;LookbackEntry&gt;&gt;&gt;,
+    </span>skip_cache: Mutex&lt;LruCache&lt;TipsetKeys, Arc&lt;LookbackEntry&gt;&gt;&gt;,
 
     <span class="doccomment">/// `Arc` reference tipset cache.
     </span>ts_cache: Arc&lt;TipsetCache&gt;,
@@ -456,7 +459,7 @@
 <span class="kw">impl</span>&lt;BS: Blockstore&gt; ChainIndex&lt;BS&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(ts_cache: Arc&lt;TipsetCache&gt;, db: BS) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            skip_cache: RwLock::new(LruCache::new(DEFAULT_CHAIN_INDEX_CACHE_SIZE)),
+            skip_cache: Mutex::new(LruCache::new(DEFAULT_CHAIN_INDEX_CACHE_SIZE)),
             ts_cache,
             db,
         }
@@ -484,10 +487,11 @@
         <span class="kw">let </span>rounded = <span class="self">self</span>.round_down(from).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>cur = rounded.key().clone();
+
         <span class="kw">const </span>MAX_COUNT: usize = <span class="number">100</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>counter = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <span class="kw">let </span>entry = <span class="self">self</span>.skip_cache.write().<span class="kw">await</span>.get(<span class="kw-2">&amp;</span>cur).cloned();
+            <span class="kw">let </span>entry = <span class="self">self</span>.skip_cache.lock().<span class="kw">await</span>.get(<span class="kw-2">&amp;</span>cur).cloned();
             <span class="kw">let </span>lbe = <span class="kw">if let </span><span class="prelude-val">Some</span>(cached) = entry {
                 metrics::LRU_CACHE_HIT
                     .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::SKIP])
@@ -576,7 +580,7 @@
             target: skip_target.key().clone(),
         });
 
-        <span class="self">self</span>.skip_cache.write().<span class="kw">await</span>.put(tsk.clone(), lbe.clone());
+        <span class="self">self</span>.skip_cache.lock().<span class="kw">await</span>.put(tsk.clone(), lbe.clone());
         <span class="prelude-val">Ok</span>(lbe)
     }
 
