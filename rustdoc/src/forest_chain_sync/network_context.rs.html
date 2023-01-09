@@ -383,12 +383,10 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::peer_manager::PeerManager;
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{FullTipset, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_encoding::de::DeserializeOwned;
 <span class="kw">use </span>forest_libp2p::{
@@ -398,7 +396,7 @@
     },
     hello::{HelloRequest, HelloResponse},
     rpc::RequestResponseError,
-    NetworkMessage, PeerId,
+    NetworkMessage, PeerId, PeerManager,
 };
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>futures::channel::oneshot::channel <span class="kw">as </span>oneshot_channel;

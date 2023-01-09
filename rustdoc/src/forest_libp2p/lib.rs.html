@@ -21,6 +21,9 @@
 <a href="#21" id="21">21</a>
 <a href="#22" id="22">22</a>
 <a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -32,11 +35,14 @@
 <span class="kw">mod </span>discovery;
 <span class="kw">mod </span>gossip_params;
 <span class="kw">pub mod </span>hello;
+<span class="kw">mod </span>metrics;
+<span class="kw">mod </span>peer_manager;
 <span class="kw">pub mod </span>rpc;
 <span class="kw">mod </span>service;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::behaviour::<span class="kw-2">*</span>;
 <span class="kw">pub use </span><span class="self">self</span>::config::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::peer_manager::<span class="kw-2">*</span>;
 <span class="kw">pub use </span><span class="self">self</span>::service::<span class="kw-2">*</span>;
 
 <span class="comment">// Re-export some libp2p types
