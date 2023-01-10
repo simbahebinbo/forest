@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["db_path",""],["open_db",""]],"type":[["Db",""],["DbConfig",""]]};

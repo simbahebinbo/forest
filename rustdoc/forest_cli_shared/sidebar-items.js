@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["chain_path","Gets chain data directory"],["db_path",""],["open_db",""]],"mod":[["cli",""],["logger",""]],"type":[["Db",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["chain_path","Gets chain data directory"]],"mod":[["cli",""],["logger",""]]};

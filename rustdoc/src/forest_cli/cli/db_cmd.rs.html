@@ -59,10 +59,12 @@
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_cli_shared::cli::{db_path, Config};
+</span><span class="kw">use </span>forest_cli_shared::{chain_path, cli::Config};
+<span class="kw">use </span>forest_db::db_engine::db_path;
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>structopt::StructOpt;
 
@@ -86,14 +88,14 @@
             <span class="self">Self</span>::Stats =&gt; {
                 <span class="kw">use </span>human_repr::HumanCount;
 
-                <span class="kw">let </span>dir = db_path(config);
+                <span class="kw">let </span>dir = db_path(<span class="kw-2">&amp;</span>chain_path(config));
                 <span class="macro">println!</span>(<span class="string">&quot;Database path: {}&quot;</span>, dir.display());
                 <span class="kw">let </span>size = fs_extra::dir::get_size(dir).unwrap_or_default();
                 <span class="macro">println!</span>(<span class="string">&quot;Database size: {}&quot;</span>, size.human_count_bytes());
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::Clean { force } =&gt; {
-                <span class="kw">let </span>dir = db_path(config);
+                <span class="kw">let </span>dir = db_path(<span class="kw-2">&amp;</span>chain_path(config));
                 <span class="kw">if </span>!dir.is_dir() {
                     <span class="macro">println!</span>(
                         <span class="string">&quot;Aborted. Database path {} is not a valid directory&quot;</span>,

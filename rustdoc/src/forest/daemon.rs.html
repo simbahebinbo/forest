@@ -558,6 +558,8 @@
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -568,12 +570,14 @@
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_chain_sync::consensus::SyncGossipSubmitter;
 <span class="kw">use </span>forest_chain_sync::ChainMuxer;
+<span class="kw">use </span>forest_cli_shared::chain_path;
 <span class="kw">use </span>forest_cli_shared::cli::{
-    db_path, default_snapshot_dir, is_aria2_installed, snapshot_fetch, Client, Config,
-    FOREST_VERSION_STRING,
+    default_snapshot_dir, is_aria2_installed, snapshot_fetch, Client, Config, FOREST_VERSION_STRING,
 };
-<span class="kw">use </span>forest_cli_shared::{open_db, Db};
-<span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_db::{
+    db_engine::{db_path, open_db, Db},
+    Store,
+};
 <span class="kw">use </span>forest_genesis::{get_network_name_from_genesis, import_chain, read_genesis_header};
 <span class="kw">use </span>forest_key_management::ENCRYPTED_KEYSTORE_NAME;
 <span class="kw">use </span>forest_key_management::{KeyStore, KeyStoreConfig};
@@ -697,7 +701,7 @@
 
     <span class="kw">let </span>keystore = Arc::new(RwLock::new(ks));
 
-    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path(<span class="kw-2">&amp;</span>config), <span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
+    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path(<span class="kw-2">&amp;</span>chain_path(<span class="kw-2">&amp;</span>config)), config.db_config())<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
 
@@ -710,7 +714,7 @@
             <span class="string">&quot;Prometheus server started at {}&quot;</span>,
             config.client.metrics_address
         );
-        <span class="kw">let </span>db_directory = db_path(<span class="kw-2">&amp;</span>config);
+        <span class="kw">let </span>db_directory = forest_db::db_engine::db_path(<span class="kw-2">&amp;</span>chain_path(<span class="kw-2">&amp;</span>config));
         <span class="kw">let </span>db = db.clone();
         services.spawn(<span class="kw">async </span>{
             forest_metrics::init_prometheus(prometheus_listener, db_directory, db)

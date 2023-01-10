@@ -496,7 +496,7 @@
     default_snapshot_dir, is_car_or_tmp, snapshot_fetch, SnapshotServer, SnapshotStore,
 };
 
-<span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_db::{db_engine::open_db, Store};
 <span class="kw">use </span>forest_genesis::read_genesis_header;
 <span class="kw">use </span>forest_ipld::recurse_links;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
@@ -855,7 +855,7 @@
     <span class="kw">if </span>confirm {
         <span class="kw">let </span>tmp_db_path = TempDir::new()<span class="question-mark">?</span>;
         <span class="kw">let </span>db_path = tmp_db_path.path().join(<span class="kw-2">&amp;</span>config.chain.name);
-        <span class="kw">let </span>db = forest_cli_shared::open_db(<span class="kw-2">&amp;</span>db_path, config)<span class="question-mark">?</span>;
+        <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path, config.db_config())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db).<span class="kw">await</span>);
 

@@ -170,9 +170,9 @@
 <span class="kw">use </span>daemonize_me::{Daemon, Group, User};
 <span class="kw">use </span>forest_cli_shared::{
     cli::{check_for_unknown_keys, cli_error_and_die, ConfigPath, DaemonConfig},
-    logger, Db,
+    logger,
 };
-<span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_db::{db_engine::Db, Store};
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>log::{error, info, warn};

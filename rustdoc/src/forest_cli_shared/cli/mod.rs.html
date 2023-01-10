@@ -399,18 +399,6 @@
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
-<a href="#413" id="413">413</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -700,18 +688,6 @@
         .data_dir
         .join(<span class="string">&quot;snapshots&quot;</span>)
         .join(config.chain.name.clone())
-}
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-</span><span class="doccomment">/// Gets database directory
-</span><span class="kw">pub fn </span>db_path(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
-    chain_path(config).join(<span class="string">&quot;rocksdb&quot;</span>)
-}
-
-<span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
-</span><span class="doccomment">/// Gets database directory
-</span><span class="kw">pub fn </span>db_path(config: <span class="kw-2">&amp;</span>Config) -&gt; PathBuf {
-    chain_path(config).join(<span class="string">&quot;paritydb&quot;</span>)
 }
 
 <span class="doccomment">/// Gets chain data directory
