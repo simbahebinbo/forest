@@ -983,6 +983,8 @@
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
 <a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1001,6 +1003,7 @@
 };
 <span class="kw">use </span>forest_chain::{ChainStore, Error <span class="kw">as </span>ChainStoreError};
 <span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_libp2p::PeerManager;
 <span class="kw">use </span>forest_libp2p::{
     hello::HelloRequest, rpc::RequestResponseError, NetworkEvent, NetworkMessage, PeerId,
     PubsubMessage,
@@ -1143,6 +1146,7 @@
     </span><span class="kw">pub fn </span>new(
         consensus: Arc&lt;C&gt;,
         state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
+        peer_manager: Arc&lt;PeerManager&gt;,
         mpool: Arc&lt;MessagePool&lt;M&gt;&gt;,
         network_send: flume::Sender&lt;NetworkMessage&gt;,
         network_rx: flume::Receiver&lt;NetworkEvent&gt;,
@@ -1153,7 +1157,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, ChainMuxerError&lt;C&gt;&gt; {
         <span class="kw">let </span>network = SyncNetworkContext::new(
             network_send,
-            Default::default(),
+            peer_manager,
             state_manager.blockstore().clone(),
         );
 

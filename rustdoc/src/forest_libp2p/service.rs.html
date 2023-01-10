@@ -947,6 +947,43 @@
 <a href="#947" id="947">947</a>
 <a href="#948" id="948">948</a>
 <a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -959,6 +996,7 @@
     hello::{HelloRequest, HelloResponse},
     rpc::RequestResponseError,
 };
+<span class="kw">use crate</span>::{PeerManager, PeerOperation};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>forest_blocks::GossipBlock;
@@ -1040,7 +1078,9 @@
 
 <span class="kw">const </span>PUBSUB_TOPICS: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [PUBSUB_BLOCK_STR, PUBSUB_MSG_STR];
 
-<span class="kw">type </span>HelloRequestTable =
+<span class="kw">const </span>BAN_PEER_DURATION: Duration = Duration::from_secs(<span class="number">60 </span>* <span class="number">60</span>); <span class="comment">//1h
+
+</span><span class="kw">type </span>HelloRequestTable =
     HashMap&lt;RequestId, OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;HelloResponse, RequestResponseError&gt;&gt;&gt;;
 
 <span class="kw">type </span>CxRequestTable =
@@ -1142,6 +1182,7 @@
     config: Libp2pConfig,
     swarm: Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
     cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
+    peer_manager: Arc&lt;PeerManager&gt;,
     network_receiver_in: flume::Receiver&lt;NetworkMessage&gt;,
     network_sender_in: Sender&lt;NetworkMessage&gt;,
     network_receiver_out: flume::Receiver&lt;NetworkEvent&gt;,
@@ -1157,6 +1198,7 @@
     <span class="kw">pub async fn </span>new(
         config: Libp2pConfig,
         cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
+        peer_manager: Arc&lt;PeerManager&gt;,
         net_keypair: Keypair,
         network_name: <span class="kw-2">&amp;</span>str,
         genesis_cid: Cid,
@@ -1195,6 +1237,7 @@
             config,
             swarm,
             cs,
+            peer_manager,
             network_receiver_in,
             network_sender_in,
             network_receiver_out,
@@ -1225,6 +1268,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>outgoing_bitswap_query_ids = HashMap::new();
         <span class="kw">let </span>(cx_response_tx, cx_response_rx) = flume::unbounded();
         <span class="kw">let </span><span class="kw-2">mut </span>cx_response_rx_stream = cx_response_rx.stream().fuse();
+        <span class="kw">let </span><span class="kw-2">mut </span>peer_ops_rx_stream = <span class="self">self</span>.peer_manager.peer_ops_rx().stream().fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>libp2p_registry = Default::default();
         <span class="kw">let </span>metrics = Metrics::new(<span class="kw-2">&amp;mut </span>libp2p_registry);
         forest_metrics::add_metrics_registry(<span class="string">&quot;libp2p&quot;</span>.into(), libp2p_registry).<span class="kw">await</span>;
@@ -1236,6 +1280,7 @@
                         metrics.record(<span class="kw-2">&amp;</span>event);
                         handle_forest_behaviour_event(
                             swarm_stream.get_mut(),
+                            <span class="kw-2">&amp;</span><span class="self">self</span>.peer_manager,
                             event,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cs,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.genesis_cid,
@@ -1275,6 +1320,11 @@
                         }
                     }
                 },
+                peer_ops_opt = peer_ops_rx_stream.next() =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(peer_ops) = peer_ops_opt {
+                        handle_peer_ops(swarm_stream.get_mut(), peer_ops);
+                    }
+                }
             };
         }
         <span class="prelude-val">Ok</span>(())
@@ -1288,6 +1338,20 @@
     <span class="doccomment">/// Returns a receiver to listen to network events emitted from the service.
     </span><span class="kw">pub fn </span>network_receiver(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; flume::Receiver&lt;NetworkEvent&gt; {
         <span class="self">self</span>.network_receiver_out.clone()
+    }
+}
+
+<span class="kw">fn </span>handle_peer_ops&lt;P: StoreParams&gt;(swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;, peer_ops: PeerOperation) {
+    <span class="kw">use </span>PeerOperation::<span class="kw-2">*</span>;
+    <span class="kw">match </span>peer_ops {
+        Ban(peer_id, reason) =&gt; {
+            <span class="macro">warn!</span>(<span class="string">&quot;Banning {peer_id}, reason: {reason}&quot;</span>);
+            swarm.ban_peer_id(peer_id);
+        }
+        Unban(peer_id) =&gt; {
+            <span class="macro">info!</span>(<span class="string">&quot;Unbanning {peer_id}&quot;</span>);
+            swarm.unban_peer_id(peer_id);
+        }
     }
 }
 
@@ -1482,6 +1546,7 @@
 <span class="kw">async fn </span>handle_hello_event&lt;P: StoreParams&gt;(
     rr_event: RequestResponseEvent&lt;HelloRequest, HelloResponse, HelloResponse&gt;,
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
     hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
@@ -1512,11 +1577,16 @@
 
                 <span class="macro">trace!</span>(<span class="string">&quot;Received hello request: {:?}&quot;</span>, request);
                 <span class="kw">if </span><span class="kw-2">&amp;</span>request.genesis_cid != genesis_cid {
-                    <span class="macro">warn!</span>(
-                        <span class="string">&quot;Genesis hash mismatch: {} received, {genesis_cid} expected. Banning {peer}&quot;</span>,
-                        request.genesis_cid
-                    );
-                    swarm.ban_peer_id(peer);
+                    peer_manager
+                        .ban_peer(
+                            peer,
+                            <span class="macro">format!</span>(
+                                <span class="string">&quot;Genesis hash mismatch: {} received, {genesis_cid} expected&quot;</span>,
+                                request.genesis_cid
+                            ),
+                            <span class="prelude-val">Some</span>(BAN_PEER_DURATION),
+                        )
+                        .<span class="kw">await</span>;
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>sent = SystemTime::now()
                         .duration_since(UNIX_EPOCH)
@@ -1644,10 +1714,7 @@
     }
 }
 
-<span class="kw">fn </span>handle_ping_event&lt;P: StoreParams&gt;(
-    ping_event: ping::Event,
-    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
-) {
+<span class="kw">async fn </span>handle_ping_event(ping_event: ping::Event, peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;) {
     <span class="kw">match </span>ping_event.result {
         <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
             <span class="macro">trace!</span>(
@@ -1671,8 +1738,13 @@
             <span class="kw">let </span>peer = ping_event.peer.to_base58();
             <span class="macro">warn!</span>(<span class="string">&quot;{err}: {peer}&quot;</span>,);
             <span class="kw">if </span>err.contains(<span class="string">&quot;protocol not supported&quot;</span>) {
-                <span class="macro">warn!</span>(<span class="string">&quot;Banning peer {peer} due to protocol error&quot;</span>);
-                swarm.ban_peer_id(ping_event.peer);
+                peer_manager
+                    .ban_peer(
+                        ping_event.peer,
+                        <span class="macro">format!</span>(<span class="string">&quot;Ping protocol err: {err}&quot;</span>),
+                        <span class="prelude-val">Some</span>(BAN_PEER_DURATION),
+                    )
+                    .<span class="kw">await</span>;
             }
         }
     }
@@ -1712,7 +1784,7 @@
                             channel,
                             make_chain_exchange_response(db.as_ref(), <span class="kw-2">&amp;</span>request).<span class="kw">await</span>,
                         )) {
-                            <span class="macro">warn!</span>(<span class="string">&quot;Failed to send ChainExchangeResponse: {e:?}&quot;</span>);
+                            <span class="macro">debug!</span>(<span class="string">&quot;Failed to send ChainExchangeResponse: {e:?}&quot;</span>);
                         }
                     });
                 }
@@ -1732,7 +1804,7 @@
                             .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CX_REQUEST_TABLE])
                             .set(cx_request_table.capacity() <span class="kw">as </span>u64);
                         <span class="kw">if </span>tx.send(<span class="prelude-val">Ok</span>(response)).is_err() {
-                            <span class="macro">warn!</span>(<span class="string">&quot;Fail to send ChainExchange response&quot;</span>)
+                            <span class="macro">debug!</span>(<span class="string">&quot;Failed to send ChainExchange response&quot;</span>)
                         }
                     } <span class="kw">else </span>{
                         <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed: channel not found&quot;</span>);
@@ -1785,6 +1857,7 @@
 <span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P: StoreParams&gt;(
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;,
     event: ForestBehaviourEvent&lt;P&gt;,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
@@ -1813,6 +1886,7 @@
             handle_hello_event(
                 rr_event,
                 swarm,
+                peer_manager,
                 genesis_cid,
                 network_sender_out,
                 hello_request_table,
@@ -1822,7 +1896,7 @@
         ForestBehaviourEvent::Bitswap(bs_event) =&gt; {
             handle_bitswap_event(bs_event, network_sender_out, outgoing_bitswap_query_ids).<span class="kw">await
         </span>}
-        ForestBehaviourEvent::Ping(ping_event) =&gt; handle_ping_event(ping_event, swarm),
+        ForestBehaviourEvent::Ping(ping_event) =&gt; handle_ping_event(ping_event, peer_manager).<span class="kw">await</span>,
         ForestBehaviourEvent::Identify(<span class="kw">_</span>) =&gt; {}
         ForestBehaviourEvent::ChainExchange(ce_event) =&gt; {
             handle_chain_exchange_event(
