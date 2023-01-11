@@ -1678,7 +1678,6 @@
 <a href="#1678" id="1678">1678</a>
 <a href="#1679" id="1679">1679</a>
 <a href="#1680" id="1680">1680</a>
-<a href="#1681" id="1681">1681</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2950,8 +2949,7 @@
     <span class="comment">// Retrieve lookback tipset for validation
     </span><span class="kw">let </span>lookback_state = state_manager
         .get_lookback_tipset_for_round(base_tipset.clone(), block.header().epoch())
-        .<span class="kw">await
-        </span>.map_err(|e| (<span class="kw-2">*</span>block_cid, e.into()))
+        .map_err(|e| (<span class="kw-2">*</span>block_cid, e.into()))
         .map(|(<span class="kw">_</span>, s)| Arc::new(s))<span class="question-mark">?</span>;
 
     <span class="comment">// Work address needed for async validations, so necessary

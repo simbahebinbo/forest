@@ -398,7 +398,6 @@
 <a href="#398" id="398">398</a>
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -467,8 +466,7 @@
     <span class="comment">// Retrieve lookback tipset for validation
     </span><span class="kw">let </span>(lookback_tipset, lookback_state) = state_manager
         .get_lookback_tipset_for_round(base_tipset.clone(), block.header().epoch())
-        .<span class="kw">await
-        </span>.map_err(to_errs)<span class="question-mark">?</span>;
+        .map_err(to_errs)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>lookback_state = Arc::new(lookback_state);
 

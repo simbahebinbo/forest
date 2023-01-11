@@ -448,7 +448,7 @@
         base_fee: TokenAmount,
         circ_supply: TokenAmount,
         reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
-        lb_fn: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
+        lb_fn: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; anyhow::Result&lt;Cid&gt;&gt;,
         multi_engine: <span class="kw-2">&amp;</span>MultiEngine,
         chain_config: Arc&lt;ChainConfig&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {

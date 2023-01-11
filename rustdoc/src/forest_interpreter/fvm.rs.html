@@ -342,7 +342,7 @@
     rand: Box&lt;<span class="kw">dyn </span>Rand&gt;,
     epoch: ChainEpoch,
     root: Cid,
-    lookback: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
+    lookback: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; anyhow::Result&lt;Cid&gt;&gt;,
     db: DB,
     chain_config: Arc&lt;ChainConfig&gt;,
 }
@@ -352,7 +352,7 @@
         rand: <span class="kw">impl </span>Rand + <span class="lifetime">&#39;static</span>,
         epoch: ChainEpoch,
         root: Cid,
-        lookback: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; Cid&gt;,
+        lookback: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; anyhow::Result&lt;Cid&gt;&gt;,
         db: DB,
         chain_config: Arc&lt;ChainConfig&gt;,
     ) -&gt; <span class="self">Self </span>{
@@ -379,7 +379,7 @@
             );
         }
 
-        <span class="kw">let </span>prev_root = (<span class="self">self</span>.lookback)(height);
+        <span class="kw">let </span>prev_root = (<span class="self">self</span>.lookback)(height)<span class="question-mark">?</span>;
         <span class="kw">let </span>lb_state = StateTree::new_from_root(<span class="kw-2">&amp;</span><span class="self">self</span>.db, <span class="kw-2">&amp;</span>prev_root)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>actor = lb_state
