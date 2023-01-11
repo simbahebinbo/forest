@@ -1618,7 +1618,7 @@
                 request_id,
                 response,
             } =&gt; {
-                <span class="comment">// Send the sucessful response through channel out.
+                <span class="comment">// Send the successful response through channel out.
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id) {
                     metrics::NETWORK_CONTAINER_CAPACITIES
                         .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST_TABLE])
@@ -1798,7 +1798,7 @@
                     )
                     .<span class="kw">await</span>;
                     <span class="kw">let </span>tx = cx_request_table.remove(<span class="kw-2">&amp;</span>request_id);
-                    <span class="comment">// Send the sucessful response through channel out.
+                    <span class="comment">// Send the successful response through channel out.
                     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
                         metrics::NETWORK_CONTAINER_CAPACITIES
                             .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CX_REQUEST_TABLE])

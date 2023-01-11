@@ -1043,7 +1043,7 @@
         <span class="comment">// Can not break weight tie (because of same min tickets)
         </span><span class="macro">assert!</span>(!ts1.break_weight_tie(<span class="kw-2">&amp;</span>ts3));
 
-        <span class="comment">// Values are choosen so that Ticket(b4) &lt; Ticket(b5) &lt; Ticket(b1)
+        <span class="comment">// Values are chosen so that Ticket(b4) &lt; Ticket(b5) &lt; Ticket(b1)
         </span><span class="kw">let </span>b4 = mock_block(<span class="number">1234564</span>, <span class="number">1</span>, <span class="number">41</span>);
         <span class="kw">let </span>b5 = mock_block(<span class="number">1234565</span>, <span class="number">1</span>, <span class="number">45</span>);
         <span class="kw">let </span>ts4 = Tipset::new(<span class="macro">vec!</span>[b4.clone(), b5.clone(), b1.clone()]).unwrap();

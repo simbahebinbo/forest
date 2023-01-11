@@ -2627,7 +2627,7 @@
                 i += <span class="number">1</span>;
             } <span class="kw">else </span>{
                 fork_length += <span class="number">1</span>;
-                <span class="comment">// Increment the fork length and enfore the fork length check
+                <span class="comment">// Increment the fork length and enforce the fork length check
                 </span><span class="kw">if </span>fork_length &gt; FORK_LENGTH_THRESHOLD {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::ChainForkLengthExceedsMaximum);
                 }
@@ -2879,7 +2879,7 @@
     }
     <span class="comment">// Doing flush here creates small sst files at ~20KB
     // Then we need to manually compact them by calling CompactFiles
-    // which howver is not exposed by rocksdb or librocksdb-sys crates
+    // which however is not exposed by rocksdb or librocksdb-sys crates
     // if let Err(e) = chainstore.db.flush() {
     //     warn!(&quot;Failed to flush db: {e}&quot;);
     // }
@@ -3057,7 +3057,7 @@
         consensus
             .validate_block(state_manager, v_block)
             .map_err(|errs| {
-                <span class="comment">// NOTE: Concatentating errors here means the wrapper type of error
+                <span class="comment">// NOTE: Concatenating errors here means the wrapper type of error
                 // never surfaces, yet we always pay the cost of the generic argument.
                 // But there&#39;s no reason `validate_block` couldn&#39;t return a list of all
                 // errors instead of a single one that has all the error messages,
@@ -3340,7 +3340,7 @@
 
     <span class="attr">#[test]
     </span><span class="kw">pub fn </span>test_heaviest_weight() {
-        <span class="comment">// ticket_sequence are choosen so that Ticket(b3) &lt; Ticket(b1)
+        <span class="comment">// ticket_sequence are chosen so that Ticket(b3) &lt; Ticket(b1)
 
         </span><span class="kw">let </span>b1 = mock_block(<span class="number">1234561</span>, <span class="number">10</span>, <span class="number">2</span>);
         <span class="kw">let </span>ts1 = Tipset::new(<span class="macro">vec!</span>[b1]).unwrap();

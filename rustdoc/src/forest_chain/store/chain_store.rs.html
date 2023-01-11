@@ -1162,7 +1162,7 @@
 
     <span class="doccomment">/// Returns the currently tracked heaviest tipset.
     </span><span class="kw">pub fn </span>heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
-        <span class="comment">// TODO: Figure out how to remove optional and return something everytime.
+        <span class="comment">// TODO: Figure out how to remove optional and return something every time.
         </span><span class="self">self</span>.heaviest.lock().clone()
     }
 

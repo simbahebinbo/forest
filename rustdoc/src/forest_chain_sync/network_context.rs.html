@@ -527,7 +527,7 @@
                 <span class="kw">match </span><span class="self">self</span>.db.get_obj(<span class="kw-2">&amp;</span>content) {
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Ok</span>(b),
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bitswap response successful for: {content:?}, but can&#39;t find it in the database&quot;</span>)),
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bitswap response successful for: {content:?}, but can&#39;t retreive it from the database: {e}&quot;</span>)),
+                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bitswap response successful for: {content:?}, but can&#39;t retrieve it from the database: {e}&quot;</span>)),
                 }
             }
             <span class="prelude-val">Err</span>(_e) =&gt; {
@@ -697,7 +697,7 @@
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(bs_res))) =&gt; {
                 <span class="comment">// Successful response
                 </span>peer_manager.log_success(peer_id, res_duration).<span class="kw">await</span>;
-                <span class="macro">log::debug!</span>(<span class="string">&quot;Succeded: ChainExchange Request to {peer_id}&quot;</span>);
+                <span class="macro">log::debug!</span>(<span class="string">&quot;Succeeded: ChainExchange Request to {peer_id}&quot;</span>);
                 <span class="prelude-val">Ok</span>(bs_res)
             }
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(e))) =&gt; {

@@ -1849,7 +1849,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Message, ApplyRet), Error&gt; {
         <span class="kw">const </span>ERROR_MSG: <span class="kw-2">&amp;</span>str = <span class="string">&quot;replay_halt&quot;</span>;
 
-        <span class="comment">// This isn&#39;t ideal to have, since the execution is syncronous, but this needs to be the
+        <span class="comment">// This isn&#39;t ideal to have, since the execution is synchronous, but this needs to be the
         // case because the state transition has to be in blocking thread to avoid starving executor
         </span><span class="kw">let </span>(m_tx, m_rx) = std::sync::mpsc::channel();
         <span class="kw">let </span>(r_tx, r_rx) = std::sync::mpsc::channel();
@@ -1871,7 +1871,7 @@
             }
         }
 
-        <span class="comment">// Use try_recv here assuming callback execution is syncronous
+        <span class="comment">// Use try_recv here assuming callback execution is synchronous
         </span><span class="kw">let </span>out_mes = m_rx
             .try_recv()
             .map_err(|err| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;given message not found in tipset: {err}&quot;</span>)))<span class="question-mark">?</span>;
