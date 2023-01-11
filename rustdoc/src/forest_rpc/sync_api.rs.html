@@ -201,6 +201,7 @@
 <a href="#201" id="201">201</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
+</span><span class="attr">#![allow(clippy::unused_async)]
 
 </span><span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_chain_sync::SyncState;
@@ -222,7 +223,7 @@
     B: Beacon,
 {
     <span class="kw">let </span>(CidJson(cid),) = params;
-    <span class="prelude-val">Ok</span>(data.bad_blocks.peek(<span class="kw-2">&amp;</span>cid).<span class="kw">await</span>.unwrap_or_default())
+    <span class="prelude-val">Ok</span>(data.bad_blocks.peek(<span class="kw-2">&amp;</span>cid).unwrap_or_default())
 }
 
 <span class="doccomment">/// Marks a block as bad, meaning it will never be synced.
@@ -236,8 +237,7 @@
 {
     <span class="kw">let </span>(CidJson(cid),) = params;
     data.bad_blocks
-        .put(cid, <span class="string">&quot;Marked bad manually through RPC API&quot;</span>.to_string())
-        .<span class="kw">await</span>;
+        .put(cid, <span class="string">&quot;Marked bad manually through RPC API&quot;</span>.to_string());
     <span class="prelude-val">Ok</span>(())
 }
 
@@ -292,7 +292,7 @@
         <span class="kw">let </span>(network_send, network_rx) = flume::bounded(<span class="number">5</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
         <span class="kw">let </span>db = MemoryDB::default();
-        <span class="kw">let </span>cs_arc = Arc::new(ChainStore::new(db.clone()).<span class="kw">await</span>);
+        <span class="kw">let </span>cs_arc = Arc::new(ChainStore::new(db.clone()));
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
             .timestamp(<span class="number">7777</span>)
@@ -318,7 +318,7 @@
             <span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[header]).unwrap();
             <span class="kw">let </span>db = cs_for_test.blockstore();
             <span class="kw">let </span>tsk = ts.key().cids.clone();
-            cs_for_test.set_heaviest_tipset(Arc::new(ts)).<span class="kw">await</span>.unwrap();
+            cs_for_test.set_heaviest_tipset(Arc::new(ts)).unwrap();
 
             <span class="kw">for </span>i <span class="kw">in </span>tsk {
                 <span class="kw">let </span>bz2 = bz.clone();

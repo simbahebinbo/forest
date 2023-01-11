@@ -857,7 +857,7 @@
         <span class="kw">let </span>db_path = tmp_db_path.path().join(<span class="kw-2">&amp;</span>config.chain.name);
         <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path, config.db_config())<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db).<span class="kw">await</span>);
+        <span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db));
 
         <span class="kw">let </span>genesis = read_genesis_header(
             config.client.genesis_file.as_ref(),
@@ -872,7 +872,7 @@
             load_car(chain_store.blockstore(), reader.compat()).<span class="kw">await</span><span class="question-mark">?
         </span>};
 
-        <span class="kw">let </span>ts = chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(cids)).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>ts = chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(cids))<span class="question-mark">?</span>;
 
         validate_links_and_genesis_traversal(
             <span class="kw-2">&amp;</span>chain_store,
@@ -918,7 +918,7 @@
             <span class="macro">bail!</span>(<span class="string">&quot;Broken invariant: no genesis tipset in snapshot.&quot;</span>);
         }
 
-        <span class="kw">let </span>tipset = chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>tipset = chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
         <span class="kw">let </span>height = tipset.epoch();
         <span class="comment">// if parent tipset epoch is smaller than child, bail with error.
         </span><span class="kw">if </span>height &gt;= prev_epoch {

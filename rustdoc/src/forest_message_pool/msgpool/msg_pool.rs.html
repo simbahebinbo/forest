@@ -662,32 +662,6 @@
 <a href="#662" id="662">662</a>
 <a href="#663" id="663">663</a>
 <a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
-<a href="#682" id="682">682</a>
-<a href="#683" id="683">683</a>
-<a href="#684" id="684">684</a>
-<a href="#685" id="685">685</a>
-<a href="#686" id="686">686</a>
-<a href="#687" id="687">687</a>
-<a href="#688" id="688">688</a>
-<a href="#689" id="689">689</a>
-<a href="#690" id="690">690</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -725,12 +699,12 @@
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>lru::LruCache;
+<span class="kw">use </span>parking_lot::{Mutex, RwLock <span class="kw">as </span>SyncRwLock};
 <span class="kw">use </span>std::collections::{HashMap, HashSet};
 <span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>tokio::sync::broadcast::error::RecvError;
-<span class="kw">use </span>tokio::sync::RwLock;
 <span class="kw">use </span>tokio::task::JoinSet;
 <span class="kw">use </span>tokio::time::interval;
 
@@ -811,13 +785,13 @@
 /// Keeps track of messages to apply, as well as context needed for verifying transactions.
 </span><span class="kw">pub struct </span>MessagePool&lt;T&gt; {
     <span class="doccomment">/// The local address of the client
-    </span>local_addrs: Arc&lt;RwLock&lt;Vec&lt;Address&gt;&gt;&gt;,
+    </span>local_addrs: Arc&lt;SyncRwLock&lt;Vec&lt;Address&gt;&gt;&gt;,
     <span class="doccomment">/// A map of pending messages where the key is the address
-    </span><span class="kw">pub </span>pending: Arc&lt;RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;&gt;,
+    </span><span class="kw">pub </span>pending: Arc&lt;SyncRwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;&gt;,
     <span class="doccomment">/// The current tipset (a set of blocks)
-    </span><span class="kw">pub </span>cur_tipset: Arc&lt;RwLock&lt;Arc&lt;Tipset&gt;&gt;&gt;,
+    </span><span class="kw">pub </span>cur_tipset: Arc&lt;Mutex&lt;Arc&lt;Tipset&gt;&gt;&gt;,
     <span class="doccomment">/// The underlying provider
-    </span><span class="kw">pub </span>api: Arc&lt;RwLock&lt;T&gt;&gt;,
+    </span><span class="kw">pub </span>api: Arc&lt;T&gt;,
     <span class="doccomment">/// The minimum gas price needed for executing the transaction based on number of included blocks
     </span><span class="kw">pub </span>min_gas_price: BigInt,
     <span class="doccomment">/// This is max number of messages in the pool.
@@ -827,15 +801,15 @@
     <span class="doccomment">/// Sender half to send messages to other components
     </span><span class="kw">pub </span>network_sender: flume::Sender&lt;NetworkMessage&gt;,
     <span class="doccomment">/// A cache for BLS signature keyed by Cid
-    </span><span class="kw">pub </span>bls_sig_cache: Arc&lt;RwLock&lt;LruCache&lt;Cid, Signature&gt;&gt;&gt;,
+    </span><span class="kw">pub </span>bls_sig_cache: Arc&lt;Mutex&lt;LruCache&lt;Cid, Signature&gt;&gt;&gt;,
     <span class="doccomment">/// A cache for BLS signature keyed by Cid
-    </span><span class="kw">pub </span>sig_val_cache: Arc&lt;RwLock&lt;LruCache&lt;Cid, ()&gt;&gt;&gt;,
+    </span><span class="kw">pub </span>sig_val_cache: Arc&lt;Mutex&lt;LruCache&lt;Cid, ()&gt;&gt;&gt;,
     <span class="doccomment">/// A set of republished messages identified by their Cid
-    </span><span class="kw">pub </span>republished: Arc&lt;RwLock&lt;HashSet&lt;Cid&gt;&gt;&gt;,
+    </span><span class="kw">pub </span>republished: Arc&lt;SyncRwLock&lt;HashSet&lt;Cid&gt;&gt;&gt;,
     <span class="doccomment">/// Acts as a signal to republish messages from the republished set of messages
     </span><span class="kw">pub </span>repub_trigger: flume::Sender&lt;()&gt;,
     <span class="comment">// TODO look into adding a cap to `local_msgs`
-    </span>local_msgs: Arc&lt;RwLock&lt;HashSet&lt;SignedMessage&gt;&gt;&gt;,
+    </span>local_msgs: Arc&lt;SyncRwLock&lt;HashSet&lt;SignedMessage&gt;&gt;&gt;,
     <span class="doccomment">/// Configurable parameters of the message pool
     </span><span class="kw">pub </span>config: MpoolConfig,
     <span class="doccomment">/// Chain configuration
@@ -848,7 +822,7 @@
 {
     <span class="doccomment">/// Creates a new `MessagePool` instance.
     </span><span class="kw">pub async fn </span>new(
-        <span class="kw-2">mut </span>api: T,
+        api: T,
         network_name: String,
         network_sender: flume::Sender&lt;NetworkMessage&gt;,
         config: MpoolConfig,
@@ -858,16 +832,15 @@
     <span class="kw">where
         </span>T: Provider,
     {
-        <span class="kw">let </span>local_addrs = Arc::new(RwLock::new(Vec::new()));
-        <span class="kw">let </span>pending = Arc::new(RwLock::new(HashMap::new()));
-        <span class="kw">let </span>tipset = Arc::new(RwLock::new(api.get_heaviest_tipset().<span class="kw">await</span>.ok_or_else(
-            || Error::Other(<span class="string">&quot;Failed to retrieve heaviest tipset from provider&quot;</span>.to_owned()),
-        )<span class="question-mark">?</span>));
-        <span class="kw">let </span>bls_sig_cache = Arc::new(RwLock::new(LruCache::new(BLS_SIG_CACHE_SIZE)));
-        <span class="kw">let </span>sig_val_cache = Arc::new(RwLock::new(LruCache::new(SIG_VAL_CACHE_SIZE)));
-        <span class="kw">let </span>api_mutex = Arc::new(RwLock::new(api));
-        <span class="kw">let </span>local_msgs = Arc::new(RwLock::new(HashSet::new()));
-        <span class="kw">let </span>republished = Arc::new(RwLock::new(HashSet::new()));
+        <span class="kw">let </span>local_addrs = Arc::new(SyncRwLock::new(Vec::new()));
+        <span class="kw">let </span>pending = Arc::new(SyncRwLock::new(HashMap::new()));
+        <span class="kw">let </span>tipset = Arc::new(Mutex::new(api.get_heaviest_tipset().ok_or_else(|| {
+            Error::Other(<span class="string">&quot;Failed to retrieve heaviest tipset from provider&quot;</span>.to_owned())
+        })<span class="question-mark">?</span>));
+        <span class="kw">let </span>bls_sig_cache = Arc::new(Mutex::new(LruCache::new(BLS_SIG_CACHE_SIZE)));
+        <span class="kw">let </span>sig_val_cache = Arc::new(Mutex::new(LruCache::new(SIG_VAL_CACHE_SIZE)));
+        <span class="kw">let </span>local_msgs = Arc::new(SyncRwLock::new(HashSet::new()));
+        <span class="kw">let </span>republished = Arc::new(SyncRwLock::new(HashSet::new()));
         <span class="kw">let </span>block_delay = chain_config.block_delay_secs;
 
         <span class="kw">let </span>(repub_trigger, repub_trigger_rx) = flume::bounded::&lt;()&gt;(<span class="number">4</span>);
@@ -875,7 +848,7 @@
             local_addrs,
             pending,
             cur_tipset: tipset,
-            api: api_mutex,
+            api: Arc::new(api),
             min_gas_price: Default::default(),
             max_tx_pool_size: <span class="number">5000</span>,
             network_name,
@@ -889,9 +862,9 @@
             chain_config: Arc::clone(<span class="kw-2">&amp;</span>chain_config),
         };
 
-        mp.load_local().<span class="kw">await</span><span class="question-mark">?</span>;
+        mp.load_local()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span><span class="kw-2">mut </span>subscriber = mp.api.write().<span class="kw">await</span>.subscribe_head_changes().<span class="kw">await</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>subscriber = mp.api.subscribe_head_changes();
 
         <span class="kw">let </span>api = mp.api.clone();
         <span class="kw">let </span>bls_sig_cache = mp.bls_sig_cache.clone();
@@ -979,20 +952,20 @@
     }
 
     <span class="doccomment">/// Add a signed message to the pool and its address.
-    </span><span class="kw">async fn </span>add_local(<span class="kw-2">&amp;</span><span class="self">self</span>, m: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="self">self</span>.local_addrs.write().<span class="kw">await</span>.push(<span class="kw-2">*</span>m.from());
-        <span class="self">self</span>.local_msgs.write().<span class="kw">await</span>.insert(m);
+    </span><span class="kw">fn </span>add_local(<span class="kw-2">&amp;</span><span class="self">self</span>, m: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.local_addrs.write().push(<span class="kw-2">*</span>m.from());
+        <span class="self">self</span>.local_msgs.write().insert(m);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Push a signed message to the `MessagePool`. Additionally performs
     </span><span class="kw">pub async fn </span>push(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt; {
-        <span class="self">self</span>.check_message(<span class="kw-2">&amp;</span>msg).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.check_message(<span class="kw-2">&amp;</span>msg)<span class="question-mark">?</span>;
         <span class="kw">let </span>cid = msg.cid().map_err(|err| Error::Other(err.to_string()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.read().<span class="kw">await</span>.clone();
-        <span class="kw">let </span>publish = <span class="self">self</span>.add_tipset(msg.clone(), <span class="kw-2">&amp;</span>cur_ts, <span class="bool-val">true</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
+        <span class="kw">let </span>publish = <span class="self">self</span>.add_tipset(msg.clone(), <span class="kw-2">&amp;</span>cur_ts, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         <span class="kw">let </span>msg_ser = msg.marshal_cbor()<span class="question-mark">?</span>;
-        <span class="self">self</span>.add_local(msg).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.add_local(msg)<span class="question-mark">?</span>;
         <span class="kw">if </span>publish {
             <span class="self">self</span>.network_sender
                 .send_async(NetworkMessage::PubsubMessage {
@@ -1006,7 +979,7 @@
     }
 
     <span class="doccomment">/// Basic checks on the validity of a message.
-    </span><span class="kw">async fn </span>check_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">fn </span>check_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">if </span>msg.marshal_cbor()<span class="question-mark">?</span>.len() &gt; <span class="number">32 </span>* <span class="number">1024 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MessageTooBig);
         }
@@ -1017,45 +990,40 @@
         <span class="kw">if </span>msg.gas_fee_cap().atto() &lt; <span class="kw-2">&amp;</span>MINIMUM_BASE_FEE.into() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::GasFeeCapTooLow);
         }
-        <span class="self">self</span>.verify_msg_sig(msg).<span class="kw">await
-    </span>}
+        <span class="self">self</span>.verify_msg_sig(msg)
+    }
 
     <span class="doccomment">/// This is a helper to push that will help to make sure that the message fits the parameters
     /// to be pushed to the `MessagePool`.
-    </span><span class="kw">pub async fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="self">self</span>.check_message(<span class="kw-2">&amp;</span>msg).<span class="kw">await</span><span class="question-mark">?</span>;
+    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="self">self</span>.check_message(<span class="kw-2">&amp;</span>msg)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>tip = <span class="self">self</span>.cur_tipset.read().<span class="kw">await</span>.clone();
+        <span class="kw">let </span>tip = <span class="self">self</span>.cur_tipset.lock().clone();
 
-        <span class="self">self</span>.add_tipset(msg, <span class="kw-2">&amp;</span>tip, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.add_tipset(msg, <span class="kw-2">&amp;</span>tip, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Verify the message signature. first check if it has already been verified and put into
     /// cache. If it has not, then manually verify it then put it into cache for future use.
-    </span><span class="kw">async fn </span>verify_msg_sig(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">fn </span>verify_msg_sig(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>cid = msg.cid()<span class="question-mark">?</span>;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(()) = <span class="self">self</span>.sig_val_cache.write().<span class="kw">await</span>.get(<span class="kw-2">&amp;</span>cid) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(()) = <span class="self">self</span>.sig_val_cache.lock().get(<span class="kw-2">&amp;</span>cid) {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
 
         msg.verify().map_err(Error::Other)<span class="question-mark">?</span>;
 
-        <span class="self">self</span>.sig_val_cache.write().<span class="kw">await</span>.put(cid, ());
+        <span class="self">self</span>.sig_val_cache.lock().put(cid, ());
 
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Verify the `state_sequence` and balance for the sender of the message given then
     /// call `add_locked` to finish adding the `signed_message` to pending.
-    </span><span class="kw">async fn </span>add_tipset(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        msg: SignedMessage,
-        cur_ts: <span class="kw-2">&amp;</span>Tipset,
-        local: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
-        <span class="kw">let </span>sequence = <span class="self">self</span>.get_state_sequence(msg.from(), cur_ts).<span class="kw">await</span><span class="question-mark">?</span>;
+    </span><span class="kw">fn </span>add_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage, cur_ts: <span class="kw-2">&amp;</span>Tipset, local: bool) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
+        <span class="kw">let </span>sequence = <span class="self">self</span>.get_state_sequence(msg.from(), cur_ts)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>sequence &gt; msg.message().sequence {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::SequenceTooLow);
@@ -1063,40 +1031,39 @@
 
         <span class="kw">let </span>publish = verify_msg_before_add(<span class="kw-2">&amp;</span>msg, cur_ts, local, <span class="kw-2">&amp;</span><span class="self">self</span>.chain_config)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>balance = <span class="self">self</span>.get_state_balance(msg.from(), cur_ts).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>balance = <span class="self">self</span>.get_state_balance(msg.from(), cur_ts)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>msg_balance = msg.required_funds();
         <span class="kw">if </span>balance &lt; msg_balance {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::NotEnoughFunds);
         }
-        <span class="self">self</span>.add_helper(msg).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="self">self</span>.add_helper(msg)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(publish)
     }
 
     <span class="doccomment">/// Finish verifying signed message before adding it to the pending `mset` hash-map. If an entry
     /// in the hash-map does not yet exist, create a new `mset` that will correspond to the from
     /// message and push it to the pending hash-map.
-    </span><span class="kw">async fn </span>add_helper(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">fn </span>add_helper(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>from = <span class="kw-2">*</span>msg.from();
-        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.read().<span class="kw">await</span>.clone();
+        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
         add_helper(
             <span class="self">self</span>.api.as_ref(),
             <span class="self">self</span>.bls_sig_cache.as_ref(),
             <span class="self">self</span>.pending.as_ref(),
             msg,
-            <span class="self">self</span>.get_state_sequence(<span class="kw-2">&amp;</span>from, <span class="kw-2">&amp;</span>cur_ts).<span class="kw">await</span><span class="question-mark">?</span>,
+            <span class="self">self</span>.get_state_sequence(<span class="kw-2">&amp;</span>from, <span class="kw-2">&amp;</span>cur_ts)<span class="question-mark">?</span>,
         )
-        .<span class="kw">await
-    </span>}
+    }
 
     <span class="doccomment">/// Get the sequence for a given address, return Error if there is a failure to retrieve
     /// the respective sequence.
-    </span><span class="kw">pub async fn </span>get_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt; {
-        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.read().<span class="kw">await</span>.clone();
+    </span><span class="kw">pub fn </span>get_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt; {
+        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
 
-        <span class="kw">let </span>sequence = <span class="self">self</span>.get_state_sequence(addr, <span class="kw-2">&amp;</span>cur_ts).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>sequence = <span class="self">self</span>.get_state_sequence(addr, <span class="kw-2">&amp;</span>cur_ts)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>pending = <span class="self">self</span>.pending.read().<span class="kw">await</span>;
+        <span class="kw">let </span>pending = <span class="self">self</span>.pending.read();
 
         <span class="kw">let </span>msgset = pending.get(addr);
         <span class="kw">match </span>msgset {
@@ -1111,53 +1078,46 @@
     }
 
     <span class="doccomment">/// Get the state of the sequence for a given address in `cur_ts`.
-    </span><span class="kw">async fn </span>get_state_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, cur_ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt; {
-        <span class="kw">let </span>actor = <span class="self">self</span>.api.read().<span class="kw">await</span>.get_actor_after(addr, cur_ts)<span class="question-mark">?</span>;
+    </span><span class="kw">fn </span>get_state_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, cur_ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt; {
+        <span class="kw">let </span>actor = <span class="self">self</span>.api.get_actor_after(addr, cur_ts)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(actor.sequence)
     }
 
     <span class="doccomment">/// Get the state balance for the actor that corresponds to the supplied address and tipset,
     /// if this actor does not exist, return an error.
-    </span><span class="kw">async fn </span>get_state_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
-        <span class="kw">let </span>actor = <span class="self">self</span>.api.read().<span class="kw">await</span>.get_actor_after(addr, ts)<span class="question-mark">?</span>;
+    </span><span class="kw">fn </span>get_state_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
+        <span class="kw">let </span>actor = <span class="self">self</span>.api.get_actor_after(addr, ts)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(actor.balance)
     }
 
     <span class="doccomment">/// Remove a message given a sequence and address from the message pool.
-    </span><span class="kw">pub async fn </span>remove(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        from: <span class="kw-2">&amp;</span>Address,
-        sequence: u64,
-        applied: bool,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        remove(from, <span class="self">self</span>.pending.as_ref(), sequence, applied).<span class="kw">await
-    </span>}
+    </span><span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, from: <span class="kw-2">&amp;</span>Address, sequence: u64, applied: bool) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        remove(from, <span class="self">self</span>.pending.as_ref(), sequence, applied)
+    }
 
     <span class="doccomment">/// Return a tuple that contains a vector of all signed messages and the current tipset for
     /// self.
-    </span><span class="kw">pub async fn </span>pending(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;SignedMessage&gt;, Arc&lt;Tipset&gt;), Error&gt; {
+    </span><span class="kw">pub fn </span>pending(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;SignedMessage&gt;, Arc&lt;Tipset&gt;), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out: Vec&lt;SignedMessage&gt; = Vec::new();
-        <span class="kw">let </span>pending = <span class="self">self</span>.pending.read().<span class="kw">await</span>;
-        <span class="kw">let </span>pending_hm = pending.clone();
+        <span class="kw">let </span>pending = <span class="self">self</span>.pending.read().clone();
 
-        <span class="kw">for </span>(addr, <span class="kw">_</span>) <span class="kw">in </span>pending_hm {
+        <span class="kw">for </span>(addr, <span class="kw">_</span>) <span class="kw">in </span>pending {
             out.append(
                 <span class="self">self</span>.pending_for(<span class="kw-2">&amp;</span>addr)
-                    .<span class="kw">await
-                    </span>.ok_or(Error::InvalidFromAddr)<span class="question-mark">?
+                    .ok_or(Error::InvalidFromAddr)<span class="question-mark">?
                     </span>.as_mut(),
             )
         }
 
-        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.read().<span class="kw">await</span>.clone();
+        <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
 
         <span class="prelude-val">Ok</span>((out, cur_ts))
     }
 
     <span class="doccomment">/// Return a Vector of signed messages for a given from address. This vector will be sorted by
     /// each `messsage`&#39;s sequence. If no corresponding messages found, return None result type.
-    </span><span class="kw">pub async fn </span>pending_for(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;SignedMessage&gt;&gt; {
-        <span class="kw">let </span>pending = <span class="self">self</span>.pending.read().<span class="kw">await</span>;
+    </span><span class="kw">pub fn </span>pending_for(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;SignedMessage&gt;&gt; {
+        <span class="kw">let </span>pending = <span class="self">self</span>.pending.read();
         <span class="kw">let </span>mset = pending.get(a)<span class="question-mark">?</span>;
         <span class="kw">if </span>mset.msgs.is_empty() {
             <span class="kw">return </span><span class="prelude-val">None</span>;
@@ -1171,19 +1131,15 @@
     }
 
     <span class="doccomment">/// Return Vector of signed messages given a block header for self.
-    </span><span class="kw">pub async fn </span>messages_for_blocks(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        blks: <span class="kw-2">&amp;</span>[BlockHeader],
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
+    </span><span class="kw">pub fn </span>messages_for_blocks(<span class="kw-2">&amp;</span><span class="self">self</span>, blks: <span class="kw-2">&amp;</span>[BlockHeader]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>msg_vec: Vec&lt;SignedMessage&gt; = Vec::new();
 
         <span class="kw">for </span>block <span class="kw">in </span>blks {
-            <span class="kw">let </span>(umsg, <span class="kw-2">mut </span>smsgs) = <span class="self">self</span>.api.read().<span class="kw">await</span>.messages_for_block(block)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(umsg, <span class="kw-2">mut </span>smsgs) = <span class="self">self</span>.api.messages_for_block(block)<span class="question-mark">?</span>;
 
             msg_vec.append(smsgs.as_mut());
             <span class="kw">for </span>msg <span class="kw">in </span>umsg {
-                <span class="kw">let </span><span class="kw-2">mut </span>bls_sig_cache = <span class="self">self</span>.bls_sig_cache.write().<span class="kw">await</span>;
-                <span class="kw">let </span>smsg = recover_sig(<span class="kw-2">&amp;mut </span>bls_sig_cache, msg).<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="kw">let </span>smsg = recover_sig(<span class="kw-2">&amp;mut </span><span class="self">self</span>.bls_sig_cache.lock(), msg)<span class="question-mark">?</span>;
                 msg_vec.push(smsg)
             }
         }
@@ -1209,10 +1165,10 @@
     }
 
     <span class="doccomment">/// Loads local messages to the message pool to be applied.
-    </span><span class="kw">pub async fn </span>load_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>local_msgs = <span class="self">self</span>.local_msgs.write().<span class="kw">await</span>;
+    </span><span class="kw">pub fn </span>load_local(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>local_msgs = <span class="self">self</span>.local_msgs.write();
         <span class="kw">for </span>k <span class="kw">in </span>local_msgs.iter().cloned().collect::&lt;Vec&lt;SignedMessage&gt;&gt;() {
-            <span class="self">self</span>.add(k.clone()).<span class="kw">await</span>.unwrap_or_else(|err| {
+            <span class="self">self</span>.add(k.clone()).unwrap_or_else(|err| {
                 <span class="kw">if </span>err == Error::SequenceTooLow {
                     <span class="macro">warn!</span>(<span class="string">&quot;error adding message: {:?}&quot;</span>, err);
                     local_msgs.remove(<span class="kw-2">&amp;</span>k);
@@ -1224,26 +1180,27 @@
     }
     <span class="doccomment">/// If `local = true`, the local messages will be removed as well as pending messages.
     /// If `local = false`, pending messages will be removed while retaining local messages.
-    </span><span class="kw">pub async fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: bool) {
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: bool) {
         <span class="kw">if </span>local {
-            <span class="kw">let </span>local_addrs = <span class="self">self</span>.local_addrs.read().<span class="kw">await</span>;
-            <span class="kw">for </span>a <span class="kw">in </span>local_addrs.iter() {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(mset) = <span class="self">self</span>.pending.read().<span class="kw">await</span>.get(a) {
+            <span class="kw">for </span>a <span class="kw">in </span><span class="self">self</span>.local_addrs.read().iter() {
+                <span class="kw">let </span>pending = <span class="self">self</span>.pending.read().get(a).cloned();
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(mset) = pending {
                     <span class="kw">for </span>m <span class="kw">in </span>mset.msgs.values() {
-                        <span class="kw">if </span>!<span class="self">self</span>.local_msgs.write().<span class="kw">await</span>.remove(m) {
+                        <span class="kw">if </span>!<span class="self">self</span>.local_msgs.write().remove(m) {
                             <span class="macro">warn!</span>(<span class="string">&quot;error deleting local message&quot;</span>);
                         }
                     }
                 }
             }
-            <span class="self">self</span>.pending.write().<span class="kw">await</span>.clear();
-            <span class="self">self</span>.republished.write().<span class="kw">await</span>.clear();
+            <span class="self">self</span>.pending.write().clear();
+            <span class="self">self</span>.republished.write().clear();
         } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>pending = <span class="self">self</span>.pending.write().<span class="kw">await</span>;
-            <span class="kw">let </span>local_addrs = <span class="self">self</span>.local_addrs.read().<span class="kw">await</span>;
+            <span class="kw">let </span>local_addrs = <span class="self">self</span>.local_addrs.read();
+            <span class="kw">let </span><span class="kw-2">mut </span>pending = <span class="self">self</span>.pending.write();
             pending.retain(|a, <span class="kw">_</span>| local_addrs.contains(a));
         }
     }
+
     <span class="kw">pub fn </span>get_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>MpoolConfig {
         <span class="kw-2">&amp;</span><span class="self">self</span>.config
     }
@@ -1255,13 +1212,10 @@
     }
 
     <span class="doccomment">/// Select messages that can be included in a block built on a given base tipset.
-    </span><span class="kw">pub async fn </span>select_messages_for_block(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        base: <span class="kw-2">&amp;</span>Tipset,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
+    </span><span class="kw">pub fn </span>select_messages_for_block(<span class="kw-2">&amp;</span><span class="self">self</span>, base: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
         <span class="comment">// Take a snapshot of the pending messages.
         </span><span class="kw">let </span>pending: HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt; = {
-            <span class="kw">let </span>pending = <span class="self">self</span>.pending.read().<span class="kw">await</span>;
+            <span class="kw">let </span>pending = <span class="self">self</span>.pending.read();
             pending
                 .iter()
                 .filter_map(|(actor, mset)| {
@@ -1275,8 +1229,7 @@
         };
 
         select_messages_for_block(<span class="self">self</span>.api.as_ref(), <span class="self">self</span>.chain_config.as_ref(), base, pending)
-            .<span class="kw">await
-    </span>}
+    }
 }
 
 <span class="comment">// Helpers for MessagePool
@@ -1284,10 +1237,10 @@
 </span><span class="doccomment">/// Finish verifying signed message before adding it to the pending `mset` hash-map. If an entry
 /// in the hash-map does not yet exist, create a new `mset` that will correspond to the from message
 /// and push it to the pending hash-map.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>add_helper&lt;T&gt;(
-    api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
-    bls_sig_cache: <span class="kw-2">&amp;</span>RwLock&lt;LruCache&lt;Cid, Signature&gt;&gt;,
-    pending: <span class="kw-2">&amp;</span>RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_helper&lt;T&gt;(
+    api: <span class="kw-2">&amp;</span>T,
+    bls_sig_cache: <span class="kw-2">&amp;</span>Mutex&lt;LruCache&lt;Cid, Signature&gt;&gt;,
+    pending: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
     msg: SignedMessage,
     sequence: u64,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
@@ -1296,9 +1249,8 @@
 {
     <span class="kw">if </span>msg.signature().signature_type() == SignatureType::BLS {
         bls_sig_cache
-            .write()
-            .<span class="kw">await
-            </span>.put(msg.cid()<span class="question-mark">?</span>, msg.signature().clone());
+            .lock()
+            .put(msg.cid()<span class="question-mark">?</span>, msg.signature().clone());
     }
 
     <span class="kw">if </span>msg.message().gas_limit &gt; <span class="number">100_000_000 </span>{
@@ -1307,14 +1259,10 @@
         ));
     }
 
-    api.read()
-        .<span class="kw">await
-        </span>.put_message(<span class="kw-2">&amp;</span>ChainMessage::Signed(msg.clone()))<span class="question-mark">?</span>;
-    api.read()
-        .<span class="kw">await
-        </span>.put_message(<span class="kw-2">&amp;</span>ChainMessage::Unsigned(msg.message().clone()))<span class="question-mark">?</span>;
+    api.put_message(<span class="kw-2">&amp;</span>ChainMessage::Signed(msg.clone()))<span class="question-mark">?</span>;
+    api.put_message(<span class="kw-2">&amp;</span>ChainMessage::Unsigned(msg.message().clone()))<span class="question-mark">?</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>pending = pending.write().<span class="kw">await</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>pending = pending.write();
     <span class="kw">let </span>msett = pending.get_mut(<span class="kw-2">&amp;</span>msg.message().from);
     <span class="kw">match </span>msett {
         <span class="prelude-val">Some</span>(mset) =&gt; mset.add(msg)<span class="question-mark">?</span>,
@@ -1357,13 +1305,13 @@
 }
 
 <span class="doccomment">/// Remove a message from pending given the from address and sequence.
-</span><span class="kw">pub async fn </span>remove(
+</span><span class="kw">pub fn </span>remove(
     from: <span class="kw-2">&amp;</span>Address,
-    pending: <span class="kw-2">&amp;</span>RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
+    pending: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
     sequence: u64,
     applied: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>pending = pending.write().<span class="kw">await</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>pending = pending.write();
     <span class="kw">let </span>mset = <span class="kw">if let </span><span class="prelude-val">Some</span>(mset) = pending.get_mut(from) {
         mset
     } <span class="kw">else </span>{

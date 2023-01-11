@@ -85,6 +85,7 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -154,7 +155,8 @@
     )
 }
 
-<span class="kw">async fn </span>collect_db_metrics&lt;DB&gt;(
+<span class="attr">#[allow(clippy::unused_async)]
+</span><span class="kw">async fn </span>collect_db_metrics&lt;DB&gt;(
     axum::extract::State(db): axum::extract::State&lt;DB&gt;,
 ) -&gt; <span class="kw">impl </span>IntoResponse
 <span class="kw">where

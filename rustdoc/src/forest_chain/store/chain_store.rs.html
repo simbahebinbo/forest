@@ -981,10 +981,6 @@
 <a href="#981" id="981">981</a>
 <a href="#982" id="982">982</a>
 <a href="#983" id="983">983</a>
-<a href="#984" id="984">984</a>
-<a href="#985" id="985">985</a>
-<a href="#986" id="986">986</a>
-<a href="#987" id="987">987</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1021,6 +1017,7 @@
 <span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
+<span class="kw">use </span>parking_lot::Mutex;
 <span class="kw">use </span>serde::Serialize;
 <span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::sync::Arc;
@@ -1030,7 +1027,7 @@
 };
 <span class="kw">use </span>tokio::io::AsyncWrite;
 <span class="kw">use </span>tokio::sync::broadcast::{<span class="self">self</span>, Sender <span class="kw">as </span>Publisher};
-<span class="kw">use </span>tokio::sync::{Mutex, RwLock};
+<span class="kw">use </span>tokio::sync::Mutex <span class="kw">as </span>TokioMutex;
 <span class="kw">use </span>tokio_util::compat::TokioAsyncWriteCompatExt;
 
 <span class="kw">const </span>GENESIS_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;gen_block&quot;</span>;
@@ -1062,7 +1059,7 @@
     </span><span class="kw">pub </span>db: DB,
 
     <span class="doccomment">/// Tipset at the head of the best-known chain.
-    </span>heaviest: RwLock&lt;<span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;&gt;,
+    </span>heaviest: Mutex&lt;<span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;&gt;,
 
     <span class="doccomment">/// Caches loaded tipsets for fast retrieval.
     </span>ts_cache: Arc&lt;TipsetCache&gt;,
@@ -1078,7 +1075,7 @@
 <span class="kw">where
     </span>DB: Blockstore + Store + Send + Sync,
 {
-    <span class="kw">pub async fn </span>new(db: DB) -&gt; <span class="self">Self
+    <span class="kw">pub fn </span>new(db: DB) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>DB: Clone,
     {
@@ -1096,15 +1093,15 @@
         };
 
         <span class="comment">// Result intentionally ignored, doesn&#39;t matter if heaviest doesn&#39;t exist in store yet
-        </span><span class="kw">let _ </span>= cs.load_heaviest_tipset().<span class="kw">await</span>;
+        </span><span class="kw">let _ </span>= cs.load_heaviest_tipset();
 
         cs
     }
 
     <span class="doccomment">/// Sets heaviest tipset within `ChainStore` and store its tipset keys under `HEAD_KEY`
-    </span><span class="kw">pub async fn </span>set_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">pub fn </span>set_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.db.write(HEAD_KEY, ts.key().marshal_cbor()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <span class="kw-2">*</span><span class="self">self</span>.heaviest.write().<span class="kw">await </span>= <span class="prelude-val">Some</span>(ts.clone());
+        <span class="kw-2">*</span><span class="self">self</span>.heaviest.lock() = <span class="prelude-val">Some</span>(ts.clone());
         <span class="kw">if </span><span class="self">self</span>.publisher.send(HeadChange::Apply(ts)).is_err() {
             <span class="macro">debug!</span>(<span class="string">&quot;did not publish head change, no active receivers&quot;</span>);
         }
@@ -1117,13 +1114,13 @@
     }
 
     <span class="doccomment">/// Adds a [`BlockHeader`] to the tipset tracker, which tracks valid headers.
-    </span><span class="kw">pub async fn </span>add_to_tipset_tracker(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>BlockHeader) {
-        <span class="self">self</span>.tipset_tracker.add(header).<span class="kw">await</span>;
+    </span><span class="kw">pub fn </span>add_to_tipset_tracker(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>BlockHeader) {
+        <span class="self">self</span>.tipset_tracker.add(header);
     }
 
     <span class="doccomment">/// Writes tipset block headers to data store and updates heaviest tipset with other
     /// compatible tracked headers.
-    </span><span class="kw">pub async fn </span>put_tipset&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
+    </span><span class="kw">pub fn </span>put_tipset&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
         </span>S: Scale,
     {
@@ -1133,20 +1130,20 @@
         </span>persist_objects(<span class="self">self</span>.blockstore(), ts.blocks())<span class="question-mark">?</span>;
 
         <span class="comment">// Expand tipset to include other compatible blocks at the epoch.
-        </span><span class="kw">let </span>expanded = <span class="self">self</span>.expand_tipset(ts.min_ticket_block().clone()).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="self">self</span>.update_heaviest::&lt;S&gt;(Arc::new(expanded)).<span class="kw">await</span><span class="question-mark">?</span>;
+        </span><span class="kw">let </span>expanded = <span class="self">self</span>.expand_tipset(ts.min_ticket_block().clone())<span class="question-mark">?</span>;
+        <span class="self">self</span>.update_heaviest::&lt;S&gt;(Arc::new(expanded))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Expands tipset to tipset with all other headers in the same epoch using the tipset tracker.
-    </span><span class="kw">async fn </span>expand_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, header: BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Tipset, Error&gt; {
-        <span class="self">self</span>.tipset_tracker.expand(header).<span class="kw">await
-    </span>}
+    </span><span class="kw">fn </span>expand_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, header: BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Tipset, Error&gt; {
+        <span class="self">self</span>.tipset_tracker.expand(header)
+    }
 
     <span class="doccomment">/// Loads heaviest tipset from `datastore` and sets as heaviest in `chainstore`.
-    </span><span class="kw">async fn </span>load_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+    </span><span class="kw">fn </span>load_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>heaviest_ts = <span class="kw">match </span><span class="self">self</span>.db.read(HEAD_KEY)<span class="question-mark">? </span>{
-            <span class="prelude-val">Some</span>(bz) =&gt; <span class="self">self</span>.tipset_from_keys(<span class="kw-2">&amp;</span>from_slice(<span class="kw-2">&amp;</span>bz)<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>,
+            <span class="prelude-val">Some</span>(bz) =&gt; <span class="self">self</span>.tipset_from_keys(<span class="kw-2">&amp;</span>from_slice(<span class="kw-2">&amp;</span>bz)<span class="question-mark">?</span>)<span class="question-mark">?</span>,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="macro">warn!</span>(<span class="string">&quot;No previous chain state found&quot;</span>);
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="string">&quot;No chain state found&quot;</span>.to_owned()));
@@ -1154,7 +1151,7 @@
         };
 
         <span class="comment">// set as heaviest tipset
-        </span><span class="kw-2">*</span><span class="self">self</span>.heaviest.write().<span class="kw">await </span>= <span class="prelude-val">Some</span>(heaviest_ts);
+        </span><span class="kw-2">*</span><span class="self">self</span>.heaviest.lock() = <span class="prelude-val">Some</span>(heaviest_ts);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1164,9 +1161,9 @@
     }
 
     <span class="doccomment">/// Returns the currently tracked heaviest tipset.
-    </span><span class="kw">pub async fn </span>heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
+    </span><span class="kw">pub fn </span>heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
         <span class="comment">// TODO: Figure out how to remove optional and return something everytime.
-        </span><span class="self">self</span>.heaviest.read().<span class="kw">await</span>.clone()
+        </span><span class="self">self</span>.heaviest.lock().clone()
     }
 
     <span class="doccomment">/// Returns a reference to the publisher of head changes.
@@ -1180,29 +1177,28 @@
     }
 
     <span class="doccomment">/// Returns Tipset from key-value store from provided CIDs
-    </span><span class="kw">pub async fn </span>tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
+    </span><span class="kw">pub fn </span>tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
         <span class="kw">if </span>tsk.cids().is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.heaviest_tipset().<span class="kw">await</span>.unwrap());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.heaviest_tipset().unwrap());
         }
-        tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>.ts_cache, <span class="self">self</span>.blockstore(), tsk).<span class="kw">await
-    </span>}
+        tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>.ts_cache, <span class="self">self</span>.blockstore(), tsk)
+    }
 
     <span class="doccomment">/// Returns Tipset key hash from key-value store from provided CIDs
-    </span><span class="kw">pub async fn </span>tipset_hash_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; String {
+    </span><span class="kw">pub fn </span>tipset_hash_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; String {
         checkpoint_tipsets::tipset_hash(tsk)
     }
 
     <span class="doccomment">/// Determines if provided tipset is heavier than existing known heaviest tipset
-    </span><span class="kw">async fn </span>update_heaviest&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
+    </span><span class="kw">fn </span>update_heaviest&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
         </span>S: Scale,
     {
         <span class="comment">// Calculate heaviest weight before matching to avoid deadlock with mutex
         </span><span class="kw">let </span>heaviest_weight = <span class="self">self
             </span>.heaviest
-            .read()
-            .<span class="kw">await
-            </span>.as_ref()
+            .lock()
+            .as_ref()
             .map(|ts| S::weight(<span class="self">self</span>.blockstore(), ts.as_ref()));
 
         <span class="kw">match </span>heaviest_weight {
@@ -1213,12 +1209,12 @@
                 <span class="kw">if </span>new_weight &gt; curr_weight {
                     <span class="comment">// TODO potentially need to deal with re-orgs here
                     </span><span class="macro">info!</span>(<span class="string">&quot;New heaviest tipset: {:?}&quot;</span>, ts.key());
-                    <span class="self">self</span>.set_heaviest_tipset(ts).<span class="kw">await</span><span class="question-mark">?</span>;
+                    <span class="self">self</span>.set_heaviest_tipset(ts)<span class="question-mark">?</span>;
                 }
             }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="macro">info!</span>(<span class="string">&quot;set heaviest tipset&quot;</span>);
-                <span class="self">self</span>.set_heaviest_tipset(ts).<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="self">self</span>.set_heaviest_tipset(ts)<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
@@ -1244,7 +1240,7 @@
     /// - If `prev` is `false`, the tipset following the null round is returned.
     ///
     /// Returns `None` if the tipset provided was the tipset at the given height.
-    </span><span class="kw">pub async fn </span>tipset_by_height(
+    </span><span class="kw">pub fn </span>tipset_by_height(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         height: ChainEpoch,
         ts: Arc&lt;Tipset&gt;,
@@ -1256,13 +1252,10 @@
             ));
         }
         <span class="kw">if </span>height == ts.epoch() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(ts.clone());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(ts);
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>lbts = <span class="self">self
-            </span>.chain_index
-            .get_tipset_by_height(ts.clone(), height)
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>lbts = <span class="self">self</span>.chain_index.get_tipset_by_height(ts.clone(), height)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>lbts.epoch() &lt; height {
             <span class="macro">warn!</span>(
@@ -1271,18 +1264,17 @@
             );
             lbts = <span class="self">self
                 </span>.chain_index
-                .get_tipset_by_height_without_cache(ts, height)
-                .<span class="kw">await</span><span class="question-mark">?</span>;
+                .get_tipset_by_height_without_cache(ts, height)<span class="question-mark">?</span>;
         }
 
         <span class="kw">if </span>lbts.epoch() == height || !prev {
             <span class="prelude-val">Ok</span>(lbts)
         } <span class="kw">else </span>{
-            <span class="self">self</span>.tipset_from_keys(lbts.parents()).<span class="kw">await
-        </span>}
+            <span class="self">self</span>.tipset_from_keys(lbts.parents())
+        }
     }
 
-    <span class="kw">pub async fn </span>validate_tipset_checkpoints(
+    <span class="kw">pub fn </span>validate_tipset_checkpoints(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         from: Arc&lt;Tipset&gt;,
         network: String,
@@ -1302,7 +1294,7 @@
         hashes.remove(<span class="kw-2">&amp;</span>tipset_hash);
 
         <span class="kw">loop </span>{
-            <span class="kw">let </span>pts = <span class="self">self</span>.chain_index.load_tipset(ts.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="kw">let </span>pts = <span class="self">self</span>.chain_index.load_tipset(ts.parents())<span class="question-mark">?</span>;
             <span class="kw">let </span>tipset_hash = checkpoint_tipsets::tipset_hash(ts.key());
             hashes.remove(<span class="kw-2">&amp;</span>tipset_hash);
 
@@ -1330,7 +1322,7 @@
     }
 
     <span class="doccomment">/// Finds the latest beacon entry given a tipset up to 20 tipsets behind
-    </span><span class="kw">pub async fn </span>latest_beacon_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;BeaconEntry, Error&gt; {
+    </span><span class="kw">pub fn </span>latest_beacon_entry(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;BeaconEntry, Error&gt; {
         <span class="kw">let </span>check_for_beacon_entry = |ts: <span class="kw-2">&amp;</span>Tipset| {
             <span class="kw">let </span>cbe = ts.min_ticket_block().beacon_entries();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = cbe.last() {
@@ -1347,10 +1339,10 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = check_for_beacon_entry(ts)<span class="question-mark">? </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(entry);
         }
-        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="self">self</span>.tipset_from_keys(ts.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>cur = <span class="self">self</span>.tipset_from_keys(ts.parents())<span class="question-mark">?</span>;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">1</span>..<span class="number">20 </span>{
             <span class="kw">if </span>i != <span class="number">1 </span>{
-                cur = <span class="self">self</span>.tipset_from_keys(cur.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
+                cur = <span class="self">self</span>.tipset_from_keys(cur.parents())<span class="question-mark">?</span>;
             }
             <span class="kw">if let </span><span class="prelude-val">Some</span>(entry) = check_for_beacon_entry(<span class="kw-2">&amp;</span>cur)<span class="question-mark">? </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(entry);
@@ -1474,7 +1466,7 @@
         <span class="kw">let </span>(tx, rx) = flume::bounded(CHANNEL_CAP);
         <span class="kw">let </span>header = CarHeader::from(tipset.key().cids().to_vec());
 
-        <span class="kw">let </span>writer = Arc::new(Mutex::new(writer.compat_write()));
+        <span class="kw">let </span>writer = Arc::new(TokioMutex::new(writer.compat_write()));
         <span class="kw">let </span>writer_clone = writer.clone();
 
         <span class="comment">// Spawns task which receives blocks to write to the car writer.
@@ -1586,7 +1578,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TipsetCache = Mutex&lt;LruCache&lt;TipsetKeys, Arc&lt;Tipset&gt;&gt;&gt;;
 
 <span class="doccomment">/// Loads a tipset from memory given the tipset keys and cache.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>tipset_from_keys&lt;BS&gt;(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>tipset_from_keys&lt;BS&gt;(
     cache: <span class="kw-2">&amp;</span>TipsetCache,
     store: <span class="kw-2">&amp;</span>BS,
     tsk: <span class="kw-2">&amp;</span>TipsetKeys,
@@ -1594,7 +1586,7 @@
 <span class="kw">where
     </span>BS: Blockstore,
 {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(ts) = cache.lock().<span class="kw">await</span>.get(tsk) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(ts) = cache.lock().get(tsk) {
         metrics::LRU_CACHE_HIT
             .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::TIPSET])
             .inc();
@@ -1614,7 +1606,7 @@
 
     <span class="comment">// construct new Tipset to return
     </span><span class="kw">let </span>ts = Arc::new(Tipset::new(block_headers)<span class="question-mark">?</span>);
-    cache.lock().<span class="kw">await</span>.put(tsk.clone(), ts.clone());
+    cache.lock().put(tsk.clone(), ts.clone());
     metrics::LRU_CACHE_MISS
         .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::TIPSET])
         .inc();
@@ -1939,11 +1931,11 @@
     <span class="kw">use </span>fvm_ipld_encoding::DAG_CBOR;
     <span class="kw">use </span>fvm_shared::address::Address;
 
-    <span class="attr">#[tokio::test]
-    </span><span class="kw">async fn </span>genesis_test() {
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>genesis_test() {
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
 
-        <span class="kw">let </span>cs = ChainStore::new(db).<span class="kw">await</span>;
+        <span class="kw">let </span>cs = ChainStore::new(db);
         <span class="kw">let </span>gen_block = BlockHeader::builder()
             .epoch(<span class="number">1</span>)
             .weight(<span class="number">2_u32</span>.into())
@@ -1959,11 +1951,11 @@
         <span class="macro">assert_eq!</span>(cs.genesis().unwrap(), <span class="prelude-val">Some</span>(gen_block));
     }
 
-    <span class="attr">#[tokio::test]
-    </span><span class="kw">async fn </span>block_validation_cache_basic() {
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>block_validation_cache_basic() {
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
 
-        <span class="kw">let </span>cs = ChainStore::new(db).<span class="kw">await</span>;
+        <span class="kw">let </span>cs = ChainStore::new(db);
 
         <span class="kw">let </span>cid = Cid::new_v1(DAG_CBOR, Blake2b256.digest(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]));
         <span class="macro">assert!</span>(!cs.is_block_validated(<span class="kw-2">&amp;</span>cid).unwrap());

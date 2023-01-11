@@ -303,7 +303,7 @@
         )));
 
         <span class="kw">while </span>interval.next().<span class="kw">await</span>.is_some() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = chain_store.heaviest_tipset().<span class="kw">await </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = chain_store.heaviest_tipset() {
                 <span class="macro">info!</span>(
                     <span class="string">&quot;Proposing a block on top {} in epoch {}&quot;</span>,
                     base.min_ticket_block().cid(),

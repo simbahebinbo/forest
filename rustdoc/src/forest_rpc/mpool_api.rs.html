@@ -150,13 +150,9 @@
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
+</span><span class="attr">#![allow(clippy::unused_async)]
 
 </span><span class="kw">use </span><span class="kw">super</span>::gas_api::estimate_message_gas;
 <span class="kw">use </span>forest_beacon::Beacon;
@@ -186,13 +182,9 @@
 {
     <span class="kw">let </span>(CidJsonVec(cid_vec),) = params;
     <span class="kw">let </span>tsk = TipsetKeys::new(cid_vec);
-    <span class="kw">let </span><span class="kw-2">mut </span>ts = data
-        .state_manager
-        .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>tsk)
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>ts = data.state_manager.chain_store().tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>pending, mpts) = data.mpool.pending().<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>(<span class="kw-2">mut </span>pending, mpts) = data.mpool.pending()<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>have_cids = HashSet::new();
     <span class="kw">for </span>item <span class="kw">in </span>pending.iter() {
@@ -210,14 +202,14 @@
             }
 
             <span class="comment">// mpts has different blocks than ts
-            </span><span class="kw">let </span>have = data.mpool.as_ref().messages_for_blocks(ts.blocks()).<span class="kw">await</span><span class="question-mark">?</span>;
+            </span><span class="kw">let </span>have = data.mpool.as_ref().messages_for_blocks(ts.blocks())<span class="question-mark">?</span>;
 
             <span class="kw">for </span>sm <span class="kw">in </span>have {
                 have_cids.insert(sm.cid()<span class="question-mark">?</span>);
             }
         }
 
-        <span class="kw">let </span>msgs = data.mpool.as_ref().messages_for_blocks(ts.blocks()).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>msgs = data.mpool.as_ref().messages_for_blocks(ts.blocks())<span class="question-mark">?</span>;
 
         <span class="kw">for </span>m <span class="kw">in </span>msgs {
             <span class="kw">if </span>have_cids.contains(<span class="kw-2">&amp;</span>m.cid()<span class="question-mark">?</span>) {
@@ -235,8 +227,7 @@
         ts = data
             .state_manager
             .chain_store()
-            .tipset_from_keys(ts.parents())
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+            .tipset_from_keys(ts.parents())<span class="question-mark">?</span>;
     }
 }
 
@@ -274,8 +265,7 @@
         .state_manager
         .chain_store()
         .heaviest_tipset()
-        .<span class="kw">await
-        </span>.ok_or_else(|| <span class="string">&quot;Could not get heaviest tipset&quot;</span>.to_string())<span class="question-mark">?</span>;
+        .ok_or_else(|| <span class="string">&quot;Could not get heaviest tipset&quot;</span>.to_string())<span class="question-mark">?</span>;
     <span class="kw">let </span>key_addr = data
         .state_manager
         .resolve_to_key_addr(<span class="kw-2">&amp;</span>from, <span class="kw-2">&amp;</span>heaviest_tipset)
@@ -294,7 +284,7 @@
     <span class="kw">if </span>from.protocol() == Protocol::ID {
         umsg.from = key_addr;
     }
-    <span class="kw">let </span>nonce = data.mpool.get_sequence(<span class="kw-2">&amp;</span>from).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>nonce = data.mpool.get_sequence(<span class="kw-2">&amp;</span>from)<span class="question-mark">?</span>;
     umsg.sequence = nonce;
     <span class="kw">let </span>key = forest_key_management::Key::try_from(forest_key_management::try_find(
         <span class="kw-2">&amp;</span>key_addr,

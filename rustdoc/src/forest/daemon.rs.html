@@ -559,7 +559,6 @@
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -724,7 +723,7 @@
     }
 
     <span class="comment">// Initialize ChainStore
-    </span><span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db.clone()).<span class="kw">await</span>);
+    </span><span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db.clone()));
 
     <span class="kw">let </span>publisher = chain_store.publisher();
 
@@ -742,13 +741,13 @@
     <span class="comment">// XXX: This code has to be run before starting the background services.
     //      If it isn&#39;t, several threads will be competing for access to stdout.
     // Terminate if no snapshot is provided or DB isn&#39;t recent enough
-    </span><span class="kw">let </span>should_fetch_snapshot = <span class="kw">match </span>chain_store.heaviest_tipset().<span class="kw">await </span>{
-        <span class="prelude-val">None </span>=&gt; prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span><span class="question-mark">?</span>,
+    </span><span class="kw">let </span>should_fetch_snapshot = <span class="kw">match </span>chain_store.heaviest_tipset() {
+        <span class="prelude-val">None </span>=&gt; prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>,
         <span class="prelude-val">Some</span>(tipset) =&gt; {
             <span class="kw">let </span>epoch = tipset.epoch();
             <span class="kw">let </span>nv = config.chain.network_version(epoch);
             <span class="kw">if </span>nv &lt; NetworkVersion::V16 {
-                prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span><span class="question-mark">?
+                prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config)<span class="question-mark">?
             </span>} <span class="kw">else </span>{
                 <span class="bool-val">false
             </span>}
@@ -769,7 +768,7 @@
 
     <span class="kw">let </span>state_manager = Arc::new(sm);
 
-    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>genesis, <span class="kw-2">&amp;</span>state_manager).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>genesis, <span class="kw-2">&amp;</span>state_manager)<span class="question-mark">?</span>;
 
     <span class="macro">info!</span>(<span class="string">&quot;Using network :: {}&quot;</span>, get_actual_chain_name(<span class="kw-2">&amp;</span>network_name));
 
@@ -805,8 +804,7 @@
         net_keypair,
         <span class="kw-2">&amp;</span>network_name,
         genesis_cid,
-    )
-    .<span class="kw">await</span>;
+    );
 
     <span class="kw">let </span>network_rx = p2p_service.network_receiver();
     <span class="kw">let </span>network_send = p2p_service.network_sender();
@@ -982,7 +980,7 @@
 
 <span class="doccomment">/// Last resort in case a snapshot is needed. If it is not to be downloaded, this method fails and
 /// exits the process.
-</span><span class="kw">async fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;bool&gt; {
+</span><span class="kw">fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;bool&gt; {
     <span class="kw">if </span>config.client.snapshot_path.is_some() {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
     }
@@ -1085,7 +1083,7 @@
 
     <span class="kw">async fn </span>import_snapshot_from_file(file_path: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>db = MemoryDB::default();
-        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db).<span class="kw">await</span>);
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db));
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
             .timestamp(<span class="number">7777</span>)

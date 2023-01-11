@@ -221,7 +221,7 @@
 }
 
 <span class="kw">impl</span>&lt;P: StoreParams&gt; ForestBehaviour&lt;P&gt; {
-    <span class="kw">pub async fn </span>new&lt;DB: BitswapStore&lt;Params = P&gt;&gt;(
+    <span class="kw">pub fn </span>new&lt;DB: BitswapStore&lt;Params = P&gt;&gt;(
         local_key: <span class="kw-2">&amp;</span>Keypair,
         config: <span class="kw-2">&amp;</span>Libp2pConfig,
         network_name: <span class="kw-2">&amp;</span>str,
@@ -271,7 +271,7 @@
 
         ForestBehaviour {
             gossipsub,
-            discovery: discovery_config.finish().<span class="kw">await</span>,
+            discovery: discovery_config.finish(),
             ping: Default::default(),
             identify: identify::Behaviour::new(identify::Config::new(
                 <span class="string">&quot;ipfs/0.1.0&quot;</span>.into(),

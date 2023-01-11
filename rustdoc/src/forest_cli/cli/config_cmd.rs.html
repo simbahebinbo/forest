@@ -45,7 +45,6 @@
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
 <a href="#47" id="47">47</a>
-<a href="#48" id="48">48</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -61,7 +60,7 @@
 }
 
 <span class="kw">impl </span>ConfigCommands {
-    <span class="kw">pub async fn </span>run&lt;W: Write + Unpin&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, config: <span class="kw-2">&amp;</span>Config, sink: <span class="kw-2">&amp;mut </span>W) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">pub fn </span>run&lt;W: Write + Unpin&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, config: <span class="kw-2">&amp;</span>Config, sink: <span class="kw-2">&amp;mut </span>W) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Dump =&gt; <span class="macro">writeln!</span>(
                 sink,
@@ -85,8 +84,7 @@
 
         ConfigCommands::Dump
             .run(<span class="kw-2">&amp;</span>expected_config, <span class="kw-2">&amp;mut </span>sink)
-            .<span class="kw">await
-            </span>.unwrap();
+            .unwrap();
 
         <span class="kw">let </span>actual_config: Config = toml::from_str(std::str::from_utf8(sink.buffer()).unwrap())
             .expect(<span class="string">&quot;Invalid configuration!&quot;</span>);

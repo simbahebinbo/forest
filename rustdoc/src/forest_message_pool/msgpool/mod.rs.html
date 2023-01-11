@@ -906,35 +906,6 @@
 <a href="#906" id="906">906</a>
 <a href="#907" id="907">907</a>
 <a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -959,11 +930,11 @@
 <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>lru::LruCache;
+<span class="kw">use </span>parking_lot::{Mutex, RwLock <span class="kw">as </span>SyncRwLock};
 <span class="kw">use </span>std::collections::{HashMap, HashSet};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::{borrow::BorrowMut, cmp::Ordering};
 <span class="kw">use </span>tokio::sync::broadcast::{Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};
-<span class="kw">use </span>tokio::sync::RwLock;
 <span class="kw">use </span>utils::{get_base_fee_lower_bound, recover_sig};
 
 <span class="kw">const </span>REPLACE_BY_FEE_RATIO: f32 = <span class="number">1.25</span>;
@@ -977,15 +948,11 @@
 </span><span class="kw">const </span>MIN_GAS: i64 = <span class="number">1298450</span>;
 
 <span class="doccomment">/// Get the state of the `base_sequence` for a given address in the current Tipset
-</span><span class="kw">async fn </span>get_state_sequence&lt;T&gt;(
-    api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
-    addr: <span class="kw-2">&amp;</span>Address,
-    cur_ts: <span class="kw-2">&amp;</span>Tipset,
-) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt;
+</span><span class="kw">fn </span>get_state_sequence&lt;T&gt;(api: <span class="kw-2">&amp;</span>T, addr: <span class="kw-2">&amp;</span>Address, cur_ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt;
 <span class="kw">where
     </span>T: Provider,
 {
-    <span class="kw">let </span>actor = api.read().<span class="kw">await</span>.get_actor_after(addr, cur_ts)<span class="question-mark">?</span>;
+    <span class="kw">let </span>actor = api.get_actor_after(addr, cur_ts)<span class="question-mark">?</span>;
     <span class="kw">let </span>base_sequence = actor.sequence;
 
     <span class="prelude-val">Ok</span>(base_sequence)
@@ -993,27 +960,26 @@
 
 <span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">async fn </span>republish_pending_messages&lt;T&gt;(
-    api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
+    api: <span class="kw-2">&amp;</span>T,
     network_sender: <span class="kw-2">&amp;</span>flume::Sender&lt;NetworkMessage&gt;,
     network_name: <span class="kw-2">&amp;</span>str,
-    pending: <span class="kw-2">&amp;</span>RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
-    cur_tipset: <span class="kw-2">&amp;</span>RwLock&lt;Arc&lt;Tipset&gt;&gt;,
-    republished: <span class="kw-2">&amp;</span>RwLock&lt;HashSet&lt;Cid&gt;&gt;,
-    local_addrs: <span class="kw-2">&amp;</span>RwLock&lt;Vec&lt;Address&gt;&gt;,
+    pending: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
+    cur_tipset: <span class="kw-2">&amp;</span>Mutex&lt;Arc&lt;Tipset&gt;&gt;,
+    republished: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashSet&lt;Cid&gt;&gt;,
+    local_addrs: <span class="kw-2">&amp;</span>SyncRwLock&lt;Vec&lt;Address&gt;&gt;,
     chain_config: <span class="kw-2">&amp;</span>Arc&lt;ChainConfig&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
     </span>T: Provider,
 {
-    <span class="kw">let </span>ts = cur_tipset.read().<span class="kw">await</span>;
+    <span class="kw">let </span>ts = cur_tipset.lock().clone();
     <span class="kw">let </span><span class="kw-2">mut </span>pending_map: HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt; = HashMap::new();
 
-    republished.write().<span class="kw">await</span>.clear();
+    republished.write().clear();
 
     <span class="comment">// Only republish messages from local addresses, ie. transactions which were sent to this node directly.
-    </span><span class="kw">let </span>local_addrs = local_addrs.read().<span class="kw">await</span>;
-    <span class="kw">for </span>actor <span class="kw">in </span>local_addrs.iter() {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(mset) = pending.read().<span class="kw">await</span>.get(actor) {
+    </span><span class="kw">for </span>actor <span class="kw">in </span>local_addrs.read().iter() {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(mset) = pending.read().get(actor) {
             <span class="kw">if </span>mset.msgs.is_empty() {
                 <span class="kw">continue</span>;
             }
@@ -1024,11 +990,8 @@
             pending_map.insert(<span class="kw-2">*</span>actor, pend);
         }
     }
-    drop(local_addrs);
 
-    <span class="kw">let </span>msgs = select_messages_for_block(api, chain_config, ts.as_ref(), pending_map).<span class="kw">await</span><span class="question-mark">?</span>;
-
-    drop(ts);
+    <span class="kw">let </span>msgs = select_messages_for_block(api, chain_config, ts.as_ref(), pending_map)<span class="question-mark">?</span>;
 
     <span class="kw">for </span>m <span class="kw">in </span>msgs.iter() {
         <span class="kw">let </span>mb = m.marshal_cbor()<span class="question-mark">?</span>;
@@ -1045,7 +1008,7 @@
     <span class="kw">for </span>m <span class="kw">in </span>msgs.iter() {
         republished_t.insert(m.cid()<span class="question-mark">?</span>);
     }
-    <span class="kw-2">*</span>republished.write().<span class="kw">await </span>= republished_t;
+    <span class="kw-2">*</span>republished.write() = republished_t;
 
     <span class="prelude-val">Ok</span>(())
 }
@@ -1053,8 +1016,8 @@
 <span class="doccomment">/// Select messages from the mempool to be included in the next block that builds on
 /// a given base tipset. The messages should be eligible for inclusion based on their
 /// sequences and the overall number of them should observe block gas limits.
-</span><span class="kw">async fn </span>select_messages_for_block&lt;T&gt;(
-    api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
+</span><span class="kw">fn </span>select_messages_for_block&lt;T&gt;(
+    api: <span class="kw-2">&amp;</span>T,
     chain_config: <span class="kw-2">&amp;</span>ChainConfig,
     base: <span class="kw-2">&amp;</span>Tipset,
     pending: HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt;,
@@ -1064,7 +1027,7 @@
 {
     <span class="kw">let </span><span class="kw-2">mut </span>msgs: Vec&lt;SignedMessage&gt; = <span class="macro">vec!</span>[];
 
-    <span class="kw">let </span>base_fee = api.read().<span class="kw">await</span>.chain_compute_base_fee(base)<span class="question-mark">?</span>;
+    <span class="kw">let </span>base_fee = api.chain_compute_base_fee(base)<span class="question-mark">?</span>;
     <span class="kw">let </span>base_fee_lower_bound = get_base_fee_lower_bound(<span class="kw-2">&amp;</span>base_fee, BASE_FEE_LOWER_BOUND_FACTOR);
 
     <span class="kw">if </span>pending.is_empty() {
@@ -1081,8 +1044,7 @@
             base,
             <span class="kw-2">&amp;mut </span>chains,
             chain_config,
-        )
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+        )<span class="question-mark">?</span>;
     }
 
     <span class="kw">if </span>chains.is_empty() {
@@ -1148,12 +1110,12 @@
 /// called every time that there is a head change in the message pool.
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">pub async fn </span>head_change&lt;T&gt;(
-    api: <span class="kw-2">&amp;</span>RwLock&lt;T&gt;,
-    bls_sig_cache: <span class="kw-2">&amp;</span>RwLock&lt;LruCache&lt;Cid, Signature&gt;&gt;,
+    api: <span class="kw-2">&amp;</span>T,
+    bls_sig_cache: <span class="kw-2">&amp;</span>Mutex&lt;LruCache&lt;Cid, Signature&gt;&gt;,
     repub_trigger: Arc&lt;flume::Sender&lt;()&gt;&gt;,
-    republished: <span class="kw-2">&amp;</span>RwLock&lt;HashSet&lt;Cid&gt;&gt;,
-    pending: <span class="kw-2">&amp;</span>RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
-    cur_tipset: <span class="kw-2">&amp;</span>RwLock&lt;Arc&lt;Tipset&gt;&gt;,
+    republished: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashSet&lt;Cid&gt;&gt;,
+    pending: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
+    cur_tipset: <span class="kw-2">&amp;</span>Mutex&lt;Arc&lt;Tipset&gt;&gt;,
     revert: Vec&lt;Tipset&gt;,
     apply: Vec&lt;Tipset&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
@@ -1163,16 +1125,15 @@
     <span class="kw">let </span><span class="kw-2">mut </span>repub = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>rmsgs: HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt; = HashMap::new();
     <span class="kw">for </span>ts <span class="kw">in </span>revert {
-        <span class="kw">let </span>pts = api.write().<span class="kw">await</span>.load_tipset(ts.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="kw-2">*</span>cur_tipset.write().<span class="kw">await </span>= pts;
+        <span class="kw">let </span>pts = api.load_tipset(ts.parents())<span class="question-mark">?</span>;
+        <span class="kw-2">*</span>cur_tipset.lock() = pts;
 
         <span class="kw">let </span><span class="kw-2">mut </span>msgs: Vec&lt;SignedMessage&gt; = Vec::new();
         <span class="kw">for </span>block <span class="kw">in </span>ts.blocks() {
-            <span class="kw">let </span>(umsg, smsgs) = api.read().<span class="kw">await</span>.messages_for_block(block)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(umsg, smsgs) = api.messages_for_block(block)<span class="question-mark">?</span>;
             msgs.extend(smsgs);
             <span class="kw">for </span>msg <span class="kw">in </span>umsg {
-                <span class="kw">let </span><span class="kw-2">mut </span>bls_sig_cache = bls_sig_cache.write().<span class="kw">await</span>;
-                <span class="kw">let </span>smsg = recover_sig(<span class="kw-2">&amp;mut </span>bls_sig_cache, msg).<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="kw">let </span>smsg = recover_sig(<span class="kw-2">&amp;mut </span>bls_sig_cache.lock(), msg)<span class="question-mark">?</span>;
                 msgs.push(smsg)
             }
         }
@@ -1184,24 +1145,22 @@
 
     <span class="kw">for </span>ts <span class="kw">in </span>apply {
         <span class="kw">for </span>b <span class="kw">in </span>ts.blocks() {
-            <span class="kw">let </span>(msgs, smsgs) = api.read().<span class="kw">await</span>.messages_for_block(b)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(msgs, smsgs) = api.messages_for_block(b)<span class="question-mark">?</span>;
 
             <span class="kw">for </span>msg <span class="kw">in </span>smsgs {
-                remove_from_selected_msgs(msg.from(), pending, msg.sequence(), rmsgs.borrow_mut())
-                    .<span class="kw">await</span><span class="question-mark">?</span>;
-                <span class="kw">if </span>!repub &amp;&amp; republished.write().<span class="kw">await</span>.insert(msg.cid()<span class="question-mark">?</span>) {
+                remove_from_selected_msgs(msg.from(), pending, msg.sequence(), rmsgs.borrow_mut())<span class="question-mark">?</span>;
+                <span class="kw">if </span>!repub &amp;&amp; republished.write().insert(msg.cid()<span class="question-mark">?</span>) {
                     repub = <span class="bool-val">true</span>;
                 }
             }
             <span class="kw">for </span>msg <span class="kw">in </span>msgs {
-                remove_from_selected_msgs(<span class="kw-2">&amp;</span>msg.from, pending, msg.sequence, rmsgs.borrow_mut())
-                    .<span class="kw">await</span><span class="question-mark">?</span>;
-                <span class="kw">if </span>!repub &amp;&amp; republished.write().<span class="kw">await</span>.insert(msg.cid()<span class="question-mark">?</span>) {
+                remove_from_selected_msgs(<span class="kw-2">&amp;</span>msg.from, pending, msg.sequence, rmsgs.borrow_mut())<span class="question-mark">?</span>;
+                <span class="kw">if </span>!repub &amp;&amp; republished.write().insert(msg.cid()<span class="question-mark">?</span>) {
                     repub = <span class="bool-val">true</span>;
                 }
             }
         }
-        <span class="kw-2">*</span>cur_tipset.write().<span class="kw">await </span>= Arc::new(ts);
+        <span class="kw-2">*</span>cur_tipset.lock() = Arc::new(ts);
     }
     <span class="kw">if </span>repub {
         repub_trigger
@@ -1211,9 +1170,8 @@
     }
     <span class="kw">for </span>(<span class="kw">_</span>, hm) <span class="kw">in </span>rmsgs {
         <span class="kw">for </span>(<span class="kw">_</span>, msg) <span class="kw">in </span>hm {
-            <span class="kw">let </span>sequence =
-                get_state_sequence(api, msg.from(), <span class="kw-2">&amp;</span>cur_tipset.read().<span class="kw">await</span>.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = add_helper(api, bls_sig_cache, pending, msg, sequence).<span class="kw">await </span>{
+            <span class="kw">let </span>sequence = get_state_sequence(api, msg.from(), <span class="kw-2">&amp;</span>cur_tipset.lock().clone())<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = add_helper(api, bls_sig_cache, pending, msg, sequence) {
                 <span class="macro">error!</span>(<span class="string">&quot;Failed to readd message from reorg to mpool: {}&quot;</span>, e);
             }
         }
@@ -1223,9 +1181,9 @@
 
 <span class="doccomment">/// This is a helper function for `head_change`. This method will remove a sequence for a from address
 /// from the messages selected by priority hash-map. It also removes the &#39;from&#39; address and sequence from the `MessagePool`.
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>remove_from_selected_msgs(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_from_selected_msgs(
     from: <span class="kw-2">&amp;</span>Address,
-    pending: <span class="kw-2">&amp;</span>RwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
+    pending: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
     sequence: u64,
     rmsgs: <span class="kw-2">&amp;mut </span>HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
@@ -1233,10 +1191,10 @@
         <span class="kw">if </span>temp.get_mut(<span class="kw-2">&amp;</span>sequence).is_some() {
             temp.remove(<span class="kw-2">&amp;</span>sequence);
         } <span class="kw">else </span>{
-            remove(from, pending, sequence, <span class="bool-val">true</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+            remove(from, pending, sequence, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         }
     } <span class="kw">else </span>{
-        remove(from, pending, sequence, <span class="bool-val">true</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        remove(from, pending, sequence, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
@@ -1308,7 +1266,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = Wallet::new(keystore);
         <span class="kw">let </span>sender = wallet.generate_addr(SignatureType::Secp256k1).unwrap();
         <span class="kw">let </span>target = wallet.generate_addr(SignatureType::Secp256k1).unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>tma = TestApi::default();
+        <span class="kw">let </span>tma = TestApi::default();
         tma.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
 
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
@@ -1329,16 +1287,16 @@
             smsg_vec.push(msg);
         }
 
-        mpool.api.write().<span class="kw">await</span>.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">0</span>);
-        mpool.add(smsg_vec[<span class="number">0</span>].clone()).<span class="kw">await</span>.unwrap();
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">1</span>);
-        mpool.add(smsg_vec[<span class="number">1</span>].clone()).<span class="kw">await</span>.unwrap();
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">2</span>);
+        mpool.api.inner.lock().set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">0</span>);
+        mpool.add(smsg_vec[<span class="number">0</span>].clone()).unwrap();
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">1</span>);
+        mpool.add(smsg_vec[<span class="number">1</span>].clone()).unwrap();
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">2</span>);
 
         <span class="kw">let </span>a = mock_block(<span class="number">1</span>, <span class="number">1</span>);
 
-        mpool.api.write().<span class="kw">await</span>.set_block_messages(<span class="kw-2">&amp;</span>a, smsg_vec);
+        mpool.api.inner.lock().set_block_messages(<span class="kw-2">&amp;</span>a, smsg_vec);
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
         <span class="kw">let </span>pending = mpool.pending.clone();
@@ -1358,7 +1316,7 @@
         .<span class="kw">await
         </span>.unwrap();
 
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">2</span>);
     }
 
     <span class="attr">#[tokio::test]
@@ -1393,18 +1351,20 @@
         .<span class="kw">await
         </span>.unwrap();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>api_temp = mpool.api.write().<span class="kw">await</span>;
-        api_temp.set_block_messages(<span class="kw-2">&amp;</span>a, <span class="macro">vec!</span>[smsg_vec[<span class="number">0</span>].clone()]);
-        api_temp.set_block_messages(<span class="kw-2">&amp;</span>b.clone(), smsg_vec[<span class="number">1</span>..<span class="number">4</span>].to_vec());
-        api_temp.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
-        drop(api_temp);
+        {
+            <span class="kw">let </span><span class="kw-2">mut </span>api_temp = mpool.api.inner.lock();
+            api_temp.set_block_messages(<span class="kw-2">&amp;</span>a, <span class="macro">vec!</span>[smsg_vec[<span class="number">0</span>].clone()]);
+            api_temp.set_block_messages(<span class="kw-2">&amp;</span>b.clone(), smsg_vec[<span class="number">1</span>..<span class="number">4</span>].to_vec());
+            api_temp.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
+            drop(api_temp);
+        }
 
-        mpool.add(smsg_vec[<span class="number">0</span>].clone()).<span class="kw">await</span>.unwrap();
-        mpool.add(smsg_vec[<span class="number">1</span>].clone()).<span class="kw">await</span>.unwrap();
-        mpool.add(smsg_vec[<span class="number">2</span>].clone()).<span class="kw">await</span>.unwrap();
-        mpool.add(smsg_vec[<span class="number">3</span>].clone()).<span class="kw">await</span>.unwrap();
+        mpool.add(smsg_vec[<span class="number">0</span>].clone()).unwrap();
+        mpool.add(smsg_vec[<span class="number">1</span>].clone()).unwrap();
+        mpool.add(smsg_vec[<span class="number">2</span>].clone()).unwrap();
+        mpool.add(smsg_vec[<span class="number">3</span>].clone()).unwrap();
 
-        mpool.api.write().<span class="kw">await</span>.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
+        mpool.api.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
 
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
@@ -1425,9 +1385,9 @@
         .<span class="kw">await
         </span>.unwrap();
 
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">4</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">4</span>);
 
-        mpool.api.write().<span class="kw">await</span>.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">1</span>);
+        mpool.api.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">1</span>);
 
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
@@ -1447,9 +1407,9 @@
         .<span class="kw">await
         </span>.unwrap();
 
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">4</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">4</span>);
 
-        mpool.api.write().<span class="kw">await</span>.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
+        mpool.api.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
 
         head_change(
             api.as_ref(),
@@ -1464,9 +1424,9 @@
         .<span class="kw">await
         </span>.unwrap();
 
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">4</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">4</span>);
 
-        <span class="kw">let </span>(p, <span class="kw">_</span>) = mpool.pending().<span class="kw">await</span>.unwrap();
+        <span class="kw">let </span>(p, <span class="kw">_</span>) = mpool.pending().unwrap();
         <span class="macro">assert_eq!</span>(p.len(), <span class="number">3</span>);
     }
 
@@ -1478,7 +1438,7 @@
         <span class="kw">let </span>sender = wallet.generate_addr(SignatureType::Secp256k1).unwrap();
         <span class="kw">let </span>target = wallet.generate_addr(SignatureType::Secp256k1).unwrap();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>tma = TestApi::default();
+        <span class="kw">let </span>tma = TestApi::default();
         tma.set_state_sequence(<span class="kw-2">&amp;</span>sender, <span class="number">0</span>);
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
@@ -1499,29 +1459,24 @@
             smsg_vec.push(msg);
         }
 
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">0</span>);
         mpool.push(smsg_vec[<span class="number">0</span>].clone()).<span class="kw">await</span>.unwrap();
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">1</span>);
         mpool.push(smsg_vec[<span class="number">1</span>].clone()).<span class="kw">await</span>.unwrap();
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">2</span>);
         mpool.push(smsg_vec[<span class="number">2</span>].clone()).<span class="kw">await</span>.unwrap();
-        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).<span class="kw">await</span>.unwrap(), <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">3</span>);
 
         <span class="kw">let </span>header = mock_block(<span class="number">1</span>, <span class="number">1</span>);
         <span class="kw">let </span>tipset = Tipset::new(<span class="macro">vec!</span>[header.clone()]).unwrap();
 
         <span class="kw">let </span>ts = tipset.clone();
-        mpool
-            .api
-            .write()
-            .<span class="kw">await
-            </span>.set_heaviest_tipset(Arc::new(ts))
-            .<span class="kw">await</span>;
+        mpool.api.set_heaviest_tipset(Arc::new(ts));
 
         <span class="comment">// sleep allows for async block to update mpool&#39;s cur_tipset
         </span>tokio::time::sleep(Duration::new(<span class="number">2</span>, <span class="number">0</span>)).<span class="kw">await</span>;
 
-        <span class="kw">let </span>cur_ts = mpool.cur_tipset.read().<span class="kw">await</span>.clone();
+        <span class="kw">let </span>cur_ts = mpool.cur_tipset.lock().clone();
         <span class="macro">assert_eq!</span>(cur_ts.as_ref(), <span class="kw-2">&amp;</span>tipset);
     }
 
@@ -1535,7 +1490,6 @@
         <span class="kw">let </span>tma = TestApi::default();
         <span class="kw">let </span>gas_limit = <span class="number">6955002</span>;
 
-        <span class="kw">let </span>tma = RwLock::new(tma);
         <span class="kw">let </span>a = mock_block(<span class="number">1</span>, <span class="number">1</span>);
         <span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[a]).unwrap();
         <span class="kw">let </span>chain_config = ChainConfig::default();
@@ -1561,8 +1515,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="macro">assert_eq!</span>(chains.len(), <span class="number">1</span>, <span class="string">&quot;expected a single chain&quot;</span>);
         <span class="macro">assert_eq!</span>(
             chains[<span class="number">0</span>].msgs.len(),
@@ -1599,8 +1552,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="macro">assert_eq!</span>(chains.len(), <span class="number">10</span>, <span class="string">&quot;expected 10 chains&quot;</span>);
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..chains.len() {
@@ -1643,8 +1595,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="macro">assert_eq!</span>(chains.len(), <span class="number">2</span>, <span class="string">&quot;expected 2 chains&quot;</span>);
         <span class="macro">assert_eq!</span>(chains[<span class="number">0</span>].msgs.len(), <span class="number">9</span>);
         <span class="macro">assert_eq!</span>(chains[<span class="number">1</span>].msgs.len(), <span class="number">1</span>);
@@ -1691,8 +1642,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
 
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..chains.len() {
             <span class="kw">let </span>expected_len = <span class="kw">if </span>i &gt; <span class="number">2 </span>{ <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">3 </span>};
@@ -1741,8 +1691,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="macro">assert_eq!</span>(chains.len(), <span class="number">1</span>, <span class="string">&quot;expected a single chain&quot;</span>);
         <span class="kw">for </span>(i, m) <span class="kw">in </span>chains[<span class="number">0</span>].msgs.iter().enumerate() {
             <span class="macro">assert_eq!</span>(
@@ -1758,9 +1707,7 @@
         //         the epoch gasLimit; it should create a single chain with the first 5 messages
         </span><span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
-        tma.write()
-            .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_atto(<span class="number">1_000_000_000_000_000_000_u64</span>));
+        tma.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_atto(<span class="number">1_000_000_000_000_000_000_u64</span>));
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
             <span class="kw">let </span>msg = <span class="kw">if </span>i != <span class="number">5 </span>{
                 create_smsg(<span class="kw-2">&amp;</span>a2, <span class="kw-2">&amp;</span>a1, wallet.borrow_mut(), i, gas_limit, <span class="number">1 </span>+ i)
@@ -1780,8 +1727,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="macro">assert_eq!</span>(chains.len(), <span class="number">1</span>, <span class="string">&quot;expected a single chain&quot;</span>);
         <span class="macro">assert_eq!</span>(chains[<span class="number">0</span>].msgs.len(), <span class="number">5</span>);
         <span class="kw">for </span>(i, m) <span class="kw">in </span>chains[<span class="number">0</span>].msgs.iter().enumerate() {
@@ -1822,8 +1768,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="macro">assert_eq!</span>(chains.len(), <span class="number">1</span>, <span class="string">&quot;expected a single chain&quot;</span>);
         <span class="macro">assert_eq!</span>(chains[<span class="number">0</span>].msgs.len(), max_messages <span class="kw">as </span>usize);
         <span class="kw">for </span>(i, m) <span class="kw">in </span>chains[<span class="number">0</span>].msgs.iter().enumerate() {
@@ -1837,9 +1782,7 @@
         }
 
         <span class="comment">// Test 7: insufficient balance for all messages
-        </span>tma.write()
-            .<span class="kw">await
-            </span>.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_atto(<span class="number">300 </span>* gas_limit + <span class="number">1</span>));
+        </span>tma.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_atto(<span class="number">300 </span>* gas_limit + <span class="number">1</span>));
         <span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
@@ -1857,8 +1800,7 @@
             <span class="kw-2">&amp;mut </span>chains,
             <span class="kw-2">&amp;</span>chain_config,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="macro">assert_eq!</span>(chains.len(), <span class="number">1</span>, <span class="string">&quot;expected a single chain&quot;</span>);
         <span class="macro">assert_eq!</span>(chains[<span class="number">0</span>].msgs.len(), <span class="number">2</span>);
         <span class="kw">for </span>(i, m) <span class="kw">in </span>chains[<span class="number">0</span>].msgs.iter().enumerate() {

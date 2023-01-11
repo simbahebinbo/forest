@@ -273,16 +273,9 @@
 <a href="#273" id="273">273</a>
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
+</span><span class="attr">#![allow(clippy::unused_async)]
 
 </span><span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>num_traits::{FromPrimitive, Zero};
@@ -318,12 +311,10 @@
 {
     <span class="kw">let </span>(MessageJson(msg), max_queue_blks, TipsetKeysJson(tsk)) = params;
 
-    estimate_fee_cap::&lt;DB, B&gt;(<span class="kw-2">&amp;</span>data, msg, max_queue_blks, tsk)
-        .<span class="kw">await
-        </span>.map(|n| TokenAmount::to_string(<span class="kw-2">&amp;</span>n))
+    estimate_fee_cap::&lt;DB, B&gt;(<span class="kw-2">&amp;</span>data, msg, max_queue_blks, tsk).map(|n| TokenAmount::to_string(<span class="kw-2">&amp;</span>n))
 }
 
-<span class="kw">async fn </span>estimate_fee_cap&lt;DB, B&gt;(
+<span class="kw">fn </span>estimate_fee_cap&lt;DB, B&gt;(
     data: <span class="kw-2">&amp;</span>Data&lt;RPCState&lt;DB, B&gt;&gt;,
     msg: Message,
     max_queue_blks: i64,
@@ -337,8 +328,7 @@
         .state_manager
         .chain_store()
         .heaviest_tipset()
-        .<span class="kw">await
-        </span>.ok_or(<span class="string">&quot;can&#39;t find heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+        .ok_or(<span class="string">&quot;can&#39;t find heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>parent_base_fee = ts.blocks()[<span class="number">0</span>].parent_base_fee();
     <span class="kw">let </span>increase_factor =
@@ -391,8 +381,7 @@
         .state_manager
         .chain_store()
         .heaviest_tipset()
-        .<span class="kw">await
-        </span>.ok_or(<span class="string">&quot;cant get heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+        .ok_or(<span class="string">&quot;cant get heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">for _ in </span><span class="number">0</span>..(nblocksincl * <span class="number">2</span>) {
         <span class="kw">if </span>ts.epoch() == <span class="number">0 </span>{
@@ -401,8 +390,7 @@
         <span class="kw">let </span>pts = data
             .state_manager
             .chain_store()
-            .tipset_from_keys(ts.parents())
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+            .tipset_from_keys(ts.parents())<span class="question-mark">?</span>;
         blocks += pts.blocks().len();
         <span class="kw">let </span>msgs = forest_chain::messages_for_tipset(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>pts)<span class="question-mark">?</span>;
 
@@ -490,25 +478,21 @@
         .state_manager
         .chain_store()
         .heaviest_tipset()
-        .<span class="kw">await
-        </span>.ok_or(<span class="string">&quot;cant find the current heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+        .ok_or(<span class="string">&quot;cant find the current heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>from_a = data
         .state_manager
         .resolve_to_key_addr(<span class="kw-2">&amp;</span>msg.from, <span class="kw-2">&amp;</span>curr_ts)
         .<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="kw">let </span>pending = data.mpool.pending_for(<span class="kw-2">&amp;</span>from_a).<span class="kw">await</span>;
+    <span class="kw">let </span>pending = data.mpool.pending_for(<span class="kw-2">&amp;</span>from_a);
     <span class="kw">let </span>prior_messages: Vec&lt;ChainMessage&gt; = pending
         .map(|s| s.into_iter().map(ChainMessage::Signed).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;())
         .unwrap_or_default();
 
+    <span class="kw">let </span>ts = data.mpool.cur_tipset.lock().clone();
     <span class="kw">let </span>res = data
         .state_manager
-        .call_with_gas(
-            <span class="kw-2">&amp;mut </span>ChainMessage::Unsigned(msg),
-            <span class="kw-2">&amp;</span>prior_messages,
-            <span class="prelude-val">Some</span>(data.mpool.cur_tipset.as_ref().read().<span class="kw">await</span>.clone()),
-        )
+        .call_with_gas(<span class="kw-2">&amp;mut </span>ChainMessage::Unsigned(msg), <span class="kw-2">&amp;</span>prior_messages, <span class="prelude-val">Some</span>(ts))
         .<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">match </span>res.msg_rct {
         <span class="prelude-val">Some</span>(rct) =&gt; {
@@ -558,7 +542,7 @@
         msg.gas_premium = gp;
     }
     <span class="kw">if </span>msg.gas_fee_cap.is_zero() {
-        <span class="kw">let </span>gfp = estimate_fee_cap(data, msg.clone(), <span class="number">20</span>, tsk).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>gfp = estimate_fee_cap(data, msg.clone(), <span class="number">20</span>, tsk)<span class="question-mark">?</span>;
         msg.gas_fee_cap = gfp;
     }
     <span class="comment">// TODO: Cap Gas Fee https://github.com/ChainSafe/forest/issues/901

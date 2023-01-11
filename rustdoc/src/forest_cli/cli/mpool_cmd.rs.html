@@ -23,7 +23,7 @@
 </span><span class="kw">pub enum </span>MpoolCommands {}
 
 <span class="kw">impl </span>MpoolCommands {
-    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, _config: Config) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">pub fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, _config: Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="comment">// match self {}
         </span><span class="prelude-val">Ok</span>(())
     }

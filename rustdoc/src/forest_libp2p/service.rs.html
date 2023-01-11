@@ -1195,7 +1195,7 @@
 <span class="kw">where
     </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">pub async fn </span>new(
+    <span class="kw">pub fn </span>new(
         config: Libp2pConfig,
         cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
         peer_manager: Arc&lt;PeerManager&gt;,
@@ -1205,7 +1205,7 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>peer_id = PeerId::from(net_keypair.public());
 
-        <span class="kw">let </span>transport = build_transport(net_keypair.clone()).<span class="kw">await</span>;
+        <span class="kw">let </span>transport = build_transport(net_keypair.clone());
 
         <span class="kw">let </span>limits = ConnectionLimits::default()
             .with_max_pending_incoming(<span class="prelude-val">Some</span>(<span class="number">10</span>))
@@ -1216,7 +1216,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>swarm = SwarmBuilder::with_tokio_executor(
             transport,
-            ForestBehaviour::new(<span class="kw-2">&amp;</span>net_keypair, <span class="kw-2">&amp;</span>config, network_name, cs.db.clone()).<span class="kw">await</span>,
+            ForestBehaviour::new(<span class="kw-2">&amp;</span>net_keypair, <span class="kw-2">&amp;</span>config, network_name, cs.db.clone()),
             peer_id,
         )
         .connection_limits(limits)
@@ -1782,7 +1782,7 @@
                         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = cx_response_tx.send((
                             request_id,
                             channel,
-                            make_chain_exchange_response(db.as_ref(), <span class="kw-2">&amp;</span>request).<span class="kw">await</span>,
+                            make_chain_exchange_response(db.as_ref(), <span class="kw-2">&amp;</span>request),
                         )) {
                             <span class="macro">debug!</span>(<span class="string">&quot;Failed to send ChainExchangeResponse: {e:?}&quot;</span>);
                         }
@@ -1918,7 +1918,7 @@
 }
 
 <span class="doccomment">/// Builds the transport stack that libp2p will communicate over.
-</span><span class="kw">pub async fn </span>build_transport(local_key: Keypair) -&gt; Boxed&lt;(PeerId, StreamMuxerBox)&gt; {
+</span><span class="kw">pub fn </span>build_transport(local_key: Keypair) -&gt; Boxed&lt;(PeerId, StreamMuxerBox)&gt; {
     <span class="kw">let </span>tcp_transport =
         || libp2p::tcp::tokio::Transport::new(libp2p::tcp::Config::new().nodelay(<span class="bool-val">true</span>));
     <span class="kw">let </span>transport = libp2p::dns::TokioDnsConfig::system(tcp_transport()).unwrap();

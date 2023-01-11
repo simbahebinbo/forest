@@ -116,15 +116,6 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -153,9 +144,9 @@
 </span><span class="attr">#[async_trait]
 </span><span class="kw">pub trait </span>Provider {
     <span class="doccomment">/// Update `Mpool`&#39;s `cur_tipset` whenever there is a change to the provider
-    </span><span class="kw">async fn </span>subscribe_head_changes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Subscriber&lt;HeadChange&gt;;
+    </span><span class="kw">fn </span>subscribe_head_changes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Subscriber&lt;HeadChange&gt;;
     <span class="doccomment">/// Get the heaviest Tipset in the provider
-    </span><span class="kw">async fn </span>get_heaviest_tipset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;;
+    </span><span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;;
     <span class="doccomment">/// Add a message to the `MpoolProvider`, return either Cid or Error depending on successful put
     </span><span class="kw">fn </span>put_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>ChainMessage) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt;;
     <span class="doccomment">/// Return state actor for given address given the tipset that the a temp `StateTree` will be rooted
@@ -166,12 +157,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         h: <span class="kw-2">&amp;</span>BlockHeader,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;Message&gt;, Vec&lt;SignedMessage&gt;), Error&gt;;
-    <span class="doccomment">/// Resolves to the key address
-    </span><span class="kw">async fn </span>state_account_key(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Address, Error&gt;;
     <span class="doccomment">/// Return all messages for a tipset
     </span><span class="kw">fn </span>messages_for_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, h: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ChainMessage&gt;, Error&gt;;
     <span class="doccomment">/// Return a tipset given the tipset keys from the `ChainStore`
-    </span><span class="kw">async fn </span>load_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;;
+    </span><span class="kw">fn </span>load_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;;
     <span class="doccomment">/// Computes the base fee
     </span><span class="kw">fn </span>chain_compute_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt;;
 }
@@ -199,13 +188,13 @@
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">async fn </span>subscribe_head_changes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Subscriber&lt;HeadChange&gt; {
+    <span class="kw">fn </span>subscribe_head_changes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Subscriber&lt;HeadChange&gt; {
         <span class="self">self</span>.subscriber.subscribe()
     }
 
-    <span class="kw">async fn </span>get_heaviest_tipset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
-        <span class="self">self</span>.sm.chain_store().heaviest_tipset().<span class="kw">await
-    </span>}
+    <span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
+        <span class="self">self</span>.sm.chain_store().heaviest_tipset()
+    }
 
     <span class="kw">fn </span>put_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>ChainMessage) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt; {
         <span class="kw">let </span>cid = <span class="self">self
@@ -236,20 +225,13 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.sm.chain_store().messages_for_tipset(h)<span class="question-mark">?</span>)
     }
 
-    <span class="kw">async fn </span>load_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
-        <span class="kw">let </span>ts = <span class="self">self</span>.sm.chain_store().tipset_from_keys(tsk).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(ts)
+    <span class="kw">fn </span>load_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.sm.chain_store().tipset_from_keys(tsk)<span class="question-mark">?</span>)
     }
     <span class="kw">fn </span>chain_compute_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>smoke_height = <span class="self">self</span>.sm.chain_config().epoch(Height::Smoke);
         forest_chain::compute_base_fee(<span class="self">self</span>.sm.blockstore(), ts, smoke_height)
             .map_err(|err| err.into())
-    }
-    <span class="kw">async fn </span>state_account_key(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Address, Error&gt; {
-        <span class="self">self</span>.sm
-            .resolve_to_key_addr(addr, ts)
-            .<span class="kw">await
-            </span>.map_err(|e| Error::Other(e.to_string()))
     }
 }
 </code></pre></div>

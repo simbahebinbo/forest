@@ -306,24 +306,9 @@
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
 <a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
+</span><span class="attr">#![allow(clippy::unused_async)]
 
 </span><span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>forest_beacon::Beacon;
@@ -391,9 +376,9 @@
     <span class="kw">let </span>file = File::create(<span class="kw-2">&amp;</span>out_tmp).<span class="kw">await</span>.map_err(JsonRpcError::from)<span class="question-mark">?</span>;
     <span class="kw">let </span>writer = AsyncWriterWithChecksum::&lt;Sha256, <span class="kw">_</span>&gt;::new(BufWriter::new(file));
 
-    <span class="kw">let </span>head = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>head = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>start_ts = data.chain_store.tipset_by_height(epoch, head, <span class="bool-val">true</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>start_ts = data.chain_store.tipset_by_height(epoch, head, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
     <span class="kw">match </span>data
         .chain_store
@@ -515,16 +500,11 @@
     B: Beacon,
 {
     <span class="kw">let </span>(height, tsk) = params;
-    <span class="kw">let </span>ts = data
-        .state_manager
-        .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>tsk)
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>ts = data.state_manager.chain_store().tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
     <span class="kw">let </span>tss = data
         .state_manager
         .chain_store()
-        .tipset_by_height(height, ts, <span class="bool-val">true</span>)
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+        .tipset_by_height(height, ts, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(TipsetJson(tss))
 }
 
@@ -552,8 +532,7 @@
         .state_manager
         .chain_store()
         .heaviest_tipset()
-        .<span class="kw">await
-        </span>.ok_or(<span class="string">&quot;can&#39;t find heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+        .ok_or(<span class="string">&quot;can&#39;t find heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(TipsetJson(heaviest))
 }
 
@@ -583,11 +562,7 @@
     B: Beacon,
 {
     <span class="kw">let </span>(TipsetKeysJson(tsk),) = params;
-    <span class="kw">let </span>ts = data
-        .state_manager
-        .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>tsk)
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>ts = data.state_manager.chain_store().tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(TipsetJson(ts))
 }
 
@@ -600,11 +575,7 @@
     B: Beacon,
 {
     <span class="kw">let </span>(TipsetKeysJson(tsk),) = params;
-    <span class="kw">let </span>ts = data
-        .state_manager
-        .chain_store()
-        .tipset_hash_from_keys(<span class="kw-2">&amp;</span>tsk)
-        .<span class="kw">await</span>;
+    <span class="kw">let </span>ts = data.state_manager.chain_store().tipset_hash_from_keys(<span class="kw-2">&amp;</span>tsk);
     <span class="prelude-val">Ok</span>(ts)
 }
 
@@ -622,17 +593,14 @@
         .state_manager
         .chain_store()
         .heaviest_tipset()
-        .<span class="kw">await
-        </span>.ok_or_else(|| forest_chain::Error::NotFound(<span class="string">&quot;heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?</span>;
+        .ok_or_else(|| forest_chain::Error::NotFound(<span class="string">&quot;heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?</span>;
     <span class="kw">let </span>ts = data
         .state_manager
         .chain_store()
-        .tipset_from_keys(tipset.key())
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+        .tipset_from_keys(tipset.key())<span class="question-mark">?</span>;
     data.state_manager
         .chain_store()
-        .validate_tipset_checkpoints(ts, data.state_manager.chain_config().name.clone())
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+        .validate_tipset_checkpoints(ts, data.state_manager.chain_config().name.clone())<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<span class="string">&quot;Ok&quot;</span>.to_string())
 }
 

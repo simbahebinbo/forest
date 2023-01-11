@@ -202,14 +202,6 @@
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -264,7 +256,7 @@
     <span class="prelude-val">Ok</span>(Tipset::new(<span class="macro">vec!</span>[genesis])<span class="question-mark">?</span>)
 }
 
-<span class="kw">pub async fn </span>get_network_name_from_genesis&lt;BS&gt;(
+<span class="kw">pub fn </span>get_network_name_from_genesis&lt;BS&gt;(
     genesis_ts: <span class="kw-2">&amp;</span>Tipset,
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;BS&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, anyhow::Error&gt;
@@ -290,7 +282,7 @@
 {
     <span class="kw">let </span>genesis_bytes = state_manager.chain_config().genesis_bytes();
     <span class="kw">let </span>ts = read_genesis_header(genesis_fp, genesis_bytes, state_manager.chain_store()).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>ts, state_manager).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>ts, state_manager)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>((ts, network_name))
 }
 
@@ -326,9 +318,7 @@
         <span class="macro">debug!</span>(<span class="string">&quot;Initialize ChainSyncer with new genesis from config&quot;</span>);
         chain_store.set_genesis(<span class="kw-2">&amp;</span>genesis_block)<span class="question-mark">?</span>;
 
-        chain_store
-            .set_heaviest_tipset(Arc::new(Tipset::new(<span class="macro">vec!</span>[genesis_block.clone()])<span class="question-mark">?</span>))
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+        chain_store.set_heaviest_tipset(Arc::new(Tipset::new(<span class="macro">vec!</span>[genesis_block.clone()])<span class="question-mark">?</span>))<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(genesis_block)
 }
@@ -362,16 +352,10 @@
     </span>};
 
     <span class="macro">info!</span>(<span class="string">&quot;Loaded .car file in {}s&quot;</span>, stopwatch.elapsed().as_secs());
-    <span class="kw">let </span>ts = sm
-        .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(cids))
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>ts = sm.chain_store().tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(cids))<span class="question-mark">?</span>;
 
     <span class="kw">if </span>!skip_load {
-        <span class="kw">let </span>gb = sm
-            .chain_store()
-            .tipset_by_height(<span class="number">0</span>, ts.clone(), <span class="bool-val">true</span>)
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>gb = sm.chain_store().tipset_by_height(<span class="number">0</span>, ts.clone(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         sm.chain_store().set_genesis(<span class="kw-2">&amp;</span>gb.blocks()[<span class="number">0</span>])<span class="question-mark">?</span>;
         <span class="kw">if </span>!<span class="macro">matches!</span>(<span class="kw-2">&amp;</span>sm.chain_config().genesis_cid, <span class="prelude-val">Some</span>(expected_cid) <span class="kw">if </span>expected_cid ==  <span class="kw-2">&amp;</span>gb.blocks()[<span class="number">0</span>].cid().to_string())
         {
@@ -384,7 +368,7 @@
     }
 
     <span class="comment">// Update head with snapshot header tipset
-    </span>sm.chain_store().set_heaviest_tipset(ts.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
+    </span>sm.chain_store().set_heaviest_tipset(ts.clone())<span class="question-mark">?</span>;
 
     sm.blockstore().flush()<span class="question-mark">?</span>;
 

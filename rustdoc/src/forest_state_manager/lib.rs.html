@@ -1256,40 +1256,6 @@
 <a href="#1256" id="1256">1256</a>
 <a href="#1257" id="1257">1257</a>
 <a href="#1258" id="1258">1258</a>
-<a href="#1259" id="1259">1259</a>
-<a href="#1260" id="1260">1260</a>
-<a href="#1261" id="1261">1261</a>
-<a href="#1262" id="1262">1262</a>
-<a href="#1263" id="1263">1263</a>
-<a href="#1264" id="1264">1264</a>
-<a href="#1265" id="1265">1265</a>
-<a href="#1266" id="1266">1266</a>
-<a href="#1267" id="1267">1267</a>
-<a href="#1268" id="1268">1268</a>
-<a href="#1269" id="1269">1269</a>
-<a href="#1270" id="1270">1270</a>
-<a href="#1271" id="1271">1271</a>
-<a href="#1272" id="1272">1272</a>
-<a href="#1273" id="1273">1273</a>
-<a href="#1274" id="1274">1274</a>
-<a href="#1275" id="1275">1275</a>
-<a href="#1276" id="1276">1276</a>
-<a href="#1277" id="1277">1277</a>
-<a href="#1278" id="1278">1278</a>
-<a href="#1279" id="1279">1279</a>
-<a href="#1280" id="1280">1280</a>
-<a href="#1281" id="1281">1281</a>
-<a href="#1282" id="1282">1282</a>
-<a href="#1283" id="1283">1283</a>
-<a href="#1284" id="1284">1284</a>
-<a href="#1285" id="1285">1285</a>
-<a href="#1286" id="1286">1286</a>
-<a href="#1287" id="1287">1287</a>
-<a href="#1288" id="1288">1288</a>
-<a href="#1289" id="1289">1289</a>
-<a href="#1290" id="1290">1290</a>
-<a href="#1291" id="1291">1291</a>
-<a href="#1292" id="1292">1292</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1801,7 +1767,7 @@
     }
 
     <span class="doccomment">/// runs the given message and returns its result without any persisted changes.
-    </span><span class="kw">pub async fn </span>call(
+    </span><span class="kw">pub fn </span>call(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         message: <span class="kw-2">&amp;mut </span>Message,
         tipset: <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;,
@@ -1811,10 +1777,9 @@
         } <span class="kw">else </span>{
             <span class="self">self</span>.cs
                 .heaviest_tipset()
-                .<span class="kw">await
-                </span>.ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
+                .ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned(), tokio::runtime::Handle::current());
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
         <span class="self">self</span>.call_raw(message, chain_rand, <span class="kw-2">&amp;</span>ts)
     }
 
@@ -1831,14 +1796,13 @@
         } <span class="kw">else </span>{
             <span class="self">self</span>.cs
                 .heaviest_tipset()
-                .<span class="kw">await
-                </span>.ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
+                .ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
         </span>};
         <span class="kw">let </span>(st, <span class="kw">_</span>) = <span class="self">self
             </span>.tipset_state(<span class="kw-2">&amp;</span>ts)
             .<span class="kw">await
             </span>.map_err(|<span class="kw">_</span>| Error::Other(<span class="string">&quot;Could not load tipset state&quot;</span>.to_string()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned(), tokio::runtime::Handle::current());
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
 
         <span class="kw">let </span>store = <span class="self">self</span>.blockstore().clone();
         <span class="comment">// Since we&#39;re simulating a future message, pretend we&#39;re applying it in the &quot;next&quot; tipset
@@ -1943,8 +1907,7 @@
         <span class="kw">let </span>next_ts = <span class="self">self
             </span>.cs
             .tipset_by_height(lbr + <span class="number">1</span>, tipset.clone(), <span class="bool-val">false</span>)
-            .<span class="kw">await
-            </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not get tipset by height {e:?}&quot;</span>)))<span class="question-mark">?</span>;
+            .map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not get tipset by height {e:?}&quot;</span>)))<span class="question-mark">?</span>;
         <span class="kw">if </span>lbr &gt; next_ts.epoch() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(
                 <span class="string">&quot;failed to find non-null tipset {:?} {} which is known to exist, found {:?} {}&quot;</span>,
@@ -1957,8 +1920,7 @@
         <span class="kw">let </span>lbts = <span class="self">self
             </span>.cs
             .tipset_from_keys(next_ts.parents())
-            .<span class="kw">await
-            </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not get tipset from keys {e:?}&quot;</span>)))<span class="question-mark">?</span>;
+            .map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not get tipset from keys {e:?}&quot;</span>)))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>((lbts, <span class="kw-2">*</span>next_ts.parent_state()))
     }
 
@@ -2060,9 +2022,8 @@
             Default::default()
         };
 
-        <span class="kw">let </span>async_handle = tokio::runtime::Handle::current();
         <span class="kw">let </span>tipset_keys = TipsetKeys::new(block_headers.iter().map(|s| s.cid()).cloned().collect());
-        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(tipset_keys, async_handle);
+        <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(tipset_keys);
         <span class="kw">let </span>base_fee = first_block.parent_base_fee().clone();
 
         <span class="kw">let </span>blocks = <span class="self">self
@@ -2092,7 +2053,7 @@
 
     <span class="doccomment">/// Check if tipset had executed the message, by loading the receipt based on the index of
     /// the message in the block.
-    </span><span class="kw">async fn </span>tipset_executed_message(
+    </span><span class="kw">fn </span>tipset_executed_message(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tipset: <span class="kw-2">&amp;</span>Tipset,
         msg_cid: Cid,
@@ -2105,8 +2066,7 @@
         </span><span class="kw">let </span>pts = <span class="self">self
             </span>.cs
             .tipset_from_keys(tipset.parents())
-            .<span class="kw">await
-            </span>.map_err(|err| Error::Other(err.to_string()))<span class="question-mark">?</span>;
+            .map_err(|err| Error::Other(err.to_string()))<span class="question-mark">?</span>;
         <span class="kw">let </span>messages = <span class="self">self
             </span>.cs
             .messages_for_tipset(<span class="kw-2">&amp;</span>pts)
@@ -2150,77 +2110,59 @@
             .unwrap_or(<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>))
     }
 
-    <span class="kw">async fn </span>check_search(
+    <span class="kw">fn </span>check_search(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        current: <span class="kw-2">&amp;</span>Tipset,
+        <span class="kw-2">mut </span>current: Arc&lt;Tipset&gt;,
         (message_from_address, message_cid, message_sequence): (<span class="kw-2">&amp;</span>Address, <span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>u64),
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Arc&lt;Tipset&gt;, Receipt)&gt;, <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt;&gt; {
-        <span class="kw">if </span>current.epoch() == <span class="number">0 </span>{
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
-        }
-        <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore(), current.parent_state())
-            .map_err(|e| <span class="prelude-val">Err</span>(Error::State(e.to_string())))<span class="question-mark">?</span>;
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(actor_state) = state
-            .get_actor(message_from_address)
-            .map_err(|e| <span class="prelude-val">Err</span>(Error::State(e.to_string())))<span class="question-mark">?
-        </span>{
-            <span class="kw">if </span>actor_state.sequence == <span class="number">0 </span>|| actor_state.sequence &lt; <span class="kw-2">*</span>message_sequence {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Arc&lt;Tipset&gt;, Receipt)&gt;, Error&gt; {
+        <span class="kw">loop </span>{
+            <span class="kw">if </span>current.epoch() == <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
-        }
+            <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore(), current.parent_state())
+                .map_err(|e| Error::State(e.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>tipset = <span class="self">self
-            </span>.cs
-            .tipset_from_keys(current.parents())
-            .<span class="kw">await
-            </span>.map_err(|err| {
-                <span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(actor_state) = state
+                .get_actor(message_from_address)
+                .map_err(|e| Error::State(e.to_string()))<span class="question-mark">?
+            </span>{
+                <span class="kw">if </span>actor_state.sequence == <span class="number">0 </span>|| actor_state.sequence &lt; <span class="kw-2">*</span>message_sequence {
+                    <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+                }
+            }
+
+            <span class="kw">let </span>tipset = <span class="self">self</span>.cs.tipset_from_keys(current.parents()).map_err(|err| {
+                Error::Other(<span class="macro">format!</span>(
                     <span class="string">&quot;failed to load tipset during msg wait searchback: {err:}&quot;
-                </span>)))
+                </span>))
             })<span class="question-mark">?</span>;
-        <span class="kw">let </span>r = <span class="self">self
-            </span>.tipset_executed_message(
+            <span class="kw">let </span>r = <span class="self">self</span>.tipset_executed_message(
                 <span class="kw-2">&amp;</span>tipset,
                 <span class="kw-2">*</span>message_cid,
                 (message_from_address, message_sequence),
-            )
-            .<span class="kw">await
-            </span>.map_err(<span class="prelude-val">Err</span>)<span class="question-mark">?</span>;
+            )<span class="question-mark">?</span>;
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(receipt) = r {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((tipset, receipt)))
-        } <span class="kw">else </span>{
-            <span class="prelude-val">Err</span>(<span class="prelude-val">Ok</span>(tipset))
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(receipt) = r {
+                <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((tipset, receipt)));
+            } <span class="kw">else </span>{
+                current = tipset;
+            }
         }
     }
 
-    <span class="kw">async fn </span>search_back_for_message(
+    <span class="kw">fn </span>search_back_for_message(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        current: <span class="kw-2">&amp;</span>Tipset,
+        current: Arc&lt;Tipset&gt;,
         params: (<span class="kw-2">&amp;</span>Address, <span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>u64),
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;(Arc&lt;Tipset&gt;, Receipt)&gt;, Error&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>ts: Arc&lt;Tipset&gt; = <span class="kw">match </span><span class="self">self</span>.check_search(current, params).<span class="kw">await </span>{
-            <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(res),
-            <span class="prelude-val">Err</span>(e) =&gt; e<span class="question-mark">?</span>,
-        };
-
-        <span class="comment">// Loops until message is found, genesis is hit, or an error is encountered
-        </span><span class="kw">loop </span>{
-            ts = <span class="kw">match </span><span class="self">self</span>.check_search(<span class="kw-2">&amp;</span>ts, params).<span class="kw">await </span>{
-                <span class="prelude-val">Ok</span>(res) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(res),
-                <span class="prelude-val">Err</span>(e) =&gt; e<span class="question-mark">?</span>,
-            };
-        }
+        <span class="self">self</span>.check_search(current, params)
     }
     <span class="doccomment">/// Returns a message receipt from a given tipset and message CID.
-    </span><span class="kw">pub async fn </span>get_receipt(<span class="kw-2">&amp;</span><span class="self">self</span>, tipset: <span class="kw-2">&amp;</span>Tipset, msg: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;Receipt, Error&gt; {
+    </span><span class="kw">pub fn </span>get_receipt(<span class="kw-2">&amp;</span><span class="self">self</span>, tipset: Arc&lt;Tipset&gt;, msg: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;Receipt, Error&gt; {
         <span class="kw">let </span>m = forest_chain::get_chain_message(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>msg)
             .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
         <span class="kw">let </span>message_var = (m.from(), <span class="kw-2">&amp;</span>m.sequence());
-        <span class="kw">let </span>message_receipt = <span class="self">self
-            </span>.tipset_executed_message(tipset, msg, message_var)
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>message_receipt = <span class="self">self</span>.tipset_executed_message(<span class="kw-2">&amp;</span>tipset, msg, message_var)<span class="question-mark">?</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(receipt) = message_receipt {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(receipt);
@@ -2229,7 +2171,7 @@
             .cid()
             .map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not convert message to cid {e:?}&quot;</span>)))<span class="question-mark">?</span>;
         <span class="kw">let </span>message_var = (m.from(), <span class="kw-2">&amp;</span>cid, <span class="kw-2">&amp;</span>m.sequence());
-        <span class="kw">let </span>maybe_tuple = <span class="self">self</span>.search_back_for_message(tipset, message_var).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>maybe_tuple = <span class="self">self</span>.search_back_for_message(tipset, message_var)<span class="question-mark">?</span>;
         <span class="kw">let </span>message_receipt = maybe_tuple
             .ok_or_else(|| {
                 Error::Other(<span class="string">&quot;Could not get receipt from search back message&quot;</span>.to_string())
@@ -2255,10 +2197,9 @@
             .map_err(|err| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;failed to load message {err:}&quot;</span>)))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>message_var = (message.from(), <span class="kw-2">&amp;</span>message.sequence());
-        <span class="kw">let </span>current_tipset = <span class="self">self</span>.cs.heaviest_tipset().<span class="kw">await</span>.unwrap();
-        <span class="kw">let </span>maybe_message_reciept = <span class="self">self
-            </span>.tipset_executed_message(<span class="kw-2">&amp;</span>current_tipset, msg_cid, message_var)
-            .<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>current_tipset = <span class="self">self</span>.cs.heaviest_tipset().unwrap();
+        <span class="kw">let </span>maybe_message_reciept =
+            <span class="self">self</span>.tipset_executed_message(<span class="kw-2">&amp;</span>current_tipset, msg_cid, message_var)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(r) = maybe_message_reciept {
             <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(current_tipset.clone()), <span class="prelude-val">Some</span>(r)));
         }
@@ -2276,12 +2217,10 @@
         <span class="kw">let </span>sequence_for_task = message.sequence();
         <span class="kw">let </span>height_of_head = current_tipset.epoch();
         <span class="kw">let </span>task = tokio::task::spawn(<span class="kw">async move </span>{
-            <span class="kw">let </span>back_tuple = sm_cloned
-                .search_back_for_message(
-                    <span class="kw-2">&amp;</span>current_tipset,
-                    (<span class="kw-2">&amp;</span>address_for_task, <span class="kw-2">&amp;</span>cid_for_task, <span class="kw-2">&amp;</span>sequence_for_task),
-                )
-                .<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="kw">let </span>back_tuple = sm_cloned.search_back_for_message(
+                current_tipset,
+                (<span class="kw-2">&amp;</span>address_for_task, <span class="kw-2">&amp;</span>cid_for_task, <span class="kw-2">&amp;</span>sequence_for_task),
+            )<span class="question-mark">?</span>;
             sender
                 .send(())
                 .map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not send to channel {e:?}&quot;</span>)))<span class="question-mark">?</span>;
@@ -2320,9 +2259,8 @@
                             }
 
                             <span class="kw">let </span>message_var = (message.from(), <span class="kw-2">&amp;</span>message.sequence());
-                            <span class="kw">let </span>maybe_receipt = sm_cloned
-                                .tipset_executed_message(<span class="kw-2">&amp;</span>tipset, msg_cid, message_var)
-                                .<span class="kw">await</span><span class="question-mark">?</span>;
+                            <span class="kw">let </span>maybe_receipt =
+                                sm_cloned.tipset_executed_message(<span class="kw-2">&amp;</span>tipset, msg_cid, message_var)<span class="question-mark">?</span>;
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(receipt) = maybe_receipt {
                                 <span class="kw">if </span>confidence == <span class="number">0 </span>{
                                     <span class="kw">return </span><span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(tipset), <span class="prelude-val">Some</span>(receipt)));
@@ -2403,12 +2341,11 @@
     }
 
     <span class="doccomment">/// Return the heaviest tipset&#39;s balance from self.db for a given address
-    </span><span class="kw">pub async fn </span>get_heaviest_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
+    </span><span class="kw">pub fn </span>get_heaviest_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>ts = <span class="self">self
             </span>.cs
             .heaviest_tipset()
-            .<span class="kw">await
-            </span>.ok_or_else(|| Error::Other(<span class="string">&quot;could not get bs heaviest ts&quot;</span>.to_owned()))<span class="question-mark">?</span>;
+            .ok_or_else(|| Error::Other(<span class="string">&quot;could not get bs heaviest ts&quot;</span>.to_owned()))<span class="question-mark">?</span>;
         <span class="kw">let </span>cid = ts.parent_state();
         <span class="self">self</span>.get_balance(addr, <span class="kw-2">*</span>cid)
     }
@@ -2511,7 +2448,7 @@
         }
         <span class="kw">let </span><span class="kw-2">mut </span>ts_chain = Vec::&lt;Arc&lt;Tipset&gt;&gt;::new();
         <span class="kw">while </span>ts.epoch() != height {
-            <span class="kw">let </span>next = <span class="self">self</span>.cs.tipset_from_keys(ts.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="kw">let </span>next = <span class="self">self</span>.cs.tipset_from_keys(ts.parents())<span class="question-mark">?</span>;
             ts_chain.push(std::mem::replace(<span class="kw-2">&amp;mut </span>ts, next));
         }
         ts_chain.push(ts);
@@ -2547,17 +2484,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn </span>chain_rand(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        blocks: TipsetKeys,
-        async_handle: tokio::runtime::Handle,
-    ) -&gt; ChainRand&lt;DB&gt; {
+    <span class="kw">fn </span>chain_rand(<span class="kw-2">&amp;</span><span class="self">self</span>, blocks: TipsetKeys) -&gt; ChainRand&lt;DB&gt; {
         ChainRand::new(
             <span class="self">self</span>.chain_config.clone(),
             blocks,
             <span class="self">self</span>.cs.clone(),
             <span class="self">self</span>.beacon.clone(),
-            async_handle,
         )
     }
 }

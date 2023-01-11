@@ -90,29 +90,25 @@
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>log::{debug, warn};
 <span class="kw">use </span>std::collections::HashMap;
-<span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>parking_lot::Mutex;
 
 <span class="kw">use </span><span class="kw">super</span>::Error;
 
 <span class="doccomment">/// Tracks blocks by their height for the purpose of forming tipsets.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TipsetTracker&lt;DB&gt; {
-    <span class="comment">// TODO: look into optimizing https://github.com/ChainSafe/forest/issues/878
-    </span>entries: RwLock&lt;HashMap&lt;ChainEpoch, Vec&lt;Cid&gt;&gt;&gt;,
+    entries: Mutex&lt;HashMap&lt;ChainEpoch, Vec&lt;Cid&gt;&gt;&gt;,
     db: DB,
 }
 
@@ -125,20 +121,20 @@
     }
 
     <span class="doccomment">/// Adds a block header to the tracker.
-    </span><span class="kw">pub async fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>BlockHeader) {
-        <span class="comment">// TODO: consider only acquiring a writer lock when appending this header to the map,
-        // in order to avoid holding the writer lock during the `blockstore` reads
-        </span><span class="kw">let </span><span class="kw-2">mut </span>map = <span class="self">self</span>.entries.write().<span class="kw">await</span>;
-        <span class="kw">let </span>cids = map.entry(header.epoch()).or_default();
-
-        <span class="kw">for </span>cid <span class="kw">in </span>cids.iter() {
-            <span class="kw">if </span>cid == header.cid() {
+    </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>BlockHeader) {
+        <span class="kw">let </span>cids = {
+            <span class="kw">let </span><span class="kw-2">mut </span>map = <span class="self">self</span>.entries.lock();
+            <span class="kw">let </span>cids = map.entry(header.epoch()).or_default();
+            <span class="kw">if </span>cids.contains(header.cid()) {
                 <span class="macro">debug!</span>(<span class="string">&quot;tried to add block to tipset tracker that was already there&quot;</span>);
                 <span class="kw">return</span>;
             }
-        }
+            cids.push(<span class="kw-2">*</span>header.cid());
+            cids.clone()
+        };
 
-        <span class="kw">for </span>cid <span class="kw">in </span>cids.iter() {
+        <span class="comment">// XXX: What is this code supposed to do? ~Lemmih
+        </span><span class="kw">for </span>cid <span class="kw">in </span>cids.iter() {
             <span class="comment">// TODO: maybe cache the miner address to avoid having to do a `blockstore` lookup here
             </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(block)) = <span class="self">self</span>.db.get_obj::&lt;BlockHeader&gt;(cid) {
                 <span class="kw">if </span>header.miner_address() == block.miner_address() {
@@ -152,26 +148,24 @@
                 }
             }
         }
-
-        cids.push(<span class="kw-2">*</span>header.cid());
     }
 
     <span class="doccomment">/// Expands the given block header into the largest possible tipset by
     /// combining it with known blocks at the same height with the same parents.
-    </span><span class="kw">pub async fn </span>expand(<span class="kw-2">&amp;</span><span class="self">self</span>, header: BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Tipset, Error&gt; {
+    </span><span class="kw">pub fn </span>expand(<span class="kw-2">&amp;</span><span class="self">self</span>, header: BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Tipset, Error&gt; {
         <span class="kw">let </span>epoch = header.epoch();
         <span class="kw">let </span><span class="kw-2">mut </span>headers = <span class="macro">vec!</span>[header];
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(entries) = <span class="self">self</span>.entries.read().<span class="kw">await</span>.get(<span class="kw-2">&amp;</span>epoch) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(entries) = <span class="self">self</span>.entries.lock().get(<span class="kw-2">&amp;</span>epoch).cloned() {
             <span class="kw">for </span>cid <span class="kw">in </span>entries {
-                <span class="kw">if </span>cid == headers[<span class="number">0</span>].cid() {
+                <span class="kw">if </span><span class="kw-2">&amp;</span>cid == headers[<span class="number">0</span>].cid() {
                     <span class="kw">continue</span>;
                 }
 
                 <span class="comment">// TODO: maybe cache the parents tipset keys to avoid having to do a `blockstore` lookup here
                 </span><span class="kw">let </span>h = <span class="self">self
                     </span>.db
-                    .get_obj::&lt;BlockHeader&gt;(cid)
+                    .get_obj::&lt;BlockHeader&gt;(<span class="kw-2">&amp;</span>cid)
                     .ok()
                     .flatten()
                     .ok_or_else(|| {

@@ -224,10 +224,6 @@
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -245,7 +241,7 @@
 };
 
 <span class="doccomment">/// Builds chain exchange response out of chain data.
-</span><span class="kw">pub async fn </span>make_chain_exchange_response&lt;DB&gt;(
+</span><span class="kw">pub fn </span>make_chain_exchange_response&lt;DB&gt;(
     cs: <span class="kw-2">&amp;</span>ChainStore&lt;DB&gt;,
     request: <span class="kw-2">&amp;</span>ChainExchangeRequest,
 ) -&gt; ChainExchangeResponse
@@ -258,10 +254,7 @@
 
     <span class="kw">loop </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>tipset_bundle: TipsetBundle = TipsetBundle::default();
-        <span class="kw">let </span>tipset = <span class="kw">match </span>cs
-            .tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(curr_tipset_cids))
-            .<span class="kw">await
-        </span>{
+        <span class="kw">let </span>tipset = <span class="kw">match </span>cs.tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(curr_tipset_cids)) {
             <span class="prelude-val">Ok</span>(tipset) =&gt; tipset,
             <span class="prelude-val">Err</span>(err) =&gt; {
                 <span class="macro">debug!</span>(<span class="string">&quot;Cannot get tipset from keys: {}&quot;</span>, err);
@@ -401,14 +394,13 @@
         <span class="kw">let </span>(cids, db) = populate_db().<span class="kw">await</span>;
 
         <span class="kw">let </span>response = make_chain_exchange_response(
-            <span class="kw-2">&amp;</span>ChainStore::new(db).<span class="kw">await</span>,
+            <span class="kw-2">&amp;</span>ChainStore::new(db),
             <span class="kw-2">&amp;</span>ChainExchangeRequest {
                 start: cids,
                 request_len: <span class="number">2</span>,
                 options: HEADERS | MESSAGES,
             },
-        )
-        .<span class="kw">await</span>;
+        );
 
         <span class="comment">// The response will be loaded with tipsets 39 and 38.
         // See:

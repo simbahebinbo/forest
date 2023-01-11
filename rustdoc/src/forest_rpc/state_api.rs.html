@@ -198,13 +198,9 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
+</span><span class="attr">#![allow(clippy::unused_async)]
 
 </span><span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>std::collections::HashMap;
@@ -240,9 +236,8 @@
     <span class="kw">let </span>tipset = data
         .state_manager
         .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())
-        .<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(state_manager.call(<span class="kw-2">&amp;mut </span>message, <span class="prelude-val">Some</span>(tipset)).<span class="kw">await</span><span class="question-mark">?</span>)
+        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())<span class="question-mark">?</span>;
+    <span class="prelude-val">Ok</span>(state_manager.call(<span class="kw-2">&amp;mut </span>message, <span class="prelude-val">Some</span>(tipset))<span class="question-mark">?</span>)
 }
 
 <span class="doccomment">/// returns the result of executing the indicated message, assuming it was executed in the indicated tipset.
@@ -259,8 +254,7 @@
     <span class="kw">let </span>tipset = data
         .state_manager
         .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())<span class="question-mark">?</span>;
     <span class="kw">let </span>(msg, ret) = state_manager.replay(<span class="kw-2">&amp;</span>tipset, cid).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(InvocResult {
@@ -281,8 +275,7 @@
     <span class="kw">let </span>heaviest_tipset = state_manager
         .chain_store()
         .heaviest_tipset()
-        .<span class="kw">await
-        </span>.ok_or(<span class="string">&quot;Heaviest Tipset not found in state_network_name&quot;</span>)<span class="question-mark">?</span>;
+        .ok_or(<span class="string">&quot;Heaviest Tipset not found in state_network_name&quot;</span>)<span class="question-mark">?</span>;
 
     state_manager
         .get_network_name(heaviest_tipset.parent_state())
@@ -297,7 +290,7 @@
     Params(params): Params&lt;StateNetworkVersionParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;StateNetworkVersionResult, JsonRpcError&gt; {
     <span class="kw">let </span>(TipsetKeysJson(tsk),) = params;
-    <span class="kw">let </span>ts = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>ts = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(data.state_manager.get_network_version(ts.epoch()))
 }
 
@@ -314,8 +307,7 @@
     <span class="kw">let </span>tipset = data
         .state_manager
         .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())<span class="question-mark">?</span>;
     data.state_manager
         .market_balance(<span class="kw-2">&amp;</span>address, <span class="kw-2">&amp;</span>tipset)
         .map_err(|e| e.into())
@@ -329,7 +321,7 @@
     Params(params): Params&lt;StateMarketDealsParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;StateMarketDealsResult, JsonRpcError&gt; {
     <span class="kw">let </span>(TipsetKeysJson(tsk),) = params;
-    <span class="kw">let </span>ts = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>ts = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
     <span class="kw">let </span>actor = data
         .state_manager
         .get_actor(<span class="kw-2">&amp;</span>market::ADDRESS, <span class="kw-2">*</span>ts.parent_state())<span class="question-mark">?
@@ -372,12 +364,10 @@
     <span class="kw">let </span>tipset = data
         .state_manager
         .chain_store()
-        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())
-        .<span class="kw">await</span><span class="question-mark">?</span>;
+        .tipset_from_keys(<span class="kw-2">&amp;</span>key.into())<span class="question-mark">?</span>;
     state_manager
-        .get_receipt(<span class="kw-2">&amp;</span>tipset, cid)
-        .<span class="kw">await
-        </span>.map(|s| s.into())
+        .get_receipt(tipset, cid)
+        .map(|s| s.into())
         .map_err(|e| e.into())
 }
 <span class="doccomment">/// looks back in the chain for a message. If not found, it blocks until the

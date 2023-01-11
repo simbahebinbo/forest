@@ -506,11 +506,6 @@
 <a href="#506" id="506">506</a>
 <a href="#507" id="507">507</a>
 <a href="#508" id="508">508</a>
-<a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a>
-<a href="#511" id="511">511</a>
-<a href="#512" id="512">512</a>
-<a href="#513" id="513">513</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -864,7 +859,7 @@
     }
 
     <span class="doccomment">/// Validates if the current header&#39;s Beacon entries are valid to ensure randomness was generated correctly
-    </span><span class="kw">pub async fn </span>validate_block_drand&lt;B: Beacon&gt;(
+    </span><span class="kw">pub fn </span>validate_block_drand&lt;B: Beacon&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         network_version: NetworkVersion,
         b_schedule: <span class="kw-2">&amp;</span>BeaconSchedule&lt;B&gt;,
@@ -889,8 +884,7 @@
 
             curr_beacon
                 .verify_entry(<span class="kw-2">&amp;</span><span class="self">self</span>.beacon_entries[<span class="number">1</span>], <span class="kw-2">&amp;</span><span class="self">self</span>.beacon_entries[<span class="number">0</span>])
-                .<span class="kw">await
-                </span>.map_err(|e| Error::Validation(e.to_string()))<span class="question-mark">?</span>;
+                .map_err(|e| Error::Validation(e.to_string()))<span class="question-mark">?</span>;
 
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
         }
@@ -926,8 +920,7 @@
         <span class="kw">for </span>curr <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.beacon_entries {
             <span class="kw">if </span>!curr_beacon
                 .verify_entry(curr, prev)
-                .<span class="kw">await
-                </span>.map_err(|e| Error::Validation(e.to_string()))<span class="question-mark">?
+                .map_err(|e| Error::Validation(e.to_string()))<span class="question-mark">?
             </span>{
                 <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Validation(<span class="macro">format!</span>(
                     <span class="string">&quot;beacon entry was invalid: curr:{curr:?}, prev: {prev:?}&quot;
@@ -988,8 +981,8 @@
             .unwrap();
     }
 
-    <span class="attr">#[tokio::test]
-    </span><span class="kw">async fn </span>beacon_entry_exists() {
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>beacon_entry_exists() {
         <span class="comment">// Setup
         </span><span class="kw">let </span>block_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
@@ -1003,15 +996,12 @@
         <span class="kw">let </span>chain_epoch = <span class="number">0</span>;
         <span class="kw">let </span>beacon_entry = BeaconEntry::new(<span class="number">1</span>, <span class="macro">vec!</span>[]);
         <span class="comment">// Validate_block_drand
-        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = block_header
-            .validate_block_drand(
-                NetworkVersion::V16,
-                <span class="kw-2">&amp;</span>beacon_schedule,
-                chain_epoch,
-                <span class="kw-2">&amp;</span>beacon_entry,
-            )
-            .<span class="kw">await
-        </span>{
+        </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = block_header.validate_block_drand(
+            NetworkVersion::V16,
+            <span class="kw-2">&amp;</span>beacon_schedule,
+            chain_epoch,
+            <span class="kw-2">&amp;</span>beacon_entry,
+        ) {
             <span class="comment">// Assert error is for not including a beacon entry in the block
             </span><span class="kw">match </span>e {
                 Error::Validation(why) =&gt; {

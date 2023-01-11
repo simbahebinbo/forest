@@ -310,8 +310,6 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -323,9 +321,9 @@
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>lru::LruCache;
+<span class="kw">use </span>parking_lot::Mutex;
 <span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>tokio::sync::Mutex;
 
 <span class="kw">const </span>DEFAULT_CHAIN_INDEX_CACHE_SIZE: NonZeroUsize =
     <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">32 </span>&lt;&lt; <span class="number">10</span>));
@@ -466,33 +464,33 @@
         }
     }
 
-    <span class="kw">pub async fn </span>load_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
-        tipset_from_keys(<span class="self">self</span>.ts_cache.as_ref(), <span class="kw-2">&amp;</span><span class="self">self</span>.db, tsk).<span class="kw">await
-    </span>}
+    <span class="kw">pub fn </span>load_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
+        tipset_from_keys(<span class="self">self</span>.ts_cache.as_ref(), <span class="kw-2">&amp;</span><span class="self">self</span>.db, tsk)
+    }
 
     <span class="doccomment">/// Loads tipset at `to` [`ChainEpoch`], loading from sparse cache and/or loading parents
     /// from the `blockstore`.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>get_tipset_by_height(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tipset_by_height(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         from: Arc&lt;Tipset&gt;,
         to: ChainEpoch,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
         <span class="kw">if </span>from.epoch() - to &lt;= SKIP_LENGTH {
-            <span class="kw">return </span><span class="self">self</span>.walk_back(from, to).<span class="kw">await</span>;
+            <span class="kw">return </span><span class="self">self</span>.walk_back(from, to);
         }
         <span class="kw">let </span>total_size = from.epoch() - to;
         <span class="kw">let </span>pb = ProgressBar::new(total_size <span class="kw">as </span>u64);
         pb.message(<span class="string">&quot;Scanning blockchain &quot;</span>);
         pb.set_max_refresh_rate(<span class="prelude-val">Some</span>(std::time::Duration::from_millis(<span class="number">500</span>)));
 
-        <span class="kw">let </span>rounded = <span class="self">self</span>.round_down(from).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>rounded = <span class="self">self</span>.round_down(from)<span class="question-mark">?</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>cur = rounded.key().clone();
 
         <span class="kw">const </span>MAX_COUNT: usize = <span class="number">100</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>counter = <span class="number">0</span>;
         <span class="kw">loop </span>{
-            <span class="kw">let </span>entry = <span class="self">self</span>.skip_cache.lock().<span class="kw">await</span>.get(<span class="kw-2">&amp;</span>cur).cloned();
+            <span class="kw">let </span>entry = <span class="self">self</span>.skip_cache.lock().get(<span class="kw-2">&amp;</span>cur).cloned();
             <span class="kw">let </span>lbe = <span class="kw">if let </span><span class="prelude-val">Some</span>(cached) = entry {
                 metrics::LRU_CACHE_HIT
                     .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::SKIP])
@@ -502,15 +500,14 @@
                 metrics::LRU_CACHE_MISS
                     .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::SKIP])
                     .inc();
-                <span class="self">self</span>.fill_cache(std::mem::take(<span class="kw-2">&amp;mut </span>cur)).<span class="kw">await</span><span class="question-mark">?
+                <span class="self">self</span>.fill_cache(std::mem::take(<span class="kw-2">&amp;mut </span>cur))<span class="question-mark">?
             </span>};
 
             <span class="kw">if </span>to == <span class="number">0 </span>{
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(genesis_tipset_keys) =
                     checkpoint_tipsets::genesis_from_checkpoint_tipset(lbe.tipset.key())
                 {
-                    <span class="kw">let </span>tipset =
-                        tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>.ts_cache, <span class="kw-2">&amp;</span><span class="self">self</span>.db, <span class="kw-2">&amp;</span>genesis_tipset_keys).<span class="kw">await</span><span class="question-mark">?</span>;
+                    <span class="kw">let </span>tipset = tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>.ts_cache, <span class="kw-2">&amp;</span><span class="self">self</span>.db, <span class="kw-2">&amp;</span>genesis_tipset_keys)<span class="question-mark">?</span>;
                     pb.set(total_size <span class="kw">as </span>u64);
                     <span class="macro">info!</span>(
                         <span class="string">&quot;Resolving genesis using checkpoint tipset at height: {}&quot;</span>,
@@ -523,7 +520,7 @@
             <span class="kw">if </span>lbe.tipset.epoch() == to || lbe.parent_height &lt; to {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(lbe.tipset.clone());
             } <span class="kw">else if </span>to &gt; lbe.target_height {
-                <span class="kw">return </span><span class="self">self</span>.walk_back(lbe.tipset.clone(), to).<span class="kw">await</span>;
+                <span class="kw">return </span><span class="self">self</span>.walk_back(lbe.tipset.clone(), to);
             }
             <span class="kw">let </span>to_be_done = lbe.tipset.epoch() - to;
             <span class="comment">// Don&#39;t show the progress bar if we&#39;re doing less than 10_000 units of work.
@@ -535,7 +532,6 @@
 
             <span class="kw">if </span>counter == MAX_COUNT {
                 counter = <span class="number">0</span>;
-                tokio::task::yield_now().<span class="kw">await</span>;
             } <span class="kw">else </span>{
                 counter += <span class="number">1</span>;
             }
@@ -544,17 +540,17 @@
 
     <span class="doccomment">/// Walks back from the tipset, ignoring the cached entries.
     /// This should only be used when the cache is checked to be invalidated.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>get_tipset_by_height_without_cache(
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tipset_by_height_without_cache(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         from: Arc&lt;Tipset&gt;,
         to: ChainEpoch,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
-        <span class="self">self</span>.walk_back(from, to).<span class="kw">await
-    </span>}
+        <span class="self">self</span>.walk_back(from, to)
+    }
 
     <span class="doccomment">/// Fills cache with look-back entry, and returns inserted entry.
-    </span><span class="kw">async fn </span>fill_cache(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;LookbackEntry&gt;, Error&gt; {
-        <span class="kw">let </span>tipset = <span class="self">self</span>.load_tipset(<span class="kw-2">&amp;</span>tsk).<span class="kw">await</span><span class="question-mark">?</span>;
+    </span><span class="kw">fn </span>fill_cache(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;LookbackEntry&gt;, Error&gt; {
+        <span class="kw">let </span>tipset = <span class="self">self</span>.load_tipset(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>tipset.epoch() == <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(Arc::new(LookbackEntry {
@@ -565,14 +561,14 @@
             }));
         }
 
-        <span class="kw">let </span>parent = <span class="self">self</span>.load_tipset(tipset.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>parent = <span class="self">self</span>.load_tipset(tipset.parents())<span class="question-mark">?</span>;
         <span class="kw">let </span>r_height = <span class="self">self</span>.round_height(tipset.epoch()) - SKIP_LENGTH;
 
         <span class="kw">let </span>parent_epoch = parent.epoch();
         <span class="kw">let </span>skip_target = <span class="kw">if </span>parent.epoch() &lt; r_height {
             parent
         } <span class="kw">else </span>{
-            <span class="self">self</span>.walk_back(parent, r_height).<span class="kw">await</span><span class="question-mark">?
+            <span class="self">self</span>.walk_back(parent, r_height)<span class="question-mark">?
         </span>};
 
         <span class="kw">let </span>lbe = Arc::new(LookbackEntry {
@@ -582,7 +578,7 @@
             target: skip_target.key().clone(),
         });
 
-        <span class="self">self</span>.skip_cache.lock().<span class="kw">await</span>.put(tsk.clone(), lbe.clone());
+        <span class="self">self</span>.skip_cache.lock().put(tsk, lbe.clone());
         <span class="prelude-val">Ok</span>(lbe)
     }
 
@@ -592,14 +588,14 @@
     }
 
     <span class="doccomment">/// Gets the closest rounded sparse index and returns the loaded tipset at that index.
-    </span><span class="kw">async fn </span>round_down(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
+    </span><span class="kw">fn </span>round_down(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
         <span class="kw">let </span>target = <span class="self">self</span>.round_height(ts.epoch());
 
-        <span class="self">self</span>.walk_back(ts, target).<span class="kw">await
-    </span>}
+        <span class="self">self</span>.walk_back(ts, target)
+    }
 
     <span class="doccomment">/// Load parent tipsets until the `to` [`ChainEpoch`].
-    </span><span class="kw">async fn </span>walk_back(<span class="kw-2">&amp;</span><span class="self">self</span>, from: Arc&lt;Tipset&gt;, to: ChainEpoch) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
+    </span><span class="kw">fn </span>walk_back(<span class="kw-2">&amp;</span><span class="self">self</span>, from: Arc&lt;Tipset&gt;, to: ChainEpoch) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
         <span class="kw">if </span>to &gt; from.epoch() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(
                 <span class="string">&quot;Looking for tipset with height greater than start point&quot;</span>.to_string(),
@@ -612,7 +608,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>ts = from;
         <span class="kw">loop </span>{
-            <span class="kw">let </span>pts = <span class="self">self</span>.load_tipset(ts.parents()).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="kw">let </span>pts = <span class="self">self</span>.load_tipset(ts.parents())<span class="question-mark">?</span>;
 
             <span class="kw">if </span>to &gt; pts.epoch() {
                 <span class="comment">// Pts is lower than to epoch, return the tipset above that height
