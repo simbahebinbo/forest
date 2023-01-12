@@ -159,6 +159,10 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -315,9 +319,13 @@
     <span class="doccomment">/// Send a request for data over bit-swap
     </span><span class="kw">pub fn </span>want_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cid: Cid) -&gt; anyhow::Result&lt;libp2p_bitswap::QueryId&gt; {
         <span class="macro">debug!</span>(<span class="string">&quot;want {}&quot;</span>, cid.to_string());
-        <span class="kw">let </span>peers = <span class="self">self</span>.discovery.peers().iter().cloned().collect();
-        <span class="kw">let </span>query_id = <span class="self">self</span>.bitswap.sync(cid, peers, [cid].into_iter());
-        <span class="prelude-val">Ok</span>(query_id)
+        <span class="kw">let </span>peers: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.discovery.peers().iter().cloned().collect();
+        <span class="kw">if </span>peers.is_empty() {
+            <span class="macro">anyhow::bail!</span>(<span class="string">&quot;no peers connected&quot;</span>)
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>query_id = <span class="self">self</span>.bitswap.sync(cid, peers, [cid].into_iter());
+            <span class="prelude-val">Ok</span>(query_id)
+        }
     }
 }
 </code></pre></div>
