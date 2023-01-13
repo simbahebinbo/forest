@@ -294,6 +294,9 @@
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -485,7 +488,7 @@
 
 <span class="kw">impl </span>DrandBeacon {
     <span class="doccomment">/// Construct a new `DrandBeacon`.
-    </span><span class="kw">pub async fn </span>new(
+    </span><span class="kw">pub fn </span>new(
         genesis_ts: u64,
         interval: u64,
         config: <span class="kw-2">&amp;</span>DrandConfig&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -497,15 +500,18 @@
         <span class="kw">let </span>chain_info = <span class="kw-2">&amp;</span>config.chain_info;
 
         <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) &amp;&amp; config.network_type == DrandNetwork::Mainnet {
-            <span class="kw">let </span>client = https_client();
-            <span class="kw">let </span>remote_chain_info: ChainInfo = client
-                .get(<span class="macro">format!</span>(<span class="string">&quot;{}/info&quot;</span>, <span class="kw-2">&amp;</span>config.server).try_into()<span class="question-mark">?</span>)
-                .<span class="kw">await</span><span class="question-mark">?
-                </span>.into_body()
-                .json()
-                .<span class="kw">await
-                </span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{}&quot;</span>, e))<span class="question-mark">?</span>;
-            <span class="macro">debug_assert!</span>(<span class="kw-2">&amp;</span>remote_chain_info == chain_info);
+            futures::executor::block_on(<span class="kw">async </span>{
+                <span class="kw">let </span>client = https_client();
+                <span class="kw">let </span>remote_chain_info: ChainInfo = client
+                    .get(<span class="macro">format!</span>(<span class="string">&quot;{}/info&quot;</span>, <span class="kw-2">&amp;</span>config.server).try_into()<span class="question-mark">?</span>)
+                    .<span class="kw">await</span><span class="question-mark">?
+                    </span>.into_body()
+                    .json()
+                    .<span class="kw">await
+                    </span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{e}&quot;</span>))<span class="question-mark">?</span>;
+                <span class="macro">debug_assert!</span>(<span class="kw-2">&amp;</span>remote_chain_info == chain_info);
+                <span class="prelude-val">Ok</span>::&lt;(), anyhow::Error&gt;(())
+            })<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{

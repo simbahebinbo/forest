@@ -326,6 +326,8 @@
 <a href="#326" id="326">326</a>
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -461,7 +463,7 @@
         From::from(height)
     }
 
-    <span class="kw">pub async fn </span>get_beacon_schedule(
+    <span class="kw">pub fn </span>get_beacon_schedule(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         genesis_ts: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;BeaconSchedule&lt;DrandBeacon&gt;, anyhow::Error&gt; {
@@ -474,9 +476,11 @@
         <span class="kw">for </span>dc <span class="kw">in </span>ds_iter {
             points.<span class="number">0</span>.push(BeaconPoint {
                 height: dc.height,
-                beacon: Arc::new(
-                    DrandBeacon::new(genesis_ts, <span class="self">self</span>.block_delay_secs, dc.config).<span class="kw">await</span><span class="question-mark">?</span>,
-                ),
+                beacon: Arc::new(DrandBeacon::new(
+                    genesis_ts,
+                    <span class="self">self</span>.block_delay_secs,
+                    dc.config,
+                )<span class="question-mark">?</span>),
             });
         }
         <span class="prelude-val">Ok</span>(points)

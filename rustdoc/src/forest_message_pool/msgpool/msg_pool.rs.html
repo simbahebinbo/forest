@@ -821,7 +821,7 @@
     </span>T: Provider + std::marker::Send + std::marker::Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="doccomment">/// Creates a new `MessagePool` instance.
-    </span><span class="kw">pub async fn </span>new(
+    </span><span class="kw">pub fn </span>new(
         api: T,
         network_name: String,
         network_sender: flume::Sender&lt;NetworkMessage&gt;,

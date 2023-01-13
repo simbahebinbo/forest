@@ -558,7 +558,6 @@
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -763,8 +762,7 @@
         Arc::clone(<span class="kw-2">&amp;</span>chain_store),
         Arc::clone(<span class="kw-2">&amp;</span>config.chain),
         reward_calc,
-    )
-    .<span class="kw">await</span><span class="question-mark">?</span>;
+    )<span class="question-mark">?</span>;
 
     <span class="kw">let </span>state_manager = Arc::new(sm);
 
@@ -818,8 +816,7 @@
         MpoolConfig::load_config(<span class="kw-2">&amp;</span>db)<span class="question-mark">?</span>,
         Arc::clone(state_manager.chain_config()),
         <span class="kw-2">&amp;mut </span>services,
-    )
-    .<span class="kw">await</span><span class="question-mark">?</span>;
+    )<span class="question-mark">?</span>;
 
     <span class="kw">let </span>mpool = Arc::new(mpool);
 
@@ -1090,35 +1087,36 @@
             .build()<span class="question-mark">?</span>;
         cs.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
         <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
-        <span class="kw">let </span>sm = Arc::new(
-            StateManager::new(
-                cs,
-                chain_config,
-                Arc::new(forest_interpreter::RewardActorMessageCalc),
-            )
-            .<span class="kw">await</span><span class="question-mark">?</span>,
-        );
+        <span class="kw">let </span>sm = Arc::new(StateManager::new(
+            cs,
+            chain_config,
+            Arc::new(forest_interpreter::RewardActorMessageCalc),
+        )<span class="question-mark">?</span>);
         import_chain::&lt;<span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>sm, file_path, <span class="prelude-val">None</span>, <span class="bool-val">false</span>).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="comment">// FIXME: This car file refers to actors that are not available in FVM yet.
-    //        See issue: https://github.com/ChainSafe/forest/issues/1452
-    // #[async_std::test]
-    // async fn import_chain_from_file() {
-    //     let db = Arc::new(MemoryDB::default());
-    //     let cs = Arc::new(ChainStore::new(db));
-    //     let genesis_header = BlockHeader::builder()
-    //         .miner_address(Address::new_id(0))
-    //         .timestamp(7777)
-    //         .build()
-    //         .unwrap();
-    //     cs.set_genesis(&amp;genesis_header).unwrap();
-    //     let sm = Arc::new(StateManager::new(cs).await.unwrap());
-    //     import_chain::&lt;FullVerifier, _&gt;(&amp;sm, &quot;test_files/chain4.car&quot;, Some(0), false)
-    //         .await
-    //         .expect(&quot;Failed to import chain&quot;);
-    // }
-</span>}
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>import_chain_from_file() -&gt; anyhow::Result&lt;()&gt; {
+        <span class="kw">let </span>db = MemoryDB::default();
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db));
+        <span class="kw">let </span>genesis_header = BlockHeader::builder()
+            .miner_address(Address::new_id(<span class="number">0</span>))
+            .timestamp(<span class="number">7777</span>)
+            .build()<span class="question-mark">?</span>;
+        cs.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
+        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
+        <span class="kw">let </span>sm = Arc::new(StateManager::new(
+            cs,
+            chain_config,
+            Arc::new(forest_interpreter::RewardActorMessageCalc),
+        )<span class="question-mark">?</span>);
+        import_chain::&lt;<span class="kw">_</span>&gt;(<span class="kw-2">&amp;</span>sm, <span class="string">&quot;test_files/chain4.car&quot;</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
+            .<span class="kw">await
+            </span>.expect(<span class="string">&quot;Failed to import chain&quot;</span>);
+
+        <span class="prelude-val">Ok</span>(())
+    }
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (b70baa4f9 2022-12-14)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

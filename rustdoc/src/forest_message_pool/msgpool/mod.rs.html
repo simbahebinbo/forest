@@ -903,9 +903,6 @@
 <a href="#903" id="903">903</a>
 <a href="#904" id="904">904</a>
 <a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1279,8 +1276,7 @@
             Arc::default(),
             <span class="kw-2">&amp;mut </span>services,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">2 </span>{
             <span class="kw">let </span>msg = create_smsg(<span class="kw-2">&amp;</span>target, <span class="kw-2">&amp;</span>sender, wallet.borrow_mut(), i, <span class="number">1000000</span>, <span class="number">1</span>);
@@ -1348,8 +1344,7 @@
             Arc::default(),
             <span class="kw-2">&amp;mut </span>services,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
 
         {
             <span class="kw">let </span><span class="kw-2">mut </span>api_temp = mpool.api.inner.lock();
@@ -1450,8 +1445,7 @@
             Arc::default(),
             <span class="kw-2">&amp;mut </span>services,
         )
-        .<span class="kw">await
-        </span>.unwrap();
+        .unwrap();
 
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">3 </span>{

@@ -1328,7 +1328,6 @@
 <a href="#1328" id="1328">1328</a>
 <a href="#1329" id="1329">1329</a>
 <a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2011,7 +2010,7 @@
 
     <span class="kw">const </span>TEST_GAS_LIMIT: i64 = <span class="number">6955002</span>;
 
-    <span class="kw">async fn </span>make_test_mpool(joinset: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;) -&gt; MessagePool&lt;TestApi&gt; {
+    <span class="kw">fn </span>make_test_mpool(joinset: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;) -&gt; MessagePool&lt;TestApi&gt; {
         <span class="kw">let </span>tma = TestApi::default();
         <span class="kw">let </span>(tx, _rx) = flume::bounded(<span class="number">50</span>);
         MessagePool::new(
@@ -2022,15 +2021,14 @@
             Arc::default(),
             joinset,
         )
-        .<span class="kw">await
-        </span>.unwrap()
+        .unwrap()
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     #[tokio::test]
     </span><span class="kw">async fn </span>basic_message_selection() {
         <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
-        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
+        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="kw">let </span>ks1 = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(ks1);
@@ -2195,7 +2193,7 @@
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">async fn </span>message_selection_trimming() {
         <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
-        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
+        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="kw">let </span>ks1 = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(ks1);
@@ -2271,7 +2269,7 @@
         <span class="kw">let </span>db = MemoryDB::default();
 
         <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
-        <span class="kw">let </span><span class="kw-2">mut </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="kw">let </span>ks1 = KeyStore::new(KeyStoreConfig::Memory).unwrap();
         <span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(ks1);
@@ -2369,7 +2367,7 @@
         // the chain depenent merging algorithm should pick messages from the actor
         // from the start
         </span><span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
-        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
+        <span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="comment">// create two actors
         </span><span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(KeyStore::new(KeyStoreConfig::Memory).unwrap());
@@ -2448,7 +2446,7 @@
         // actor paying (much) higher gas premium than the second.
         // We select with a low ticket quality; the chain depenent merging algorithm should pick
         // messages from the second actor from the start
-        </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
+        </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="comment">// create two actors
         </span><span class="kw">let </span><span class="kw-2">mut </span>w1 = Wallet::new(KeyStore::new(KeyStoreConfig::Memory).unwrap());
@@ -2560,7 +2558,7 @@
         // actors paying higher gas premium than the subsequent actors.
         // We select with a low ticket quality; the chain depenent merging algorithm should pick
         // messages from the median actor from the start
-        </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset).<span class="kw">await</span>;
+        </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="kw">let </span>n_actors = <span class="number">10</span>;
 
