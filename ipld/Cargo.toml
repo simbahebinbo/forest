@@ -22,6 +22,7 @@ libipld.workspace = true
 multibase.workspace = true
 serde = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
+sha2 = { workspace = true, default-features = false }
 
 [dev-dependencies]
 forest_db.workspace = true
