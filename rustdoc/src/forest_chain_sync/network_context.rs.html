@@ -382,7 +382,6 @@
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -396,7 +395,7 @@
     },
     hello::{HelloRequest, HelloResponse},
     rpc::RequestResponseError,
-    NetworkMessage, PeerId, PeerManager,
+    NetworkMessage, PeerId, PeerManager, BITSWAP_TIMEOUT,
 };
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>futures::channel::oneshot::channel <span class="kw">as </span>oneshot_channel;
@@ -410,8 +409,7 @@
 <span class="doccomment">/// Timeout for response from an RPC request
 </span><span class="comment">// TODO this value can be tweaked, this is just set pretty low to avoid peers timing out
 // requests from slowing the node down. If increase, should create a countermeasure for this.
-</span><span class="kw">const </span>BITSWAP_TIMEOUT: Duration = Duration::from_secs(<span class="number">5</span>);
-<span class="kw">const </span>CHAIN_EXCHANGE_TIMEOUT: Duration = Duration::from_secs(<span class="number">5</span>);
+</span><span class="kw">const </span>CHAIN_EXCHANGE_TIMEOUT: Duration = Duration::from_secs(<span class="number">5</span>);
 
 <span class="doccomment">/// Maximum number of concurrent chain exchange request being sent to the network
 </span><span class="kw">const </span>MAX_CONCURRENT_CHAIN_EXCHANGE_REQUESTS: usize = <span class="number">2</span>;
