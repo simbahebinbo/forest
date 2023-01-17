@@ -168,7 +168,6 @@
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 <a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -334,10 +333,9 @@
         <span class="kw">let </span>peers: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.discovery.peers().iter().cloned().collect();
         <span class="kw">if </span>peers.is_empty() {
             <span class="macro">anyhow::bail!</span>(<span class="string">&quot;no peers connected&quot;</span>)
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>query_id = <span class="self">self</span>.bitswap.sync(cid, peers, [cid].into_iter());
-            <span class="prelude-val">Ok</span>(query_id)
         }
+        <span class="kw">let </span>query_id = <span class="self">self</span>.bitswap.sync(cid, peers, [cid].into_iter());
+        <span class="prelude-val">Ok</span>(query_id)
     }
 }
 </code></pre></div>

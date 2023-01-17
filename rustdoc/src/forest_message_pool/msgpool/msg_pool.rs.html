@@ -661,7 +661,6 @@
 <a href="#661" id="661">661</a>
 <a href="#662" id="662">662</a>
 <a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1295,10 +1294,9 @@
             <span class="kw">if </span>local {
                 <span class="macro">warn!</span>(<span class="string">&quot;local message will not be immediately published because GasFeeCap doesn&#39;t meet the lower bound for inclusion in the next 20 blocks (GasFeeCap: {}, baseFeeLowerBound: {})&quot;</span>,m.gas_fee_cap(), base_fee_lower_bound);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
-            } <span class="kw">else </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(Error::SoftValidationFailure(<span class="macro">format!</span>(<span class="string">&quot;GasFeeCap doesn&#39;t meet base fee lower bound for inclusion in the next 20 blocks (GasFeeCap: {}, baseFeeLowerBound:{})&quot;</span>,
-                    m.gas_fee_cap(), base_fee_lower_bound)));
             }
+            <span class="kw">return </span><span class="prelude-val">Err</span>(Error::SoftValidationFailure(<span class="macro">format!</span>(<span class="string">&quot;GasFeeCap doesn&#39;t meet base fee lower bound for inclusion in the next 20 blocks (GasFeeCap: {}, baseFeeLowerBound:{})&quot;</span>,
+                m.gas_fee_cap(), base_fee_lower_bound)));
         }
     }
     <span class="prelude-val">Ok</span>(local)

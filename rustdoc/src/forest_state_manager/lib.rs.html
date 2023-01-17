@@ -1237,7 +1237,6 @@
 <a href="#1237" id="1237">1237</a>
 <a href="#1238" id="1238">1238</a>
 <a href="#1239" id="1239">1239</a>
-<a href="#1240" id="1240">1240</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -2116,9 +2115,8 @@
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(receipt) = r {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((tipset, receipt)));
-            } <span class="kw">else </span>{
-                current = tipset;
             }
+            current = tipset;
         }
     }
 
