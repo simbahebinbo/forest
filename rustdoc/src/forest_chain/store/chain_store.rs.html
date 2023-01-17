@@ -981,6 +981,9 @@
 <a href="#981" id="981">981</a>
 <a href="#982" id="982">982</a>
 <a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1002,6 +1005,7 @@
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
 <span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
 <span class="kw">use </span>forest_metrics::metrics;
+<span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::io::Checksum;
 <span class="kw">use </span>futures::Future;
@@ -1075,7 +1079,7 @@
 <span class="kw">where
     </span>DB: Blockstore + Store + Send + Sync,
 {
-    <span class="kw">pub fn </span>new(db: DB) -&gt; <span class="self">Self
+    <span class="kw">pub fn </span>new(db: DB, chain_config: Arc&lt;ChainConfig&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>DB: Clone,
     {
@@ -1086,7 +1090,7 @@
             <span class="comment">// subscriptions: Default::default(),
             // subscriptions_count: Default::default(),
             </span>chain_index: ChainIndex::new(ts_cache.clone(), db.clone()),
-            tipset_tracker: TipsetTracker::new(db.clone()),
+            tipset_tracker: TipsetTracker::new(db.clone(), chain_config),
             db,
             ts_cache,
             heaviest: Default::default(),
@@ -1934,8 +1938,9 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>genesis_test() {
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
+        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
 
-        <span class="kw">let </span>cs = ChainStore::new(db);
+        <span class="kw">let </span>cs = ChainStore::new(db, chain_config);
         <span class="kw">let </span>gen_block = BlockHeader::builder()
             .epoch(<span class="number">1</span>)
             .weight(<span class="number">2_u32</span>.into())
@@ -1954,8 +1959,9 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>block_validation_cache_basic() {
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
+        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
 
-        <span class="kw">let </span>cs = ChainStore::new(db);
+        <span class="kw">let </span>cs = ChainStore::new(db, chain_config);
 
         <span class="kw">let </span>cid = Cid::new_v1(DAG_CBOR, Blake2b256.digest(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]));
         <span class="macro">assert!</span>(!cs.is_block_validated(<span class="kw-2">&amp;</span>cid).unwrap());

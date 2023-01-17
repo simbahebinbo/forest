@@ -197,6 +197,7 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -290,7 +291,8 @@
         <span class="kw">let </span>(network_send, network_rx) = flume::bounded(<span class="number">5</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
         <span class="kw">let </span>db = MemoryDB::default();
-        <span class="kw">let </span>cs_arc = Arc::new(ChainStore::new(db));
+        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
+        <span class="kw">let </span>cs_arc = Arc::new(ChainStore::new(db, chain_config.clone()));
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
             .timestamp(<span class="number">7777</span>)
@@ -300,7 +302,7 @@
         <span class="kw">let </span>state_manager = Arc::new(
             StateManager::new(
                 cs_arc.clone(),
-                Arc::new(ChainConfig::default()),
+                chain_config,
                 Arc::new(forest_interpreter::RewardActorMessageCalc),
             )
             .unwrap(),

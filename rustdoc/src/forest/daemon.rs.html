@@ -722,7 +722,7 @@
     }
 
     <span class="comment">// Initialize ChainStore
-    </span><span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db.clone()));
+    </span><span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db.clone(), config.chain.clone()));
 
     <span class="kw">let </span>publisher = chain_store.publisher();
 
@@ -1080,13 +1080,13 @@
 
     <span class="kw">async fn </span>import_snapshot_from_file(file_path: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>db = MemoryDB::default();
-        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db));
+        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone()));
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
             .timestamp(<span class="number">7777</span>)
             .build()<span class="question-mark">?</span>;
         cs.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
-        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
         <span class="kw">let </span>sm = Arc::new(StateManager::new(
             cs,
             chain_config,
@@ -1099,13 +1099,13 @@
     <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>import_chain_from_file() -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>db = MemoryDB::default();
-        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db));
+        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone()));
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
             .timestamp(<span class="number">7777</span>)
             .build()<span class="question-mark">?</span>;
         cs.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
-        <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
         <span class="kw">let </span>sm = Arc::new(StateManager::new(
             cs,
             chain_config,
