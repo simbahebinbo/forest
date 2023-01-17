@@ -179,10 +179,14 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cid::multihash::Code::Blake2b256;
+</span><span class="kw">use </span>base64::prelude::BASE64_STANDARD;
+<span class="kw">use </span>base64::Engine;
+<span class="kw">use </span>cid::multihash::Code::Blake2b256;
 <span class="kw">use </span>cid::multihash::MultihashDigest;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Ticket, Tipset, TipsetKeys, TxMeta};
@@ -267,7 +271,7 @@
 
 <span class="doccomment">/// Returns a Ticket to be used for testing
 </span><span class="kw">pub fn </span>construct_ticket() -&gt; Ticket {
-    <span class="kw">let </span>vrf_result = VRFProof::new(base64::decode(<span class="string">&quot;lmRJLzDpuVA7cUELHTguK9SFf+IVOaySG8t/0IbVeHHm3VwxzSNhi1JStix7REw6Apu6rcJQV1aBBkd39gQGxP8Abzj8YXH+RdSD5RV50OJHi35f3ixR0uhkY6+G08vV&quot;</span>).unwrap());
+    <span class="kw">let </span>vrf_result = VRFProof::new(BASE64_STANDARD.decode(<span class="string">&quot;lmRJLzDpuVA7cUELHTguK9SFf+IVOaySG8t/0IbVeHHm3VwxzSNhi1JStix7REw6Apu6rcJQV1aBBkd39gQGxP8Abzj8YXH+RdSD5RV50OJHi35f3ixR0uhkY6+G08vV&quot;</span>).unwrap());
     Ticket::new(vrf_result)
 }
 

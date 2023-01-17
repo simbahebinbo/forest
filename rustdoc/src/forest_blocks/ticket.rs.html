@@ -101,6 +101,11 @@
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -134,6 +139,7 @@
 
 <span class="kw">pub mod </span>json {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="attr">#[derive(Deserialize, Serialize)]
@@ -155,7 +161,7 @@
         </span>S: Serializer,
     {
         JsonHelper {
-            vrfproof: base64::encode(m.vrfproof.as_bytes()),
+            vrfproof: BASE64_STANDARD.encode(m.vrfproof.as_bytes()),
         }
         .serialize(serializer)
     }
@@ -166,7 +172,11 @@
     {
         <span class="kw">let </span>m: JsonHelper = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Ticket {
-            vrfproof: VRFProof::new(base64::decode(m.vrfproof).map_err(de::Error::custom)<span class="question-mark">?</span>),
+            vrfproof: VRFProof::new(
+                BASE64_STANDARD
+                    .decode(m.vrfproof)
+                    .map_err(de::Error::custom)<span class="question-mark">?</span>,
+            ),
         })
     }
 

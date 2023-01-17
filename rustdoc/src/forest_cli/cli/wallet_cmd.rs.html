@@ -235,11 +235,15 @@
 <a href="#235" id="235">235</a>
 <a href="#236" id="236">236</a>
 <a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::Config;
 <span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>base64::prelude::BASE64_STANDARD;
+<span class="kw">use </span>base64::Engine;
 <span class="kw">use </span>forest_json::address::json::AddressJson;
 <span class="kw">use </span>forest_json::signature::json::{signature_type::SignatureTypeJson, SignatureJson};
 <span class="kw">use </span>forest_key_management::json::KeyInfoJson;
@@ -432,7 +436,7 @@
                     .with_context(|| <span class="macro">format!</span>(<span class="string">&quot;Invalid address: {address}&quot;</span>))<span class="question-mark">?</span>;
 
                 <span class="kw">let </span>message = hex::decode(message).context(<span class="string">&quot;Message has to be a hex string&quot;</span>)<span class="question-mark">?</span>;
-                <span class="kw">let </span>message = base64::encode(message);
+                <span class="kw">let </span>message = BASE64_STANDARD.encode(message);
 
                 <span class="kw">let </span>response = wallet_sign(
                     (AddressJson(address), message.into_bytes()),

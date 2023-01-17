@@ -143,10 +143,14 @@
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>json {
+    <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>fvm_shared::sector::{
         PoStProof, RegisteredPoStProof, RegisteredSealProof, SectorInfo, SectorNumber,
@@ -204,7 +208,7 @@
     {
         JsonHelper {
             post_proof: i64::from(m.post_proof),
-            proof_bytes: base64::encode(<span class="kw-2">&amp;</span>m.proof_bytes),
+            proof_bytes: BASE64_STANDARD.encode(<span class="kw-2">&amp;</span>m.proof_bytes),
         }
         .serialize(serializer)
     }
@@ -216,7 +220,9 @@
         <span class="kw">let </span>m: JsonHelper = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(PoStProof {
             post_proof: RegisteredPoStProof::from(m.post_proof),
-            proof_bytes: base64::decode(m.proof_bytes).map_err(de::Error::custom)<span class="question-mark">?</span>,
+            proof_bytes: BASE64_STANDARD
+                .decode(m.proof_bytes)
+                .map_err(de::Error::custom)<span class="question-mark">?</span>,
         })
     }
 

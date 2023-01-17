@@ -980,6 +980,7 @@
 <a href="#980" id="980">980</a>
 <a href="#981" id="981">981</a>
 <a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1911,6 +1912,7 @@
     <span class="kw">use </span>std::convert::TryFrom;
 
     <span class="kw">use </span><span class="kw">crate</span>::validation::TipsetValidator;
+    <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset};
     <span class="kw">use </span>forest_db::MemoryDB;
@@ -1938,9 +1940,9 @@
     </span><span class="kw">fn </span>empty_msg_meta_vector() {
         <span class="kw">let </span>blockstore = MemoryDB::default();
         <span class="kw">let </span>usm: Vec&lt;Message&gt; =
-            fvm_ipld_encoding::from_slice(<span class="kw-2">&amp;</span>base64::decode(<span class="string">&quot;gA==&quot;</span>).unwrap()).unwrap();
+            fvm_ipld_encoding::from_slice(<span class="kw-2">&amp;</span>BASE64_STANDARD.decode(<span class="string">&quot;gA==&quot;</span>).unwrap()).unwrap();
         <span class="kw">let </span>sm: Vec&lt;SignedMessage&gt; =
-            fvm_ipld_encoding::from_slice(<span class="kw-2">&amp;</span>base64::decode(<span class="string">&quot;gA==&quot;</span>).unwrap()).unwrap();
+            fvm_ipld_encoding::from_slice(<span class="kw-2">&amp;</span>BASE64_STANDARD.decode(<span class="string">&quot;gA==&quot;</span>).unwrap()).unwrap();
 
         <span class="macro">assert_eq!</span>(
             TipsetValidator::compute_msg_root(<span class="kw-2">&amp;</span>blockstore, <span class="kw-2">&amp;</span>usm, <span class="kw-2">&amp;</span>sm)

@@ -160,11 +160,17 @@
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
 <a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>json {
     <span class="kw">use </span><span class="kw">crate</span>::address::json::AddressJson;
+    <span class="kw">use </span>base64::prelude::BASE64_STANDARD;
+    <span class="kw">use </span>base64::Engine;
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
     <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
@@ -231,7 +237,7 @@
             gas_fee_cap: m.gas_fee_cap.clone(),
             gas_premium: m.gas_premium.clone(),
             method_num: m.method_num,
-            params: <span class="prelude-val">Some</span>(base64::encode(m.params.bytes())),
+            params: <span class="prelude-val">Some</span>(BASE64_STANDARD.encode(m.params.bytes())),
             cid: <span class="prelude-val">Some</span>(m.cid().map_err(ser::Error::custom)<span class="question-mark">?</span>),
         }
         .serialize(serializer)
@@ -253,7 +259,9 @@
             gas_premium: m.gas_premium,
             method_num: m.method_num,
             params: RawBytes::new(
-                base64::decode(m.params.unwrap_or_default()).map_err(de::Error::custom)<span class="question-mark">?</span>,
+                BASE64_STANDARD
+                    .decode(m.params.unwrap_or_default())
+                    .map_err(de::Error::custom)<span class="question-mark">?</span>,
             ),
         })
     }

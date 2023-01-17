@@ -144,6 +144,11 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -151,6 +156,7 @@
 
 <span class="kw">pub mod </span>json {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
     <span class="kw">use </span>fvm_shared::error::ExitCode;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
@@ -192,7 +198,7 @@
     {
         JsonHelper {
             exit_code: m.exit_code.value() <span class="kw">as </span>u64,
-            return_data: base64::encode(m.return_data.bytes()),
+            return_data: BASE64_STANDARD.encode(m.return_data.bytes()),
             gas_used: m.gas_used,
         }
         .serialize(serializer)
@@ -209,7 +215,11 @@
         } = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Receipt {
             exit_code: ExitCode::new(exit_code <span class="kw">as </span>u32),
-            return_data: RawBytes::new(base64::decode(return_data).map_err(de::Error::custom)<span class="question-mark">?</span>),
+            return_data: RawBytes::new(
+                BASE64_STANDARD
+                    .decode(return_data)
+                    .map_err(de::Error::custom)<span class="question-mark">?</span>,
+            ),
             gas_used,
         })
     }

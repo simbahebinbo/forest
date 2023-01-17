@@ -126,6 +126,7 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -168,6 +169,7 @@
 
 <span class="kw">pub mod </span>json {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="doccomment">/// Wrapper for serializing and de-serializing a `BeaconEntry` from JSON.
@@ -200,7 +202,7 @@
     {
         JsonHelper {
             round: m.round,
-            data: base64::encode(<span class="kw-2">&amp;</span>m.data),
+            data: BASE64_STANDARD.encode(<span class="kw-2">&amp;</span>m.data),
         }
         .serialize(serializer)
     }
@@ -212,7 +214,7 @@
         <span class="kw">let </span>m: JsonHelper = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(BeaconEntry {
             round: m.round,
-            data: base64::decode(m.data).map_err(de::Error::custom)<span class="question-mark">?</span>,
+            data: BASE64_STANDARD.decode(m.data).map_err(de::Error::custom)<span class="question-mark">?</span>,
         })
     }
 

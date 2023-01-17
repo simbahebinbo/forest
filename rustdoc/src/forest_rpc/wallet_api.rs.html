@@ -243,10 +243,14 @@
 <a href="#243" id="243">243</a>
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
-</span><span class="kw">use </span>forest_json::signature::json::SignatureJson;
+</span><span class="kw">use </span>base64::prelude::BASE64_STANDARD;
+<span class="kw">use </span>base64::Engine;
+<span class="kw">use </span>forest_json::signature::json::SignatureJson;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::str::FromStr;
@@ -467,7 +471,7 @@
     <span class="kw">let </span>sig = forest_key_management::sign(
         <span class="kw-2">*</span>key.key_info.key_type(),
         key.key_info.private_key(),
-        <span class="kw-2">&amp;</span>base64::decode(msg_string)<span class="question-mark">?</span>,
+        <span class="kw-2">&amp;</span>BASE64_STANDARD.decode(msg_string)<span class="question-mark">?</span>,
     )<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(SignatureJson(sig))
