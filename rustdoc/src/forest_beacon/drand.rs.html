@@ -297,6 +297,12 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -500,18 +506,24 @@
         <span class="kw">let </span>chain_info = <span class="kw-2">&amp;</span>config.chain_info;
 
         <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions) &amp;&amp; config.network_type == DrandNetwork::Mainnet {
-            futures::executor::block_on(<span class="kw">async </span>{
-                <span class="kw">let </span>client = https_client();
-                <span class="kw">let </span>remote_chain_info: ChainInfo = client
-                    .get(<span class="macro">format!</span>(<span class="string">&quot;{}/info&quot;</span>, <span class="kw-2">&amp;</span>config.server).try_into()<span class="question-mark">?</span>)
-                    .<span class="kw">await</span><span class="question-mark">?
-                    </span>.into_body()
-                    .json()
-                    .<span class="kw">await
-                    </span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{e}&quot;</span>))<span class="question-mark">?</span>;
-                <span class="macro">debug_assert!</span>(<span class="kw-2">&amp;</span>remote_chain_info == chain_info);
-                <span class="prelude-val">Ok</span>::&lt;(), anyhow::Error&gt;(())
-            })<span class="question-mark">?</span>;
+            <span class="kw">let </span>server = config.server;
+            <span class="kw">let </span>remote_chain_info = std::thread::spawn(<span class="kw">move </span>|| {
+                <span class="kw">let </span>rt = tokio::runtime::Runtime::new()<span class="question-mark">?</span>;
+                rt.block_on(<span class="kw">async </span>{
+                    <span class="kw">let </span>client = https_client();
+                    <span class="kw">let </span>remote_chain_info: ChainInfo = client
+                        .get(<span class="macro">format!</span>(<span class="string">&quot;{server}/info&quot;</span>).try_into()<span class="question-mark">?</span>)
+                        .<span class="kw">await</span><span class="question-mark">?
+                        </span>.into_body()
+                        .json()
+                        .<span class="kw">await
+                        </span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{e}&quot;</span>))<span class="question-mark">?</span>;
+                    <span class="prelude-val">Ok</span>::&lt;ChainInfo, anyhow::Error&gt;(remote_chain_info)
+                })
+            })
+            .join()
+            .expect(<span class="string">&quot;thread panicked&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">debug_assert!</span>(<span class="kw-2">&amp;</span>remote_chain_info == chain_info);
         }
 
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
