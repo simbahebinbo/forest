@@ -28,15 +28,15 @@
 </span><span class="attr">#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default)]
 </span><span class="kw">pub struct </span>ParityDbConfig {
-    <span class="kw">pub </span>stats: bool,
-    <span class="kw">pub </span>compression: String,
+    <span class="kw">pub </span>enable_statistics: bool,
+    <span class="kw">pub </span>compression_type: String,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>ParityDbConfig {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            stats: <span class="bool-val">false</span>,
-            compression: <span class="string">&quot;lz4&quot;</span>.into(),
+            enable_statistics: <span class="bool-val">false</span>,
+            compression_type: <span class="string">&quot;lz4&quot;</span>.into(),
         }
     }
 }
