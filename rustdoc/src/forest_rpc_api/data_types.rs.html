@@ -123,6 +123,7 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -146,6 +147,7 @@
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>jsonrpc_v2::{MapRouter <span class="kw">as </span>JsonRpcMapRouter, Server <span class="kw">as </span>JsonRpcServer};
+<span class="kw">use </span>parking_lot::RwLock <span class="kw">as </span>SyncRwLock;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::RwLock;
@@ -161,7 +163,7 @@
     <span class="kw">pub </span>state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     <span class="kw">pub </span>mpool: Arc&lt;MessagePool&lt;MpoolRpcProvider&lt;DB&gt;&gt;&gt;,
     <span class="kw">pub </span>bad_blocks: Arc&lt;BadBlockCache&gt;,
-    <span class="kw">pub </span>sync_state: Arc&lt;RwLock&lt;SyncState&gt;&gt;,
+    <span class="kw">pub </span>sync_state: Arc&lt;SyncRwLock&lt;SyncState&gt;&gt;,
     <span class="kw">pub </span>network_send: flume::Sender&lt;NetworkMessage&gt;,
     <span class="kw">pub </span>network_name: String,
     <span class="kw">pub </span>new_mined_block_tx: flume::Sender&lt;Arc&lt;Tipset&gt;&gt;,

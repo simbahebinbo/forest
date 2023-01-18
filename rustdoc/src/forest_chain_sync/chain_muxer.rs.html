@@ -1013,11 +1013,11 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
+<span class="kw">use </span>parking_lot::RwLock;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::pin::Pin;
 <span class="kw">use </span>std::task::{Context, Poll};
 <span class="kw">use </span>thiserror::Error;
-<span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::SystemTime;
