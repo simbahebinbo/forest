@@ -399,6 +399,7 @@
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -492,9 +493,10 @@
     <span class="doccomment">/// Daemonize Forest process
     </span><span class="attr">#[structopt(long)]
     </span><span class="kw">pub </span>detach: bool,
-    <span class="doccomment">/// Download a chain specific snapshot to sync with the Filecoin network
+    <span class="doccomment">/// Automatically download a chain specific snapshot to sync with the Filecoin network if
+    /// needed.
     </span><span class="attr">#[structopt(long)]
-    </span><span class="kw">pub </span>download_snapshot: bool,
+    </span><span class="kw">pub </span>auto_download_snapshot: bool,
     <span class="doccomment">/// Enable or disable colored logging in `stdout`
     </span><span class="attr">#[structopt(long, default_value = <span class="string">&quot;auto&quot;</span>)]
     </span><span class="kw">pub </span>color: LoggingColor,
@@ -570,7 +572,7 @@
         cfg.client.skip_load = <span class="self">self</span>.skip_load;
 
         cfg.client.halt_after_import = <span class="self">self</span>.halt_after_import;
-        cfg.client.download_snapshot = <span class="self">self</span>.download_snapshot;
+        cfg.client.auto_download_snapshot = <span class="self">self</span>.auto_download_snapshot;
         cfg.client.show_progress_bars = <span class="self">self</span>.show_progress_bars;
 
         cfg.network.kademlia = <span class="self">self</span>.kademlia.unwrap_or(cfg.network.kademlia);

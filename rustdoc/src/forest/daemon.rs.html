@@ -560,6 +560,7 @@
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -984,7 +985,8 @@
     <span class="kw">if </span>config.client.snapshot_path.is_some() {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
     }
-    <span class="kw">let </span>should_download = <span class="kw">if </span>!config.client.download_snapshot &amp;&amp; atty::is(atty::Stream::Stdin) {
+    <span class="kw">let </span>should_download = <span class="kw">if </span>!config.client.auto_download_snapshot &amp;&amp; atty::is(atty::Stream::Stdin)
+    {
         Confirm::with_theme(<span class="kw-2">&amp;</span>ColorfulTheme::default())
                 .with_prompt(
                     <span class="string">&quot;Forest needs a snapshot to sync with the network. Would you like to download one now?&quot;</span>,
@@ -993,7 +995,7 @@
                 .interact()
                 .unwrap_or_default()
     } <span class="kw">else </span>{
-        config.client.download_snapshot
+        config.client.auto_download_snapshot
     };
 
     <span class="kw">if </span>should_download {
