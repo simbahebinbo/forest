@@ -382,6 +382,8 @@
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -511,7 +513,9 @@
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(b) = <span class="self">self</span>.db.get_obj(<span class="kw-2">&amp;</span>content).map_err(|e| e.to_string())<span class="question-mark">? </span>{
             <span class="kw">return </span><span class="prelude-val">Ok</span>(b);
         }
-        <span class="kw">let </span>(tx, rx) = oneshot_channel();
+
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
+
         <span class="self">self</span>.network_send
             .send_async(NetworkMessage::BitswapRequest {
                 cid: content,
@@ -519,21 +523,21 @@
             })
             .<span class="kw">await
             </span>.map_err(|<span class="kw">_</span>| <span class="string">&quot;failed to send bitswap request, network receiver dropped&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">let </span>res = timeout(BITSWAP_TIMEOUT, rx).<span class="kw">await</span>;
-        <span class="kw">match </span>res {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(())) =&gt; {
-                <span class="kw">match </span><span class="self">self</span>.db.get_obj(<span class="kw-2">&amp;</span>content) {
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Ok</span>(b),
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bitswap response successful for: {content:?}, but can&#39;t find it in the database&quot;</span>)),
-                    <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bitswap response successful for: {content:?}, but can&#39;t retrieve it from the database: {e}&quot;</span>)),
-                }
-            }
-            <span class="prelude-val">Err</span>(_e) =&gt; {
-               <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bitswap get for {content:?} timed out&quot;</span>))
-            }
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(e)) =&gt; {
-                <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Bitswap get for {content:?} failed: {e}&quot;</span>))
-            }
+
+        <span class="kw">let </span>success = tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+            rx.recv_timeout(BITSWAP_TIMEOUT).unwrap_or_default()
+        })
+        .<span class="kw">await
+        </span>.is_ok();
+
+        <span class="kw">match </span><span class="self">self</span>.db.get_obj(<span class="kw-2">&amp;</span>content) {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(b)) =&gt; <span class="prelude-val">Ok</span>(b),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+                <span class="string">&quot;Not found in db, bitswap. success: {success} cid, {content:?}&quot;
+            </span>)),
+            <span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+                <span class="string">&quot;Error retrieving from db. success: {success} cid, {content:?}, {e}&quot;
+            </span>)),
         }
     }
 

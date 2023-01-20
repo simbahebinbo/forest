@@ -983,6 +983,26 @@
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
 <a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1003,6 +1023,7 @@
 <span class="kw">use </span>forest_interpreter::BlockMessages;
 <span class="kw">use </span>forest_ipld::recurse_links;
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
+<span class="kw">use </span>forest_libp2p_bitswap::BitswapStore;
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
 <span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
 <span class="kw">use </span>forest_metrics::metrics;
@@ -1071,6 +1092,25 @@
 
     <span class="doccomment">/// Tracks blocks for the purpose of forming tipsets.
     </span>tipset_tracker: TipsetTracker&lt;DB&gt;,
+}
+
+<span class="kw">impl</span>&lt;DB&gt; BitswapStore <span class="kw">for </span>ChainStore&lt;DB&gt;
+<span class="kw">where
+    </span>DB: BitswapStore,
+{
+    <span class="kw">type </span>Params = &lt;DB <span class="kw">as </span>BitswapStore&gt;::Params;
+
+    <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;bool&gt; {
+        <span class="self">self</span>.db.contains(cid)
+    }
+
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt; {
+        <span class="self">self</span>.db.get(cid)
+    }
+
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;</span><span class="self">self</span>, block: <span class="kw-2">&amp;</span>libipld::Block&lt;<span class="self">Self</span>::Params&gt;) -&gt; anyhow::Result&lt;()&gt; {
+        <span class="self">self</span>.db.insert(block)
+    }
 }
 
 <span class="kw">impl</span>&lt;DB&gt; ChainStore&lt;DB&gt;

@@ -923,108 +923,6 @@
 <a href="#923" id="923">923</a>
 <a href="#924" id="924">924</a>
 <a href="#925" id="925">925</a>
-<a href="#926" id="926">926</a>
-<a href="#927" id="927">927</a>
-<a href="#928" id="928">928</a>
-<a href="#929" id="929">929</a>
-<a href="#930" id="930">930</a>
-<a href="#931" id="931">931</a>
-<a href="#932" id="932">932</a>
-<a href="#933" id="933">933</a>
-<a href="#934" id="934">934</a>
-<a href="#935" id="935">935</a>
-<a href="#936" id="936">936</a>
-<a href="#937" id="937">937</a>
-<a href="#938" id="938">938</a>
-<a href="#939" id="939">939</a>
-<a href="#940" id="940">940</a>
-<a href="#941" id="941">941</a>
-<a href="#942" id="942">942</a>
-<a href="#943" id="943">943</a>
-<a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
-<a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a>
-<a href="#977" id="977">977</a>
-<a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
-<a href="#980" id="980">980</a>
-<a href="#981" id="981">981</a>
-<a href="#982" id="982">982</a>
-<a href="#983" id="983">983</a>
-<a href="#984" id="984">984</a>
-<a href="#985" id="985">985</a>
-<a href="#986" id="986">986</a>
-<a href="#987" id="987">987</a>
-<a href="#988" id="988">988</a>
-<a href="#989" id="989">989</a>
-<a href="#990" id="990">990</a>
-<a href="#991" id="991">991</a>
-<a href="#992" id="992">992</a>
-<a href="#993" id="993">993</a>
-<a href="#994" id="994">994</a>
-<a href="#995" id="995">995</a>
-<a href="#996" id="996">996</a>
-<a href="#997" id="997">997</a>
-<a href="#998" id="998">998</a>
-<a href="#999" id="999">999</a>
-<a href="#1000" id="1000">1000</a>
-<a href="#1001" id="1001">1001</a>
-<a href="#1002" id="1002">1002</a>
-<a href="#1003" id="1003">1003</a>
-<a href="#1004" id="1004">1004</a>
-<a href="#1005" id="1005">1005</a>
-<a href="#1006" id="1006">1006</a>
-<a href="#1007" id="1007">1007</a>
-<a href="#1008" id="1008">1008</a>
-<a href="#1009" id="1009">1009</a>
-<a href="#1010" id="1010">1010</a>
-<a href="#1011" id="1011">1011</a>
-<a href="#1012" id="1012">1012</a>
-<a href="#1013" id="1013">1013</a>
-<a href="#1014" id="1014">1014</a>
-<a href="#1015" id="1015">1015</a>
-<a href="#1016" id="1016">1016</a>
-<a href="#1017" id="1017">1017</a>
-<a href="#1018" id="1018">1018</a>
-<a href="#1019" id="1019">1019</a>
-<a href="#1020" id="1020">1020</a>
-<a href="#1021" id="1021">1021</a>
-<a href="#1022" id="1022">1022</a>
-<a href="#1023" id="1023">1023</a>
-<a href="#1024" id="1024">1024</a>
-<a href="#1025" id="1025">1025</a>
-<a href="#1026" id="1026">1026</a>
-<a href="#1027" id="1027">1027</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1044,14 +942,13 @@
 <span class="kw">use </span>forest_blocks::GossipBlock;
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_libp2p_bitswap::{BitswapRequestManager, BitswapStore};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_utils::io::read_file_to_vec;
 <span class="kw">use </span>futures::channel::oneshot::Sender <span class="kw">as </span>OneShotSender;
 <span class="kw">use </span>futures::select;
 <span class="kw">use </span>futures_util::stream::StreamExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_ipld_encoding::from_slice;
-<span class="kw">use </span>libipld::store::StoreParams;
 <span class="kw">use </span>libp2p::gossipsub::GossipsubEvent;
 <span class="kw">pub use </span>libp2p::gossipsub::IdentTopic;
 <span class="kw">pub use </span>libp2p::gossipsub::Topic;
@@ -1073,12 +970,10 @@
     PeerId, Swarm, Transport,
 };
 <span class="kw">use </span>libp2p::{core::Multiaddr, swarm::SwarmBuilder};
-<span class="kw">use </span>libp2p_bitswap::{BitswapEvent, BitswapStore};
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>std::path::Path;
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-<span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>std::time::{Duration, SystemTime, UNIX_EPOCH};
 <span class="kw">use </span>tokio_stream::wrappers::IntervalStream;
 
 <span class="kw">mod </span>metrics {
@@ -1106,7 +1001,6 @@
     <span class="kw">pub mod </span>values {
         <span class="kw">pub const </span>HELLO_REQUEST_TABLE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;hello_request_table&quot;</span>;
         <span class="kw">pub const </span>CX_REQUEST_TABLE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;cx_request_table&quot;</span>;
-        <span class="kw">pub const </span>BITSWAP_OUTGOING_QUERY_IDS: <span class="kw-2">&amp;</span>str = <span class="string">&quot;bitswap_outgoing_query_ids&quot;</span>;
     }
 
     <span class="kw">pub mod </span>labels {
@@ -1130,8 +1024,6 @@
 
 <span class="kw">type </span>CxRequestTable =
     HashMap&lt;RequestId, OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;&gt;;
-
-<span class="kw">type </span>BitswapOutgoingQueryTable = Arc&lt;RwLock&lt;HashMap&lt;libp2p_bitswap::QueryId, (Cid, Instant)&gt;&gt;&gt;;
 
 <span class="doccomment">/// Events emitted by this Service.
 </span><span class="attr">#[allow(clippy::large_enum_variant)]
@@ -1169,14 +1061,6 @@
     },
     PeerConnected(PeerId),
     PeerDisconnected(PeerId),
-    BitswapRequestOutbound {
-        query_id: libp2p_bitswap::QueryId,
-        cid: Cid,
-    },
-    BitswapResponseInbound {
-        query_id: libp2p_bitswap::QueryId,
-        cid: Cid,
-    },
 }
 
 <span class="doccomment">/// Message types that can come over `GossipSub`
@@ -1208,7 +1092,7 @@
     },
     BitswapRequest {
         cid: Cid,
-        response_channel: OneShotSender&lt;()&gt;,
+        response_channel: flume::Sender&lt;bool&gt;,
     },
     JSONRPCRequest {
         method: NetRPCMethods,
@@ -1225,9 +1109,9 @@
 }
 
 <span class="doccomment">/// The `Libp2pService` listens to events from the libp2p swarm.
-</span><span class="kw">pub struct </span>Libp2pService&lt;DB, P: StoreParams&gt; {
+</span><span class="kw">pub struct </span>Libp2pService&lt;DB&gt; {
     config: Libp2pConfig,
-    swarm: Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    swarm: Swarm&lt;ForestBehaviour&gt;,
     cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
     peer_manager: Arc&lt;PeerManager&gt;,
     network_receiver_in: flume::Receiver&lt;NetworkMessage&gt;,
@@ -1238,9 +1122,9 @@
     genesis_cid: Cid,
 }
 
-<span class="kw">impl</span>&lt;DB, P: StoreParams&gt; Libp2pService&lt;DB, P&gt;
+<span class="kw">impl</span>&lt;DB&gt; Libp2pService&lt;DB&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + BitswapStore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub fn </span>new(
         config: Libp2pConfig,
@@ -1263,7 +1147,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>swarm = SwarmBuilder::with_tokio_executor(
             transport,
-            ForestBehaviour::new(<span class="kw-2">&amp;</span>net_keypair, <span class="kw-2">&amp;</span>config, network_name, cs.db.clone()),
+            ForestBehaviour::new(<span class="kw-2">&amp;</span>net_keypair, <span class="kw-2">&amp;</span>config, network_name),
             peer_id,
         )
         .connection_limits(limits)
@@ -1312,17 +1196,13 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>hello_request_table = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>cx_request_table = HashMap::new();
-        <span class="kw">let </span>outgoing_bitswap_query_ids = BitswapOutgoingQueryTable::default();
-        <span class="kw">let </span>(outgoing_bitswap_query_cancellation_tx, outgoing_bitswap_query_cancellation_rx) =
-            flume::unbounded();
-        tokio::spawn(bitswap_timeout_task(
-            outgoing_bitswap_query_ids.clone(),
-            outgoing_bitswap_query_cancellation_tx,
-        ));
         <span class="kw">let </span>(cx_response_tx, cx_response_rx) = flume::unbounded();
+        <span class="kw">let </span>(bitswap_outbound_request_tx, bitswap_outbound_request_rx) = flume::unbounded();
+        <span class="kw">let </span>bitswap_request_manager =
+            Arc::new(BitswapRequestManager::new(bitswap_outbound_request_tx));
+
         <span class="kw">let </span><span class="kw-2">mut </span>cx_response_rx_stream = cx_response_rx.stream().fuse();
-        <span class="kw">let </span><span class="kw-2">mut </span>outgoing_bitswap_query_cancellation_rx_stream =
-            outgoing_bitswap_query_cancellation_rx.stream().fuse();
+        <span class="kw">let </span><span class="kw-2">mut </span>bitswap_outbound_request_rx_stream = bitswap_outbound_request_rx.stream().fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>peer_ops_rx_stream = <span class="self">self</span>.peer_manager.peer_ops_rx().stream().fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>libp2p_registry = Default::default();
         <span class="kw">let </span>metrics = Metrics::new(<span class="kw-2">&amp;mut </span>libp2p_registry);
@@ -1335,6 +1215,7 @@
                         metrics.record(<span class="kw-2">&amp;</span>event);
                         handle_forest_behaviour_event(
                             swarm_stream.get_mut(),
+                            <span class="kw-2">&amp;</span>bitswap_request_manager,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.peer_manager,
                             event,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cs,
@@ -1342,7 +1223,6 @@
                             <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out,
                             <span class="kw-2">&amp;mut </span>hello_request_table,
                             <span class="kw-2">&amp;mut </span>cx_request_table,
-                            <span class="kw-2">&amp;</span>outgoing_bitswap_query_ids,
                             cx_response_tx.clone(),
                             <span class="kw-2">&amp;</span>pubsub_block_str,
                             <span class="kw-2">&amp;</span>pubsub_msg_str,).<span class="kw">await</span>;
@@ -1355,11 +1235,12 @@
                     </span><span class="prelude-val">Some</span>(message) =&gt; {
                         handle_network_message(
                             swarm_stream.get_mut(),
+                            <span class="self">self</span>.cs.clone(),
+                            bitswap_request_manager.clone(),
                             message,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out,
                             <span class="kw-2">&amp;mut </span>hello_request_table,
-                            <span class="kw-2">&amp;mut </span>cx_request_table,
-                            <span class="kw-2">&amp;</span>outgoing_bitswap_query_ids).<span class="kw">await</span>;
+                            <span class="kw-2">&amp;mut </span>cx_request_table).<span class="kw">await</span>;
                     }
                     <span class="prelude-val">None </span>=&gt; { <span class="kw">break</span>; }
                 },
@@ -1367,20 +1248,20 @@
                     <span class="comment">// Print peer count on an interval.
                     </span><span class="macro">debug!</span>(<span class="string">&quot;Peers connected: {}&quot;</span>, swarm_stream.get_mut().behaviour_mut().peers().len());
                 },
-                pair_opt = cx_response_rx_stream.next() =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((_request_id, channel, cx_response)) = pair_opt {
+                cs_pair_opt = cx_response_rx_stream.next() =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((_request_id, channel, cx_response)) = cs_pair_opt {
                         <span class="kw">let </span>behaviour = swarm_stream.get_mut().behaviour_mut();
                         <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = behaviour.chain_exchange.send_response(channel, cx_response) {
                             <span class="macro">warn!</span>(<span class="string">&quot;Error sending chain exchange response: {e:?}&quot;</span>);
                         }
                     }
                 },
-                bitswap_cancelling_query_opt = outgoing_bitswap_query_cancellation_rx_stream.next() =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(query_id) = bitswap_cancelling_query_opt {
-                        <span class="macro">debug!</span>(<span class="string">&quot;Cancelling bitswap query {query_id}&quot;</span>);
-                        swarm_stream.get_mut().behaviour_mut().bitswap.cancel(query_id);
+                bitswap_outbound_request_opt = bitswap_outbound_request_rx_stream.next() =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((peer, request)) = bitswap_outbound_request_opt {
+                        <span class="kw">let </span>bitswap = <span class="kw-2">&amp;mut </span>swarm_stream.get_mut().behaviour_mut().bitswap;
+                        bitswap.send_request(<span class="kw-2">&amp;</span>peer, request);
                     }
-                },
+                }
                 peer_ops_opt = peer_ops_rx_stream.next() =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(peer_ops) = peer_ops_opt {
                         handle_peer_ops(swarm_stream.get_mut(), peer_ops);
@@ -1402,43 +1283,7 @@
     }
 }
 
-<span class="kw">async fn </span>bitswap_timeout_task(
-    outgoing_bitswap_query_ids: BitswapOutgoingQueryTable,
-    outgoing_bitswap_query_cancellation_tx: Sender&lt;libp2p_bitswap::QueryId&gt;,
-) {
-    <span class="kw">let </span><span class="kw-2">mut </span>timeout_queries = <span class="macro">vec!</span>[];
-    <span class="kw">loop </span>{
-        timeout_queries.clear();
-        {
-            <span class="kw">let </span>now = Instant::now();
-            <span class="kw">for </span>(query_id, (<span class="kw">_</span>, start)) <span class="kw">in </span>outgoing_bitswap_query_ids.read().<span class="kw">await</span>.iter() {
-                <span class="kw">if </span>now.duration_since(<span class="kw-2">*</span>start) &gt; BITSWAP_TIMEOUT {
-                    timeout_queries.push(<span class="kw-2">*</span>query_id);
-                }
-            }
-        }
-        <span class="kw">if </span>!timeout_queries.is_empty() {
-            {
-                <span class="kw">let </span><span class="kw-2">mut </span>locked = outgoing_bitswap_query_ids.write().<span class="kw">await</span>;
-                <span class="kw">for </span>id <span class="kw">in </span>timeout_queries.iter() {
-                    locked.remove(id);
-                }
-            }
-            <span class="kw">for </span><span class="kw-2">&amp;</span>id <span class="kw">in </span>timeout_queries.iter() {
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = outgoing_bitswap_query_cancellation_tx.send_async(id).<span class="kw">await </span>{
-                    <span class="macro">warn!</span>(<span class="string">&quot;bitswap query cancellation err: {e}&quot;</span>);
-                }
-            }
-        }
-        metrics::NETWORK_CONTAINER_CAPACITIES
-            .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::BITSWAP_OUTGOING_QUERY_IDS])
-            .set(outgoing_bitswap_query_ids.read().<span class="kw">await</span>.capacity() <span class="kw">as </span>u64);
-
-        tokio::time::sleep(Duration::from_secs(<span class="number">60</span>)).<span class="kw">await</span>;
-    }
-}
-
-<span class="kw">fn </span>handle_peer_ops&lt;P: StoreParams&gt;(swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;, peer_ops: PeerOperation) {
+<span class="kw">fn </span>handle_peer_ops(swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&gt;, peer_ops: PeerOperation) {
     <span class="kw">use </span>PeerOperation::<span class="kw-2">*</span>;
     <span class="kw">match </span>peer_ops {
         Ban(peer_id, reason) =&gt; {
@@ -1452,13 +1297,14 @@
     }
 }
 
-<span class="kw">async fn </span>handle_network_message&lt;P: StoreParams&gt;(
-    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+<span class="kw">async fn </span>handle_network_message(
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&gt;,
+    store: Arc&lt;<span class="kw">impl </span>BitswapStore&gt;,
+    bitswap_request_manager: Arc&lt;BitswapRequestManager&gt;,
     message: NetworkMessage,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
     hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
     cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
-    outgoing_bitswap_query_ids: <span class="kw-2">&amp;</span>BitswapOutgoingQueryTable,
 ) {
     <span class="kw">match </span>message {
         NetworkMessage::PubsubMessage { topic, message } =&gt; {
@@ -1503,21 +1349,10 @@
         }
         NetworkMessage::BitswapRequest {
             cid,
-            response_channel: <span class="kw">_</span>,
-        } =&gt; <span class="kw">match </span>swarm.behaviour_mut().want_block(cid) {
-            <span class="prelude-val">Ok</span>(query_id) =&gt; {
-                outgoing_bitswap_query_ids
-                    .write()
-                    .<span class="kw">await
-                    </span>.insert(query_id, (cid, Instant::now()));
-                emit_event(
-                    network_sender_out,
-                    NetworkEvent::BitswapRequestOutbound { query_id, cid },
-                )
-                .<span class="kw">await</span>;
-            }
-            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">warn!</span>(<span class="string">&quot;Failed to send a bitswap want_block: {}&quot;</span>, e.to_string()),
-        },
+            response_channel,
+        } =&gt; {
+            bitswap_request_manager.get_block(store, cid, BITSWAP_TIMEOUT, <span class="prelude-val">Some</span>(response_channel));
+        }
         NetworkMessage::JSONRPCRequest { method } =&gt; <span class="kw">match </span>method {
             NetRPCMethods::NetAddrsListen(response_channel) =&gt; {
                 <span class="kw">let </span>listeners: Vec&lt;<span class="kw">_</span>&gt; = Swarm::listeners(swarm).cloned().collect();
@@ -1563,25 +1398,21 @@
     }
 }
 
-<span class="kw">async fn </span>handle_discovery_event&lt;P: StoreParams&gt;(
+<span class="kw">async fn </span>handle_discovery_event(
     discovery_out: DiscoveryOut,
-    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    bitswap_request_manager: <span class="kw-2">&amp;</span>Arc&lt;BitswapRequestManager&gt;,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
 ) {
-    <span class="kw">let </span>behaviour = swarm.behaviour_mut();
     <span class="kw">match </span>discovery_out {
-        DiscoveryOut::Connected(peer_id, addresses) =&gt; {
+        DiscoveryOut::Connected(peer_id, <span class="kw">_</span>) =&gt; {
             <span class="macro">debug!</span>(<span class="string">&quot;Peer connected, {:?}&quot;</span>, peer_id);
-            <span class="kw">for </span>addr <span class="kw">in </span>addresses {
-                behaviour.bitswap.add_address(<span class="kw-2">&amp;</span>peer_id, addr);
-            }
+            <span class="comment">// TODO: Maybe better to add after hello
+            </span>bitswap_request_manager.on_peer_connected(peer_id);
             emit_event(network_sender_out, NetworkEvent::PeerConnected(peer_id)).<span class="kw">await</span>;
         }
-        DiscoveryOut::Disconnected(peer_id, addresses) =&gt; {
+        DiscoveryOut::Disconnected(peer_id, <span class="kw">_</span>) =&gt; {
             <span class="macro">debug!</span>(<span class="string">&quot;Peer disconnected, {:?}&quot;</span>, peer_id);
-            <span class="kw">for </span>addr <span class="kw">in </span>addresses {
-                behaviour.bitswap.remove_address(<span class="kw-2">&amp;</span>peer_id, <span class="kw-2">&amp;</span>addr);
-            }
+            bitswap_request_manager.on_peer_disconnected(<span class="kw-2">&amp;</span>peer_id);
             emit_event(network_sender_out, NetworkEvent::PeerDisconnected(peer_id)).<span class="kw">await</span>;
         }
     }
@@ -1603,7 +1434,7 @@
         <span class="kw">let </span>message = message.data;
         <span class="macro">trace!</span>(<span class="string">&quot;Got a Gossip Message from {:?}&quot;</span>, source);
         <span class="kw">if </span>topic == pubsub_block_str {
-            <span class="kw">match </span>from_slice::&lt;GossipBlock&gt;(<span class="kw-2">&amp;</span>message) {
+            <span class="kw">match </span>fvm_ipld_encoding::from_slice::&lt;GossipBlock&gt;(<span class="kw-2">&amp;</span>message) {
                 <span class="prelude-val">Ok</span>(b) =&gt; {
                     emit_event(
                         network_sender_out,
@@ -1619,7 +1450,7 @@
                 }
             }
         } <span class="kw">else if </span>topic == pubsub_msg_str {
-            <span class="kw">match </span>from_slice::&lt;SignedMessage&gt;(<span class="kw-2">&amp;</span>message) {
+            <span class="kw">match </span>fvm_ipld_encoding::from_slice::&lt;SignedMessage&gt;(<span class="kw-2">&amp;</span>message) {
                 <span class="prelude-val">Ok</span>(m) =&gt; {
                     emit_event(
                         network_sender_out,
@@ -1640,9 +1471,9 @@
     }
 }
 
-<span class="kw">async fn </span>handle_hello_event&lt;P: StoreParams&gt;(
+<span class="kw">async fn </span>handle_hello_event(
     rr_event: RequestResponseEvent&lt;HelloRequest, HelloResponse, HelloResponse&gt;,
-    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&gt;,
     peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
@@ -1766,47 +1597,6 @@
     }
 }
 
-<span class="kw">async fn </span>handle_bitswap_event(
-    bs_event: BitswapEvent,
-    network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
-    outgoing_bitswap_query_ids: <span class="kw-2">&amp;</span>BitswapOutgoingQueryTable,
-) {
-    <span class="kw">match </span>bs_event {
-        BitswapEvent::Progress(query_id, num_missing) =&gt; {
-            <span class="macro">debug!</span>(<span class="string">&quot;bitswap query {query_id} in progress, {num_missing} blocks pending&quot;</span>);
-        }
-        BitswapEvent::Complete(query_id, result) =&gt; <span class="kw">match </span>result {
-            <span class="prelude-val">Ok</span>(()) =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;bitswap query {query_id} completed successfully&quot;</span>);
-                <span class="kw">let </span>query_info_opt = {
-                    <span class="kw">let </span><span class="kw-2">mut </span>locked = outgoing_bitswap_query_ids.write().<span class="kw">await</span>;
-                    locked.remove(<span class="kw-2">&amp;</span>query_id)
-                };
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((cid, <span class="kw">_</span>)) = query_info_opt {
-                    emit_event(
-                        network_sender_out,
-                        NetworkEvent::BitswapResponseInbound { query_id, cid },
-                    )
-                    .<span class="kw">await</span>;
-                }
-            }
-            <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;bitswap query {query_id} completed with error: {err}&quot;</span>);
-                <span class="kw">if </span>outgoing_bitswap_query_ids
-                    .write()
-                    .<span class="kw">await
-                    </span>.remove(<span class="kw-2">&amp;</span>query_id)
-                    .is_some()
-                {
-                    <span class="macro">warn!</span>(<span class="string">&quot;{msg}&quot;</span>);
-                } <span class="kw">else </span>{
-                    <span class="macro">debug!</span>(<span class="string">&quot;{msg}&quot;</span>);
-                }
-            }
-        },
-    }
-}
-
 <span class="kw">async fn </span>handle_ping_event(ping_event: ping::Event, peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;) {
     <span class="kw">match </span>ping_event.result {
         <span class="prelude-val">Ok</span>(ping::Success::Ping { rtt }) =&gt; {
@@ -1843,7 +1633,7 @@
     }
 }
 
-<span class="kw">async fn </span>handle_chain_exchange_event&lt;DB, P: StoreParams&gt;(
+<span class="kw">async fn </span>handle_chain_exchange_event&lt;DB&gt;(
     ce_event: RequestResponseEvent&lt;ChainExchangeRequest, ChainExchangeResponse&gt;,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
@@ -1854,7 +1644,7 @@
         ChainExchangeResponse,
     )&gt;,
 ) <span class="kw">where
-    </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">match </span>ce_event {
         RequestResponseEvent::Message { peer, message } =&gt; {
@@ -1948,16 +1738,16 @@
 }
 
 <span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P: StoreParams&gt;(
-    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&lt;P&gt;&gt;,
+</span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P&gt;(
+    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&gt;,
+    bitswap_request_manager: <span class="kw-2">&amp;</span>Arc&lt;BitswapRequestManager&gt;,
     peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;,
-    event: ForestBehaviourEvent&lt;P&gt;,
+    event: ForestBehaviourEvent,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
     hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
     cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
-    outgoing_bitswap_query_ids: <span class="kw-2">&amp;</span>BitswapOutgoingQueryTable,
     cx_response_tx: Sender&lt;(
         RequestId,
         ResponseChannel&lt;ChainExchangeResponse&gt;,
@@ -1970,7 +1760,7 @@
 {
     <span class="kw">match </span>event {
         ForestBehaviourEvent::Discovery(discovery_out) =&gt; {
-            handle_discovery_event(discovery_out, swarm, network_sender_out).<span class="kw">await
+            handle_discovery_event(discovery_out, bitswap_request_manager, network_sender_out).<span class="kw">await
         </span>}
         ForestBehaviourEvent::Gossipsub(e) =&gt; {
             handle_gossip_event(e, network_sender_out, pubsub_block_str, pubsub_msg_str).<span class="kw">await
@@ -1986,9 +1776,15 @@
             )
             .<span class="kw">await
         </span>}
-        ForestBehaviourEvent::Bitswap(bs_event) =&gt; {
-            handle_bitswap_event(bs_event, network_sender_out, outgoing_bitswap_query_ids).<span class="kw">await
-        </span>}
+        ForestBehaviourEvent::Bitswap(event) =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = bitswap_request_manager.handle_event(
+                <span class="kw-2">&amp;mut </span>swarm.behaviour_mut().bitswap,
+                db.blockstore(),
+                event,
+            ) {
+                <span class="macro">warn!</span>(<span class="string">&quot;bitswap: {e}&quot;</span>);
+            }
+        }
         ForestBehaviourEvent::Ping(ping_event) =&gt; handle_ping_event(ping_event, peer_manager).<span class="kw">await</span>,
         ForestBehaviourEvent::Identify(<span class="kw">_</span>) =&gt; {}
         ForestBehaviourEvent::ChainExchange(ce_event) =&gt; {

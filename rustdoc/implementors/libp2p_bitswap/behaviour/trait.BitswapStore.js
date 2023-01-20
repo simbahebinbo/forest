@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"forest_db":[["impl BitswapStore for <a class=\"struct\" href=\"forest_db/struct.MemoryDB.html\" title=\"struct forest_db::MemoryDB\">MemoryDB</a>"],["impl BitswapStore for <a class=\"struct\" href=\"forest_db/rocks/struct.RocksDb.html\" title=\"struct forest_db::rocks::RocksDb\">RocksDb</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

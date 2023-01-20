@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["BitswapBehaviourEvent",""],["BitswapMessage",""],["BitswapResponse",""],["RequestType",""]],"fn":[["register_metrics",""]],"struct":[["BitswapBehaviour",""],["BitswapRequest",""],["BitswapRequestManager",""]],"trait":[["BitswapStore","Trait implemented by a block store."]]};
