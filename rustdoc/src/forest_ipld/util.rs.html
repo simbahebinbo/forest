@@ -81,10 +81,10 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::{collections::HashSet, future::Future};
-
+</span><span class="kw">use </span>ahash::HashSet;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_encoding::from_slice;
+<span class="kw">use </span>std::future::Future;
 
 <span class="kw">use </span><span class="kw">crate</span>::Ipld;
 

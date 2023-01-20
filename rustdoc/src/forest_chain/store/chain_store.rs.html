@@ -982,14 +982,13 @@
 <a href="#982" id="982">982</a>
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
-<a href="#985" id="985">985</a>
-<a href="#986" id="986">986</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::index::checkpoint_tipsets;
 <span class="kw">use super</span>::{index::ChainIndex, tipset_tracker::TipsetTracker, Error};
 <span class="kw">use </span><span class="kw">crate</span>::Scale;
+<span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
@@ -1025,10 +1024,7 @@
 <span class="kw">use </span>serde::Serialize;
 <span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::{
-    collections::{HashMap, HashSet, VecDeque},
-    time::SystemTime,
-};
+<span class="kw">use </span>std::{collections::VecDeque, time::SystemTime};
 <span class="kw">use </span>tokio::io::AsyncWrite;
 <span class="kw">use </span>tokio::sync::broadcast::{<span class="self">self</span>, Sender <span class="kw">as </span>Publisher};
 <span class="kw">use </span>tokio::sync::Mutex <span class="kw">as </span>TokioMutex;

@@ -679,6 +679,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::msgpool::{RBF_DENOM, RBF_NUM};
 <span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
 <span class="kw">use </span><span class="kw">crate</span>::utils::get_base_fee_lower_bound;
+<span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
@@ -699,7 +700,6 @@
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::{Mutex, RwLock <span class="kw">as </span>SyncRwLock};
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
 <span class="kw">use </span>std::num::NonZeroUsize;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::Duration;

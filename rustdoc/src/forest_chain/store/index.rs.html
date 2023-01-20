@@ -333,10 +333,10 @@
 
 <span class="comment">// This module helps speed up boot times for forest by checkpointing previously seen tipsets from snapshots.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>checkpoint_tipsets {
+    <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_blocks::TipsetKeys;
     <span class="kw">use </span>once_cell::sync::Lazy;
-    <span class="kw">use </span>std::collections::{HashMap, HashSet};
     <span class="kw">use </span>std::str::FromStr;
 
     <span class="macro">macro_rules! </span>add_calibnet {

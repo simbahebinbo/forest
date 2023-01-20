@@ -917,6 +917,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::msg_pool::MsgSet;
 <span class="kw">use </span><span class="kw">crate</span>::msg_pool::{add_helper, remove};
 <span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
+<span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
@@ -928,7 +929,6 @@
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::{Mutex, RwLock <span class="kw">as </span>SyncRwLock};
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::{borrow::BorrowMut, cmp::Ordering};
 <span class="kw">use </span>tokio::sync::broadcast::{Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};

@@ -113,20 +113,16 @@
 <a href="#113" id="113">113</a>
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::Config;
+</span><span class="kw">use super</span>::{handle_rpc_err, print_stdout, Config};
 <span class="kw">use </span><span class="kw">crate</span>::cli::cli_error_and_die;
+<span class="kw">use </span>ahash::HashSet;
 <span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
 <span class="kw">use </span>forest_rpc_api::data_types::AddrInfo;
-<span class="kw">use </span>std::collections::HashSet;
-<span class="kw">use </span>structopt::StructOpt;
-
-<span class="kw">use super</span>::{handle_rpc_err, print_stdout};
 <span class="kw">use </span>forest_rpc_client::net_ops::<span class="kw-2">*</span>;
+<span class="kw">use </span>structopt::StructOpt;
 
 <span class="attr">#[derive(Debug, StructOpt)]
 </span><span class="kw">pub enum </span>NetCommands {

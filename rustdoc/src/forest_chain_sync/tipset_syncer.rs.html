@@ -1674,36 +1674,16 @@
 <a href="#1674" id="1674">1674</a>
 <a href="#1675" id="1675">1675</a>
 <a href="#1676" id="1676">1676</a>
-<a href="#1677" id="1677">1677</a>
-<a href="#1678" id="1678">1678</a>
-<a href="#1679" id="1679">1679</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_utils::io::ProgressBar;
-<span class="kw">use </span>futures::stream::FuturesUnordered;
-<span class="kw">use </span>futures::StreamExt;
-<span class="kw">use </span>futures::TryFutureExt;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
-<span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_aggregate;
-<span class="kw">use </span>log::{debug, error, info, trace, warn};
-<span class="kw">use </span>nonempty::NonEmpty;
-<span class="kw">use </span>std::cmp::{min, Ordering};
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::task::{Context, Poll};
-<span class="kw">use </span>std::time::{SystemTime, UNIX_EPOCH};
-<span class="kw">use </span>thiserror::Error;
-
-<span class="kw">use </span><span class="kw">crate</span>::bad_block_cache::BadBlockCache;
+</span><span class="kw">use </span><span class="kw">crate</span>::bad_block_cache::BadBlockCache;
 <span class="kw">use </span><span class="kw">crate</span>::consensus::{collect_errs, Consensus};
 <span class="kw">use </span><span class="kw">crate</span>::metrics;
 <span class="kw">use </span><span class="kw">crate</span>::network_context::SyncNetworkContext;
 <span class="kw">use </span><span class="kw">crate</span>::sync_state::SyncStage;
 <span class="kw">use </span><span class="kw">crate</span>::validation::TipsetValidator;
+<span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::is_account_actor;
 <span class="kw">use </span>forest_blocks::{
@@ -1718,15 +1698,29 @@
 <span class="kw">use </span>forest_networks::Height;
 <span class="kw">use </span>forest_state_manager::Error <span class="kw">as </span>StateManagerError;
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>futures::Stream;
+<span class="kw">use </span>forest_utils::io::ProgressBar;
+<span class="kw">use </span>futures::stream::FuturesUnordered;
+<span class="kw">use </span>futures::{Stream, StreamExt, TryFutureExt};
 <span class="kw">use </span>fvm::gas::price_list_by_network_version;
 <span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
+<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_aggregate;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::{ALLOWABLE_CLOCK_DRIFT, BLOCK_GAS_LIMIT};
+<span class="kw">use </span>log::{debug, error, info, trace, warn};
+<span class="kw">use </span>nonempty::NonEmpty;
+<span class="kw">use </span>std::cmp::{min, Ordering};
+<span class="kw">use </span>std::convert::TryFrom;
+<span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::pin::Pin;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::task::{Context, Poll};
+<span class="kw">use </span>std::time::{SystemTime, UNIX_EPOCH};
+<span class="kw">use </span>thiserror::Error;
 
 <span class="kw">const </span>MAX_TIPSETS_TO_REQUEST: u64 = <span class="number">100</span>;
 

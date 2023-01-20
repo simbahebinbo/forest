@@ -307,7 +307,7 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span><span class="kw">super</span>::beacon_entries::BeaconEntry;
-<span class="kw">use </span>ahash::AHashMap;
+<span class="kw">use </span>ahash::HashMap;
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>bls_signatures::{PublicKey, Serialize, Signature};
@@ -489,7 +489,7 @@
     fil_round_time: u64,
 
     <span class="doccomment">/// Keeps track of computed beacon entries.
-    </span>local_cache: RwLock&lt;AHashMap&lt;u64, BeaconEntry&gt;&gt;,
+    </span>local_cache: RwLock&lt;HashMap&lt;u64, BeaconEntry&gt;&gt;,
 }
 
 <span class="kw">impl </span>DrandBeacon {

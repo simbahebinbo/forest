@@ -197,14 +197,11 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
 
-</span><span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
-<span class="kw">use </span>std::collections::HashMap;
-
+</span><span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::market;
 <span class="kw">use </span>forest_beacon::Beacon;
@@ -218,6 +215,7 @@
 };
 <span class="kw">use </span>forest_state_manager::InvocResult;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 
 <span class="comment">// TODO handle using configurable verification implementation in RPC (all defaulting to Full).

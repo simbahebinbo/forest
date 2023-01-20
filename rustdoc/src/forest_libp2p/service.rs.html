@@ -1038,6 +1038,7 @@
     rpc::RequestResponseError,
 };
 <span class="kw">use crate</span>::{PeerManager, PeerOperation};
+<span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>forest_blocks::GossipBlock;
@@ -1074,7 +1075,6 @@
 <span class="kw">use </span>libp2p::{core::Multiaddr, swarm::SwarmBuilder};
 <span class="kw">use </span>libp2p_bitswap::{BitswapEvent, BitswapStore};
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
-<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::path::Path;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};

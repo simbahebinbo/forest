@@ -449,10 +449,10 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::errors::Error;
 <span class="kw">use super</span>::{wallet_helpers, KeyInfo, KeyStore};
+<span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::str::FromStr;
 

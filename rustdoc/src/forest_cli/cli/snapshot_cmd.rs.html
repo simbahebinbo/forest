@@ -483,11 +483,13 @@
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, handle_rpc_err};
+<span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
 <span class="kw">use </span>forest_blocks::{tipset_keys_json::TipsetKeysJson, Tipset, TipsetKeys};
@@ -495,7 +497,6 @@
 <span class="kw">use </span>forest_cli_shared::cli::{
     default_snapshot_dir, is_car_or_tmp, snapshot_fetch, SnapshotServer, SnapshotStore,
 };
-
 <span class="kw">use </span>forest_db::{db_engine::open_db, Store};
 <span class="kw">use </span>forest_genesis::read_genesis_header;
 <span class="kw">use </span>forest_ipld::recurse_links;
@@ -503,7 +504,7 @@
 <span class="kw">use </span>forest_utils::net::FetchProgress;
 <span class="kw">use </span>fvm_ipld_car::load_car;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>std::{collections::HashMap, fs, path::PathBuf, sync::Arc};
+<span class="kw">use </span>std::{fs, path::PathBuf, sync::Arc};
 <span class="kw">use </span>strfmt::strfmt;
 <span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>tempfile::TempDir;
@@ -645,7 +646,8 @@
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>vars = HashMap::from([
+                <span class="attr">#[allow(clippy::disallowed_types)]
+                </span><span class="kw">let </span>vars = std::collections::HashMap::from([
                     (<span class="string">&quot;year&quot;</span>.to_string(), year.to_string()),
                     (<span class="string">&quot;month&quot;</span>.to_string(), month_string),
                     (<span class="string">&quot;day&quot;</span>.to_string(), day_string),
@@ -899,7 +901,7 @@
 <span class="kw">where
     </span>DB: fvm_ipld_blockstore::Blockstore + Store + Send + Sync,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>seen = std::collections::HashSet::&lt;Cid&gt;::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>seen = HashSet::&lt;Cid&gt;::new();
     <span class="kw">let </span>upto = ts.epoch() - recent_stateroots;
 
     <span class="kw">let </span><span class="kw-2">mut </span>tsk = ts.parents().clone();

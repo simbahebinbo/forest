@@ -407,7 +407,8 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>libp2p::kad::record::store::MemoryStore;
+</span><span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
+<span class="kw">use </span>libp2p::kad::record::store::MemoryStore;
 <span class="kw">use </span>libp2p::mdns::tokio::Behaviour <span class="kw">as </span>Mdns;
 <span class="kw">use </span>libp2p::swarm::behaviour::toggle::ToggleIntoConnectionHandler;
 <span class="kw">use </span>libp2p::swarm::derive_prelude::<span class="kw-2">*</span>;
@@ -421,10 +422,9 @@
 };
 <span class="kw">use </span>log::{debug, error, trace, warn};
 <span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::{
     cmp,
-    collections::{HashSet, VecDeque},
+    collections::VecDeque,
     task::{Context, Poll},
     time::Duration,
 };

@@ -225,22 +225,20 @@
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cid::Cid;
+</span><span class="kw">use super</span>::{
+    ChainExchangeRequest, ChainExchangeResponse, ChainExchangeResponseStatus, CompactedMessages,
+    TipsetBundle,
+};
+<span class="kw">use </span>ahash::{HashMap, HashMapExt};
+<span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::{ChainStore, Error <span class="kw">as </span>ChainError};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>log::debug;
-<span class="kw">use </span>std::collections::HashMap;
-
-<span class="kw">use super</span>::{
-    ChainExchangeRequest, ChainExchangeResponse, ChainExchangeResponseStatus, CompactedMessages,
-    TipsetBundle,
-};
 
 <span class="doccomment">/// Builds chain exchange response out of chain data.
 </span><span class="kw">pub fn </span>make_chain_exchange_response&lt;DB&gt;(

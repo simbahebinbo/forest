@@ -81,49 +81,23 @@
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::utils::bitswap_missing_blocks;
-
-<span class="kw">use super</span>::{Error, Store};
+</span><span class="kw">use super</span>::{Error, Store};
+<span class="kw">use </span><span class="kw">crate</span>::utils::bitswap_missing_blocks;
+<span class="kw">use </span>ahash::HashMap;
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>libp2p_bitswap::BitswapStore;
 <span class="kw">use </span>parking_lot::RwLock;
-<span class="kw">use </span>std::collections::{hash_map::DefaultHasher, HashMap};
-<span class="kw">use </span>std::hash::{Hash, Hasher};
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="doccomment">/// A thread-safe `HashMap` wrapper.
 </span><span class="attr">#[derive(Debug, Default, Clone)]
 </span><span class="kw">pub struct </span>MemoryDB {
-    db: Arc&lt;RwLock&lt;HashMap&lt;u64, Vec&lt;u8&gt;&gt;&gt;&gt;,
-}
-
-<span class="kw">impl </span>MemoryDB {
-    <span class="kw">fn </span>db_index&lt;K&gt;(key: K) -&gt; u64
-    <span class="kw">where
-        </span>K: AsRef&lt;[u8]&gt;,
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>hasher = DefaultHasher::new();
-        key.as_ref().hash::&lt;DefaultHasher&gt;(<span class="kw-2">&amp;mut </span>hasher);
-        hasher.finish()
-    }
+    db: Arc&lt;RwLock&lt;HashMap&lt;Vec&lt;u8&gt;, Vec&lt;u8&gt;&gt;&gt;&gt;,
 }
 
 <span class="kw">impl </span>Store <span class="kw">for </span>MemoryDB {
@@ -134,7 +108,7 @@
     {
         <span class="self">self</span>.db
             .write()
-            .insert(<span class="self">Self</span>::db_index(key), value.as_ref().to_vec());
+            .insert(key.as_ref().to_vec(), value.as_ref().to_vec());
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -142,7 +116,7 @@
     <span class="kw">where
         </span>K: AsRef&lt;[u8]&gt;,
     {
-        <span class="self">self</span>.db.write().remove(<span class="kw-2">&amp;</span><span class="self">Self</span>::db_index(key));
+        <span class="self">self</span>.db.write().remove(key.as_ref());
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -150,14 +124,14 @@
     <span class="kw">where
         </span>K: AsRef&lt;[u8]&gt;,
     {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.read().get(<span class="kw-2">&amp;</span><span class="self">Self</span>::db_index(key)).cloned())
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.read().get(key.as_ref()).cloned())
     }
 
     <span class="kw">fn </span>exists&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt;
     <span class="kw">where
         </span>K: AsRef&lt;[u8]&gt;,
     {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.read().contains_key(<span class="kw-2">&amp;</span><span class="self">Self</span>::db_index(key)))
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.read().contains_key(key.as_ref()))
     }
 }
 

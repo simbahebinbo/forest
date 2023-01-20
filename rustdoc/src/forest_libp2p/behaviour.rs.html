@@ -180,6 +180,7 @@
     discovery::DiscoveryConfig,
     hello::{HelloCodec, HelloProtocolName},
 };
+<span class="kw">use </span>ahash::{HashMap, HashSet};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_encoding::blake2b_256;
 <span class="kw">use </span>libipld::store::StoreParams;
@@ -200,7 +201,6 @@
 };
 <span class="kw">use </span>libp2p_bitswap::{Bitswap, BitswapConfig, BitswapStore};
 <span class="kw">use </span>log::{debug, warn};
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
 <span class="kw">use </span>std::time::Duration;
 
 <span class="doccomment">/// Libp2p behavior for the Forest node. This handles all sub protocols needed for a Filecoin node.

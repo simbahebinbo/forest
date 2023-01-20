@@ -581,6 +581,7 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use super</span>::{Block, BlockHeader, Error, Ticket};
+<span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -588,7 +589,6 @@
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::collections::HashSet;
 
 <span class="doccomment">/// A set of `CIDs` forming a unique key for a Tipset.
 /// Equal keys will have equivalent iteration order, but note that the `CIDs` are *not* maintained in

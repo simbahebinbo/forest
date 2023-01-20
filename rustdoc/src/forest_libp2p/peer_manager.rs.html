@@ -308,14 +308,14 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use crate</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>ahash::{HashMap, HashSet};
 <span class="kw">use </span>flume::{Receiver, Sender};
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>log::{debug, trace, warn};
 <span class="kw">use </span>rand::seq::SliceRandom;
-<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>std::cmp::Ordering;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::{Duration, Instant};
-<span class="kw">use </span>std::{cmp::Ordering, collections::HashSet};
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="doccomment">/// New peer multiplier slightly less than 1 to incentivize choosing new peers.

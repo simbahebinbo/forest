@@ -115,6 +115,7 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -122,7 +123,7 @@
 <span class="kw">use </span>libp2p::gossipsub::{
     score_parameter_decay, IdentTopic, PeerScoreParams, PeerScoreThresholds, TopicScoreParams,
 };
-<span class="kw">use </span>std::{collections::HashMap, time::Duration};
+<span class="kw">use </span>std::time::Duration;
 
 <span class="comment">// All these parameters are copied from what Lotus has set for their Topic scores.
 // They are currently unused because enabling them causes GossipSub blocks to come
@@ -193,7 +194,8 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>build_peer_score_params(network_name: <span class="kw-2">&amp;</span>str) -&gt; PeerScoreParams {
-    <span class="kw">let </span><span class="kw-2">mut </span>psp_topics = HashMap::new();
+    <span class="attr">#[allow(clippy::disallowed_types)]
+    </span><span class="kw">let </span><span class="kw-2">mut </span>psp_topics = std::collections::HashMap::new();
 
     <span class="comment">// msg topic
     </span><span class="kw">let </span>msg_topic = IdentTopic::new(<span class="macro">format!</span>(<span class="string">&quot;{PUBSUB_MSG_STR}/{network_name}&quot;</span>));

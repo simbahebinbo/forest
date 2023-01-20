@@ -1343,6 +1343,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::msgpool::MIN_GAS;
 <span class="kw">use </span><span class="kw">crate</span>::Error;
 <span class="kw">use crate</span>::{add_to_selected_msgs, remove_from_selected_msgs};
+<span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_message::Message;
 <span class="kw">use </span>forest_message::SignedMessage;
@@ -1353,7 +1354,6 @@
 <span class="kw">use </span>rand::thread_rng;
 <span class="kw">use </span>std::borrow::BorrowMut;
 <span class="kw">use </span>std::cmp::Ordering;
-<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">type </span>Pending = HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt;;

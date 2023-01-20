@@ -217,14 +217,14 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>backoff::{future::retry, ExponentialBackoff};
+</span><span class="kw">use </span>ahash::HashMap;
+<span class="kw">use </span>backoff::{future::retry, ExponentialBackoff};
 <span class="kw">use </span>blake2b_simd::{Hash, State <span class="kw">as </span>Blake2b};
 <span class="kw">use </span>forest_utils::net::{https_client, hyper};
 <span class="kw">use </span>futures::TryStreamExt;
 <span class="kw">use </span>fvm_shared::sector::SectorSize;
 <span class="kw">use </span>log::{debug, warn};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::fs::File <span class="kw">as </span>SyncFile;
 <span class="kw">use </span>std::io::{<span class="self">self</span>, copy <span class="kw">as </span>sync_copy, BufReader <span class="kw">as </span>SyncBufReader, ErrorKind};
 <span class="kw">use </span>std::path::{Path, PathBuf};
