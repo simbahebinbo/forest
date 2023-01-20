@@ -261,18 +261,6 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -324,11 +312,7 @@
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
-    <span class="kw">let </span>ts = data
-        .state_manager
-        .chain_store()
-        .heaviest_tipset()
-        .ok_or(<span class="string">&quot;can&#39;t find heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>ts = data.state_manager.chain_store().heaviest_tipset();
 
     <span class="kw">let </span>parent_base_fee = ts.blocks()[<span class="number">0</span>].parent_base_fee();
     <span class="kw">let </span>increase_factor =
@@ -377,11 +361,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>prices: Vec&lt;GasMeta&gt; = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>blocks = <span class="number">0</span>;
 
-    <span class="kw">let </span><span class="kw-2">mut </span>ts = data
-        .state_manager
-        .chain_store()
-        .heaviest_tipset()
-        .ok_or(<span class="string">&quot;cant get heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>ts = data.state_manager.chain_store().heaviest_tipset();
 
     <span class="kw">for _ in </span><span class="number">0</span>..(nblocksincl * <span class="number">2</span>) {
         <span class="kw">if </span>ts.epoch() == <span class="number">0 </span>{
@@ -474,11 +454,7 @@
     msg.gas_fee_cap = TokenAmount::from_atto(MINIMUM_BASE_FEE + <span class="number">1</span>);
     msg.gas_premium = TokenAmount::from_atto(<span class="number">1</span>);
 
-    <span class="kw">let </span>curr_ts = data
-        .state_manager
-        .chain_store()
-        .heaviest_tipset()
-        .ok_or(<span class="string">&quot;cant find the current heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>curr_ts = data.state_manager.chain_store().heaviest_tipset();
     <span class="kw">let </span>from_a = data
         .state_manager
         .resolve_to_key_addr(<span class="kw-2">&amp;</span>msg.from, <span class="kw-2">&amp;</span>curr_ts)

@@ -2039,7 +2039,7 @@
         <span class="kw">let </span>a2 = w2.generate_addr(SignatureType::Secp256k1).unwrap();
 
         <span class="kw">let </span>b1 = mock_block(<span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[b1.clone()]).unwrap();
+        <span class="kw">let </span>ts = Tipset::from(<span class="kw-2">&amp;</span>b1);
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
         <span class="kw">let </span>pending = mpool.pending.clone();
@@ -2055,7 +2055,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b1]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(b1)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -2112,7 +2112,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b2]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(b2)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -2132,7 +2132,7 @@
             msgs.push(create_smsg(<span class="kw-2">&amp;</span>a1, <span class="kw-2">&amp;</span>a2, <span class="kw-2">&amp;mut </span>w2, i, TEST_GAS_LIMIT, i + <span class="number">1</span>));
         }
         <span class="kw">let </span>b3 = mpool.api.next_block();
-        <span class="kw">let </span>ts3 = Tipset::new(<span class="macro">vec!</span>[b3.clone()]).unwrap();
+        <span class="kw">let </span>ts3 = Tipset::from(<span class="kw-2">&amp;</span>b3);
         mpool.api.set_block_messages(<span class="kw-2">&amp;</span>b3, msgs);
 
         <span class="comment">// now create another set of messages and add them to the mpool
@@ -2204,7 +2204,7 @@
         <span class="kw">let </span>a2 = w2.generate_addr(SignatureType::Secp256k1).unwrap();
 
         <span class="kw">let </span>b1 = mock_block(<span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[b1.clone()]).unwrap();
+        <span class="kw">let </span>ts = Tipset::from(<span class="kw-2">&amp;</span>b1);
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
         <span class="kw">let </span>pending = mpool.pending.clone();
@@ -2219,7 +2219,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b1]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(b1)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -2285,7 +2285,7 @@
         mpool.set_config(<span class="kw-2">&amp;</span>db, mpool_cfg).unwrap();
 
         <span class="kw">let </span>b1 = mock_block(<span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[b1.clone()]).unwrap();
+        <span class="kw">let </span>ts = Tipset::from(<span class="kw-2">&amp;</span>b1);
         <span class="kw">let </span>api = <span class="kw-2">&amp;</span>mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
         <span class="kw">let </span>pending = mpool.pending.clone();
@@ -2300,7 +2300,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b1]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(b1)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -2378,7 +2378,7 @@
         <span class="comment">// create a block
         </span><span class="kw">let </span>b1 = mock_block(<span class="number">1</span>, <span class="number">1</span>);
         <span class="comment">// add block to tipset
-        </span><span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[b1.clone()]).unwrap();
+        </span><span class="kw">let </span>ts = Tipset::from(<span class="kw-2">&amp;</span>b1.clone());
 
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
@@ -2395,7 +2395,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b1]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(b1)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -2457,7 +2457,7 @@
         <span class="comment">// create a block
         </span><span class="kw">let </span>b1 = mock_block(<span class="number">1</span>, <span class="number">1</span>);
         <span class="comment">// add block to tipset
-        </span><span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[b1.clone()]).unwrap();
+        </span><span class="kw">let </span>ts = Tipset::from(<span class="kw-2">&amp;</span>b1);
 
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
@@ -2474,7 +2474,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b1]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(b1)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -2576,7 +2576,7 @@
         <span class="comment">// create a block
         </span><span class="kw">let </span>block = mock_block(<span class="number">1</span>, <span class="number">1</span>);
         <span class="comment">// add block to tipset
-        </span><span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[block.clone()]).unwrap();
+        </span><span class="kw">let </span>ts = Tipset::from(<span class="kw-2">&amp;</span>block);
 
         <span class="kw">let </span>api = mpool.api.clone();
         <span class="kw">let </span>bls_sig_cache = mpool.bls_sig_cache.clone();
@@ -2593,7 +2593,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[block]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(block)],
         )
         .<span class="kw">await
         </span>.unwrap();

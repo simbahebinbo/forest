@@ -859,14 +859,14 @@
         <span class="kw">let </span>db_path = tmp_db_path.path().join(<span class="kw-2">&amp;</span>config.chain.name);
         <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path, config.db_config())<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db, config.chain.clone()));
-
         <span class="kw">let </span>genesis = read_genesis_header(
             config.client.genesis_file.as_ref(),
             config.chain.genesis_bytes(),
-            <span class="kw-2">&amp;</span>chain_store,
+            <span class="kw-2">&amp;</span>db,
         )
         .<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db, config.chain.clone(), <span class="kw-2">&amp;</span>genesis)<span class="question-mark">?</span>);
 
         <span class="kw">let </span>cids = {
             <span class="kw">let </span>file = tokio::fs::File::open(<span class="kw-2">&amp;</span>snapshot).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -881,7 +881,7 @@
             ts,
             chain_store.blockstore(),
             <span class="kw-2">*</span>recent_stateroots,
-            <span class="kw-2">&amp;</span>genesis,
+            <span class="kw-2">&amp;</span>Tipset::from(genesis),
             <span class="kw-2">&amp;</span>config.chain.name,
         )
         .<span class="kw">await</span><span class="question-mark">?</span>;

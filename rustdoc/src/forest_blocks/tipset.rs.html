@@ -577,6 +577,23 @@
 <a href="#577" id="577">577</a>
 <a href="#578" id="578">578</a>
 <a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -620,6 +637,24 @@
     key: OnceCell&lt;TipsetKeys&gt;,
 }
 
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>BlockHeader&gt; <span class="kw">for </span>Tipset {
+    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>BlockHeader) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            headers: <span class="macro">vec!</span>[value.clone()],
+            key: OnceCell::new(),
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;BlockHeader&gt; <span class="kw">for </span>Tipset {
+    <span class="kw">fn </span>from(value: BlockHeader) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            headers: <span class="macro">vec!</span>[value],
+            key: OnceCell::new(),
+        }
+    }
+}
+
 <span class="kw">impl </span>PartialEq <span class="kw">for </span>Tipset {
     <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
         <span class="self">self</span>.headers.eq(<span class="kw-2">&amp;</span>other.headers)
@@ -629,8 +664,7 @@
 <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>Tipset {
     <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
         <span class="comment">// XXX: Support random generation of tipsets with multiple blocks.
-        </span><span class="kw">let </span>first_header = BlockHeader::arbitrary(g);
-        Tipset::new(<span class="macro">vec!</span>[first_header]).unwrap()
+        </span>Tipset::from(BlockHeader::arbitrary(g))
     }
 }
 
@@ -1028,13 +1062,13 @@
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_break_weight_tie() {
         <span class="kw">let </span>b1 = mock_block(<span class="number">1234561</span>, <span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>ts1 = Tipset::new(<span class="macro">vec!</span>[b1.clone()]).unwrap();
+        <span class="kw">let </span>ts1 = Tipset::from(<span class="kw-2">&amp;</span>b1);
 
         <span class="kw">let </span>b2 = mock_block(<span class="number">1234562</span>, <span class="number">1</span>, <span class="number">2</span>);
-        <span class="kw">let </span>ts2 = Tipset::new(<span class="macro">vec!</span>[b2.clone()]).unwrap();
+        <span class="kw">let </span>ts2 = Tipset::from(<span class="kw-2">&amp;</span>b2);
 
         <span class="kw">let </span>b3 = mock_block(<span class="number">1234563</span>, <span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>ts3 = Tipset::new(<span class="macro">vec!</span>[b3]).unwrap();
+        <span class="kw">let </span>ts3 = Tipset::from(<span class="kw-2">&amp;</span>b3);
 
         <span class="comment">// All tipsets have the same weight (but it&#39;s not really important here)
 

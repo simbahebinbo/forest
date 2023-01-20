@@ -146,7 +146,7 @@
     <span class="doccomment">/// Update `Mpool`&#39;s `cur_tipset` whenever there is a change to the provider
     </span><span class="kw">fn </span>subscribe_head_changes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Subscriber&lt;HeadChange&gt;;
     <span class="doccomment">/// Get the heaviest Tipset in the provider
-    </span><span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;;
+    </span><span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Tipset&gt;;
     <span class="doccomment">/// Add a message to the `MpoolProvider`, return either Cid or Error depending on successful put
     </span><span class="kw">fn </span>put_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>ChainMessage) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt;;
     <span class="doccomment">/// Return state actor for given address given the tipset that the a temp `StateTree` will be rooted
@@ -192,7 +192,7 @@
         <span class="self">self</span>.subscriber.subscribe()
     }
 
-    <span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
+    <span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Tipset&gt; {
         <span class="self">self</span>.sm.chain_store().heaviest_tipset()
     }
 

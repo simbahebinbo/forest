@@ -1307,7 +1307,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[a]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(a)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -1322,7 +1322,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = Wallet::new(keystore);
 
         <span class="kw">let </span>a = mock_block(<span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>tipset = Tipset::new(<span class="macro">vec!</span>[a.clone()]).unwrap();
+        <span class="kw">let </span>tipset = Tipset::from(<span class="kw-2">&amp;</span>a);
         <span class="kw">let </span>b = mock_block_with_parents(<span class="kw-2">&amp;</span>tipset, <span class="number">1</span>, <span class="number">1</span>);
 
         <span class="kw">let </span>sender = wallet.generate_addr(SignatureType::BLS).unwrap();
@@ -1375,7 +1375,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[a]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(a)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -1397,7 +1397,7 @@
             pending.as_ref(),
             cur_tipset.as_ref(),
             Vec::new(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b.clone()]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(<span class="kw-2">&amp;</span>b)],
         )
         .<span class="kw">await
         </span>.unwrap();
@@ -1413,7 +1413,7 @@
             republished.as_ref(),
             pending.as_ref(),
             cur_tipset.as_ref(),
-            <span class="macro">vec!</span>[Tipset::new(<span class="macro">vec!</span>[b]).unwrap()],
+            <span class="macro">vec!</span>[Tipset::from(b)],
             Vec::new(),
         )
         .<span class="kw">await
@@ -1462,7 +1462,7 @@
         <span class="macro">assert_eq!</span>(mpool.get_sequence(<span class="kw-2">&amp;</span>sender).unwrap(), <span class="number">3</span>);
 
         <span class="kw">let </span>header = mock_block(<span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>tipset = Tipset::new(<span class="macro">vec!</span>[header.clone()]).unwrap();
+        <span class="kw">let </span>tipset = Tipset::from(<span class="kw-2">&amp;</span>header.clone());
 
         <span class="kw">let </span>ts = tipset.clone();
         mpool.api.set_heaviest_tipset(Arc::new(ts));
@@ -1485,7 +1485,7 @@
         <span class="kw">let </span>gas_limit = <span class="number">6955002</span>;
 
         <span class="kw">let </span>a = mock_block(<span class="number">1</span>, <span class="number">1</span>);
-        <span class="kw">let </span>ts = Tipset::new(<span class="macro">vec!</span>[a]).unwrap();
+        <span class="kw">let </span>ts = Tipset::from(a);
         <span class="kw">let </span>chain_config = ChainConfig::default();
 
         <span class="comment">// --- Test Chain Aggregations ---

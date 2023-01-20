@@ -298,14 +298,6 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -517,7 +509,7 @@
 {
     <span class="kw">let </span>genesis = forest_chain::genesis(data.state_manager.blockstore())<span class="question-mark">?
         </span>.ok_or(<span class="string">&quot;can&#39;t find genesis tipset&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>gen_ts = Arc::new(Tipset::new(<span class="macro">vec!</span>[genesis])<span class="question-mark">?</span>);
+    <span class="kw">let </span>gen_ts = Arc::new(Tipset::from(genesis));
     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(TipsetJson(gen_ts)))
 }
 
@@ -528,11 +520,7 @@
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
-    <span class="kw">let </span>heaviest = data
-        .state_manager
-        .chain_store()
-        .heaviest_tipset()
-        .ok_or(<span class="string">&quot;can&#39;t find heaviest tipset&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>heaviest = data.state_manager.chain_store().heaviest_tipset();
     <span class="prelude-val">Ok</span>(TipsetJson(heaviest))
 }
 
@@ -589,11 +577,7 @@
 {
     <span class="kw">let </span>() = params;
 
-    <span class="kw">let </span>tipset = data
-        .state_manager
-        .chain_store()
-        .heaviest_tipset()
-        .ok_or_else(|| forest_chain::Error::NotFound(<span class="string">&quot;heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?</span>;
+    <span class="kw">let </span>tipset = data.state_manager.chain_store().heaviest_tipset();
     <span class="kw">let </span>ts = data
         .state_manager
         .chain_store()

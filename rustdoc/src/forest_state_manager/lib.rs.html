@@ -1221,22 +1221,6 @@
 <a href="#1221" id="1221">1221</a>
 <a href="#1222" id="1222">1222</a>
 <a href="#1223" id="1223">1223</a>
-<a href="#1224" id="1224">1224</a>
-<a href="#1225" id="1225">1225</a>
-<a href="#1226" id="1226">1226</a>
-<a href="#1227" id="1227">1227</a>
-<a href="#1228" id="1228">1228</a>
-<a href="#1229" id="1229">1229</a>
-<a href="#1230" id="1230">1230</a>
-<a href="#1231" id="1231">1231</a>
-<a href="#1232" id="1232">1232</a>
-<a href="#1233" id="1233">1233</a>
-<a href="#1234" id="1234">1234</a>
-<a href="#1235" id="1235">1235</a>
-<a href="#1236" id="1236">1236</a>
-<a href="#1237" id="1237">1237</a>
-<a href="#1238" id="1238">1238</a>
-<a href="#1239" id="1239">1239</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1740,13 +1724,7 @@
         message: <span class="kw-2">&amp;mut </span>Message,
         tipset: <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;,
     ) -&gt; StateCallResult {
-        <span class="kw">let </span>ts = <span class="kw">if let </span><span class="prelude-val">Some</span>(t_set) = tipset {
-            t_set
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.cs
-                .heaviest_tipset()
-                .ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
-        </span>};
+        <span class="kw">let </span>ts = tipset.unwrap_or_else(|| <span class="self">self</span>.cs.heaviest_tipset());
         <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
         <span class="self">self</span>.call_raw(message, chain_rand, <span class="kw-2">&amp;</span>ts)
     }
@@ -1759,13 +1737,7 @@
         prior_messages: <span class="kw-2">&amp;</span>[ChainMessage],
         tipset: <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;,
     ) -&gt; StateCallResult {
-        <span class="kw">let </span>ts = <span class="kw">if let </span><span class="prelude-val">Some</span>(t_set) = tipset {
-            t_set
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.cs
-                .heaviest_tipset()
-                .ok_or_else(|| Error::Other(<span class="string">&quot;No heaviest tipset&quot;</span>.to_string()))<span class="question-mark">?
-        </span>};
+        <span class="kw">let </span>ts = tipset.unwrap_or_else(|| <span class="self">self</span>.cs.heaviest_tipset());
         <span class="kw">let </span>(st, <span class="kw">_</span>) = <span class="self">self
             </span>.tipset_state(<span class="kw-2">&amp;</span>ts)
             .<span class="kw">await
@@ -2167,7 +2139,7 @@
             .map_err(|err| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;failed to load message {err:}&quot;</span>)))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>message_var = (message.from(), <span class="kw-2">&amp;</span>message.sequence());
-        <span class="kw">let </span>current_tipset = <span class="self">self</span>.cs.heaviest_tipset().unwrap();
+        <span class="kw">let </span>current_tipset = <span class="self">self</span>.cs.heaviest_tipset();
         <span class="kw">let </span>maybe_message_reciept =
             <span class="self">self</span>.tipset_executed_message(<span class="kw-2">&amp;</span>current_tipset, msg_cid, message_var)<span class="question-mark">?</span>;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(r) = maybe_message_reciept {
@@ -2312,12 +2284,8 @@
 
     <span class="doccomment">/// Return the heaviest tipset&#39;s balance from self.db for a given address
     </span><span class="kw">pub fn </span>get_heaviest_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
-        <span class="kw">let </span>ts = <span class="self">self
-            </span>.cs
-            .heaviest_tipset()
-            .ok_or_else(|| Error::Other(<span class="string">&quot;could not get bs heaviest ts&quot;</span>.to_owned()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>cid = ts.parent_state();
-        <span class="self">self</span>.get_balance(addr, <span class="kw-2">*</span>cid)
+        <span class="kw">let </span>cid = <span class="kw-2">*</span><span class="self">self</span>.cs.heaviest_tipset().parent_state();
+        <span class="self">self</span>.get_balance(addr, cid)
     }
 
     <span class="doccomment">/// Return the balance of a given address and `state_cid`

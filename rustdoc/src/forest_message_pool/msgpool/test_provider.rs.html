@@ -374,14 +374,14 @@
     <span class="doccomment">/// Set the block messages for `TestApi`
     </span><span class="kw">pub fn </span>set_block_messages(<span class="kw-2">&amp;mut </span><span class="self">self</span>, h: <span class="kw-2">&amp;</span>BlockHeader, msgs: Vec&lt;SignedMessage&gt;) {
         <span class="self">self</span>.bmsgs.insert(<span class="kw-2">*</span>h.cid(), msgs);
-        <span class="self">self</span>.tipsets.push(Tipset::new(<span class="macro">vec!</span>[h.clone()]).unwrap())
+        <span class="self">self</span>.tipsets.push(Tipset::from(h))
     }
 
     <span class="kw">pub fn </span>next_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; BlockHeader {
         <span class="kw">let </span>new_block = mock_block_with_parents(
             <span class="self">self</span>.tipsets
                 .last()
-                .unwrap_or(<span class="kw-2">&amp;</span>Tipset::new(<span class="macro">vec!</span>[mock_block(<span class="number">1</span>, <span class="number">1</span>)]).unwrap()),
+                .unwrap_or(<span class="kw-2">&amp;</span>Tipset::from(mock_block(<span class="number">1</span>, <span class="number">1</span>))),
             <span class="number">1</span>,
             <span class="number">1</span>,
         );
@@ -395,8 +395,8 @@
         <span class="self">self</span>.publisher.subscribe()
     }
 
-    <span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
-        Tipset::new(<span class="macro">vec!</span>[create_header(<span class="number">1</span>)]).ok().map(Arc::new)
+    <span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Tipset&gt; {
+        Arc::new(Tipset::from(create_header(<span class="number">1</span>)))
     }
 
     <span class="kw">fn </span>put_message(<span class="kw-2">&amp;</span><span class="self">self</span>, _msg: <span class="kw-2">&amp;</span>ChainMessage) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt; {

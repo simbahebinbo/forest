@@ -659,8 +659,6 @@
 <a href="#659" id="659">659</a>
 <a href="#660" id="660">660</a>
 <a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -833,9 +831,7 @@
     {
         <span class="kw">let </span>local_addrs = Arc::new(SyncRwLock::new(Vec::new()));
         <span class="kw">let </span>pending = Arc::new(SyncRwLock::new(HashMap::new()));
-        <span class="kw">let </span>tipset = Arc::new(Mutex::new(api.get_heaviest_tipset().ok_or_else(|| {
-            Error::Other(<span class="string">&quot;Failed to retrieve heaviest tipset from provider&quot;</span>.to_owned())
-        })<span class="question-mark">?</span>));
+        <span class="kw">let </span>tipset = Arc::new(Mutex::new(api.get_heaviest_tipset()));
         <span class="kw">let </span>bls_sig_cache = Arc::new(Mutex::new(LruCache::new(BLS_SIG_CACHE_SIZE)));
         <span class="kw">let </span>sig_val_cache = Arc::new(Mutex::new(LruCache::new(SIG_VAL_CACHE_SIZE)));
         <span class="kw">let </span>local_msgs = Arc::new(SyncRwLock::new(HashSet::new()));

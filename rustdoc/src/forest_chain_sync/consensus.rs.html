@@ -382,7 +382,7 @@
 
     <span class="kw">pub async fn </span>submit_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block: GossipBlock) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>data = block.marshal_cbor()<span class="question-mark">?</span>;
-        <span class="kw">let </span>ts = Arc::new(Tipset::new(<span class="macro">vec!</span>[block.header])<span class="question-mark">?</span>);
+        <span class="kw">let </span>ts = Arc::new(Tipset::from(<span class="kw-2">&amp;</span>block.header));
         <span class="kw">let </span>msg = NetworkMessage::PubsubMessage {
             topic: Topic::new(<span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_BLOCK_STR, <span class="self">self</span>.network_name)),
             message: data,

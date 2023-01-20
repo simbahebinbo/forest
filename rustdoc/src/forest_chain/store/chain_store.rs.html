@@ -982,6 +982,7 @@
 <a href="#982" id="982">982</a>
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -989,6 +990,7 @@
 <span class="kw">use super</span>::{index::ChainIndex, tipset_tracker::TipsetTracker, Error};
 <span class="kw">use </span><span class="kw">crate</span>::Scale;
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
+<span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
@@ -1059,7 +1061,7 @@
     </span><span class="kw">pub </span>db: DB,
 
     <span class="doccomment">/// Tipset at the head of the best-known chain.
-    </span>heaviest: Mutex&lt;<span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt;&gt;,
+    </span>heaviest: Mutex&lt;Arc&lt;Tipset&gt;&gt;,
 
     <span class="doccomment">/// Caches loaded tipsets for fast retrieval.
     </span>ts_cache: Arc&lt;TipsetCache&gt;,
@@ -1075,12 +1077,17 @@
 <span class="kw">where
     </span>DB: Blockstore + Store + Send + Sync,
 {
-    <span class="kw">pub fn </span>new(db: DB, chain_config: Arc&lt;ChainConfig&gt;) -&gt; <span class="self">Self
-    </span><span class="kw">where
+    <span class="kw">pub fn </span>new(
+        db: DB,
+        chain_config: Arc&lt;ChainConfig&gt;,
+        genesis_block_header: <span class="kw-2">&amp;</span>BlockHeader,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>&gt;
+    <span class="kw">where
         </span>DB: Clone,
     {
         <span class="kw">let </span>(publisher, <span class="kw">_</span>) = broadcast::channel(SINK_CAP);
         <span class="kw">let </span>ts_cache = Arc::new(Mutex::new(LruCache::new(DEFAULT_TIPSET_CACHE_SIZE)));
+        <span class="kw">let </span>genesis_ts = Arc::new(Tipset::from(genesis_block_header));
         <span class="kw">let </span>cs = <span class="self">Self </span>{
             publisher,
             <span class="comment">// subscriptions: Default::default(),
@@ -1089,19 +1096,25 @@
             tipset_tracker: TipsetTracker::new(db.clone(), chain_config),
             db,
             ts_cache,
-            heaviest: Default::default(),
+            heaviest: Mutex::new(genesis_ts.clone()),
         };
 
         <span class="comment">// Result intentionally ignored, doesn&#39;t matter if heaviest doesn&#39;t exist in store yet
         </span><span class="kw">let _ </span>= cs.load_heaviest_tipset();
 
-        cs
+        cs.set_genesis(genesis_block_header)<span class="question-mark">?</span>;
+
+        <span class="kw">if </span>cs.blockstore().read(HEAD_KEY)<span class="question-mark">?</span>.is_none() {
+            cs.set_heaviest_tipset(genesis_ts)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(cs)
     }
 
     <span class="doccomment">/// Sets heaviest tipset within `ChainStore` and store its tipset keys under `HEAD_KEY`
     </span><span class="kw">pub fn </span>set_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.db.write(HEAD_KEY, ts.key().marshal_cbor()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <span class="kw-2">*</span><span class="self">self</span>.heaviest.lock() = <span class="prelude-val">Some</span>(ts.clone());
+        <span class="kw-2">*</span><span class="self">self</span>.heaviest.lock() = ts.clone();
         <span class="kw">if </span><span class="self">self</span>.publisher.send(HeadChange::Apply(ts)).is_err() {
             <span class="macro">debug!</span>(<span class="string">&quot;did not publish head change, no active receivers&quot;</span>);
         }
@@ -1151,7 +1164,7 @@
         };
 
         <span class="comment">// set as heaviest tipset
-        </span><span class="kw-2">*</span><span class="self">self</span>.heaviest.lock() = <span class="prelude-val">Some</span>(heaviest_ts);
+        </span><span class="kw-2">*</span><span class="self">self</span>.heaviest.lock() = heaviest_ts;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1161,9 +1174,8 @@
     }
 
     <span class="doccomment">/// Returns the currently tracked heaviest tipset.
-    </span><span class="kw">pub fn </span>heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Tipset&gt;&gt; {
-        <span class="comment">// TODO: Figure out how to remove optional and return something every time.
-        </span><span class="self">self</span>.heaviest.lock().clone()
+    </span><span class="kw">pub fn </span>heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Tipset&gt; {
+        <span class="self">self</span>.heaviest.lock().clone()
     }
 
     <span class="doccomment">/// Returns a reference to the publisher of head changes.
@@ -1179,7 +1191,7 @@
     <span class="doccomment">/// Returns Tipset from key-value store from provided CIDs
     </span><span class="kw">pub fn </span>tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>, tsk: <span class="kw-2">&amp;</span>TipsetKeys) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
         <span class="kw">if </span>tsk.cids().is_empty() {
-            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.heaviest_tipset().unwrap());
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">self</span>.heaviest_tipset());
         }
         tipset_from_keys(<span class="kw-2">&amp;</span><span class="self">self</span>.ts_cache, <span class="self">self</span>.blockstore(), tsk)
     }
@@ -1195,27 +1207,15 @@
         </span>S: Scale,
     {
         <span class="comment">// Calculate heaviest weight before matching to avoid deadlock with mutex
-        </span><span class="kw">let </span>heaviest_weight = <span class="self">self
-            </span>.heaviest
-            .lock()
-            .as_ref()
-            .map(|ts| S::weight(<span class="self">self</span>.blockstore(), ts.as_ref()));
+        </span><span class="kw">let </span>heaviest_weight = S::weight(<span class="self">self</span>.blockstore(), <span class="self">self</span>.heaviest.lock().as_ref())<span class="question-mark">?</span>;
 
-        <span class="kw">match </span>heaviest_weight {
-            <span class="prelude-val">Some</span>(heaviest) =&gt; {
-                <span class="kw">let </span>new_weight = S::weight(<span class="self">self</span>.blockstore(), ts.as_ref())<span class="question-mark">?</span>;
-                <span class="kw">let </span>curr_weight = heaviest<span class="question-mark">?</span>;
+        <span class="kw">let </span>new_weight = S::weight(<span class="self">self</span>.blockstore(), ts.as_ref())<span class="question-mark">?</span>;
+        <span class="kw">let </span>curr_weight = heaviest_weight;
 
-                <span class="kw">if </span>new_weight &gt; curr_weight {
-                    <span class="comment">// TODO potentially need to deal with re-orgs here
-                    </span><span class="macro">info!</span>(<span class="string">&quot;New heaviest tipset: {:?}&quot;</span>, ts.key());
-                    <span class="self">self</span>.set_heaviest_tipset(ts)<span class="question-mark">?</span>;
-                }
-            }
-            <span class="prelude-val">None </span>=&gt; {
-                <span class="macro">info!</span>(<span class="string">&quot;set heaviest tipset&quot;</span>);
-                <span class="self">self</span>.set_heaviest_tipset(ts)<span class="question-mark">?</span>;
-            }
+        <span class="kw">if </span>new_weight &gt; curr_weight {
+            <span class="comment">// TODO potentially need to deal with re-orgs here
+            </span><span class="macro">info!</span>(<span class="string">&quot;New heaviest tipset: {:?}&quot;</span>, ts.key());
+            <span class="self">self</span>.set_heaviest_tipset(ts)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1936,7 +1936,6 @@
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
         <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
 
-        <span class="kw">let </span>cs = ChainStore::new(db, chain_config);
         <span class="kw">let </span>gen_block = BlockHeader::builder()
             .epoch(<span class="number">1</span>)
             .weight(<span class="number">2_u32</span>.into())
@@ -1946,9 +1945,8 @@
             .miner_address(Address::new_id(<span class="number">0</span>))
             .build()
             .unwrap();
+        <span class="kw">let </span>cs = ChainStore::new(db, chain_config, <span class="kw-2">&amp;</span>gen_block).unwrap();
 
-        <span class="macro">assert_eq!</span>(cs.genesis().unwrap(), <span class="prelude-val">None</span>);
-        cs.set_genesis(<span class="kw-2">&amp;</span>gen_block).unwrap();
         <span class="macro">assert_eq!</span>(cs.genesis().unwrap(), <span class="prelude-val">Some</span>(gen_block));
     }
 
@@ -1956,8 +1954,12 @@
     </span><span class="kw">fn </span>block_validation_cache_basic() {
         <span class="kw">let </span>db = forest_db::MemoryDB::default();
         <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
+        <span class="kw">let </span>gen_block = BlockHeader::builder()
+            .miner_address(Address::new_id(<span class="number">0</span>))
+            .build()
+            .unwrap();
 
-        <span class="kw">let </span>cs = ChainStore::new(db, chain_config);
+        <span class="kw">let </span>cs = ChainStore::new(db, chain_config, <span class="kw-2">&amp;</span>gen_block).unwrap();
 
         <span class="kw">let </span>cid = Cid::new_v1(DAG_CBOR, Blake2b256.digest(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]));
         <span class="macro">assert!</span>(!cs.is_block_validated(<span class="kw-2">&amp;</span>cid).unwrap());

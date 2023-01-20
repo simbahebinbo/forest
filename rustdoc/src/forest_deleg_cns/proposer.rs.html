@@ -163,7 +163,6 @@
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -303,26 +302,25 @@
         )));
 
         <span class="kw">while </span>interval.next().<span class="kw">await</span>.is_some() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = chain_store.heaviest_tipset() {
-                <span class="macro">info!</span>(
-                    <span class="string">&quot;Proposing a block on top {} in epoch {}&quot;</span>,
-                    base.min_ticket_block().cid(),
-                    base.epoch(),
-                );
-                <span class="kw">match </span><span class="self">self</span>.create_block(mpool, <span class="kw-2">&amp;</span>state_manager, <span class="kw-2">&amp;</span>base).<span class="kw">await </span>{
-                    <span class="prelude-val">Ok</span>(block) =&gt; {
-                        <span class="kw">let </span>cid = <span class="kw-2">*</span>block.header.cid();
-                        <span class="kw">let </span>msg_cnt = block.secpk_messages.len() + block.bls_messages.len();
-                        <span class="kw">match </span>submitter.submit_block(block).<span class="kw">await </span>{
-                            <span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">info!</span>(<span class="string">&quot;Proposed block {} with {} messages&quot;</span>, cid, msg_cnt),
-                            <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to submit block: {}&quot;</span>, e),
-                        }
+            <span class="kw">let </span>base = chain_store.heaviest_tipset();
+            <span class="macro">info!</span>(
+                <span class="string">&quot;Proposing a block on top {} in epoch {}&quot;</span>,
+                base.min_ticket_block().cid(),
+                base.epoch(),
+            );
+            <span class="kw">match </span><span class="self">self</span>.create_block(mpool, <span class="kw-2">&amp;</span>state_manager, <span class="kw-2">&amp;</span>base).<span class="kw">await </span>{
+                <span class="prelude-val">Ok</span>(block) =&gt; {
+                    <span class="kw">let </span>cid = <span class="kw-2">*</span>block.header.cid();
+                    <span class="kw">let </span>msg_cnt = block.secpk_messages.len() + block.bls_messages.len();
+                    <span class="kw">match </span>submitter.submit_block(block).<span class="kw">await </span>{
+                        <span class="prelude-val">Ok</span>(()) =&gt; <span class="macro">info!</span>(<span class="string">&quot;Proposed block {} with {} messages&quot;</span>, cid, msg_cnt),
+                        <span class="prelude-val">Err</span>(e) =&gt; <span class="macro">error!</span>(<span class="string">&quot;Failed to submit block: {}&quot;</span>, e),
                     }
-                    <span class="prelude-val">Err</span>(e) =&gt; {
-                        <span class="comment">// The eudico version keeps going, but if we can&#39;t create blocks,
-                        // maybe that&#39;s a good enough reason to throw in the towel.
-                        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(e));
-                    }
+                }
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="comment">// The eudico version keeps going, but if we can&#39;t create blocks,
+                    // maybe that&#39;s a good enough reason to throw in the towel.
+                    </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">anyhow!</span>(e));
                 }
             }
         }

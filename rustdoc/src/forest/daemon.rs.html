@@ -558,6 +558,8 @@
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -565,6 +567,7 @@
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
 <span class="kw">use </span>forest_auth::{create_token, generate_priv_key, ADMIN, JWT_IDENTIFIER};
+<span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_chain_sync::consensus::SyncGossipSubmitter;
 <span class="kw">use </span>forest_chain_sync::ChainMuxer;
@@ -721,37 +724,37 @@
         });
     }
 
-    <span class="comment">// Initialize ChainStore
-    </span><span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db.clone(), config.chain.clone()));
-
-    <span class="kw">let </span>publisher = chain_store.publisher();
-
     <span class="comment">// Read Genesis file
     // * When snapshot command implemented, this genesis does not need to be initialized
-    </span><span class="kw">let </span>genesis = read_genesis_header(
+    </span><span class="kw">let </span>genesis_header = read_genesis_header(
         config.client.genesis_file.as_ref(),
         config.chain.genesis_bytes(),
-        <span class="kw-2">&amp;</span>chain_store,
+        <span class="kw-2">&amp;</span>db,
     )
     .<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>genesis_header = <span class="kw-2">&amp;</span>genesis.blocks()[<span class="number">0</span>];
-    chain_store.set_genesis(genesis_header)<span class="question-mark">?</span>;
+
+    <span class="comment">// Initialize ChainStore
+    </span><span class="kw">let </span>chain_store = Arc::new(ChainStore::new(
+        db.clone(),
+        config.chain.clone(),
+        <span class="kw-2">&amp;</span>genesis_header,
+    )<span class="question-mark">?</span>);
+
+    chain_store.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>publisher = chain_store.publisher();
 
     <span class="comment">// XXX: This code has to be run before starting the background services.
     //      If it isn&#39;t, several threads will be competing for access to stdout.
     // Terminate if no snapshot is provided or DB isn&#39;t recent enough
-    </span><span class="kw">let </span>should_fetch_snapshot = <span class="kw">match </span>chain_store.heaviest_tipset() {
-        <span class="prelude-val">None </span>=&gt; prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>,
-        <span class="prelude-val">Some</span>(tipset) =&gt; {
-            <span class="kw">let </span>epoch = tipset.epoch();
-            <span class="kw">let </span>nv = config.chain.network_version(epoch);
-            <span class="kw">if </span>nv &lt; NetworkVersion::V16 {
-                prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config)<span class="question-mark">?
-            </span>} <span class="kw">else </span>{
-                <span class="bool-val">false
-            </span>}
-        }
-    };
+
+    </span><span class="kw">let </span>epoch = chain_store.heaviest_tipset().epoch();
+    <span class="kw">let </span>nv = config.chain.network_version(epoch);
+    <span class="kw">let </span>should_fetch_snapshot = <span class="kw">if </span>nv &lt; NetworkVersion::V16 {
+        prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config)<span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        <span class="bool-val">false
+    </span>};
 
     <span class="comment">// Reward calculation is needed by the VM to calculate state, which can happen essentially anywhere the `StateManager` is called.
     // It is consensus specific, but threading it through the type system would be a nightmare, which is why dynamic dispatch is used.
@@ -766,7 +769,7 @@
 
     <span class="kw">let </span>state_manager = Arc::new(sm);
 
-    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>genesis, <span class="kw-2">&amp;</span>state_manager)<span class="question-mark">?</span>;
+    <span class="kw">let </span>network_name = get_network_name_from_genesis(<span class="kw-2">&amp;</span>genesis_header, <span class="kw-2">&amp;</span>state_manager)<span class="question-mark">?</span>;
 
     <span class="macro">info!</span>(<span class="string">&quot;Using network :: {}&quot;</span>, get_actual_chain_name(<span class="kw-2">&amp;</span>network_name));
 
@@ -840,7 +843,7 @@
         mpool.clone(),
         network_send.clone(),
         network_rx,
-        Arc::new(genesis),
+        Arc::new(Tipset::from(genesis_header)),
         chain_muxer_tipset_sink,
         tipset_stream,
         config.sync.clone(),
@@ -1081,12 +1084,13 @@
     <span class="kw">async fn </span>import_snapshot_from_file(file_path: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>db = MemoryDB::default();
         <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
-        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone()));
+
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
             .timestamp(<span class="number">7777</span>)
             .build()<span class="question-mark">?</span>;
-        cs.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone(), <span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>);
         <span class="kw">let </span>sm = Arc::new(StateManager::new(
             cs,
             chain_config,
@@ -1100,12 +1104,12 @@
     </span><span class="kw">async fn </span>import_chain_from_file() -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>db = MemoryDB::default();
         <span class="kw">let </span>chain_config = Arc::new(ChainConfig::default());
-        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone()));
         <span class="kw">let </span>genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(<span class="number">0</span>))
             .timestamp(<span class="number">7777</span>)
             .build()<span class="question-mark">?</span>;
-        cs.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
+
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone(), <span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>);
         <span class="kw">let </span>sm = Arc::new(StateManager::new(
             cs,
             chain_config,
