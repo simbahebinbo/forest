@@ -151,7 +151,6 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>anyhow::anyhow;
@@ -258,7 +257,6 @@
         </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>genesis = state_manager.chain_store().genesis()<span class="question-mark">?</span>;
-        <span class="kw">let </span>genesis = genesis.ok_or_else(|| <span class="macro">anyhow!</span>(<span class="string">&quot;Genesis not set!&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let </span>state_cid = genesis.state_root();
         <span class="kw">let </span>work_addr = state_manager.get_miner_work_addr(<span class="kw-2">*</span>state_cid, <span class="kw-2">&amp;</span><span class="self">self</span>.chosen_one)<span class="question-mark">?</span>;
 

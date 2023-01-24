@@ -989,20 +989,6 @@
 <a href="#989" id="989">989</a>
 <a href="#990" id="990">990</a>
 <a href="#991" id="991">991</a>
-<a href="#992" id="992">992</a>
-<a href="#993" id="993">993</a>
-<a href="#994" id="994">994</a>
-<a href="#995" id="995">995</a>
-<a href="#996" id="996">996</a>
-<a href="#997" id="997">997</a>
-<a href="#998" id="998">998</a>
-<a href="#999" id="999">999</a>
-<a href="#1000" id="1000">1000</a>
-<a href="#1001" id="1001">1001</a>
-<a href="#1002" id="1002">1002</a>
-<a href="#1003" id="1003">1003</a>
-<a href="#1004" id="1004">1004</a>
-<a href="#1005" id="1005">1005</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1163,7 +1149,11 @@
 
     <span class="doccomment">/// Writes genesis to `blockstore`.
     </span><span class="kw">pub fn </span>set_genesis(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt; {
-        set_genesis(<span class="self">self</span>.blockstore(), header)
+        <span class="self">self</span>.blockstore()
+            .write(GENESIS_KEY, header.marshal_cbor()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.blockstore()
+            .put_obj(<span class="kw-2">&amp;</span>header, Blake2b256)
+            .map_err(|e| Error::Other(e.to_string()))
     }
 
     <span class="doccomment">/// Adds a [`BlockHeader`] to the tipset tracker, which tracks valid headers.
@@ -1209,9 +1199,14 @@
     }
 
     <span class="doccomment">/// Returns genesis [`BlockHeader`] from the store based on a static key.
-    </span><span class="kw">pub fn </span>genesis(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BlockHeader&gt;, Error&gt; {
-        genesis(<span class="self">self</span>.blockstore())
-    }
+    </span><span class="kw">pub fn </span>genesis(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;BlockHeader, Error&gt; {
+        <span class="self">self</span>.blockstore()
+            .read(GENESIS_KEY)<span class="question-mark">?
+            </span>.map(|bz| BlockHeader::unmarshal_cbor(<span class="kw-2">&amp;</span>bz).map_err(|e| Error::Other(e.to_string())))
+            .ok_or(Error::Other(
+                <span class="string">&quot;Genesis key not defined in database&quot;</span>.to_string(),
+            ))<span class="question-mark">?
+    </span>}
 
     <span class="doccomment">/// Returns the currently tracked heaviest tipset.
     </span><span class="kw">pub fn </span>heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Tipset&gt; {
@@ -1713,18 +1708,6 @@
     }
 }
 
-<span class="doccomment">/// Sets the genesis key in the `Blockstore`. Be careful if using this outside of
-/// the `ChainStore` as it will not update what the `ChainStore` thinks is the genesis
-/// after the `ChainStore` has been created.
-</span><span class="kw">pub fn </span>set_genesis&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, header: <span class="kw-2">&amp;</span>BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt;
-<span class="kw">where
-    </span>DB: Blockstore + Store,
-{
-    db.write(GENESIS_KEY, header.marshal_cbor()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-    db.put_obj(<span class="kw-2">&amp;</span>header, Blake2b256)
-        .map_err(|e| Error::Other(e.to_string()))
-}
-
 <span class="doccomment">/// Persists slice of `serializable` objects to `blockstore`.
 </span><span class="kw">pub fn </span>persist_objects&lt;DB, C&gt;(db: <span class="kw-2">&amp;</span>DB, headers: <span class="kw-2">&amp;</span>[C]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
@@ -1753,17 +1736,6 @@
     }
 
     <span class="prelude-val">Ok</span>(cids)
-}
-
-<span class="doccomment">/// Returns the genesis block from storage.
-</span><span class="kw">pub fn </span>genesis&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;BlockHeader&gt;, Error&gt;
-<span class="kw">where
-    </span>DB: Blockstore + Store,
-{
-    <span class="prelude-val">Ok</span>(db
-        .read(GENESIS_KEY)<span class="question-mark">?
-        </span>.map(|bz| BlockHeader::unmarshal_cbor(<span class="kw-2">&amp;</span>bz))
-        .transpose()<span class="question-mark">?</span>)
 }
 
 <span class="doccomment">/// Attempts to de-serialize to unsigned message or signed message and then returns it as a
@@ -1987,7 +1959,7 @@
             .unwrap();
         <span class="kw">let </span>cs = ChainStore::new(db, chain_config, <span class="kw-2">&amp;</span>gen_block).unwrap();
 
-        <span class="macro">assert_eq!</span>(cs.genesis().unwrap(), <span class="prelude-val">Some</span>(gen_block));
+        <span class="macro">assert_eq!</span>(cs.genesis().unwrap(), gen_block);
     }
 
     <span class="attr">#[test]

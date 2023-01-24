@@ -297,7 +297,6 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -507,8 +506,7 @@
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
-    <span class="kw">let </span>genesis = forest_chain::genesis(data.state_manager.blockstore())<span class="question-mark">?
-        </span>.ok_or(<span class="string">&quot;can&#39;t find genesis tipset&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>genesis = data.state_manager.chain_store().genesis()<span class="question-mark">?</span>;
     <span class="kw">let </span>gen_ts = Arc::new(Tipset::from(genesis));
     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(TipsetJson(gen_ts)))
 }
