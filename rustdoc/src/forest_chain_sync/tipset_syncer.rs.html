@@ -2971,7 +2971,7 @@
                 TipsetRangeSyncerError::&lt;C&gt;::Validation(<span class="macro">format!</span>(<span class="string">&quot;Could not compute base fee: {e}&quot;</span>))
             })<span class="question-mark">?</span>;
         <span class="kw">let </span>parent_base_fee = v_block.header.parent_base_fee();
-        <span class="kw">if </span><span class="kw-2">&amp;</span>base_fee != parent_base_fee {
+        <span class="kw">if </span>base_fee != parent_base_fee.clone() {
             <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::&lt;C&gt;::Validation(<span class="macro">format!</span>(
                 <span class="string">&quot;base fee doesn&#39;t match: {parent_base_fee} (header), {base_fee} (computed)&quot;
             </span>)));
@@ -3132,7 +3132,7 @@
         <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::BlockWithoutBlsAggregate);
     }
 
-    <span class="kw">let </span>price_list = price_list_by_network_version(network_version);
+    <span class="kw">let </span>price_list = price_list_by_network_version(network_version.into());
     <span class="kw">let </span><span class="kw-2">mut </span>sum_gas_limit = <span class="number">0</span>;
 
     <span class="comment">// Check messages for validity

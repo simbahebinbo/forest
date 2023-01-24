@@ -333,8 +333,8 @@
 
 </span><span class="kw">use </span>fil_actors_runtime::runtime::Policy;
 <span class="kw">use </span>forest_beacon::{BeaconPoint, BeaconSchedule, DrandBeacon, DrandConfig};
+<span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>fvm_shared::clock::{ChainEpoch, EPOCH_DURATION_SECONDS};
-<span class="kw">use </span>fvm_shared::version::NetworkVersion;
 
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::sync::Arc;
@@ -527,7 +527,7 @@
 }
 
 <span class="kw">pub mod </span>de_network_version {
-    <span class="kw">use </span>fvm_shared::version::NetworkVersion;
+    <span class="kw">use </span>forest_shim::version::NetworkVersion;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="kw">pub fn </span>deserialize&lt;<span class="lifetime">&#39;de</span>, D&gt;(deserializer: D) -&gt; <span class="prelude-ty">Result</span>&lt;NetworkVersion, D::Error&gt;
@@ -566,7 +566,7 @@
     <span class="kw">where
         </span>S: Serializer,
     {
-        <span class="kw">let </span>version_string = <span class="kw">match </span>nv {
+        <span class="kw">let </span>version_string = <span class="kw">match </span><span class="kw-2">*</span>nv {
             NetworkVersion::V0 =&gt; <span class="string">&quot;V0&quot;</span>,
             NetworkVersion::V1 =&gt; <span class="string">&quot;V1&quot;</span>,
             NetworkVersion::V2 =&gt; <span class="string">&quot;V2&quot;</span>,

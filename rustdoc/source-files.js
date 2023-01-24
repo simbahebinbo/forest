@@ -31,6 +31,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_rpc":["",[],["auth_api.rs","beacon_api.rs","chain_api.rs","common_api.rs","gas_api.rs","lib.rs","mpool_api.rs","net_api.rs","rpc_http_handler.rs","rpc_util.rs","rpc_ws_handler.rs","state_api.rs","sync_api.rs","wallet_api.rs"]],\
 "forest_rpc_api":["",[],["data_types.rs","lib.rs"]],\
 "forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
+"forest_shim":["",[],["address.rs","econ.rs","lib.rs","version.rs"]],\
 "forest_state_manager":["",[],["chain_rand.rs","errors.rs","lib.rs","metrics.rs","utils.rs","vm_circ_supply.rs"]],\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\

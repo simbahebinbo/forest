@@ -50,16 +50,16 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>fvm::gas::Gas;
+</span><span class="kw">use </span>forest_shim::version::NetworkVersion;
+<span class="kw">use </span>fvm::gas::Gas;
 <span class="kw">use </span>fvm_shared::message::Message;
 
 <span class="doccomment">/// Semantic validation and validates the message has enough gas.
 </span><span class="kw">pub fn </span>valid_for_block_inclusion(
     msg: <span class="kw-2">&amp;</span>Message,
     min_gas: Gas,
-    version: fvm_shared::version::NetworkVersion,
+    version: NetworkVersion,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
-    <span class="kw">use </span>fvm_shared::version::NetworkVersion;
     <span class="kw">use </span>fvm_shared::{BLOCK_GAS_LIMIT, TOTAL_FILECOIN, ZERO_ADDRESS};
     <span class="kw">if </span>msg.version != <span class="number">0 </span>{
         <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Message version: {} not supported&quot;</span>, msg.version);

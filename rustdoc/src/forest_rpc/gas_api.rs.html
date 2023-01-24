@@ -321,9 +321,9 @@
     <span class="kw">let </span>fee_in_future = parent_base_fee
         * BigInt::from_f64(increase_factor * (<span class="number">1 </span>&lt;&lt; <span class="number">8</span>) <span class="kw">as </span>f64)
             .ok_or(<span class="string">&quot;failed to convert fee_in_future f64 to bigint&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>out = fee_in_future.div_floor(<span class="number">1 </span>&lt;&lt; <span class="number">8</span>);
-    out += msg.gas_premium;
-    <span class="prelude-val">Ok</span>(out)
+    <span class="kw">let </span><span class="kw-2">mut </span>out: forest_shim::econ::TokenAmount = fee_in_future.div_floor(<span class="number">1 </span>&lt;&lt; <span class="number">8</span>);
+    out += msg.gas_premium.into();
+    <span class="prelude-val">Ok</span>(out.into())
 }
 
 <span class="doccomment">/// Estimate the fee cap

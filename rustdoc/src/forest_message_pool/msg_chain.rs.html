@@ -916,7 +916,7 @@
 
         <span class="kw">let </span>network_version = chain_config.network_version(ts.epoch());
 
-        <span class="kw">let </span>min_gas = price_list_by_network_version(network_version)
+        <span class="kw">let </span>min_gas = price_list_by_network_version(network_version.into())
             .on_chain_message(m.marshal_cbor()<span class="question-mark">?</span>.len())
             .total();
 

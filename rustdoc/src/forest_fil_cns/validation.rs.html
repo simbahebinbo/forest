@@ -410,6 +410,7 @@
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::verify_winning_post;
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
+<span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -417,7 +418,6 @@
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_sig;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
-<span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>fvm_shared::TICKET_RANDOMNESS_LOOKBACK;
 <span class="kw">use </span>nonempty::NonEmpty;
 <span class="kw">use </span>std::sync::Arc;

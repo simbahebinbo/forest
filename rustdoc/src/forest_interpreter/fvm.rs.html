@@ -325,6 +325,7 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::BlockHeader;
 <span class="kw">use </span>forest_networks::ChainConfig;
+<span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>fvm::externs::{Consensus, Externs, Rand};
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas, GasTracker};
 <span class="kw">use </span>fvm::state_tree::StateTree;
@@ -334,7 +335,6 @@
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::consensus::{ConsensusFault, ConsensusFaultType};
-<span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>std::cell::Ref;
 <span class="kw">use </span>std::sync::Arc;
 
@@ -553,7 +553,7 @@
     stats: Ref&lt;BSStats&gt;,
     network_version: NetworkVersion,
 ) -&gt; anyhow::Result&lt;Gas&gt; {
-    <span class="kw">let </span>price_list = price_list_by_network_version(network_version);
+    <span class="kw">let </span>price_list = price_list_by_network_version(network_version.into());
     <span class="kw">let </span><span class="kw-2">mut </span>gas_tracker = GasTracker::new(Gas::new(i64::MAX), Gas::new(<span class="number">0</span>));
     <span class="comment">// num of reads
     </span><span class="kw">for _ in </span><span class="number">0</span>..stats.r {
@@ -620,7 +620,7 @@
         <span class="kw">let </span>result = cal_gas_used_from_stats(RefCell::new(stats).borrow(), network_version)<span class="question-mark">?</span>;
 
         <span class="comment">// Simulates logic in old GasBlockStore
-        </span><span class="kw">let </span>price_list = price_list_by_network_version(network_version);
+        </span><span class="kw">let </span>price_list = price_list_by_network_version(network_version.into());
         <span class="kw">let </span><span class="kw-2">mut </span>tracker = GasTracker::new(Gas::new(i64::MAX), Gas::new(<span class="number">0</span>));
         repeat(()).take(read_count).for_each(|<span class="kw">_</span>| {
             tracker

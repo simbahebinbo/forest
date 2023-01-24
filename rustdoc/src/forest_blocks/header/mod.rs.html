@@ -516,6 +516,8 @@
 <span class="kw">use </span>derive_builder::Builder;
 <span class="kw">use </span>forest_beacon::{<span class="self">self</span>, Beacon, BeaconEntry, BeaconSchedule};
 <span class="kw">use </span>forest_encoding::blake2b_256;
+<span class="kw">use </span>forest_shim::econ::TokenAmount;
+<span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error <span class="kw">as </span>EncodingError, DAG_CBOR};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::bigint::{
@@ -524,9 +526,7 @@
 };
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::sector::PoStProof;
-<span class="kw">use </span>fvm_shared::version::NetworkVersion;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
 <span class="kw">use </span>std::fmt;
@@ -956,9 +956,9 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use crate</span>::{errors::Error, BlockHeader};
     <span class="kw">use </span>forest_beacon::{BeaconEntry, BeaconPoint, BeaconSchedule, MockBeacon};
+    <span class="kw">use </span>forest_shim::version::NetworkVersion;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
     <span class="kw">use </span>fvm_shared::address::Address;
-    <span class="kw">use </span>fvm_shared::version::NetworkVersion;
 
     <span class="kw">use </span>std::sync::Arc;
     <span class="kw">use </span>std::time::Duration;

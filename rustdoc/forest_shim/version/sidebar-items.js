@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["NetworkVersion_v2","Specifies the network version"]],"struct":[["NetworkVersion","Specifies the network version"],["NetworkVersion_v3","Specifies the network version"]]};

@@ -116,6 +116,7 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -232,6 +233,7 @@
         <span class="kw">let </span>smoke_height = <span class="self">self</span>.sm.chain_config().epoch(Height::Smoke);
         forest_chain::compute_base_fee(<span class="self">self</span>.sm.blockstore(), ts, smoke_height)
             .map_err(|err| err.into())
+            .map(Into::into)
     }
 }
 </code></pre></div>

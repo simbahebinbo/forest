@@ -659,6 +659,8 @@
 <a href="#659" id="659">659</a>
 <a href="#660" id="660">660</a>
 <a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1279,13 +1281,15 @@
     chain_config: <span class="kw-2">&amp;</span>ChainConfig,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
     <span class="kw">let </span>epoch = cur_ts.epoch();
-    <span class="kw">let </span>min_gas = price_list_by_network_version(chain_config.network_version(epoch))
+    <span class="kw">let </span>min_gas = price_list_by_network_version(chain_config.network_version(epoch).into())
         .on_chain_message(m.marshal_cbor()<span class="question-mark">?</span>.len());
     valid_for_block_inclusion(m.message(), min_gas.total(), NEWEST_NETWORK_VERSION)<span class="question-mark">?</span>;
     <span class="kw">if </span>!cur_ts.blocks().is_empty() {
         <span class="kw">let </span>base_fee = cur_ts.blocks()[<span class="number">0</span>].parent_base_fee();
-        <span class="kw">let </span>base_fee_lower_bound =
-            get_base_fee_lower_bound(base_fee, BASE_FEE_LOWER_BOUND_FACTOR_CONSERVATIVE);
+        <span class="kw">let </span>base_fee_lower_bound = get_base_fee_lower_bound(
+            <span class="kw-2">&amp;</span>base_fee.clone().into(),
+            BASE_FEE_LOWER_BOUND_FACTOR_CONSERVATIVE,
+        );
         <span class="kw">if </span>m.gas_fee_cap() &lt; <span class="kw-2">&amp;</span>base_fee_lower_bound {
             <span class="kw">if </span>local {
                 <span class="macro">warn!</span>(<span class="string">&quot;local message will not be immediately published because GasFeeCap doesn&#39;t meet the lower bound for inclusion in the next 20 blocks (GasFeeCap: {}, baseFeeLowerBound: {})&quot;</span>,m.gas_fee_cap(), base_fee_lower_bound);

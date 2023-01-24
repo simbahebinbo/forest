@@ -453,7 +453,7 @@
         chain_config: Arc&lt;ChainConfig&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
         <span class="kw">let </span>network_version = chain_config.network_version(epoch);
-        <span class="kw">let </span>config = NetworkConfig::new(network_version);
+        <span class="kw">let </span>config = NetworkConfig::new(network_version.into());
         <span class="kw">let </span>engine = multi_engine.get(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>context = config.for_epoch(epoch, root);
         context.set_base_fee(base_fee);

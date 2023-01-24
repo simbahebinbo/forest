@@ -114,12 +114,12 @@
 <span class="kw">use </span>forest_actor_interface::miner;
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::generate_winning_post_sector_challenge;
+<span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::randomness::Randomness;
 <span class="kw">use </span>fvm_shared::sector::{RegisteredSealProof, SectorInfo};
-<span class="kw">use </span>fvm_shared::version::NetworkVersion;
 
 <span class="kw">impl</span>&lt;DB&gt; StateManager&lt;DB&gt;
 <span class="kw">where
@@ -175,7 +175,7 @@
 
         <span class="kw">let </span>info = mas.info(store)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>spt = RegisteredSealProof::from_sector_size(info.sector_size(), nv);
+        <span class="kw">let </span>spt = RegisteredSealProof::from_sector_size(info.sector_size(), nv.into());
 
         <span class="kw">let </span>wpt = spt
             .registered_winning_post_proof()
