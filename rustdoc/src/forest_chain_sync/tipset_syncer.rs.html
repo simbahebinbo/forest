@@ -1704,13 +1704,13 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_aggregate;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::{ALLOWABLE_CLOCK_DRIFT, BLOCK_GAS_LIMIT};
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>nonempty::NonEmpty;
+<span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>std::cmp::{min, Ordering};
 <span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>std::future::Future;

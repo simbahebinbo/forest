@@ -384,13 +384,13 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::Zero;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::error::ExitCode;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>fvm_shared::{BLOCK_GAS_LIMIT, METHOD_SEND};
+<span class="kw">use </span>num::Zero;
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ForestMachine&lt;DB&gt; = DefaultMachine&lt;DB, ForestExterns&lt;DB&gt;&gt;;

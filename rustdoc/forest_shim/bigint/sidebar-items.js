@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["BigInt",""],["BigIntDe","Wrapper for deserializing as BigInt from bytes."],["BigIntSer","Wrapper for serializing big ints to match filecoin spec. Serializes as bytes."]]};

@@ -504,8 +504,6 @@
 <a href="#504" id="504">504</a>
 <a href="#505" id="505">505</a>
 <a href="#506" id="506">506</a>
-<a href="#507" id="507">507</a>
-<a href="#508" id="508">508</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -516,17 +514,15 @@
 <span class="kw">use </span>derive_builder::Builder;
 <span class="kw">use </span>forest_beacon::{<span class="self">self</span>, Beacon, BeaconEntry, BeaconSchedule};
 <span class="kw">use </span>forest_encoding::blake2b_256;
+<span class="kw">use </span>forest_shim::bigint::{BigIntDe, BigIntSer};
 <span class="kw">use </span>forest_shim::econ::TokenAmount;
 <span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error <span class="kw">as </span>EncodingError, DAG_CBOR};
 <span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::bigint::{
-    bigint_ser::{BigIntDe, BigIntSer},
-    BigInt,
-};
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
 <span class="kw">use </span>fvm_shared::sector::PoStProof;
+<span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
 <span class="kw">use </span>std::fmt;
@@ -541,7 +537,7 @@
 /// use fvm_shared::address::Address;
 /// use cid::Cid;
 /// use cid::multihash::Code::Identity;
-/// use fvm_shared::bigint::BigInt;
+/// use num::BigInt;
 /// use fvm_shared::crypto::signature::Signature;
 /// use fvm_ipld_encoding::DAG_CBOR;
 /// use cid::multihash::MultihashDigest;

@@ -59,15 +59,13 @@
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_json::message::json::MessageJson;
 <span class="kw">use </span>forest_rpc_client::{mpool_push_message, wallet_default_address};
-<span class="kw">use </span>fvm_shared::{
-    address::Address, bigint::BigInt, econ::TokenAmount, message::Message, METHOD_SEND,
-};
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message, METHOD_SEND};
+<span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>structopt::StructOpt;
 

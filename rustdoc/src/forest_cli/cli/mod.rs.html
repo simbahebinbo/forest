@@ -412,7 +412,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
     <span class="kw">use </span>forest_cli_shared::cli::to_size_string;
-    <span class="kw">use </span>fvm_shared::bigint::{BigInt, Zero};
+    <span class="kw">use </span>num::{BigInt, Zero};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>to_size_string_valid_input() {

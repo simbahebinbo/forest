@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["address",""],["econ",""],["version",""]]};
+window.SIDEBAR_ITEMS = {"mod":[["address",""],["bigint",""],["econ",""],["version",""]]};

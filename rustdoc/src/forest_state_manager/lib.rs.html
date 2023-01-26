@@ -1253,12 +1253,12 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::{Address, Payload, Protocol, BLS_PUB_LEN};
-<span class="kw">use </span>fvm_shared::bigint::BigInt;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>lru::LruCache;
+<span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>num_traits::identities::Zero;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>std::num::NonZeroUsize;

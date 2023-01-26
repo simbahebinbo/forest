@@ -594,6 +594,7 @@
 <a href="#594" id="594">594</a>
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -601,9 +602,10 @@
 <span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
+<span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::{address::Address, bigint::BigInt};
 <span class="kw">use </span>log::info;
+<span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
