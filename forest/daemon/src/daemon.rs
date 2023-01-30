@@ -31,8 +31,7 @@ use forest_utils::io::write_to_file;
 use futures::{select, FutureExt};
 use fvm_ipld_blockstore::Blockstore;
 use fvm_shared::clock::ChainEpoch;
-use fvm_shared::version::NetworkVersion;
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, warn};
 use raw_sync::events::{Event, EventInit, EventState};
 use rpassword::read_password;
 use std::net::TcpListener;
@@ -350,8 +349,6 @@ pub(super) async fn start(config: Config, detached: bool) -> anyhow::Result<Db> 
             let epoch = state_manager
                 .chain_store()
                 .heaviest_tipset()
-                .await
-                .unwrap()
                 .epoch();
             db.write("import-epoch", epoch.to_string()).unwrap();
         },
@@ -379,18 +376,13 @@ pub(super) async fn start(config: Config, detached: bool) -> anyhow::Result<Db> 
         info!("---- the snapshot epoch is {snapshot_epoch}");
 
         //loop {
-        let current_epoch = state_manager
-            .chain_store()
-            .heaviest_tipset()
-            .await
-            .unwrap()
-            .epoch();
+        let current_epoch = state_manager.chain_store().heaviest_tipset().epoch();
 
         dbg!(current_epoch, snapshot_epoch);
         //if current_epoch > snapshot_epoch + 10 {
         info!("--- pruning the db!");
 
-        let tipset = state_manager.chain_store().heaviest_tipset().await.unwrap();
+        let tipset = state_manager.chain_store().heaviest_tipset();
         state_manager
             .chain_store()
             .prune(&tipset, 2000)
