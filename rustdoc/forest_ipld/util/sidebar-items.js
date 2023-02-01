@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["recurse_links",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["recurse_links_hash","Load and hash cids and resolve recursively."]],"trait":[["InsertHash","Basic trait to abstract way the hashing details to the trait implementation."]]};

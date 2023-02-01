@@ -78,6 +78,20 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -88,44 +102,57 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::Ipld;
 
-<span class="comment">// Traverses all Cid links, loading all unique values and using the callback function
-// to interact with the data.
+<span class="doccomment">/// Basic trait to abstract way the hashing details to the trait implementation.
+</span><span class="kw">pub trait </span>InsertHash {
+    <span class="doccomment">/// Hashes the input and inserts its hash into the underlying collection.
+    </span><span class="kw">fn </span>hash_and_insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8]) -&gt; bool;
+}
+
+<span class="kw">impl </span>InsertHash <span class="kw">for </span>HashSet&lt;blake3::Hash&gt; {
+    <span class="kw">fn </span>hash_and_insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: <span class="kw-2">&amp;</span>[u8]) -&gt; bool {
+        <span class="self">self</span>.insert(blake3::hash(data))
+    }
+}
+
+<span class="doccomment">/// Traverses all Cid links, hashing and loading all unique values and using the callback function
+/// to interact with the data.
 </span><span class="attr">#[async_recursion::async_recursion]
-</span><span class="kw">async fn </span>traverse_ipld_links&lt;F, T&gt;(
-    walked: <span class="kw-2">&amp;mut </span>HashSet&lt;Cid&gt;,
+</span><span class="kw">async fn </span>traverse_ipld_links_hash&lt;F, T, H&gt;(
+    walked: <span class="kw-2">&amp;mut </span>H,
     load_block: <span class="kw-2">&amp;mut </span>F,
     ipld: <span class="kw-2">&amp;</span>Ipld,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
     </span>F: FnMut(Cid) -&gt; T + Send,
     T: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, anyhow::Error&gt;&gt; + Send,
+    H: InsertHash + Send,
 {
     <span class="kw">match </span>ipld {
         Ipld::Map(m) =&gt; {
             <span class="kw">for </span>(<span class="kw">_</span>, v) <span class="kw">in </span>m.iter() {
-                traverse_ipld_links(walked, load_block, v).<span class="kw">await</span><span class="question-mark">?</span>;
+                traverse_ipld_links_hash(walked, load_block, v).<span class="kw">await</span><span class="question-mark">?</span>;
             }
         }
         Ipld::List(list) =&gt; {
             <span class="kw">for </span>v <span class="kw">in </span>list.iter() {
-                traverse_ipld_links(walked, load_block, v).<span class="kw">await</span><span class="question-mark">?</span>;
+                traverse_ipld_links_hash(walked, load_block, v).<span class="kw">await</span><span class="question-mark">?</span>;
             }
         }
         Ipld::Link(cid) =&gt; {
             <span class="comment">// WASM blocks are stored as IPLD_RAW. They should be loaded but not traversed.
             </span><span class="kw">if </span>cid.codec() == fvm_shared::IPLD_RAW {
-                <span class="kw">if </span>!walked.insert(<span class="kw-2">*</span>cid) {
+                <span class="kw">if </span>!walked.hash_and_insert(<span class="kw-2">&amp;</span>cid.to_bytes()) {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
                 <span class="kw">let _ </span>= load_block(<span class="kw-2">*</span>cid).<span class="kw">await</span><span class="question-mark">?</span>;
             }
             <span class="kw">if </span>cid.codec() == fvm_ipld_encoding::DAG_CBOR {
-                <span class="kw">if </span>!walked.insert(<span class="kw-2">*</span>cid) {
+                <span class="kw">if </span>!walked.hash_and_insert(<span class="kw-2">&amp;</span>cid.to_bytes()) {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 }
                 <span class="kw">let </span>bytes = load_block(<span class="kw-2">*</span>cid).<span class="kw">await</span><span class="question-mark">?</span>;
                 <span class="kw">let </span>ipld = from_slice(<span class="kw-2">&amp;</span>bytes)<span class="question-mark">?</span>;
-                traverse_ipld_links(walked, load_block, <span class="kw-2">&amp;</span>ipld).<span class="kw">await</span><span class="question-mark">?</span>;
+                traverse_ipld_links_hash(walked, load_block, <span class="kw-2">&amp;</span>ipld).<span class="kw">await</span><span class="question-mark">?</span>;
             }
         }
         <span class="kw">_ </span>=&gt; (),
@@ -133,17 +160,18 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="comment">// Load cids and call [traverse_ipld_links] to resolve recursively.
-</span><span class="kw">pub async fn </span>recurse_links&lt;F, T&gt;(
-    walked: <span class="kw-2">&amp;mut </span>HashSet&lt;Cid&gt;,
+<span class="doccomment">/// Load and hash cids and resolve recursively.
+</span><span class="kw">pub async fn </span>recurse_links_hash&lt;F, T, H&gt;(
+    walked: <span class="kw-2">&amp;mut </span>H,
     root: Cid,
     load_block: <span class="kw-2">&amp;mut </span>F,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
     </span>F: FnMut(Cid) -&gt; T + Send,
     T: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, anyhow::Error&gt;&gt; + Send,
+    H: InsertHash + Send,
 {
-    <span class="kw">if </span>!walked.insert(root) {
+    <span class="kw">if </span>!walked.hash_and_insert(<span class="kw-2">&amp;</span>root.to_bytes()) {
         <span class="comment">// Cid has already been traversed
         </span><span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
@@ -154,7 +182,7 @@
     <span class="kw">let </span>bytes = load_block(root).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>ipld = from_slice(<span class="kw-2">&amp;</span>bytes)<span class="question-mark">?</span>;
 
-    traverse_ipld_links(walked, load_block, <span class="kw-2">&amp;</span>ipld).<span class="kw">await</span><span class="question-mark">?</span>;
+    traverse_ipld_links_hash(walked, load_block, <span class="kw-2">&amp;</span>ipld).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
 }

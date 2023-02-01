@@ -1007,7 +1007,7 @@
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_encoding::de::DeserializeOwned;
 <span class="kw">use </span>forest_interpreter::BlockMessages;
-<span class="kw">use </span>forest_ipld::recurse_links;
+<span class="kw">use </span>forest_ipld::{recurse_links_hash, InsertHash};
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_libp2p_bitswap::BitswapStore;
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
@@ -1557,7 +1557,7 @@
 
     <span class="doccomment">/// Walks over tipset and state data and loads all blocks not yet seen.
     /// This is tracked based on the callback function loading blocks.
-    </span><span class="kw">async fn </span>walk_snapshot&lt;F, T&gt;(
+    </span><span class="kw">pub async fn </span>walk_snapshot&lt;F, T&gt;(
         tipset: <span class="kw-2">&amp;</span>Tipset,
         recent_roots: ChainEpoch,
         <span class="kw-2">mut </span>load_block: F,
@@ -1566,13 +1566,13 @@
         </span>F: FnMut(Cid) -&gt; T + Send,
         T: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, anyhow::Error&gt;&gt; + Send,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>seen = HashSet::&lt;Cid&gt;::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>seen = HashSet::&lt;blake3::Hash&gt;::new();
         <span class="kw">let </span><span class="kw-2">mut </span>blocks_to_walk: VecDeque&lt;Cid&gt; = tipset.cids().to_vec().into();
         <span class="kw">let </span><span class="kw-2">mut </span>current_min_height = tipset.epoch();
         <span class="kw">let </span>incl_roots_epoch = tipset.epoch() - recent_roots;
 
         <span class="kw">while let </span><span class="prelude-val">Some</span>(next) = blocks_to_walk.pop_front() {
-            <span class="kw">if </span>!seen.insert(next) {
+            <span class="kw">if </span>!seen.hash_and_insert(<span class="kw-2">&amp;</span>next.to_bytes()) {
                 <span class="kw">continue</span>;
             }
 
@@ -1588,7 +1588,7 @@
             }
 
             <span class="kw">if </span>h.epoch() &gt; incl_roots_epoch {
-                recurse_links(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.messages(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
+                recurse_links_hash(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.messages(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
             }
 
             <span class="kw">if </span>h.epoch() &gt; <span class="number">0 </span>{
@@ -1602,7 +1602,7 @@
             }
 
             <span class="kw">if </span>h.epoch() == <span class="number">0 </span>|| h.epoch() &gt; incl_roots_epoch {
-                recurse_links(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.state_root(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
+                recurse_links_hash(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.state_root(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
             }
         }
 
