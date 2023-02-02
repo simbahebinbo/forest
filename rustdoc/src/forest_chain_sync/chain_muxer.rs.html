@@ -961,19 +961,6 @@
 <a href="#961" id="961">961</a>
 <a href="#962" id="962">962</a>
 <a href="#963" id="963">963</a>
-<a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -994,10 +981,7 @@
 <span class="kw">use </span>forest_chain::{ChainStore, Error <span class="kw">as </span>ChainStoreError};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p::PeerManager;
-<span class="kw">use </span>forest_libp2p::{
-    hello::HelloRequest, rpc::RequestResponseError, NetworkEvent, NetworkMessage, PeerId,
-    PubsubMessage,
-};
+<span class="kw">use </span>forest_libp2p::{hello::HelloRequest, NetworkEvent, NetworkMessage, PeerId, PubsubMessage};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_message_pool::{MessagePool, Provider};
 <span class="kw">use </span>forest_state_manager::StateManager;
@@ -1248,19 +1232,9 @@
 
             <span class="comment">// Update the peer metadata based on the response
             </span><span class="kw">match </span>response {
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(_res)) =&gt; {
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
                     network.peer_manager().log_success(peer_id, dur).<span class="kw">await</span>;
                 }
-                <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(why)) =&gt; <span class="kw">match </span>why {
-                    RequestResponseError::ConnectionClosed
-                    | RequestResponseError::DialFailure
-                    | RequestResponseError::UnsupportedProtocols =&gt; {
-                        network.peer_manager().mark_peer_bad(peer_id).<span class="kw">await</span>;
-                    }
-                    RequestResponseError::Timeout =&gt; {
-                        network.peer_manager().log_failure(peer_id, dur).<span class="kw">await</span>;
-                    }
-                },
                 <span class="prelude-val">None </span>=&gt; {
                     network.peer_manager().log_failure(peer_id, dur).<span class="kw">await</span>;
                 }

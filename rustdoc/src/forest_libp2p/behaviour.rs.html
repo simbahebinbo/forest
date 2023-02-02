@@ -147,19 +147,16 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::{
-    chain_exchange::{ChainExchangeCodec, ChainExchangeProtocolName},
-    gossip_params::{build_peer_score_params, build_peer_score_threshold},
-};
-<span class="kw">use crate</span>::{config::Libp2pConfig, discovery::DiscoveryBehaviour};
+</span><span class="kw">use </span><span class="kw">crate</span>::discovery::DiscoveryConfig;
 <span class="kw">use crate</span>::{
-    discovery::DiscoveryConfig,
-    hello::{HelloCodec, HelloProtocolName},
+    chain_exchange::{ChainExchangeCodec, ChainExchangeProtocolName},
+    config::Libp2pConfig,
+    discovery::DiscoveryBehaviour,
+    gossip_params::{build_peer_score_params, build_peer_score_threshold},
+    hello::HelloBehaviour,
 };
 <span class="kw">use </span>ahash::{HashMap, HashSet};
 <span class="kw">use </span>forest_encoding::blake2b_256;
@@ -189,7 +186,7 @@
     discovery: DiscoveryBehaviour,
     ping: ping::Behaviour,
     identify: identify::Behaviour,
-    <span class="kw">pub</span>(<span class="kw">super</span>) hello: RequestResponse&lt;HelloCodec&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) hello: HelloBehaviour,
     <span class="kw">pub</span>(<span class="kw">super</span>) chain_exchange: RequestResponse&lt;ChainExchangeCodec&gt;,
     <span class="kw">pub</span>(<span class="kw">super</span>) bitswap: BitswapBehaviour,
 }
@@ -250,7 +247,6 @@
             <span class="comment">// TODO allow configuring this through config.
             </span>.discovery_limit(config.target_peer_count <span class="kw">as </span>u64);
 
-        <span class="kw">let </span>hp = std::iter::once((HelloProtocolName, ProtocolSupport::Full));
         <span class="kw">let </span>cp = std::iter::once((ChainExchangeProtocolName, ProtocolSupport::Full));
 
         <span class="kw">let </span><span class="kw-2">mut </span>req_res_config = RequestResponseConfig::default();
@@ -266,7 +262,7 @@
                 local_key.public(),
             )),
             bitswap,
-            hello: RequestResponse::new(HelloCodec::default(), hp, req_res_config.clone()),
+            hello: HelloBehaviour::default(),
             chain_exchange: RequestResponse::new(ChainExchangeCodec::default(), cp, req_res_config),
         }
     }

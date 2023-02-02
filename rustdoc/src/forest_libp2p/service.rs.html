@@ -886,43 +886,6 @@
 <a href="#886" id="886">886</a>
 <a href="#887" id="887">887</a>
 <a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
-<a href="#919" id="919">919</a>
-<a href="#920" id="920">920</a>
-<a href="#921" id="921">921</a>
-<a href="#922" id="922">922</a>
-<a href="#923" id="923">923</a>
-<a href="#924" id="924">924</a>
-<a href="#925" id="925">925</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -931,6 +894,7 @@
 };
 <span class="kw">use super</span>::{ForestBehaviour, ForestBehaviourEvent, Libp2pConfig};
 <span class="kw">use </span><span class="kw">crate</span>::discovery::DiscoveryOut;
+<span class="kw">use </span><span class="kw">crate</span>::hello::HelloBehaviour;
 <span class="kw">use crate</span>::{
     hello::{HelloRequest, HelloResponse},
     rpc::RequestResponseError,
@@ -976,7 +940,7 @@
 <span class="kw">use </span>std::time::{Duration, SystemTime, UNIX_EPOCH};
 <span class="kw">use </span>tokio_stream::wrappers::IntervalStream;
 
-<span class="kw">mod </span>metrics {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>metrics {
     <span class="kw">use </span>lazy_static::lazy_static;
     <span class="kw">use </span>prometheus::core::{AtomicU64, GenericGaugeVec, Opts};
     <span class="macro">lazy_static! </span>{
@@ -1019,10 +983,7 @@
 
 <span class="kw">const </span>BAN_PEER_DURATION: Duration = Duration::from_secs(<span class="number">60 </span>* <span class="number">60</span>); <span class="comment">//1h
 
-</span><span class="kw">type </span>HelloRequestTable =
-    HashMap&lt;RequestId, OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;HelloResponse, RequestResponseError&gt;&gt;&gt;;
-
-<span class="kw">type </span>CxRequestTable =
+</span><span class="kw">type </span>CxRequestTable =
     HashMap&lt;RequestId, OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;&gt;;
 
 <span class="doccomment">/// Events emitted by this Service.
@@ -1088,7 +1049,7 @@
     HelloRequest {
         peer_id: PeerId,
         request: HelloRequest,
-        response_channel: OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;HelloResponse, RequestResponseError&gt;&gt;,
+        response_channel: flume::Sender&lt;HelloResponse&gt;,
     },
     BitswapRequest {
         cid: Cid,
@@ -1194,7 +1155,6 @@
         <span class="kw">let </span>pubsub_block_str = <span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_BLOCK_STR, <span class="self">self</span>.network_name);
         <span class="kw">let </span>pubsub_msg_str = <span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_MSG_STR, <span class="self">self</span>.network_name);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>hello_request_table = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>cx_request_table = HashMap::new();
         <span class="kw">let </span>(cx_response_tx, cx_response_rx) = flume::unbounded();
         <span class="kw">let </span>(bitswap_outbound_request_tx, bitswap_outbound_request_rx) = flume::unbounded();
@@ -1221,7 +1181,6 @@
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cs,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.genesis_cid,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out,
-                            <span class="kw-2">&amp;mut </span>hello_request_table,
                             <span class="kw-2">&amp;mut </span>cx_request_table,
                             cx_response_tx.clone(),
                             <span class="kw-2">&amp;</span>pubsub_block_str,
@@ -1239,7 +1198,6 @@
                             bitswap_request_manager.clone(),
                             message,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out,
-                            <span class="kw-2">&amp;mut </span>hello_request_table,
                             <span class="kw-2">&amp;mut </span>cx_request_table).<span class="kw">await</span>;
                     }
                     <span class="prelude-val">None </span>=&gt; { <span class="kw">break</span>; }
@@ -1303,7 +1261,6 @@
     bitswap_request_manager: Arc&lt;BitswapRequestManager&gt;,
     message: NetworkMessage,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
-    hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
     cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
 ) {
     <span class="kw">match </span>message {
@@ -1317,11 +1274,11 @@
             request,
             response_channel,
         } =&gt; {
-            <span class="kw">let </span>request_id = swarm.behaviour_mut().hello.send_request(<span class="kw-2">&amp;</span>peer_id, request);
-            hello_request_table.insert(request_id, response_channel);
-            metrics::NETWORK_CONTAINER_CAPACITIES
-                .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST_TABLE])
-                .set(hello_request_table.capacity() <span class="kw">as </span>u64);
+            <span class="kw">let </span>request_id =
+                swarm
+                    .behaviour_mut()
+                    .hello
+                    .send_request(<span class="kw-2">&amp;</span>peer_id, request, response_channel);
             emit_event(
                 network_sender_out,
                 NetworkEvent::HelloRequestOutbound { request_id },
@@ -1472,15 +1429,13 @@
 }
 
 <span class="kw">async fn </span>handle_hello_event(
-    rr_event: RequestResponseEvent&lt;HelloRequest, HelloResponse, HelloResponse&gt;,
-    swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&gt;,
+    hello: <span class="kw-2">&amp;mut </span>HelloBehaviour,
+    event: RequestResponseEvent&lt;HelloRequest, HelloResponse, HelloResponse&gt;,
     peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
-    hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
 ) {
-    <span class="kw">let </span>behaviour = swarm.behaviour_mut();
-    <span class="kw">match </span>rr_event {
+    <span class="kw">match </span>event {
         RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
             RequestResponseMessage::Request {
                 request,
@@ -1525,10 +1480,7 @@
 
                     <span class="comment">// Send hello response immediately, no need to have the overhead of emitting
                     // channel and polling future here.
-                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = behaviour
-                        .hello
-                        .send_response(channel, HelloResponse { arrival, sent })
-                    {
+                    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = hello.send_response(channel, HelloResponse { arrival, sent }) {
                         <span class="macro">warn!</span>(<span class="string">&quot;Failed to send HelloResponse: {e:?}&quot;</span>);
                     } <span class="kw">else </span>{
                         emit_event(
@@ -1546,52 +1498,28 @@
                 request_id,
                 response,
             } =&gt; {
-                <span class="comment">// Send the successful response through channel out.
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id) {
-                    metrics::NETWORK_CONTAINER_CAPACITIES
-                        .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST_TABLE])
-                        .set(hello_request_table.capacity() <span class="kw">as </span>u64);
-                    <span class="kw">if </span>tx.send(<span class="prelude-val">Ok</span>(response)).is_err() {
-                        <span class="macro">warn!</span>(<span class="string">&quot;Fail to send Hello response&quot;</span>);
-                    } <span class="kw">else </span>{
-                        emit_event(
-                            network_sender_out,
-                            NetworkEvent::HelloResponseInbound { request_id },
-                        )
-                        .<span class="kw">await</span>;
-                    }
-                } <span class="kw">else </span>{
-                    <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed: channel not found&quot;</span>);
-                };
+                emit_event(
+                    network_sender_out,
+                    NetworkEvent::HelloResponseInbound { request_id },
+                )
+                .<span class="kw">await</span>;
+                hello.handle_response(<span class="kw-2">&amp;</span>request_id, response).<span class="kw">await</span>;
             }
         },
         RequestResponseEvent::OutboundFailure {
-            peer,
             request_id,
-            error,
+            peer,
+            error: <span class="kw">_</span>,
         } =&gt; {
-            <span class="macro">debug!</span>(
-                <span class="string">&quot;Hello outbound error (peer: {:?}) (id: {:?}): {:?}&quot;</span>,
-                peer, request_id, error
-            );
-
-            <span class="comment">// Send error through channel out.
-            </span><span class="kw">let </span>tx = hello_request_table.remove(<span class="kw-2">&amp;</span>request_id);
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
-                metrics::NETWORK_CONTAINER_CAPACITIES
-                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::HELLO_REQUEST_TABLE])
-                    .set(hello_request_table.capacity() <span class="kw">as </span>u64);
-                <span class="kw">if </span>tx.send(<span class="prelude-val">Err</span>(error.into())).is_err() {
-                    <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed&quot;</span>);
-                }
-            }
+            hello.on_error(<span class="kw-2">&amp;</span>request_id);
+            peer_manager.mark_peer_bad(peer).<span class="kw">await</span>;
         }
         RequestResponseEvent::InboundFailure {
-            peer,
-            error,
-            request_id: <span class="kw">_</span>,
+            request_id,
+            peer: <span class="kw">_</span>,
+            error: <span class="kw">_</span>,
         } =&gt; {
-            <span class="macro">debug!</span>(<span class="string">&quot;Hello inbound error (peer: {:?}): {:?}&quot;</span>, peer, error);
+            hello.on_error(<span class="kw-2">&amp;</span>request_id);
         }
         RequestResponseEvent::ResponseSent { .. } =&gt; (),
     }
@@ -1746,7 +1674,6 @@
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
-    hello_request_table: <span class="kw-2">&amp;mut </span>HelloRequestTable,
     cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
     cx_response_tx: Sender&lt;(
         RequestId,
@@ -1767,12 +1694,11 @@
         </span>}
         ForestBehaviourEvent::Hello(rr_event) =&gt; {
             handle_hello_event(
+                <span class="kw-2">&amp;mut </span>swarm.behaviour_mut().hello,
                 rr_event,
-                swarm,
                 peer_manager,
                 genesis_cid,
                 network_sender_out,
-                hello_request_table,
             )
             .<span class="kw">await
         </span>}
