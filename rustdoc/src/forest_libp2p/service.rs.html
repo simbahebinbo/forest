@@ -886,6 +886,7 @@
 <a href="#886" id="886">886</a>
 <a href="#887" id="887">887</a>
 <a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -906,13 +907,15 @@
 <span class="kw">use </span>forest_blocks::GossipBlock;
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_libp2p_bitswap::{BitswapRequestManager, BitswapStore};
+<span class="kw">use </span>forest_libp2p_bitswap::request_manager::BitswapRequestManager;
+<span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_utils::io::read_file_to_vec;
 <span class="kw">use </span>futures::channel::oneshot::Sender <span class="kw">as </span>OneShotSender;
 <span class="kw">use </span>futures::select;
 <span class="kw">use </span>futures_util::stream::StreamExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>libp2p::gossipsub::GossipsubEvent;
 <span class="kw">pub use </span>libp2p::gossipsub::IdentTopic;
 <span class="kw">pub use </span>libp2p::gossipsub::Topic;
@@ -979,7 +982,7 @@
 
 <span class="kw">const </span>PUBSUB_TOPICS: [<span class="kw-2">&amp;</span>str; <span class="number">2</span>] = [PUBSUB_BLOCK_STR, PUBSUB_MSG_STR];
 
-<span class="kw">pub const </span>BITSWAP_TIMEOUT: Duration = Duration::from_secs(<span class="number">5</span>);
+<span class="kw">pub const </span>BITSWAP_TIMEOUT: Duration = Duration::from_secs(<span class="number">10</span>);
 
 <span class="kw">const </span>BAN_PEER_DURATION: Duration = Duration::from_secs(<span class="number">60 </span>* <span class="number">60</span>); <span class="comment">//1h
 
@@ -1052,6 +1055,7 @@
         response_channel: flume::Sender&lt;HelloResponse&gt;,
     },
     BitswapRequest {
+        epoch: ChainEpoch,
         cid: Cid,
         response_channel: flume::Sender&lt;bool&gt;,
     },
@@ -1085,7 +1089,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; Libp2pService&lt;DB&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + BitswapStore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + BitswapStoreReadWrite + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub fn </span>new(
         config: Libp2pConfig,
@@ -1148,6 +1152,7 @@
             <span class="macro">warn!</span>(<span class="string">&quot;Failed to bootstrap with Kademlia: {e}&quot;</span>);
         }
 
+        <span class="kw">let </span>bitswap_request_manager = <span class="self">self</span>.swarm.behaviour().bitswap.request_manager();
         <span class="kw">let </span><span class="kw-2">mut </span>swarm_stream = <span class="self">self</span>.swarm.fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>network_stream = <span class="self">self</span>.network_receiver_in.stream().fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>interval =
@@ -1157,12 +1162,12 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>cx_request_table = HashMap::new();
         <span class="kw">let </span>(cx_response_tx, cx_response_rx) = flume::unbounded();
-        <span class="kw">let </span>(bitswap_outbound_request_tx, bitswap_outbound_request_rx) = flume::unbounded();
-        <span class="kw">let </span>bitswap_request_manager =
-            Arc::new(BitswapRequestManager::new(bitswap_outbound_request_tx));
 
         <span class="kw">let </span><span class="kw-2">mut </span>cx_response_rx_stream = cx_response_rx.stream().fuse();
-        <span class="kw">let </span><span class="kw-2">mut </span>bitswap_outbound_request_rx_stream = bitswap_outbound_request_rx.stream().fuse();
+        <span class="kw">let </span><span class="kw-2">mut </span>bitswap_outbound_request_rx_stream = bitswap_request_manager
+            .outbound_request_rx()
+            .stream()
+            .fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>peer_ops_rx_stream = <span class="self">self</span>.peer_manager.peer_ops_rx().stream().fuse();
         <span class="kw">let </span><span class="kw-2">mut </span>libp2p_registry = Default::default();
         <span class="kw">let </span>metrics = Metrics::new(<span class="kw-2">&amp;mut </span>libp2p_registry);
@@ -1257,7 +1262,7 @@
 
 <span class="kw">async fn </span>handle_network_message(
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&gt;,
-    store: Arc&lt;<span class="kw">impl </span>BitswapStore&gt;,
+    store: Arc&lt;<span class="kw">impl </span>BitswapStoreReadWrite&gt;,
     bitswap_request_manager: Arc&lt;BitswapRequestManager&gt;,
     message: NetworkMessage,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
@@ -1305,6 +1310,7 @@
             .<span class="kw">await</span>;
         }
         NetworkMessage::BitswapRequest {
+            epoch: <span class="kw">_</span>,
             cid,
             response_channel,
         } =&gt; {
@@ -1357,19 +1363,15 @@
 
 <span class="kw">async fn </span>handle_discovery_event(
     discovery_out: DiscoveryOut,
-    bitswap_request_manager: <span class="kw-2">&amp;</span>Arc&lt;BitswapRequestManager&gt;,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
 ) {
     <span class="kw">match </span>discovery_out {
         DiscoveryOut::Connected(peer_id, <span class="kw">_</span>) =&gt; {
             <span class="macro">debug!</span>(<span class="string">&quot;Peer connected, {:?}&quot;</span>, peer_id);
-            <span class="comment">// TODO: Maybe better to add after hello
-            </span>bitswap_request_manager.on_peer_connected(peer_id);
             emit_event(network_sender_out, NetworkEvent::PeerConnected(peer_id)).<span class="kw">await</span>;
         }
         DiscoveryOut::Disconnected(peer_id, <span class="kw">_</span>) =&gt; {
             <span class="macro">debug!</span>(<span class="string">&quot;Peer disconnected, {:?}&quot;</span>, peer_id);
-            bitswap_request_manager.on_peer_disconnected(<span class="kw-2">&amp;</span>peer_id);
             emit_event(network_sender_out, NetworkEvent::PeerDisconnected(peer_id)).<span class="kw">await</span>;
         }
     }
@@ -1666,7 +1668,7 @@
 }
 
 <span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB, P&gt;(
+</span><span class="kw">async fn </span>handle_forest_behaviour_event&lt;DB&gt;(
     swarm: <span class="kw-2">&amp;mut </span>Swarm&lt;ForestBehaviour&gt;,
     bitswap_request_manager: <span class="kw-2">&amp;</span>Arc&lt;BitswapRequestManager&gt;,
     peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;,
@@ -1683,11 +1685,11 @@
     pubsub_block_str: <span class="kw-2">&amp;</span>str,
     pubsub_msg_str: <span class="kw-2">&amp;</span>str,
 ) <span class="kw">where
-    </span>DB: Blockstore + Store + BitswapStore&lt;Params = P&gt; + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + BitswapStoreRead + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">match </span>event {
         ForestBehaviourEvent::Discovery(discovery_out) =&gt; {
-            handle_discovery_event(discovery_out, bitswap_request_manager, network_sender_out).<span class="kw">await
+            handle_discovery_event(discovery_out, network_sender_out).<span class="kw">await
         </span>}
         ForestBehaviourEvent::Gossipsub(e) =&gt; {
             handle_gossip_event(e, network_sender_out, pubsub_block_str, pubsub_msg_str).<span class="kw">await

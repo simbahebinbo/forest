@@ -124,17 +124,11 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>lazy_static::lazy_static;
-<span class="kw">use </span>prometheus::{
-    core::{AtomicU64, GenericCounter, GenericGauge, GenericGaugeVec},
-    Histogram, HistogramOpts, IntCounterVec, Opts, Registry,
-};
+<span class="kw">use </span>prometheus::{core::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 
 <span class="macro">lazy_static! </span>{
     <span class="kw">static </span><span class="kw-2">ref </span>MESSAGE_SIZE: IntCounterVec = IntCounterVec::new(

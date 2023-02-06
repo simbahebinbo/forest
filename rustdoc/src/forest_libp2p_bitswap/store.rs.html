@@ -15,6 +15,12 @@
 <a href="#15" id="15">15</a>
 <a href="#16" id="16">16</a>
 <a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -22,13 +28,19 @@
 <span class="kw">use </span>libipld::Block;
 
 <span class="doccomment">/// Trait implemented by a block store.
-</span><span class="kw">pub trait </span>BitswapStore: Send + Sync + <span class="lifetime">&#39;static </span>{
-    <span class="doccomment">/// The store parameters.
-    </span><span class="kw">type </span>Params: StoreParams;
+</span><span class="kw">pub trait </span>BitswapStoreRead {
     <span class="doccomment">/// A have query needs to know if the block store contains the block.
     </span><span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;bool&gt;;
+
     <span class="doccomment">/// A block query needs to retrieve the block from the store.
     </span><span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt;;
+}
+
+<span class="doccomment">/// Trait implemented by a block store.
+</span><span class="kw">pub trait </span>BitswapStoreReadWrite: BitswapStoreRead + Send + Sync + <span class="lifetime">&#39;static </span>{
+    <span class="doccomment">/// The store parameters.
+    </span><span class="kw">type </span>Params: StoreParams;
+
     <span class="doccomment">/// A block response needs to insert the block into the store.
     </span><span class="kw">fn </span>insert(<span class="kw-2">&amp;</span><span class="self">self</span>, block: <span class="kw-2">&amp;</span>Block&lt;<span class="self">Self</span>::Params&gt;) -&gt; anyhow::Result&lt;()&gt;;
 }

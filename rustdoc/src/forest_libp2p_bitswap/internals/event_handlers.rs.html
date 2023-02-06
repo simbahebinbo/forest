@@ -93,97 +93,75 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span>libp2p::{
-    request_response::{RequestResponseEvent, RequestResponseMessage},
-    PeerId,
-};
+</span><span class="kw">use crate</span>::{request_manager::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
+<span class="kw">use </span>libp2p::{request_response::RequestResponseMessage, PeerId};
 <span class="kw">use </span>std::sync::Arc;
 
-<span class="kw">pub enum </span>BitswapInboundResponseEvent {
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub enum </span>BitswapInboundResponseEvent {
     HaveBlock(PeerId, Cid),
     DataBlock(PeerId, Cid, Vec&lt;u8&gt;),
 }
 
 <span class="comment">// Note: This method performs db IO syncronously to reduce complexity
-</span><span class="kw">pub fn </span>handle_event_impl&lt;S: BitswapStore&gt;(
+</span><span class="kw">pub fn </span>handle_event_impl&lt;S: BitswapStoreRead&gt;(
     request_manager: <span class="kw-2">&amp;</span>Arc&lt;BitswapRequestManager&gt;,
     bitswap: <span class="kw-2">&amp;mut </span>BitswapBehaviour,
     store: <span class="kw-2">&amp;</span>S,
     event: BitswapBehaviourEvent,
 ) -&gt; anyhow::Result&lt;()&gt; {
-    <span class="kw">match </span>event {
-        BitswapBehaviourEvent::Inner(RequestResponseEvent::Message { peer, message }) =&gt; {
-            <span class="kw">match </span>message {
-                RequestResponseMessage::Request {
-                    request_id: <span class="kw">_</span>, <span class="comment">// `request_id` is useless here for pairing request and response
-                    </span>request,
-                    channel,
-                } =&gt; {
-                    <span class="comment">// Close inbound stream immediately since `go-bitswap` does not read this stream.
-                    // responses will be sent over a new outbound request
-                    </span><span class="kw">_ </span>= bitswap.inner.send_response(channel, ());
-                    <span class="kw">for </span>message <span class="kw">in </span>request {
-                        <span class="kw">match </span>message {
-                            BitswapMessage::Request(request) =&gt; {
-                                <span class="kw">if let </span><span class="prelude-val">Some</span>(response) = handle_inbound_request(store, <span class="kw-2">&amp;</span>request) {
-                                    bitswap.send_response(<span class="kw-2">&amp;</span>peer, (request.cid, response));
-                                }
+    <span class="kw">if let </span>BitswapBehaviourEvent::Message { peer, message } = event {
+        <span class="kw">match </span>message {
+            RequestResponseMessage::Request {
+                request_id: <span class="kw">_</span>, <span class="comment">// `request_id` is useless here for pairing request and response
+                </span>request,
+                channel,
+            } =&gt; {
+                <span class="comment">// Close inbound stream immediately since `go-bitswap` does not read this stream.
+                // responses will be sent over a new outbound request
+                </span><span class="kw">_ </span>= bitswap.inner_mut().send_response(channel, ());
+                <span class="kw">for </span>message <span class="kw">in </span>request {
+                    <span class="kw">match </span>message {
+                        BitswapMessage::Request(request) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(response) = handle_inbound_request(store, <span class="kw-2">&amp;</span>request) {
+                                bitswap.send_response(<span class="kw-2">&amp;</span>peer, (request.cid, response));
                             }
-                            BitswapMessage::Response(cid, response) =&gt; {
-                                <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <span class="kw">match </span>response {
-                                    BitswapResponse::Have(have) =&gt; {
-                                        <span class="kw">if </span>have {
-                                            metrics::message_counter_inbound_response_have_yes()
-                                                .inc();
-                                            <span class="prelude-val">Some</span>(BitswapInboundResponseEvent::HaveBlock(peer, cid))
-                                        } <span class="kw">else </span>{
-                                            metrics::message_counter_inbound_response_have_no()
-                                                .inc();
-                                            <span class="prelude-val">None
-                                        </span>}
-                                    }
-                                    BitswapResponse::Block(data) =&gt; {
-                                        metrics::message_counter_inbound_response_block().inc();
-                                        <span class="prelude-val">Some</span>(BitswapInboundResponseEvent::DataBlock(
-                                            peer, cid, data,
-                                        ))
-                                    }
-                                } {
-                                    request_manager.on_inbound_response_event(store, event);
+                        }
+                        BitswapMessage::Response(cid, response) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = <span class="kw">match </span>response {
+                                BitswapResponse::Have(have) =&gt; {
+                                    <span class="kw">if </span>have {
+                                        metrics::message_counter_inbound_response_have_yes().inc();
+                                        <span class="prelude-val">Some</span>(BitswapInboundResponseEvent::HaveBlock(peer, cid))
+                                    } <span class="kw">else </span>{
+                                        metrics::message_counter_inbound_response_have_no().inc();
+                                        <span class="prelude-val">None
+                                    </span>}
                                 }
+                                BitswapResponse::Block(data) =&gt; {
+                                    metrics::message_counter_inbound_response_block().inc();
+                                    <span class="prelude-val">Some</span>(BitswapInboundResponseEvent::DataBlock(peer, cid, data))
+                                }
+                            } {
+                                request_manager.on_inbound_response_event(store, event);
                             }
                         }
                     }
                 }
-                RequestResponseMessage::Response { .. } =&gt; {
-                    <span class="comment">// Left empty by design
-                </span>}
             }
+            RequestResponseMessage::Response { .. } =&gt; {
+                <span class="comment">// Left empty by design
+            </span>}
         }
-        BitswapBehaviourEvent::Inner(<span class="kw">_</span>) =&gt; {
-            <span class="comment">// TODO: trace
-        </span>}
-    };
+    }
 
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn </span>handle_inbound_request&lt;S: BitswapStore&gt;(
+<span class="kw">fn </span>handle_inbound_request&lt;S: BitswapStoreRead&gt;(
     store: <span class="kw-2">&amp;</span>S,
     request: <span class="kw-2">&amp;</span>BitswapRequest,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;BitswapResponse&gt; {
