@@ -165,15 +165,25 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;jemalloc&quot;</span>)]
 </span><span class="kw">use </span>forest_cli_shared::tikv_jemallocator::Jemalloc;
-
 <span class="attr">#[cfg(feature = <span class="string">&quot;jemalloc&quot;</span>)]
 #[global_allocator]
 </span><span class="kw">static </span>GLOBAL: Jemalloc = Jemalloc;
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;mimalloc&quot;</span>)]
+</span><span class="kw">use </span>forest_cli_shared::mimalloc::MiMalloc;
+<span class="attr">#[cfg(feature = <span class="string">&quot;mimalloc&quot;</span>)]
+#[global_allocator]
+</span><span class="kw">static </span>GLOBAL: MiMalloc = MiMalloc;
 
 <span class="kw">mod </span>cli;
 <span class="kw">mod </span>daemon;
