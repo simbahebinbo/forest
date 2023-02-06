@@ -157,8 +157,8 @@
 <span class="kw">pub mod </span>json {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
+    <span class="kw">use </span>forest_shim::error::ExitCode;
     <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
-    <span class="kw">use </span>fvm_shared::error::ExitCode;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="doccomment">/// Wrapper for serializing and de-serializing a `SignedMessage` from JSON.
@@ -214,7 +214,7 @@
             gas_used,
         } = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Receipt {
-            exit_code: ExitCode::new(exit_code <span class="kw">as </span>u32),
+            exit_code: ExitCode::from(exit_code <span class="kw">as </span>u32).into(),
             return_data: RawBytes::new(
                 BASE64_STANDARD
                     .decode(return_data)
@@ -277,7 +277,7 @@
 </span><span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>MessageReceiptWrapper {
     <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>message_receipt = Receipt {
-            exit_code: fvm_shared::error::ExitCode::new(u32::arbitrary(g)),
+            exit_code: forest_shim::error::ExitCode::from(u32::arbitrary(g)).into(),
             return_data: fvm_ipld_encoding::RawBytes::new(Vec::arbitrary(g)),
             gas_used: i64::arbitrary(g),
         };

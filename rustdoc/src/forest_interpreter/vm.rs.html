@@ -369,6 +369,7 @@
 <a href="#369" id="369">369</a>
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -378,6 +379,8 @@
 <span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
 <span class="kw">use </span>forest_message::ChainMessage;
 <span class="kw">use </span>forest_networks::ChainConfig;
+<span class="kw">use </span>forest_shim::error::ExitCode;
+<span class="kw">use </span>forest_shim::Inner;
 <span class="kw">use </span>fvm::executor::{ApplyRet, DefaultExecutor};
 <span class="kw">use </span>fvm::externs::Rand;
 <span class="kw">use </span>fvm::machine::{DefaultMachine, Machine, MultiEngine, NetworkConfig};
@@ -386,7 +389,6 @@
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::error::ExitCode;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>fvm_shared::receipt::Receipt;
 <span class="kw">use </span>fvm_shared::{BLOCK_GAS_LIMIT, METHOD_SEND};
@@ -578,7 +580,7 @@
                     );
                 }
                 <span class="comment">// This is more of a sanity check, this should not be able to be hit.
-                </span><span class="kw">if </span>ret.msg_receipt.exit_code != ExitCode::OK {
+                </span><span class="kw">if </span>!ret.msg_receipt.exit_code.is_success() {
                     <span class="macro">anyhow::bail!</span>(
                         <span class="string">&quot;reward application message failed (exit: {:?})&quot;</span>,
                         ret.msg_receipt.exit_code
@@ -627,7 +629,7 @@
 
         <span class="kw">if </span>!exit_code.is_success() {
             <span class="kw">match </span>exit_code.value() {
-                <span class="number">1</span>..=ExitCode::FIRST_USER_EXIT_CODE =&gt; {
+                <span class="number">1</span>..=&lt;ExitCode <span class="kw">as </span>Inner&gt;::FVM::FIRST_USER_EXIT_CODE =&gt; {
                     <span class="macro">log::debug!</span>(
                         <span class="string">&quot;Internal message execution failure. Exit code was {}&quot;</span>,
                         exit_code
