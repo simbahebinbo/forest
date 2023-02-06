@@ -50,15 +50,15 @@
 
 <span class="kw">pub use </span><span class="self">self</span>::vm::<span class="kw-2">*</span>;
 
-<span class="kw">use </span>::fvm::state_tree::StateTree <span class="kw">as </span>FvmStateTree;
 <span class="kw">use </span>forest_actor_interface::account;
+<span class="kw">use </span>forest_shim::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::{Address, Protocol};
 
 <span class="doccomment">/// returns the public key type of address (`BLS`/`SECP256K1`) of an account actor
 /// identified by `addr`.
 </span><span class="kw">pub fn </span>resolve_to_key_addr&lt;BS, S&gt;(
-    st: <span class="kw-2">&amp;</span>FvmStateTree&lt;S&gt;,
+    st: <span class="kw-2">&amp;</span>StateTree&lt;S&gt;,
     store: <span class="kw-2">&amp;</span>BS,
     addr: <span class="kw-2">&amp;</span>Address,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Address, anyhow::Error&gt;
@@ -74,7 +74,7 @@
         .get_actor(addr)<span class="question-mark">?
         </span>.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Failed to retrieve actor: {}&quot;</span>, addr))<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>acc_st = account::State::load(store, <span class="kw-2">&amp;</span>act)<span class="question-mark">?</span>;
+    <span class="kw">let </span>acc_st = account::State::load(store, <span class="kw-2">&amp;</span>act.into())<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(acc_st.pubkey_address())
 }

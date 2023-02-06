@@ -531,6 +531,7 @@
 <a href="#531" id="531">531</a>
 <a href="#532" id="532">532</a>
 <a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -888,7 +889,8 @@
     //   the balance
     </span><span class="kw">let </span>actor_state = api.get_actor_after(actor, ts)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>cur_seq = actor_state.sequence;
-    <span class="kw">let </span><span class="kw-2">mut </span>balance = actor_state.balance;
+    <span class="kw">let </span><span class="kw-2">mut </span>balance: TokenAmount =
+        forest_shim::econ::TokenAmount::from(<span class="kw-2">&amp;</span>actor_state.balance).into();
 
     <span class="kw">let </span><span class="kw-2">mut </span>gas_limit = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>skip = <span class="number">0</span>;

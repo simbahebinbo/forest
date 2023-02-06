@@ -104,6 +104,32 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -111,13 +137,27 @@
 <span class="kw">use </span>fvm_shared3::econ::TokenAmount <span class="kw">as </span>TokenAmount_v3;
 <span class="kw">use </span>num_bigint::BigInt;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::ops::{Add, AddAssign, Mul};
+<span class="kw">use </span>std::ops::{Add, AddAssign, Deref, DerefMut, Mul};
 
 <span class="comment">// FIXME: Transparent Debug trait impl
 // FIXME: Consider &#39;type TokenAmount = TokenAmount_v3&#39;
 </span><span class="attr">#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Debug, Default)]
 #[serde(transparent)]
 </span><span class="kw">pub struct </span>TokenAmount(TokenAmount_v3);
+
+<span class="kw">impl </span>Deref <span class="kw">for </span>TokenAmount {
+    <span class="kw">type </span>Target = TokenAmount_v3;
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
+    </span>}
+}
+
+<span class="kw">impl </span>DerefMut <span class="kw">for </span>TokenAmount {
+    <span class="kw">fn </span>deref_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Target {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.<span class="number">0
+    </span>}
+}
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>TokenAmount {
     <span class="comment">// This trait requires `fmt` with this exact signature.
@@ -162,6 +202,18 @@
 <span class="kw">impl </span>From&lt;TokenAmount_v2&gt; <span class="kw">for </span>TokenAmount {
     <span class="kw">fn </span>from(other: TokenAmount_v2) -&gt; <span class="self">Self </span>{
         TokenAmount::from(TokenAmount_v3::from_atto(other.atto().clone()))
+    }
+}
+
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>TokenAmount_v2&gt; <span class="kw">for </span>TokenAmount {
+    <span class="kw">fn </span>from(other: <span class="kw-2">&amp;</span>TokenAmount_v2) -&gt; <span class="self">Self </span>{
+        TokenAmount::from(TokenAmount_v3::from_atto(other.atto().clone()))
+    }
+}
+
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>TokenAmount_v3&gt; <span class="kw">for </span>TokenAmount {
+    <span class="kw">fn </span>from(other: <span class="kw-2">&amp;</span>TokenAmount_v3) -&gt; <span class="self">Self </span>{
+        TokenAmount(other.clone())
     }
 }
 

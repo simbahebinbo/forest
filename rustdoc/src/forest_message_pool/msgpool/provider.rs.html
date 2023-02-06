@@ -117,6 +117,9 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -130,9 +133,9 @@
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
 <span class="kw">use </span>forest_networks::Height;
+<span class="kw">use </span>forest_shim::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
-<span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
@@ -209,10 +212,13 @@
     <span class="kw">fn </span>get_actor_after(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;ActorState, Error&gt; {
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.sm.blockstore(), ts.parent_state())
             .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
+
         <span class="kw">let </span>actor = state
             .get_actor(addr)
             .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
-        actor.ok_or_else(|| Error::Other(<span class="string">&quot;No actor state&quot;</span>.to_owned()))
+        actor
+            .map(|v| v.into())
+            .ok_or_else(|| Error::Other(<span class="string">&quot;No actor state&quot;</span>.to_owned()))
     }
 
     <span class="kw">fn </span>messages_for_block(

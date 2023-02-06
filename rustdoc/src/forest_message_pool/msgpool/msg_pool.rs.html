@@ -1084,7 +1084,7 @@
     /// if this actor does not exist, return an error.
     </span><span class="kw">fn </span>get_state_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>actor = <span class="self">self</span>.api.get_actor_after(addr, ts)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(actor.balance)
+        <span class="prelude-val">Ok</span>(forest_shim::econ::TokenAmount::from(<span class="kw-2">&amp;</span>actor.balance).into())
     }
 
     <span class="doccomment">/// Remove a message given a sequence and address from the message pool.

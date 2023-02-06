@@ -1694,13 +1694,13 @@
 <span class="kw">use </span>forest_message::message::valid_for_block_inclusion;
 <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
 <span class="kw">use </span>forest_networks::Height;
+<span class="kw">use </span>forest_shim::state_tree::StateTree;
 <span class="kw">use </span>forest_state_manager::Error <span class="kw">as </span>StateManagerError;
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>futures::{Stream, StreamExt, TryFutureExt};
 <span class="kw">use </span>fvm::gas::price_list_by_network_version;
-<span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::Address;

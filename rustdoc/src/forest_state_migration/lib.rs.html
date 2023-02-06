@@ -252,6 +252,9 @@
 <a href="#252" id="252">252</a>
 <a href="#253" id="253">253</a>
 <a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -260,7 +263,8 @@
 
 </span><span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
+<span class="kw">use </span>forest_shim::state_tree::{ActorState, StateTree};
+<span class="kw">use </span>forest_shim::Inner;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -373,8 +377,8 @@
                     <span class="kw">let </span>migrator = <span class="self">self</span>.migrations.get(<span class="kw-2">&amp;</span>state.code).cloned().unwrap();
                     scope.spawn(<span class="kw">move </span>|<span class="kw">_</span>| {
                         <span class="kw">let </span>job = MigrationJob {
-                            address,
-                            actor_state: state,
+                            address: forest_shim::address::Address::from(address).into(),
+                            actor_state: state.into(),
                             actor_migration: migrator,
                         };
 
@@ -398,7 +402,7 @@
                     actor_state,
                 } = job_output;
                 actors_out
-                    .set_actor(<span class="kw-2">&amp;</span>address, actor_state)
+                    .set_actor(<span class="kw-2">&amp;</span>address, actor_state.into())
                     .unwrap_or_else(|e| {
                         <span class="macro">panic!</span>(
                             <span class="string">&quot;Failed setting new actor state at given address: {address}, Reason: {e}&quot;
@@ -452,7 +456,7 @@
                 store,
                 ActorMigrationInput {
                     address: <span class="self">self</span>.address,
-                    balance: <span class="self">self</span>.actor_state.balance.clone(),
+                    balance: forest_shim::econ::TokenAmount::from(<span class="kw-2">&amp;</span><span class="self">self</span>.actor_state.balance).into(),
                     head: <span class="self">self</span>.actor_state.state,
                     prior_epoch,
                 },
@@ -466,12 +470,14 @@
 
         <span class="kw">let </span>migration_job_result = MigrationJobOutput {
             address: <span class="self">self</span>.address,
-            actor_state: ActorState::new(
+            actor_state: &lt;ActorState <span class="kw">as </span>Inner&gt;::FVM::new(
                 result.new_code_cid,
                 result.new_head,
                 <span class="self">self</span>.actor_state.balance.clone(),
                 <span class="self">self</span>.actor_state.sequence,
-            ),
+                <span class="prelude-val">None</span>,
+            )
+            .into(),
         };
 
         <span class="prelude-val">Ok</span>(migration_job_result)

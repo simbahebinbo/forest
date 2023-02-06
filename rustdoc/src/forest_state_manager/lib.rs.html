@@ -1220,6 +1220,14 @@
 <a href="#1220" id="1220">1220</a>
 <a href="#1221" id="1221">1221</a>
 <a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1244,12 +1252,12 @@
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
+<span class="kw">use </span>forest_shim::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>futures::{channel::oneshot, select, FutureExt};
 <span class="kw">use </span>fvm::executor::ApplyRet;
 <span class="kw">use </span>fvm::externs::Rand;
-<span class="kw">use </span>fvm::state_tree::{ActorState, StateTree};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::address::{Address, Payload, Protocol, BLS_PUB_LEN};
@@ -1465,9 +1473,9 @@
     }
 
     <span class="doccomment">/// Gets actor from given [`Cid`], if it exists.
-    </span><span class="kw">pub fn </span>get_actor(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, state_cid: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ActorState&gt;, Error&gt; {
+    </span><span class="kw">pub fn </span>get_actor(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, state_cid: Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;ActorState&gt;&gt; {
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore().clone(), <span class="kw-2">&amp;</span>state_cid)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(state.get_actor(addr)<span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(state.get_actor(addr)<span class="question-mark">?</span>.map(|v| v.into()))
     }
 
     <span class="doccomment">/// Returns a reference to the state manager&#39;s [`Blockstore`].
@@ -1517,13 +1525,15 @@
         state_cid: Cid,
         addr: <span class="kw-2">&amp;</span>Address,
     ) -&gt; anyhow::Result&lt;Address, Error&gt; {
-        <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>state_cid)<span class="question-mark">?</span>;
+        <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>state_cid)
+            .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>act = state
-            .get_actor(addr)<span class="question-mark">?
+            .get_actor(addr)
+            .map_err(|e| Error::State(e.to_string()))<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Miner actor not found&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>ms = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>act)<span class="question-mark">?</span>;
+        <span class="kw">let </span>ms = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>act.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>info = ms.info(<span class="self">self</span>.blockstore()).map_err(|e| e.to_string())<span class="question-mark">?</span>;
 
@@ -2268,7 +2278,8 @@
         addr: <span class="kw-2">&amp;</span>Address,
         state_cid: Cid,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;[u8; BLS_PUB_LEN], Error&gt; {
-        <span class="kw">let </span>state = StateTree::new_from_root(db, <span class="kw-2">&amp;</span>state_cid)<span class="question-mark">?</span>;
+        <span class="kw">let </span>state =
+            StateTree::new_from_root(db, <span class="kw-2">&amp;</span>state_cid).map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
         <span class="kw">let </span>kaddr = resolve_to_key_addr(<span class="kw-2">&amp;</span>state, db, addr)
             .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to resolve key address, error: {e}&quot;</span>))<span class="question-mark">?</span>;
 
@@ -2290,14 +2301,19 @@
     </span><span class="kw">pub fn </span>get_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, cid: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>act = <span class="self">self</span>.get_actor(addr, cid)<span class="question-mark">?</span>;
         <span class="kw">let </span>actor = act.ok_or_else(|| <span class="string">&quot;could not find actor&quot;</span>.to_owned())<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(actor.balance)
+        <span class="kw">let </span>balance = forest_shim::econ::TokenAmount::from(<span class="kw-2">&amp;</span>actor.balance);
+        <span class="prelude-val">Ok</span>(balance.into())
     }
 
     <span class="doccomment">/// Looks up ID [Address] from the state at the given [Tipset].
     </span><span class="kw">pub fn </span>lookup_id(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Address&gt;, Error&gt; {
         <span class="kw">let </span>state_tree = StateTree::new_from_root(<span class="self">self</span>.blockstore(), ts.parent_state())
             .map_err(|e| e.to_string())<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(state_tree.lookup_id(addr)<span class="question-mark">?</span>.map(Address::new_id))
+        <span class="kw">let </span>address = forest_shim::address::Address::from(addr);
+        <span class="prelude-val">Ok</span>(state_tree
+            .lookup_id(<span class="kw-2">&amp;</span>address.into())
+            .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?
+            </span>.map(Address::new_id))
     }
 
     <span class="doccomment">/// Retrieves market balance in escrow and locked tables.

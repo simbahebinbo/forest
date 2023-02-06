@@ -325,10 +325,10 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::BlockHeader;
 <span class="kw">use </span>forest_networks::ChainConfig;
+<span class="kw">use </span>forest_shim::state_tree::StateTree;
 <span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>fvm::externs::{Consensus, Externs, Rand};
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas, GasTracker};
-<span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::tracking::{BSStats, TrackingBlockstore};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
@@ -388,7 +388,7 @@
 
         <span class="kw">let </span>tbs = TrackingBlockstore::new(<span class="kw-2">&amp;</span><span class="self">self</span>.db);
 
-        <span class="kw">let </span>ms = forest_actor_interface::miner::State::load(<span class="kw-2">&amp;</span>tbs, <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>ms = forest_actor_interface::miner::State::load(<span class="kw-2">&amp;</span>tbs, <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>worker = ms.info(<span class="kw-2">&amp;</span>tbs)<span class="question-mark">?</span>.worker;
 

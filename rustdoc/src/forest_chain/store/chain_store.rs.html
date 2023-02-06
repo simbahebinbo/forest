@@ -1019,10 +1019,10 @@
 <span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
 <span class="kw">use </span>forest_metrics::metrics;
 <span class="kw">use </span>forest_networks::ChainConfig;
+<span class="kw">use </span>forest_shim::state_tree::StateTree;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>forest_utils::io::Checksum;
 <span class="kw">use </span>futures::Future;
-<span class="kw">use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::CarHeader;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, Cbor};
