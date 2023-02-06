@@ -483,7 +483,6 @@
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
-<a href="#486" id="486">486</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -498,11 +497,10 @@
     default_snapshot_dir, is_car_or_tmp, snapshot_fetch, SnapshotServer, SnapshotStore,
 };
 <span class="kw">use </span>forest_db::{db_engine::open_db, Store};
-<span class="kw">use </span>forest_genesis::read_genesis_header;
+<span class="kw">use </span>forest_genesis::{forest_load_car, read_genesis_header};
 <span class="kw">use </span>forest_ipld::recurse_links_hash;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_utils::net::FetchProgress;
-<span class="kw">use </span>fvm_ipld_car::load_car;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>std::{fs, path::PathBuf, sync::Arc};
 <span class="kw">use </span>strfmt::strfmt;
@@ -871,7 +869,7 @@
         <span class="kw">let </span>cids = {
             <span class="kw">let </span>file = tokio::fs::File::open(<span class="kw-2">&amp;</span>snapshot).<span class="kw">await</span><span class="question-mark">?</span>;
             <span class="kw">let </span>reader = FetchProgress::fetch_from_file(file).<span class="kw">await</span><span class="question-mark">?</span>;
-            load_car(chain_store.blockstore(), reader.compat()).<span class="kw">await</span><span class="question-mark">?
+            forest_load_car(chain_store.blockstore(), reader.compat()).<span class="kw">await</span><span class="question-mark">?
         </span>};
 
         <span class="kw">let </span>ts = chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>TipsetKeys::new(cids))<span class="question-mark">?</span>;

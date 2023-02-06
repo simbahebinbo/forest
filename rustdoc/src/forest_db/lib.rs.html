@@ -163,8 +163,6 @@
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
 <a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -216,14 +214,13 @@
     }
 
     <span class="doccomment">/// Write slice of KV pairs.
-    </span><span class="kw">fn </span>bulk_write&lt;K, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[(K, V)]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
-    <span class="kw">where
-        </span>K: AsRef&lt;[u8]&gt;,
-        V: AsRef&lt;[u8]&gt;,
-    {
+    </span><span class="kw">fn </span>bulk_write(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        values: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;Vec&lt;u8&gt;&gt;, <span class="kw">impl </span>Into&lt;Vec&lt;u8&gt;&gt;)&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         values
-            .iter()
-            .try_for_each(|(key, value)| <span class="self">self</span>.write(key, value))
+            .into_iter()
+            .try_for_each(|(key, value)| <span class="self">self</span>.write(key.into(), value.into()))
     }
 
     <span class="doccomment">/// Bulk delete keys from the data store.
@@ -277,11 +274,10 @@
         (<span class="kw-2">*</span><span class="self">self</span>).bulk_read(keys)
     }
 
-    <span class="kw">fn </span>bulk_write&lt;K, V&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, values: <span class="kw-2">&amp;</span>[(K, V)]) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
-    <span class="kw">where
-        </span>K: AsRef&lt;[u8]&gt;,
-        V: AsRef&lt;[u8]&gt;,
-    {
+    <span class="kw">fn </span>bulk_write(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        values: <span class="kw">impl </span>IntoIterator&lt;Item = (<span class="kw">impl </span>Into&lt;Vec&lt;u8&gt;&gt;, <span class="kw">impl </span>Into&lt;Vec&lt;u8&gt;&gt;)&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         (<span class="kw-2">*</span><span class="self">self</span>).bulk_write(values)
     }
 
