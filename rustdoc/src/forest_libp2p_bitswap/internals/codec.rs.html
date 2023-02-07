@@ -120,11 +120,14 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>libp2p::{core::upgrade, request_response::RequestResponseCodec};
+<span class="kw">use </span>pb::bitswap_pb;
+<span class="kw">use </span>protobuf::Message;
 
 <span class="kw">use crate</span>::{prefix::Prefix, protocol::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 
@@ -149,7 +152,7 @@
         metrics::inbound_stream_count().inc();
         metrics::inbound_bytes().inc_by(data.len() <span class="kw">as _</span>);
 
-        <span class="kw">let </span>pb_msg = proto::Message::decode(<span class="kw-2">&amp;</span>data[..]).map_err(map_io_err)<span class="question-mark">?</span>;
+        <span class="kw">let </span>pb_msg = bitswap_pb::Message::parse_from_bytes(data.as_slice()).map_err(map_io_err)<span class="question-mark">?</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>parts = <span class="macro">vec!</span>[];
         <span class="kw">for </span>entry <span class="kw">in </span>pb_msg.wantlist.unwrap_or_default().entries {
             <span class="comment">// TODO: Implement cancellation
@@ -157,18 +160,17 @@
                 <span class="kw">continue</span>;
             }
             <span class="kw">let </span>cid = Cid::try_from(entry.block).map_err(map_io_err)<span class="question-mark">?</span>;
-            <span class="kw">let </span>ty = <span class="kw">match </span>entry.want_type {
-                ty <span class="kw">if </span>proto::message::wantlist::WantType::Have <span class="kw">as </span>i32 == ty =&gt; RequestType::Have,
-                ty <span class="kw">if </span>proto::message::wantlist::WantType::Block <span class="kw">as </span>i32 == ty =&gt; RequestType::Block,
-                ty =&gt; {
-                    <span class="macro">tracing::error!</span>(<span class="string">&quot;Skipping invalid request type: {ty}&quot;</span>);
+            <span class="kw">let </span>ty = <span class="kw">match </span>entry.wantType.try_into() {
+                <span class="prelude-val">Ok</span>(ty) =&gt; ty,
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">tracing::error!</span>(<span class="string">&quot;Skipping invalid request type: {e}&quot;</span>);
                     <span class="kw">continue</span>;
                 }
             };
             parts.push(BitswapMessage::Request(BitswapRequest {
                 ty,
                 cid,
-                send_dont_have: entry.send_dont_have,
+                send_dont_have: entry.sendDontHave,
             }));
         }
         <span class="kw">for </span>payload <span class="kw">in </span>pb_msg.payload {
@@ -179,13 +181,13 @@
                 BitswapResponse::Block(payload.data.to_vec()),
             ));
         }
-        <span class="kw">for </span>presence <span class="kw">in </span>pb_msg.block_presences {
+        <span class="kw">for </span>presence <span class="kw">in </span>pb_msg.blockPresences {
             <span class="kw">let </span>cid = Cid::try_from(presence.cid).map_err(map_io_err)<span class="question-mark">?</span>;
-            <span class="kw">let </span>have = <span class="kw">match </span>presence.r#type {
-                ty <span class="kw">if </span>proto::message::BlockPresenceType::Have <span class="kw">as </span>i32 == ty =&gt; <span class="bool-val">true</span>,
-                ty <span class="kw">if </span>proto::message::BlockPresenceType::DontHave <span class="kw">as </span>i32 == ty =&gt; <span class="bool-val">false</span>,
-                <span class="kw">_ </span>=&gt; {
-                    <span class="macro">error!</span>(<span class="string">&quot;invalid block presence type: skipping&quot;</span>);
+            <span class="kw">let </span>have = <span class="kw">match </span>presence.type_.enum_value() {
+                <span class="prelude-val">Ok</span>(bitswap_pb::message::BlockPresenceType::Have) =&gt; <span class="bool-val">true</span>,
+                <span class="prelude-val">Ok</span>(bitswap_pb::message::BlockPresenceType::DontHave) =&gt; <span class="bool-val">false</span>,
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="macro">error!</span>(<span class="string">&quot;Skipping invalid block presence type {e}&quot;</span>);
                     <span class="kw">continue</span>;
                 }
             };

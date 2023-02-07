@@ -53,6 +53,7 @@
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
 <a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -62,10 +63,7 @@
 
 <span class="kw">use </span>futures::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>libipld::{cid::Cid, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>prost::Message;
 <span class="kw">use </span>tracing::<span class="kw-2">*</span>;
-
-<span class="kw">mod </span>proto;
 
 <span class="kw">mod </span>internals;
 <span class="kw">use </span>internals::<span class="kw-2">*</span>;
@@ -83,6 +81,10 @@
 
 <span class="kw">mod </span>store;
 <span class="kw">pub use </span>store::<span class="kw-2">*</span>;
+
+<span class="kw">mod </span>pb {
+    <span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">&quot;OUT_DIR&quot;</span>), <span class="string">&quot;/proto/mod.rs&quot;</span>));
+}
 
 <span class="kw">pub mod </span>task {
     <span class="doccomment">//! Re-exports API(s) from the chosen task library
