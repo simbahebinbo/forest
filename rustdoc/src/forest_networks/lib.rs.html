@@ -328,6 +328,8 @@
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
 <a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -527,6 +529,8 @@
 }
 
 <span class="kw">pub mod </span>de_network_version {
+    <span class="kw">use </span>std::borrow::Cow;
+
     <span class="kw">use </span>forest_shim::version::NetworkVersion;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
@@ -534,7 +538,7 @@
     <span class="kw">where
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
-        <span class="kw">let </span>version: <span class="kw-2">&amp;</span>str = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
+        <span class="kw">let </span>version: Cow&lt;str&gt; = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
         <span class="kw">let </span>version = version.to_lowercase();
 
         <span class="kw">match </span>version.as_str() {

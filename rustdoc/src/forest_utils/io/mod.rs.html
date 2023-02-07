@@ -161,7 +161,7 @@
 /// let config: Config = read_toml(toml_string).unwrap();
 /// assert_eq!(config.name, &quot;forest&quot;);
 /// ```
-</span><span class="kw">pub fn </span>read_toml&lt;S&gt;(toml_string: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;S&gt;
+</span><span class="kw">pub fn </span>read_toml&lt;S&gt;(toml_string: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;S&gt;
 <span class="kw">where
     for</span>&lt;<span class="lifetime">&#39;de</span>&gt; S: serde::de::Deserialize&lt;<span class="lifetime">&#39;de</span>&gt;,
 {
