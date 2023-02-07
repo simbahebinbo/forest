@@ -236,8 +236,17 @@
 <a href="#236" id="236">236</a>
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
+
+</span><span class="doccomment">//! Request manager implementation that is optimized for `filecoin` network usage
 
 </span><span class="kw">use crate</span>::{event_handlers::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
@@ -259,7 +268,7 @@
     block_received: flume::Sender&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt;,
 }
 
-<span class="comment">// TODO: Use message queue like `go-bitswap`
+<span class="doccomment">/// Request manager implementation that is optimized for `filecoin` network usage
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>BitswapRequestManager {
     outbound_request_tx: flume::Sender&lt;(PeerId, BitswapRequest)&gt;,
@@ -269,7 +278,9 @@
 }
 
 <span class="kw">impl </span>BitswapRequestManager {
-    <span class="kw">pub fn </span>outbound_request_rx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>flume::Receiver&lt;(PeerId, BitswapRequest)&gt; {
+    <span class="doccomment">/// A receiver channel of the outbound `bitswap` network events that the [BitswapRequestManager] emits.
+    /// The messages from this channel need to be sent with [BitswapBehaviour::send_request] to make [BitswapRequestManager::get_block] work.
+    </span><span class="kw">pub fn </span>outbound_request_rx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>flume::Receiver&lt;(PeerId, BitswapRequest)&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.outbound_request_rx
     }
 }
@@ -287,7 +298,8 @@
 }
 
 <span class="kw">impl </span>BitswapRequestManager {
-    <span class="kw">pub fn </span>handle_event&lt;S: BitswapStoreRead&gt;(
+    <span class="doccomment">/// Hook the `bitswap` network event into the [BitswapRequestManager]
+    </span><span class="kw">pub fn </span>handle_event&lt;S: BitswapStoreRead&gt;(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         bitswap: <span class="kw-2">&amp;mut </span>BitswapBehaviour,
         store: <span class="kw-2">&amp;</span>S,
@@ -296,7 +308,9 @@
         handle_event_impl(<span class="self">self</span>, bitswap, store, event)
     }
 
-    <span class="kw">pub fn </span>get_block(
+    <span class="doccomment">/// Gets a block, writing it to the given block store that implements [BitswapStoreReadWrite] and respond to the channel.
+    /// Note: this method is a non-blocking, it is intended to return immediately.
+    </span><span class="kw">pub fn </span>get_block(
         <span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;,
         store: Arc&lt;<span class="kw">impl </span>BitswapStoreReadWrite&gt;,
         cid: Cid,
