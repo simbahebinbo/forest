@@ -504,28 +504,45 @@
 <a href="#504" id="504">504</a>
 <a href="#505" id="505">505</a>
 <a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::{ElectionProof, Error, Ticket, TipsetKeys};
-<span class="kw">use </span>cid::multihash::Code::Blake2b256;
-<span class="kw">use </span>cid::multihash::MultihashDigest;
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>std::fmt;
+
+<span class="kw">use </span>cid::{
+    multihash::{Code::Blake2b256, MultihashDigest},
+    Cid,
+};
 <span class="kw">use </span>derive_builder::Builder;
 <span class="kw">use </span>forest_beacon::{<span class="self">self</span>, Beacon, BeaconEntry, BeaconSchedule};
 <span class="kw">use </span>forest_encoding::blake2b_256;
-<span class="kw">use </span>forest_shim::bigint::{BigIntDe, BigIntSer};
-<span class="kw">use </span>forest_shim::econ::TokenAmount;
-<span class="kw">use </span>forest_shim::version::NetworkVersion;
+<span class="kw">use </span>forest_shim::{
+    bigint::{BigIntDe, BigIntSer},
+    econ::TokenAmount,
+    version::NetworkVersion,
+};
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error <span class="kw">as </span>EncodingError, DAG_CBOR};
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::crypto::signature::Signature;
-<span class="kw">use </span>fvm_shared::sector::PoStProof;
+<span class="kw">use </span>fvm_shared::{
+    address::Address, clock::ChainEpoch, crypto::signature::Signature, sector::PoStProof,
+};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
-<span class="kw">use </span>std::fmt;
+
+<span class="kw">use super</span>::{ElectionProof, Error, Ticket, TipsetKeys};
 
 <span class="kw">pub mod </span>json;
 
@@ -594,15 +611,18 @@
     </span>miner_address: Address,
 
     <span class="comment">// STATE
-    </span><span class="doccomment">/// `messages` contains the `cid` to the Merkle links for `bls_messages` and `secp_messages`
+    </span><span class="doccomment">/// `messages` contains the `cid` to the Merkle links for `bls_messages` and
+    /// `secp_messages`
     </span><span class="attr">#[builder(default)]
     </span>messages: Cid,
 
-    <span class="doccomment">/// `message_receipts` is the `cid` of the root of an array of `MessageReceipts`
+    <span class="doccomment">/// `message_receipts` is the `cid` of the root of an array of
+    /// `MessageReceipts`
     </span><span class="attr">#[builder(default)]
     </span>message_receipts: Cid,
 
-    <span class="doccomment">/// `state_root` is a `cid` pointer to the parent state root after calculating parent tipset.
+    <span class="doccomment">/// `state_root` is a `cid` pointer to the parent state root after
+    /// calculating parent tipset.
     </span><span class="attr">#[builder(default)]
     </span>state_root: Cid,
 
@@ -616,7 +636,8 @@
     </span>election_proof: <span class="prelude-ty">Option</span>&lt;ElectionProof&gt;,
 
     <span class="comment">// CONSENSUS
-    </span><span class="doccomment">/// timestamp, in seconds since the Unix epoch, at which this block was created
+    </span><span class="doccomment">/// timestamp, in seconds since the Unix epoch, at which this block was
+    /// created
     </span><span class="attr">#[builder(default)]
     </span>timestamp: u64,
     <span class="doccomment">/// the ticket submitted with this block
@@ -634,7 +655,8 @@
     </span><span class="attr">#[builder(default, setter(skip))]
     </span>cached_cid: OnceCell&lt;Cid&gt;,
 
-    <span class="doccomment">/// stores the hashed bytes of the block after the first call to `cached_bytes()`
+    <span class="doccomment">/// stores the hashed bytes of the block after the first call to
+    /// `cached_bytes()`
     </span><span class="attr">#[builder(default, setter(skip))]
     </span>cached_bytes: OnceCell&lt;Vec&lt;u8&gt;&gt;,
 
@@ -854,7 +876,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Validates if the current header&#39;s Beacon entries are valid to ensure randomness was generated correctly
+    <span class="doccomment">/// Validates if the current header&#39;s Beacon entries are valid to ensure
+    /// randomness was generated correctly
     </span><span class="kw">pub fn </span>validate_block_drand&lt;B: Beacon&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         network_version: NetworkVersion,
@@ -927,16 +950,19 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Serializes the header to bytes for signing purposes i.e. without the signature field
+    <span class="doccomment">/// Serializes the header to bytes for signing purposes i.e. without the
+    /// signature field
     </span><span class="kw">pub fn </span>to_signing_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>blk = <span class="self">self</span>.clone();
         blk.signature = <span class="prelude-val">None</span>;
 
-        <span class="comment">// This isn&#39;t required now, but future proofs for if the encoding ever uses a cache.
+        <span class="comment">// This isn&#39;t required now, but future proofs for if the encoding ever uses a
+        // cache.
         </span>blk.cached_bytes = Default::default();
         blk.cached_cid = Default::default();
 
-        <span class="comment">// * Intentionally not using cache here, to avoid using cached bytes with signature encoded.
+        <span class="comment">// * Intentionally not using cache here, to avoid using cached bytes with
+        //   signature encoded.
         </span>fvm_ipld_encoding::to_vec(<span class="kw-2">&amp;</span>blk).expect(<span class="string">&quot;block serialization cannot fail&quot;</span>)
     }
 }
@@ -950,14 +976,14 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use crate</span>::{errors::Error, BlockHeader};
+    <span class="kw">use </span>std::{sync::Arc, time::Duration};
+
     <span class="kw">use </span>forest_beacon::{BeaconEntry, BeaconPoint, BeaconSchedule, MockBeacon};
     <span class="kw">use </span>forest_shim::version::NetworkVersion;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
     <span class="kw">use </span>fvm_shared::address::Address;
 
-    <span class="kw">use </span>std::sync::Arc;
-    <span class="kw">use </span>std::time::Duration;
+    <span class="kw">use crate</span>::{errors::Error, BlockHeader};
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>symmetric_header_encoding() {
@@ -966,9 +992,9 @@
         <span class="kw">let </span>header = BlockHeader::unmarshal_cbor(<span class="kw-2">&amp;</span>bz).unwrap();
         <span class="macro">assert_eq!</span>(header.marshal_cbor().unwrap(), bz);
 
-        <span class="comment">// Verify the signature of this block header using the resolved address used to sign.
-        // This is a valid signature, but if the block header vector changes, the address should
-        // need to as well.
+        <span class="comment">// Verify the signature of this block header using the resolved address used to
+        // sign. This is a valid signature, but if the block header vector
+        // changes, the address should need to as well.
         </span>header
             .check_block_signature(
                 <span class="kw-2">&amp;</span><span class="string">&quot;f3vfs6f7tagrcpnwv65wq3leznbajqyg77bmijrpvoyjv3zjyi3urq25vigfbs3ob6ug5xdihajumtgsxnz2pa&quot;

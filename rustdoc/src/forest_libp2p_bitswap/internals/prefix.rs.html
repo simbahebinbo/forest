@@ -73,16 +73,20 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>std::convert::TryFrom;
+
 <span class="kw">use </span>libipld::cid::{
     multihash::{Code, MultihashDigest},
     Version,
 };
-<span class="kw">use </span>std::convert::TryFrom;
 <span class="kw">use </span>unsigned_varint::{decode <span class="kw">as </span>varint_decode, encode <span class="kw">as </span>varint_encode};
+
+<span class="kw">use crate</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Prefix represents all metadata of a CID, without the actual content.
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Debug)]

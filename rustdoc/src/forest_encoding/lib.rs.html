@@ -26,7 +26,6 @@
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -41,8 +40,7 @@
 <span class="kw">pub use </span>cs_serde_bytes;
 <span class="kw">pub use </span>serde::{de, ser};
 
-<span class="kw">pub use </span><span class="self">self</span>::checked_serde_bytes::serde_byte_array;
-<span class="kw">pub use </span><span class="self">self</span>::hash::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::{checked_serde_bytes::serde_byte_array, hash::<span class="kw-2">*</span>};
 
 <span class="kw">pub mod </span>tuple {
     <span class="kw">pub use </span>serde_tuple::{<span class="self">self</span>, Deserialize_tuple, Serialize_tuple};
@@ -51,8 +49,8 @@
 <span class="kw">pub mod </span>repr {
     <span class="kw">pub use </span>serde_repr::{Deserialize_repr, Serialize_repr};
 }
-<span class="doccomment">/// lotus use cbor-gen for generating codec for types, it has a length limit for byte
-/// array as `2 &lt;&lt; 20`
+<span class="doccomment">/// lotus use cbor-gen for generating codec for types, it has a length limit for
+/// byte array as `2 &lt;&lt; 20`
 ///
 /// &lt;https://github.com/whyrusleeping/cbor-gen/blob/f57984553008dd4285df16d4ec2760f97977d713/gen.go#L16&gt;
 </span><span class="kw">pub const </span>BYTE_ARRAY_MAX_LEN: usize = <span class="number">2 </span>&lt;&lt; <span class="number">20</span>;

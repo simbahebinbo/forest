@@ -20,12 +20,14 @@
 <a href="#20" id="20">20</a>
 <a href="#21" id="21">21</a>
 <a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>libp2p::request_response::ProtocolName;
+
+<span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span><span class="kw">crate</span>::rpc::CborRequestResponse;
-<span class="kw">use </span>libp2p::request_response::ProtocolName;
 
 <span class="doccomment">/// Libp2p Hello protocol ID.
 </span><span class="kw">pub const </span>HELLO_PROTOCOL_ID: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;/fil/hello/1.0.0&quot;</span>;

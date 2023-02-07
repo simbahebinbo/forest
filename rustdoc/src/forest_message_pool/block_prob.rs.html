@@ -130,8 +130,9 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>statrs::function::gamma::ln_gamma;
-<span class="kw">use </span>std::f64::consts::E;
+</span><span class="kw">use </span>std::f64::consts::E;
+
+<span class="kw">use </span>statrs::function::gamma::ln_gamma;
 
 <span class="kw">const </span>MAX_BLOCKS: usize = <span class="number">15</span>;
 <span class="kw">const </span>MU: f64 = <span class="number">5.0</span>;
@@ -154,8 +155,8 @@
         .collect()
 }
 
-<span class="doccomment">/// Calculate the number of winners for each block number, up to [`MAX_BLOCKS`], assuming at least
-/// one winner.
+<span class="doccomment">/// Calculate the number of winners for each block number, up to [`MAX_BLOCKS`],
+/// assuming at least one winner.
 </span><span class="kw">fn </span>no_winners_prob_assuming_more_than_one() -&gt; Vec&lt;f64&gt; {
     <span class="kw">let </span>cond = (E.powf(<span class="number">5.0</span>) - <span class="number">1.0</span>).log(E);
     (<span class="number">0</span>..MAX_BLOCKS)
@@ -233,8 +234,7 @@
 <span class="attr">#[test]
 #[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
 </span><span class="kw">fn </span>test_winner_probability() {
-    <span class="kw">use </span>rand::thread_rng;
-    <span class="kw">use </span>rand::Rng;
+    <span class="kw">use </span>rand::{thread_rng, Rng};
     <span class="kw">let </span>n = <span class="number">1_000_000</span>;
     <span class="kw">let </span>winner_prob = no_winners_prob();
     <span class="kw">let </span><span class="kw-2">mut </span>sum = <span class="number">0.0</span>;

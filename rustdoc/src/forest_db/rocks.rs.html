@@ -321,13 +321,12 @@
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
 <a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::errors::Error;
-<span class="kw">use </span><span class="kw">super</span>::Store;
-<span class="kw">use </span><span class="kw">crate</span>::rocks_config::RocksDbConfig;
-<span class="kw">use crate</span>::{metrics, DBStatistics};
+</span><span class="kw">use </span>std::{path::Path, sync::Arc};
+
 <span class="kw">use </span>anyhow::anyhow;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
@@ -336,7 +335,9 @@
     BlockBasedOptions, Cache, DBCompactionStyle, DBCompressionType, DataBlockIndexType, LogLevel,
     Options, WriteBatch, WriteOptions, DB,
 };
-<span class="kw">use </span>std::{path::Path, sync::Arc};
+
+<span class="kw">use super</span>::{errors::Error, Store};
+<span class="kw">use crate</span>::{metrics, rocks_config::RocksDbConfig, DBStatistics};
 
 <span class="macro">lazy_static::lazy_static! </span>{
     <span class="kw">static </span><span class="kw-2">ref </span>WRITE_OPT_NO_WAL: WriteOptions = {
@@ -409,8 +410,9 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>rocksdb::DBCompactionStyle;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>compaction_style_from_str_test() {
@@ -630,8 +632,8 @@
 }
 
 <span class="kw">impl </span>BitswapStoreReadWrite <span class="kw">for </span>RocksDb {
-    <span class="doccomment">/// `fvm_ipld_encoding::DAG_CBOR(0x71)` is covered by [`libipld::DefaultParams`]
-    /// under feature `dag-cbor`
+    <span class="doccomment">/// `fvm_ipld_encoding::DAG_CBOR(0x71)` is covered by
+    /// [`libipld::DefaultParams`] under feature `dag-cbor`
     </span><span class="kw">type </span>Params = libipld::DefaultParams;
 
     <span class="kw">fn </span>insert(<span class="kw-2">&amp;</span><span class="self">self</span>, block: <span class="kw-2">&amp;</span>libipld::Block&lt;<span class="self">Self</span>::Params&gt;) -&gt; anyhow::Result&lt;()&gt; {

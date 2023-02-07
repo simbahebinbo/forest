@@ -17,6 +17,8 @@
 <a href="#17" id="17">17</a>
 <a href="#18" id="18">18</a>
 <a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -31,10 +33,12 @@
 <span class="kw">mod </span>tipset_syncer;
 <span class="kw">mod </span>validation;
 
-<span class="kw">pub use </span><span class="self">self</span>::bad_block_cache::BadBlockCache;
-<span class="kw">pub use </span><span class="self">self</span>::chain_muxer::{ChainMuxer, SyncConfig};
-<span class="kw">pub use </span><span class="self">self</span>::consensus::{collect_errs, Consensus};
-<span class="kw">pub use </span><span class="self">self</span>::sync_state::{SyncStage, SyncState};
-<span class="kw">pub use </span><span class="self">self</span>::validation::TipsetValidator;
+<span class="kw">pub use </span><span class="self">self</span>::{
+    bad_block_cache::BadBlockCache,
+    chain_muxer::{ChainMuxer, SyncConfig},
+    consensus::{collect_errs, Consensus},
+    sync_state::{SyncStage, SyncState},
+    validation::TipsetValidator,
+};
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest_chain_sync" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (e972bc808 2023-01-29)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

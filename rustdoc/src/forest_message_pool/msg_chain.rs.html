@@ -532,38 +532,55 @@
 <a href="#532" id="532">532</a>
 <a href="#533" id="533">533</a>
 <a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
+<a href="#536" id="536">536</a>
+<a href="#537" id="537">537</a>
+<a href="#538" id="538">538</a>
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::errors::Error;
-<span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
-<span class="kw">use </span><span class="kw">crate</span>::utils::{get_gas_perf, get_gas_reward};
+</span><span class="kw">use </span>std::{
+    cmp::Ordering,
+    mem,
+    ops::{Index, IndexMut},
+};
+
 <span class="kw">use </span>ahash::HashMap;
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_message::{Message, SignedMessage};
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>num_traits::Zero;
 <span class="kw">use </span>slotmap::{new_key_type, SlotMap};
-<span class="kw">use </span>std::cmp::Ordering;
-<span class="kw">use </span>std::mem;
-<span class="kw">use </span>std::ops::{Index, IndexMut};
+
+<span class="kw">use </span><span class="kw">super</span>::errors::Error;
+<span class="kw">use crate</span>::{
+    provider::Provider,
+    utils::{get_gas_perf, get_gas_reward},
+};
 
 <span class="macro">new_key_type! </span>{
     <span class="kw">pub struct </span>NodeKey;
 }
 
 <span class="doccomment">/// Chains is an abstraction of a list of message chain nodes.
-/// It wraps a `SlotMap` instance. `key_vec` is an additional requirement in order to satisfy
-/// optimal `msg` selection use cases, such as iteration in insertion order.
-/// The `SlotMap` serves as a lookup table for nodes to get around the borrow checker rules.
-/// Each `MsgChainNode` contains only pointers as `NodeKey` to the entries in the map
-/// With this design, we get around the borrow checker rule issues when
-/// implementing the optimal selection algorithm.
+/// It wraps a `SlotMap` instance. `key_vec` is an additional requirement in
+/// order to satisfy optimal `msg` selection use cases, such as iteration in
+/// insertion order. The `SlotMap` serves as a lookup table for nodes to get
+/// around the borrow checker rules. Each `MsgChainNode` contains only pointers
+/// as `NodeKey` to the entries in the map With this design, we get around the
+/// borrow checker rule issues when implementing the optimal selection
+/// algorithm.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Chains {
     <span class="kw">pub </span>map: SlotMap&lt;NodeKey, MsgChainNode&gt;,
     <span class="kw">pub </span>key_vec: Vec&lt;NodeKey&gt;,
@@ -577,13 +594,15 @@
         }
     }
 
-    <span class="doccomment">/// Pushes a `msg` chain node into slot map and places the key in the `node_vec` passed as parameter.
+    <span class="doccomment">/// Pushes a `msg` chain node into slot map and places the key in the
+    /// `node_vec` passed as parameter.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>push_with(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cur_chain: MsgChainNode, node_vec: <span class="kw-2">&amp;mut </span>Vec&lt;NodeKey&gt;) {
         <span class="kw">let </span>key = <span class="self">self</span>.map.insert(cur_chain);
         node_vec.push(key);
     }
 
-    <span class="doccomment">/// Sorts the chains with `compare` method. If rev is true, sorts in descending order.
+    <span class="doccomment">/// Sorts the chains with `compare` method. If rev is true, sorts in
+    /// descending order.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>sort(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rev: bool) {
         <span class="comment">// replace dance to get around borrow checker
         </span><span class="kw">let </span><span class="kw-2">mut </span>chains = mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.key_vec);
@@ -627,8 +646,9 @@
         <span class="self">self</span>.map.get_mut(k)
     }
 
-    <span class="doccomment">/// Retrieves the `msg` chain node by the given `NodeKey` along with the data
-    /// required from previous chain (if exists) to set effective performance of this node.
+    <span class="doccomment">/// Retrieves the `msg` chain node by the given `NodeKey` along with the
+    /// data required from previous chain (if exists) to set effective
+    /// performance of this node.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_mut_with_prev_eff(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         k: NodeKey,
@@ -685,8 +705,8 @@
         <span class="self">self</span>.map.len()
     }
 
-    <span class="doccomment">/// Returns true is the chain is empty and otherwise. We check the map as the source of truth
-    /// as `key_vec` can be extended time to time.
+    <span class="doccomment">/// Returns true is the chain is empty and otherwise. We check the map as
+    /// the source of truth as `key_vec` can be extended time to time.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.map.is_empty()
     }
@@ -881,12 +901,13 @@
     msgs.sort_by_key(|v| v.sequence());
 
     <span class="comment">// sanity checks:
-    // - there can be no gaps in nonces, starting from the current actor nonce
-    //   if there is a gap, drop messages after the gap, we can&#39;t include them
-    // - all messages must have minimum gas and the total gas for the candidate messages
-    //   cannot exceed the block limit; drop all messages that exceed the limit
-    // - the total gasReward cannot exceed the actor&#39;s balance; drop all messages that exceed
-    //   the balance
+    // - there can be no gaps in nonces, starting from the current actor nonce if
+    //   there is a gap, drop messages after the gap, we can&#39;t include them
+    // - all messages must have minimum gas and the total gas for the candidate
+    //   messages cannot exceed the block limit; drop all messages that exceed the
+    //   limit
+    // - the total gasReward cannot exceed the actor&#39;s balance; drop all messages
+    //   that exceed the balance
     </span><span class="kw">let </span>actor_state = api.get_actor_after(actor, ts)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>cur_seq = actor_state.sequence;
     <span class="kw">let </span><span class="kw-2">mut </span>balance: TokenAmount =
@@ -971,7 +992,8 @@
         }
     };
 
-    <span class="comment">// creates msg chain nodes in chunks based on gas_perf obtained from the current chain&#39;s gas limit.
+    <span class="comment">// creates msg chain nodes in chunks based on gas_perf obtained from the current
+    // chain&#39;s gas limit.
     </span><span class="kw">for </span>(i, m) <span class="kw">in </span>msgs.into_iter().enumerate() {
         <span class="kw">if </span>i == <span class="number">0 </span>{
             cur_chain = new_chain(m, i);
@@ -982,8 +1004,8 @@
         <span class="kw">let </span>gas_limit = cur_chain.gas_limit + m.gas_limit();
         <span class="kw">let </span>gas_perf = get_gas_perf(<span class="kw-2">&amp;</span>gas_reward, gas_limit);
 
-        <span class="comment">// try to add the message to the current chain -- if it decreases the gasPerf, then make a
-        // new chain
+        <span class="comment">// try to add the message to the current chain -- if it decreases the gasPerf,
+        // then make a new chain
         </span><span class="kw">if </span>gas_perf &lt; cur_chain.gas_perf {
             chains.push_with(cur_chain, <span class="kw-2">&amp;mut </span>node_vec);
             cur_chain = new_chain(m, i);

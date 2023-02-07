@@ -83,6 +83,10 @@
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -90,19 +94,22 @@
 <span class="kw">mod </span>tempfile;
 <span class="kw">mod </span>writer_checksum;
 
+<span class="kw">use </span>std::{
+    fs::{create_dir_all, File},
+    io::{prelude::<span class="kw-2">*</span>, <span class="prelude-ty">Result</span>},
+    path::Path,
+};
+
 <span class="kw">pub use </span>progress_bar::{ProgressBar, ProgressBarVisibility};
 <span class="kw">pub use </span>tempfile::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>writer_checksum::<span class="kw-2">*</span>;
 
-<span class="kw">use </span>std::fs::{create_dir_all, File};
-<span class="kw">use </span>std::io::{prelude::<span class="kw-2">*</span>, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span>std::path::Path;
-
 <span class="doccomment">/// Restricts permissions on a file to user-only: 0600
 </span><span class="attr">#[cfg(unix)]
 </span><span class="kw">pub fn </span>set_user_perm(file: <span class="kw-2">&amp;</span>File) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="kw">use </span>log::info;
     <span class="kw">use </span>std::os::unix::fs::PermissionsExt;
+
+    <span class="kw">use </span>log::info;
 
     <span class="kw">let </span><span class="kw-2">mut </span>perm = file.metadata()<span class="question-mark">?</span>.permissions();
     <span class="attr">#[allow(clippy::useless_conversion)] </span><span class="comment">// Otherwise it does not build on macos
@@ -119,8 +126,9 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Writes a string to a specified file. Creates the desired path if it does not exist.
-/// Note: `path` and `filename` are appended to produce the resulting file path.
+<span class="doccomment">/// Writes a string to a specified file. Creates the desired path if it does not
+/// exist. Note: `path` and `filename` are appended to produce the resulting
+/// file path.
 </span><span class="kw">pub fn </span>write_to_file(message: <span class="kw-2">&amp;</span>[u8], path: <span class="kw-2">&amp;</span>Path, file_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;File&gt; {
     <span class="comment">// Create path if it doesn&#39;t exist
     </span>create_dir_all(path)<span class="question-mark">?</span>;

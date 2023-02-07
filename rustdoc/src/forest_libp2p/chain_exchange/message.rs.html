@@ -274,24 +274,30 @@
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>std::{convert::TryFrom, sync::Arc};
+
+<span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, BLOCK_MESSAGE_LIMIT};
 <span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::sync::Arc;
 
 <span class="doccomment">/// `ChainExchange` Filecoin header set bit.
 </span><span class="kw">pub const </span>HEADERS: u64 = <span class="number">0b01</span>;
 <span class="doccomment">/// `ChainExchange` Filecoin messages set bit.
 </span><span class="kw">pub const </span>MESSAGES: u64 = <span class="number">0b10</span>;
 
-<span class="doccomment">/// The payload that gets sent to another node to request for blocks and messages.
+<span class="doccomment">/// The payload that gets sent to another node to request for blocks and
+/// messages.
 </span><span class="attr">#[derive(Clone, Debug, PartialEq, Eq, Serialize_tuple, Deserialize_tuple)]
 </span><span class="kw">pub struct </span>ChainExchangeRequest {
     <span class="doccomment">/// The tipset [Cid] to start the request from.
@@ -308,7 +314,8 @@
         <span class="self">self</span>.options &amp; HEADERS &gt; <span class="number">0
     </span>}
 
-    <span class="doccomment">/// If a request has the [MESSAGES] bit set and requests messages of a block.
+    <span class="doccomment">/// If a request has the [MESSAGES] bit set and requests messages of a
+    /// block.
     </span><span class="kw">pub fn </span>include_messages(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.options &amp; MESSAGES &gt; <span class="number">0
     </span>}
@@ -404,7 +411,8 @@
 <span class="kw">impl </span>ChainExchangeResponse {
     <span class="doccomment">/// Converts `chain_exchange` response into result.
     /// Returns an error if the response status is not `Ok`.
-    /// Tipset bundle is converted into generic return type with `TryFrom` trait implementation.
+    /// Tipset bundle is converted into generic return type with `TryFrom` trait
+    /// implementation.
     </span><span class="kw">pub fn </span>into_result&lt;T&gt;(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;T&gt;, String&gt;
     <span class="kw">where
         </span>T: TryFrom&lt;TipsetBundle, Error = String&gt;,
@@ -483,7 +491,8 @@
     }
 }
 
-<span class="doccomment">/// Constructs a [`FullTipset`] from headers and compacted messages from a bundle.
+<span class="doccomment">/// Constructs a [`FullTipset`] from headers and compacted messages from a
+/// bundle.
 </span><span class="kw">fn </span>fts_from_bundle_parts(
     headers: Vec&lt;BlockHeader&gt;,
     messages: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>CompactedMessages&gt;,
@@ -539,9 +548,10 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[quickcheck]
     </span><span class="kw">fn </span>chain_exchange_response_status_roundtrip(status: ChainExchangeResponseStatus) {

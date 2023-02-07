@@ -370,30 +370,36 @@
 <a href="#370" id="370">370</a>
 <a href="#371" id="371">371</a>
 <a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::fvm::ForestExterns;
+</span><span class="kw">use </span>std::sync::Arc;
+
 <span class="kw">use </span>ahash::HashSet;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
 <span class="kw">use </span>forest_message::ChainMessage;
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_shim::error::ExitCode;
-<span class="kw">use </span>forest_shim::Inner;
-<span class="kw">use </span>fvm::executor::{ApplyRet, DefaultExecutor};
-<span class="kw">use </span>fvm::externs::Rand;
-<span class="kw">use </span>fvm::machine::{DefaultMachine, Machine, MultiEngine, NetworkConfig};
+<span class="kw">use </span>forest_shim::{error::ExitCode, Inner};
+<span class="kw">use </span>fvm::{
+    executor::{ApplyRet, DefaultExecutor},
+    externs::Rand,
+    machine::{DefaultMachine, Machine, MultiEngine, NetworkConfig},
+};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::receipt::Receipt;
-<span class="kw">use </span>fvm_shared::{BLOCK_GAS_LIMIT, METHOD_SEND};
+<span class="kw">use </span>fvm_shared::{
+    address::Address, clock::ChainEpoch, econ::TokenAmount, message::Message, receipt::Receipt,
+    BLOCK_GAS_LIMIT, METHOD_SEND,
+};
 <span class="kw">use </span>num::Zero;
-<span class="kw">use </span>std::sync::Arc;
+
+<span class="kw">use </span><span class="kw">crate</span>::fvm::ForestExterns;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ForestMachine&lt;DB&gt; = DefaultMachine&lt;DB, ForestExterns&lt;DB&gt;&gt;;
 
@@ -407,7 +413,8 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;instrumented_kernel&quot;</span>)]
 </span><span class="kw">type </span>ForestExecutor&lt;DB&gt; = DefaultExecutor&lt;<span class="kw">crate</span>::instrumented_kernel::ForestInstrumentedKernel&lt;DB&gt;&gt;;
 
-<span class="doccomment">/// Contains all messages to process through the VM as well as miner information for block rewards.
+<span class="doccomment">/// Contains all messages to process through the VM as well as miner information
+/// for block rewards.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>BlockMessages {
     <span class="kw">pub </span>miner: Address,
@@ -417,7 +424,8 @@
 
 <span class="doccomment">/// Allows the generation of a reward message based on gas fees and penalties.
 ///
-/// This should facilitate custom consensus protocols using their own economic incentives.
+/// This should facilitate custom consensus protocols using their own economic
+/// incentives.
 </span><span class="kw">pub trait </span>RewardCalc: Send + Sync + <span class="lifetime">&#39;static </span>{
     <span class="doccomment">/// Construct a reward message, if rewards are applicable.
     </span><span class="kw">fn </span>reward_message(
@@ -430,8 +438,8 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt;;
 }
 
-<span class="doccomment">/// Interpreter which handles execution of state transitioning messages and returns receipts
-/// from the VM execution.
+<span class="doccomment">/// Interpreter which handles execution of state transitioning messages and
+/// returns receipts from the VM execution.
 </span><span class="kw">pub struct </span>VM&lt;DB: Blockstore + <span class="lifetime">&#39;static</span>&gt; {
     fvm_executor: ForestExecutor&lt;DB&gt;,
     reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
@@ -612,7 +620,8 @@
     }
 
     <span class="doccomment">/// Applies the state transition for a single message.
-    /// Returns `ApplyRet` structure which contains the message receipt and some meta data.
+    /// Returns `ApplyRet` structure which contains the message receipt and some
+    /// meta data.
     </span><span class="kw">pub fn </span>apply_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>ChainMessage) -&gt; <span class="prelude-ty">Result</span>&lt;ApplyRet, anyhow::Error&gt; {
         check_message(msg.message())<span class="question-mark">?</span>;
 
@@ -710,8 +719,9 @@
     }
 }
 
-<span class="doccomment">/// Giving a fixed amount of coins for each block produced directly to the miner,
-/// on top of the gas spent, so the circulating supply isn&#39;t burned. Ignores penalties.
+<span class="doccomment">/// Giving a fixed amount of coins for each block produced directly to the
+/// miner, on top of the gas spent, so the circulating supply isn&#39;t burned.
+/// Ignores penalties.
 </span><span class="kw">pub struct </span>FixedRewardCalc {
     <span class="kw">pub </span>reward: TokenAmount,
 }

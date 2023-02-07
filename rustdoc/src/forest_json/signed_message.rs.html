@@ -218,16 +218,18 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">pub mod </span>json {
-    <span class="kw">use crate</span>::{message, signature};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_message::SignedMessage;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-    <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
-    <span class="kw">use </span>fvm_shared::message::Message;
+    <span class="kw">use </span>fvm_shared::{crypto::signature::Signature, message::Message};
     <span class="kw">use </span>serde::{ser, Deserialize, Deserializer, Serialize, Serializer};
+
+    <span class="kw">use crate</span>::{message, signature};
 
     <span class="doccomment">/// Wrapper for serializing and de-serializing a `SignedMessage` from JSON.
     </span><span class="attr">#[derive(Deserialize, Serialize)]
@@ -290,9 +292,10 @@
     }
 
     <span class="kw">pub mod </span>vec {
-        <span class="kw">use super</span>::<span class="kw-2">*</span>;
         <span class="kw">use </span>forest_utils::json::GoVecVisitor;
         <span class="kw">use </span>serde::ser::SerializeSeq;
+
+        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">pub fn </span>serialize&lt;S&gt;(m: <span class="kw-2">&amp;</span>[SignedMessage], serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
         <span class="kw">where
@@ -316,19 +319,20 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">super</span>::json::{SignedMessageJson, SignedMessageJsonRef};
-    <span class="kw">use </span><span class="kw">crate</span>::message;
-    <span class="kw">use </span><span class="kw">crate</span>::message::json::{MessageJson, MessageJsonRef};
     <span class="kw">use </span>forest_message::{<span class="self">self</span>, SignedMessage};
     <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
-    <span class="kw">use </span>fvm_shared::address::Address;
-    <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
-    <span class="kw">use </span>fvm_shared::econ::TokenAmount;
-    <span class="kw">use </span>fvm_shared::message::Message;
+    <span class="kw">use </span>fvm_shared::{
+        address::Address, crypto::signature::Signature, econ::TokenAmount, message::Message,
+    };
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde::{Deserialize, Serialize};
-    <span class="kw">use </span>serde_json;
-    <span class="kw">use </span>serde_json::{from_str, to_string};
+    <span class="kw">use </span>serde_json::{<span class="self">self</span>, from_str, to_string};
+
+    <span class="kw">use </span><span class="kw">super</span>::json::{SignedMessageJson, SignedMessageJsonRef};
+    <span class="kw">use crate</span>::{
+        message,
+        message::json::{MessageJson, MessageJsonRef},
+    };
 
     <span class="attr">#[derive(Clone, Debug, PartialEq)]
     </span><span class="kw">struct </span>SignedMessageWrapper(SignedMessage);

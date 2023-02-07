@@ -25,12 +25,14 @@
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::call;
-<span class="kw">use </span>forest_rpc_api::sync_api::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>forest_rpc_api::sync_api::<span class="kw-2">*</span>;
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
+
+<span class="kw">use </span><span class="kw">crate</span>::call;
 
 <span class="kw">pub async fn </span>sync_check_bad(
     params: SyncCheckBadParams,

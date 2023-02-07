@@ -105,27 +105,33 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::errors::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::StateManager;
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::miner;
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::generate_winning_post_sector_challenge;
 <span class="kw">use </span>forest_shim::version::NetworkVersion;
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::randomness::Randomness;
-<span class="kw">use </span>fvm_shared::sector::{RegisteredSealProof, SectorInfo};
+<span class="kw">use </span>fvm_shared::{
+    address::Address,
+    randomness::Randomness,
+    sector::{RegisteredSealProof, SectorInfo},
+};
+
+<span class="kw">use crate</span>::{errors::<span class="kw-2">*</span>, StateManager};
 
 <span class="kw">impl</span>&lt;DB&gt; StateManager&lt;DB&gt;
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-    <span class="doccomment">/// Retrieves and generates a vector of sector info for the winning `PoSt` verification.
+    <span class="doccomment">/// Retrieves and generates a vector of sector info for the winning `PoSt`
+    /// verification.
     </span><span class="kw">pub fn </span>get_sectors_for_winning_post(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         st: <span class="kw-2">&amp;</span>Cid,

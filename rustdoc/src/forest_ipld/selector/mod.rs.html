@@ -400,51 +400,66 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">mod </span>empty_map;
 <span class="kw">mod </span>walk;
-<span class="kw">pub use </span><span class="self">self</span>::walk::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::ops::SubAssign;
 
-<span class="kw">use </span><span class="kw">super</span>::Ipld;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>indexmap::IndexMap;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::ops::SubAssign;
 <span class="kw">use </span>Selector::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// Selectors are expressions that identify and select a subset of data from an IPLD DAG.
-/// Selectors are themselves IPLD and can be serialized and de-serialized as such.
+<span class="kw">pub use </span><span class="self">self</span>::walk::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">super</span>::Ipld;
+
+<span class="doccomment">/// Selectors are expressions that identify and select a subset of data from an
+/// IPLD DAG. Selectors are themselves IPLD and can be serialized and
+/// de-serialized as such.
 </span><span class="attr">#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>Selector {
     <span class="doccomment">/// `Matcher` marks a node to be included in the &quot;result&quot; set.
-    /// (All nodes traversed by a selector are in the &quot;covered&quot; set (which is a.k.a.
-    /// &quot;the Merkle proof&quot;); the &quot;result&quot; set is a subset of the &quot;covered&quot; set.)
+    /// (All nodes traversed by a selector are in the &quot;covered&quot; set (which is
+    /// a.k.a. &quot;the Merkle proof&quot;); the &quot;result&quot; set is a subset of the
+    /// &quot;covered&quot; set.)
     ///
     /// In libraries using selectors, the &quot;result&quot; set is typically provided to
     /// some user-specified callback.
     ///
-    /// A selector tree with only &quot;explore*&quot;-type selectors and no `Matcher` selectors
-    /// is valid; it will just generate a &quot;covered&quot; set of nodes and no &quot;result&quot; set.
+    /// A selector tree with only &quot;explore*&quot;-type selectors and no `Matcher`
+    /// selectors is valid; it will just generate a &quot;covered&quot; set of nodes
+    /// and no &quot;result&quot; set.
     </span><span class="attr">#[serde(rename = <span class="string">&quot;.&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
     </span>Matcher,
 
-    <span class="doccomment">/// `ExploreAll` is similar to a `*` -- it traverses all elements of an array,
-    /// or all entries in a map, and applies a next selector to the reached nodes.
+    <span class="doccomment">/// `ExploreAll` is similar to a `*` -- it traverses all elements of an
+    /// array, or all entries in a map, and applies a next selector to the
+    /// reached nodes.
     </span><span class="attr">#[serde(rename = <span class="string">&quot;a&quot;</span>)]
     </span>ExploreAll {
         <span class="attr">#[serde(rename = <span class="string">&quot;&gt;&quot;</span>)]
         </span>next: Box&lt;Selector&gt;,
     },
 
-    <span class="doccomment">/// `ExploreFields` traverses named fields in a map (or equivalently, structure, if
-    /// traversing on typed/schema nodes) and applies a next selector to the
-    /// reached nodes.
+    <span class="doccomment">/// `ExploreFields` traverses named fields in a map (or equivalently,
+    /// structure, if traversing on typed/schema nodes) and applies a next
+    /// selector to the reached nodes.
     ///
-    /// Note that a concept of exploring a whole path (e.g. &quot;path/to/file&quot;) can be
-    /// represented as a set of three nested `ExploreFields` selectors, each
-    /// specifying one field.
+    /// Note that a concept of exploring a whole path (e.g. &quot;path/to/file&quot;) can
+    /// be represented as a set of three nested `ExploreFields` selectors,
+    /// each specifying one field.
     ///
     /// Fields insertion order is maintained and traversed using that order.
     </span><span class="attr">#[serde(rename = <span class="string">&quot;f&quot;</span>)]
@@ -463,8 +478,8 @@
         </span>next: Box&lt;Selector&gt;,
     },
 
-    <span class="doccomment">/// `ExploreRange` traverses a list, and for each element in the range specified,
-    /// will apply a next selector to those reached nodes.
+    <span class="doccomment">/// `ExploreRange` traverses a list, and for each element in the range
+    /// specified, will apply a next selector to those reached nodes.
     </span><span class="attr">#[serde(rename = <span class="string">&quot;r&quot;</span>)]
     </span>ExploreRange {
         <span class="attr">#[serde(rename = <span class="string">&quot;^&quot;</span>)]
@@ -476,15 +491,17 @@
     },
 
     <span class="doccomment">/// `ExploreRecursive` traverses some structure recursively.
-    /// To guide this exploration, it uses a &quot;sequence&quot;, which is another Selector
-    /// tree; some leaf node in this sequence should contain an `ExploreRecursiveEdge`
-    /// selector, which denotes the place recursion should occur.
+    /// To guide this exploration, it uses a &quot;sequence&quot;, which is another
+    /// Selector tree; some leaf node in this sequence should contain an
+    /// `ExploreRecursiveEdge` selector, which denotes the place recursion
+    /// should occur.
     ///
-    /// In implementation, whenever evaluation reaches an `ExploreRecursiveEdge` marker
-    /// in the recursion sequence&#39;s Selector tree, the implementation logically
-    /// produces another new Selector which is a copy of the original
-    /// `ExploreRecursive` selector, but with a decremented depth parameter for limit
-    /// (if limit is of type depth), and continues evaluation.
+    /// In implementation, whenever evaluation reaches an `ExploreRecursiveEdge`
+    /// marker in the recursion sequence&#39;s Selector tree, the implementation
+    /// logically produces another new Selector which is a copy of the
+    /// original `ExploreRecursive` selector, but with a decremented depth
+    /// parameter for limit (if limit is of type depth), and continues
+    /// evaluation.
     ///
     /// It is not valid for an `ExploreRecursive` selector&#39;s sequence to contain
     /// no instances of `ExploreRecursiveEdge`; it *is* valid for it to contain
@@ -493,18 +510,20 @@
     /// `ExploreRecursive` can contain a nested `ExploreRecursive`!
     /// This is comparable to a nested for-loop.
     /// In these cases, any `ExploreRecursiveEdge` instance always refers to the
-    /// nearest parent `ExploreRecursive` (in other words, `ExploreRecursiveEdge` can
-    /// be thought of like the &#39;continue&#39; statement, or end of a for-loop body;
-    /// it is *not* a `goto` statement).
+    /// nearest parent `ExploreRecursive` (in other words,
+    /// `ExploreRecursiveEdge` can be thought of like the &#39;continue&#39;
+    /// statement, or end of a for-loop body; it is *not* a `goto`
+    /// statement).
     ///
-    /// Be careful when using `ExploreRecursive` with a large depth limit parameter;
-    /// it can easily cause very large traversals (especially if used in combination
-    /// with selectors like `ExploreAll` inside the sequence).
+    /// Be careful when using `ExploreRecursive` with a large depth limit
+    /// parameter; it can easily cause very large traversals (especially if
+    /// used in combination with selectors like `ExploreAll` inside the
+    /// sequence).
     ///
-    /// limit is a union type -- it can have an integer depth value (key &quot;depth&quot;) or
-    /// no value (key &quot;none&quot;). If limit has no value it is up to the
-    /// implementation library using selectors to identify an appropriate max depth
-    /// as necessary so that recursion is not infinite
+    /// limit is a union type -- it can have an integer depth value (key
+    /// &quot;depth&quot;) or no value (key &quot;none&quot;). If limit has no value it is up to
+    /// the implementation library using selectors to identify an
+    /// appropriate max depth as necessary so that recursion is not infinite
     </span><span class="attr">#[serde(rename = <span class="string">&quot;R&quot;</span>)]
     </span>ExploreRecursive {
         <span class="attr">#[serde(rename = <span class="string">&quot;:&gt;&quot;</span>)]
@@ -519,24 +538,26 @@
         </span>current: <span class="prelude-ty">Option</span>&lt;Box&lt;Selector&gt;&gt;,
     },
 
-    <span class="doccomment">/// `ExploreUnion` allows selection to continue with two or more distinct selectors
-    /// while exploring the same tree of data.
+    <span class="doccomment">/// `ExploreUnion` allows selection to continue with two or more distinct
+    /// selectors while exploring the same tree of data.
     ///
-    /// `ExploreUnion` can be used to apply a `Matcher` on one node (causing it to
-    /// be considered part of a (possibly labeled) result set), while simultaneously
-    /// continuing to explore deeper parts of the tree with another selector,
-    /// for example.
+    /// `ExploreUnion` can be used to apply a `Matcher` on one node (causing it
+    /// to be considered part of a (possibly labeled) result set), while
+    /// simultaneously continuing to explore deeper parts of the tree with
+    /// another selector, for example.
     </span><span class="attr">#[serde(rename = <span class="string">&quot;|&quot;</span>)]
     </span>ExploreUnion(Vec&lt;Selector&gt;),
 
     <span class="doccomment">/// `ExploreRecursiveEdge` is a special sentinel value which is used to mark
-    /// the end of a sequence started by an `ExploreRecursive` selector: the recursion
-    /// goes back to the initial state of the earlier `ExploreRecursive` selector,
-    /// and proceeds again (with a decremented `maxDepth` value).
+    /// the end of a sequence started by an `ExploreRecursive` selector: the
+    /// recursion goes back to the initial state of the earlier
+    /// `ExploreRecursive` selector, and proceeds again (with a decremented
+    /// `maxDepth` value).
     ///
-    /// An `ExploreRecursive` selector that doesn&#39;t contain an `ExploreRecursiveEdge`
-    /// is nonsensical.  Containing more than one `ExploreRecursiveEdge` is valid.
-    /// An `ExploreRecursiveEdge` without an enclosing `ExploreRecursive` is an error.
+    /// An `ExploreRecursive` selector that doesn&#39;t contain an
+    /// `ExploreRecursiveEdge` is nonsensical.  Containing more than one
+    /// `ExploreRecursiveEdge` is valid. An `ExploreRecursiveEdge` without
+    /// an enclosing `ExploreRecursive` is an error.
     </span><span class="attr">#[serde(rename = <span class="string">&quot;@&quot;</span>, with = <span class="string">&quot;empty_map&quot;</span>)]
     </span>ExploreRecursiveEdge,
     <span class="comment">//* No conditional explore impl exists, ignore for now
@@ -573,8 +594,6 @@
 ///   - in `Matcher`, to determine if a node is selected.
 ///   - in `ExploreRecursive`, to halt exploration.
 ///   - in `ExploreConditional`,
-///
-///
 </span><span class="comment">// TODO -- Condition is very skeletal and incomplete.
 // TODO -- The place where Condition appears in other structures is correct;
 // TODO -- the rest of the details inside it are not final nor even completely drafted.
@@ -599,7 +618,8 @@
 }
 
 <span class="kw">impl </span>Selector {
-    <span class="doccomment">/// Returns a vector of all sectors of interest, `None` variant is synonymous with all.
+    <span class="doccomment">/// Returns a vector of all sectors of interest, `None` variant is
+    /// synonymous with all.
     </span><span class="kw">pub fn </span>interests(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;String&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             ExploreAll { .. } =&gt; <span class="prelude-val">None</span>,

@@ -967,18 +967,31 @@
 <a href="#967" id="967">967</a>
 <a href="#968" id="968">968</a>
 <a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::bad_block_cache::BadBlockCache;
-<span class="kw">use </span><span class="kw">crate</span>::consensus::Consensus;
-<span class="kw">use </span><span class="kw">crate</span>::metrics;
-<span class="kw">use </span><span class="kw">crate</span>::network_context::SyncNetworkContext;
-<span class="kw">use </span><span class="kw">crate</span>::sync_state::SyncState;
-<span class="kw">use </span><span class="kw">crate</span>::tipset_syncer::{
-    TipsetProcessor, TipsetProcessorError, TipsetRangeSyncer, TipsetRangeSyncerError,
+</span><span class="kw">use </span>std::{
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+    time::SystemTime,
 };
-<span class="kw">use </span><span class="kw">crate</span>::validation::{TipsetValidationError, TipsetValidator};
+
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::EPOCHS_IN_DAY;
 <span class="kw">use </span>forest_blocks::{
@@ -986,25 +999,35 @@
 };
 <span class="kw">use </span>forest_chain::{ChainStore, Error <span class="kw">as </span>ChainStoreError};
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_libp2p::PeerManager;
-<span class="kw">use </span>forest_libp2p::{hello::HelloRequest, NetworkEvent, NetworkMessage, PeerId, PubsubMessage};
+<span class="kw">use </span>forest_libp2p::{
+    hello::HelloRequest, NetworkEvent, NetworkMessage, PeerId, PeerManager, PubsubMessage,
+};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_message_pool::{MessagePool, Provider};
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>futures::stream::FuturesUnordered;
-<span class="kw">use </span>futures::StreamExt;
-<span class="kw">use </span>futures::{future::try_join_all, future::Future, try_join};
+<span class="kw">use </span>futures::{
+    future::{try_join_all, Future},
+    stream::FuturesUnordered,
+    try_join, StreamExt,
+};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>parking_lot::RwLock;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>std::task::{Context, Poll};
 <span class="kw">use </span>thiserror::Error;
 
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time::SystemTime;
+<span class="kw">use crate</span>::{
+    bad_block_cache::BadBlockCache,
+    consensus::Consensus,
+    metrics,
+    network_context::SyncNetworkContext,
+    sync_state::SyncState,
+    tipset_syncer::{
+        TipsetProcessor, TipsetProcessorError, TipsetRangeSyncer, TipsetRangeSyncerError,
+    },
+    validation::{TipsetValidationError, TipsetValidator},
+};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>WorkerState = Arc&lt;RwLock&lt;SyncState&gt;&gt;;
 
@@ -1039,7 +1062,8 @@
 </span><span class="kw">pub struct </span>SyncConfig {
     <span class="doccomment">/// Request window length for tipsets during chain exchange
     </span><span class="kw">pub </span>req_window: i64,
-    <span class="doccomment">/// Sample size of tipsets to acquire before determining what the network head is
+    <span class="doccomment">/// Sample size of tipsets to acquire before determining what the network
+    /// head is
     </span><span class="kw">pub </span>tipset_sample_size: usize,
 }
 
@@ -1076,7 +1100,8 @@
     </span>DoNotProcess,
 }
 
-<span class="doccomment">/// The `ChainMuxer` handles events from the P2P network and orchestrates the chain synchronization.
+<span class="doccomment">/// The `ChainMuxer` handles events from the P2P network and orchestrates the
+/// chain synchronization.
 </span><span class="kw">pub struct </span>ChainMuxer&lt;DB, M, C: Consensus&gt; {
     <span class="doccomment">/// State of the `ChainSyncer` `Future` implementation
     </span>state: ChainMuxerState&lt;C&gt;,
@@ -1097,7 +1122,8 @@
     </span>genesis: Arc&lt;Tipset&gt;,
 
     <span class="doccomment">/// Bad blocks cache, updates based on invalid state transitions.
-    /// Will mark any invalid blocks and all children as bad in this bounded cache
+    /// Will mark any invalid blocks and all children as bad in this bounded
+    /// cache
     </span>bad_blocks: Arc&lt;BadBlockCache&gt;,
 
     <span class="doccomment">/// Incoming network events to be handled by synchronizer
@@ -1157,7 +1183,8 @@
         })
     }
 
-    <span class="doccomment">/// Returns a clone of the bad blocks cache to be used outside of chain sync.
+    <span class="doccomment">/// Returns a clone of the bad blocks cache to be used outside of chain
+    /// sync.
     </span><span class="kw">pub fn </span>bad_blocks_cloned(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;BadBlockCache&gt; {
         <span class="self">self</span>.bad_blocks.clone()
     }
@@ -1641,8 +1668,9 @@
         tasks.push(stream_processor);
 
         Box::pin(<span class="kw">async move </span>{
-            <span class="comment">// The stream processor will not return unless the p2p event stream is closed. In this case it will return with an error.
-            // Only wait for one task to complete before returning to the caller
+            <span class="comment">// The stream processor will not return unless the p2p event stream is closed.
+            // In this case it will return with an error. Only wait for one task
+            // to complete before returning to the caller
             </span><span class="kw">match </span>tasks.next().<span class="kw">await </span>{
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(()),
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(e)) =&gt; <span class="prelude-val">Err</span>(e),
@@ -1806,7 +1834,8 @@
             <span class="kw">match </span><span class="self">self</span>.state {
                 ChainMuxerState::Idle =&gt; {
                     <span class="kw">if </span><span class="self">self</span>.sync_config.tipset_sample_size == <span class="number">0 </span>{
-                        <span class="comment">// A standalone node might use this option to not be stuck waiting for P2P messages.
+                        <span class="comment">// A standalone node might use this option to not be stuck waiting for P2P
+                        // messages.
                         </span><span class="macro">info!</span>(<span class="string">&quot;Skip evaluating network head, assume in-sync.&quot;</span>);
                         <span class="self">self</span>.state = ChainMuxerState::Follow(<span class="self">self</span>.follow(<span class="prelude-val">None</span>));
                     } <span class="kw">else </span>{
@@ -1883,7 +1912,6 @@
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>std::convert::TryFrom;
 
-    <span class="kw">use </span><span class="kw">crate</span>::validation::TipsetValidator;
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset};
@@ -1892,6 +1920,8 @@
     <span class="kw">use </span>forest_networks::{ChainConfig, Height};
     <span class="kw">use </span>forest_test_utils::construct_messages;
     <span class="kw">use </span>fvm_shared::{address::Address, message::Message};
+
+    <span class="kw">use </span><span class="kw">crate</span>::validation::TipsetValidator;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>compute_msg_meta_given_msgs_test() {

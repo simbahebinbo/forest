@@ -126,21 +126,19 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::Message <span class="kw">as </span>MessageTrait;
-<span class="kw">use </span><span class="kw">crate</span>::signed_message::SignedMessage;
-
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error, RawBytes};
-<span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::MethodNum;
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message, MethodNum};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="doccomment">/// `Enum` to encapsulate signed and unsigned messages. Useful when working with both types
+<span class="kw">use </span><span class="kw">super</span>::Message <span class="kw">as </span>MessageTrait;
+<span class="kw">use </span><span class="kw">crate</span>::signed_message::SignedMessage;
+
+<span class="doccomment">/// `Enum` to encapsulate signed and unsigned messages. Useful when working with
+/// both types
 </span><span class="attr">#[derive(Clone, Debug, Serialize, Deserialize, Hash)]
 #[serde(untagged)]
 </span><span class="kw">pub enum </span>ChainMessage {

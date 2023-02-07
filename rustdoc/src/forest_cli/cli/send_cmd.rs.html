@@ -59,21 +59,25 @@
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_json::message::json::MessageJson;
+</span><span class="kw">use </span>std::str::FromStr;
+
+<span class="kw">use </span>forest_json::message::json::MessageJson;
 <span class="kw">use </span>forest_rpc_client::{mpool_push_message, wallet_default_address};
 <span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message, METHOD_SEND};
 <span class="kw">use </span>num::BigInt;
-<span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use super</span>::{handle_rpc_err, Config};
 
 <span class="attr">#[derive(Debug, StructOpt)]
 </span><span class="kw">pub struct </span>SendCommand {
-    <span class="doccomment">/// optionally specify the account to send funds from (otherwise the default one will be used)
+    <span class="doccomment">/// optionally specify the account to send funds from (otherwise the default
+    /// one will be used)
     </span><span class="attr">#[structopt(long)]
     </span>from: <span class="prelude-ty">Option</span>&lt;Address&gt;,
     target_address: Address,

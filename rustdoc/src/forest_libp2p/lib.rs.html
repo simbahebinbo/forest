@@ -40,15 +40,15 @@
 <span class="kw">pub mod </span>rpc;
 <span class="kw">mod </span>service;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::behaviour::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::config::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::peer_manager::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::service::<span class="kw-2">*</span>;
-
 <span class="comment">// Re-export some libp2p types
-</span><span class="kw">pub use </span>libp2p::core::PeerId;
-<span class="kw">pub use </span>libp2p::identity::{ed25519, Keypair};
-<span class="kw">pub use </span>libp2p::multiaddr::{Multiaddr, Protocol};
+</span><span class="kw">pub use </span>libp2p::{
+    core::PeerId,
+    identity::{ed25519, Keypair},
+    multiaddr::{Multiaddr, Protocol},
+};
 <span class="kw">pub use </span>multihash::Multihash;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span><span class="self">self</span>::behaviour::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::{config::<span class="kw-2">*</span>, peer_manager::<span class="kw-2">*</span>, service::<span class="kw-2">*</span>};
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest_libp2p" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (e972bc808 2023-01-29)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

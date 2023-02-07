@@ -274,18 +274,29 @@
 <a href="#274" id="274">274</a>
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::<span class="kw">super</span>::{lookup_segment, Error, Ipld, Path};
-<span class="kw">use </span><span class="kw">super</span>::Selector;
-<span class="kw">use </span>async_recursion::async_recursion;
+</span><span class="kw">use </span>async_recursion::async_recursion;
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>cid::Cid;
 
+<span class="kw">use super</span>::{
+    <span class="kw">super</span>::{lookup_segment, Error, Ipld, Path},
+    Selector,
+};
+
 <span class="kw">impl </span>Selector {
-    <span class="doccomment">/// Walks all nodes visited (not just matched nodes) and executes callback with progress and
-    /// IPLD node. An optional link loader/resolver is passed in to be able to traverse links.
+    <span class="doccomment">/// Walks all nodes visited (not just matched nodes) and executes callback
+    /// with progress and IPLD node. An optional link loader/resolver is
+    /// passed in to be able to traverse links.
     </span><span class="kw">pub async fn </span>walk_all&lt;L, F&gt;(
         <span class="self">self</span>,
         ipld: <span class="kw-2">&amp;</span>Ipld,
@@ -305,8 +316,9 @@
         .<span class="kw">await
     </span>}
 
-    <span class="doccomment">/// Walks a graph of IPLD nodes, executing the callback only on the nodes &quot;matched&quot;.
-    /// If a resolver is passed in, links will be able to be traversed.
+    <span class="doccomment">/// Walks a graph of IPLD nodes, executing the callback only on the nodes
+    /// &quot;matched&quot;. If a resolver is passed in, links will be able to be
+    /// traversed.
     </span><span class="kw">pub async fn </span>walk_matching&lt;L, F&gt;(
         <span class="self">self</span>,
         ipld: <span class="kw-2">&amp;</span>Ipld,
@@ -349,7 +361,8 @@
     }
 }
 
-<span class="doccomment">/// Contains progress of traversal and last block information from link traversals.
+<span class="doccomment">/// Contains progress of traversal and last block information from link
+/// traversals.
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>Progress&lt;L = ()&gt; {
     resolver: <span class="prelude-ty">Option</span>&lt;L&gt;,
@@ -357,7 +370,8 @@
     last_block: <span class="prelude-ty">Option</span>&lt;LastBlockInfo&gt;,
 }
 
-<span class="doccomment">/// Contains information about the last block that was traversed in walking of the IPLD graph.
+<span class="doccomment">/// Contains information about the last block that was traversed in walking of
+/// the IPLD graph.
 </span><span class="attr">#[derive(Debug, PartialEq, Eq, Clone)]
 </span><span class="kw">pub struct </span>LastBlockInfo {
     <span class="kw">pub </span>path: Path,
@@ -457,8 +471,8 @@
         }
     }
 
-    <span class="doccomment">/// Utility function just to reduce duplicate logic. Can&#39;t do with a closure because
-    /// async closures are currently unstable: https://github.com/rust-lang/rust/issues/62290
+    <span class="doccomment">/// Utility function just to reduce duplicate logic. Can&#39;t do with a closure
+    /// because async closures are currently unstable: https://github.com/rust-lang/rust/issues/62290
     </span><span class="kw">async fn </span>traverse_node&lt;F&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         ipld: <span class="kw-2">&amp;</span>Ipld,
@@ -482,11 +496,11 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>indexmap::IndexMap;
     <span class="kw">use </span>libipld_macro::ipld;
-    <span class="kw">use </span>multihash::Code::Blake2b256;
-    <span class="kw">use </span>multihash::MultihashDigest;
+    <span class="kw">use </span>multihash::{Code::Blake2b256, MultihashDigest};
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>basic_walk() {

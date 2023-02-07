@@ -32,12 +32,14 @@
 <a href="#32" id="32">32</a>
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::call;
-<span class="kw">use </span>forest_rpc_api::net_api::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>forest_rpc_api::net_api::<span class="kw-2">*</span>;
 <span class="kw">use </span>jsonrpc_v2::Error;
+
+<span class="kw">use </span><span class="kw">crate</span>::call;
 
 <span class="kw">pub async fn </span>net_addrs_listen(
     params: NetAddrsListenParams,

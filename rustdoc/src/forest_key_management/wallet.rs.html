@@ -444,17 +444,35 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::errors::Error;
-<span class="kw">use super</span>::{wallet_helpers, KeyInfo, KeyStore};
+</span><span class="kw">use </span>std::{convert::TryFrom, str::FromStr};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
+<span class="kw">use </span>fvm_shared::{
+    address::Address,
+    crypto::signature::{Signature, SignatureType},
+};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::str::FromStr;
+
+<span class="kw">use super</span>::{errors::Error, wallet_helpers, KeyInfo, KeyStore};
 
 <span class="doccomment">/// A key, this contains a `KeyInfo`, an address, and a public key.
 </span><span class="attr">#[derive(Clone, PartialEq, Debug, Eq, Serialize, Deserialize)]
@@ -482,7 +500,8 @@
 <span class="comment">// This is a Wallet, it contains 2 HashMaps:
 // - keys which is a HashMap of Keys resolved by their Address
 // - keystore which is a HashMap of KeyInfos resolved by their Address
-</span><span class="doccomment">/// A wallet is a collection of private keys with optional persistence and optional encryption.
+</span><span class="doccomment">/// A wallet is a collection of private keys with optional persistence and
+/// optional encryption.
 </span><span class="attr">#[derive(Clone, PartialEq, Debug, Eq)]
 </span><span class="kw">pub struct </span>Wallet {
     keys: HashMap&lt;Address, Key&gt;,
@@ -530,8 +549,8 @@
 
     <span class="doccomment">/// Return the resultant `Signature` after signing a given message
     </span><span class="kw">pub fn </span>sign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, msg: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, Error&gt; {
-        <span class="comment">// this will return an error if the key cannot be found in either the keys hashmap or it
-        // is not found in the keystore
+        <span class="comment">// this will return an error if the key cannot be found in either the keys
+        // hashmap or it is not found in the keystore
         </span><span class="kw">let </span>key = <span class="self">self</span>.find_key(addr).map_err(|<span class="kw">_</span>| Error::KeyNotExists)<span class="question-mark">?</span>;
         wallet_helpers::sign(<span class="kw-2">*</span>key.key_info.key_type(), key.key_info.private_key(), msg)
     }
@@ -542,7 +561,8 @@
         <span class="prelude-val">Ok</span>(k.key_info)
     }
 
-    <span class="doccomment">/// Add `KeyInfo` to the wallet, return the address that resolves to this newly added `KeyInfo`
+    <span class="doccomment">/// Add `KeyInfo` to the wallet, return the address that resolves to this
+    /// newly added `KeyInfo`
     </span><span class="kw">pub fn </span>import(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key_info: KeyInfo) -&gt; <span class="prelude-ty">Result</span>&lt;Address, Error&gt; {
         <span class="kw">let </span>k = Key::try_from(key_info)<span class="question-mark">?</span>;
         <span class="kw">let </span>addr = <span class="macro">format!</span>(<span class="string">&quot;wallet-{}&quot;</span>, k.address);
@@ -550,7 +570,8 @@
         <span class="prelude-val">Ok</span>(k.address)
     }
 
-    <span class="doccomment">/// Return a vector that contains all of the addresses in the wallet&#39;s `KeyStore`
+    <span class="doccomment">/// Return a vector that contains all of the addresses in the wallet&#39;s
+    /// `KeyStore`
     </span><span class="kw">pub fn </span>list_addrs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Address&gt;, Error&gt; {
         list_addrs(<span class="kw-2">&amp;</span><span class="self">self</span>.keystore)
     }
@@ -567,13 +588,17 @@
         <span class="kw">let </span>addr_string = <span class="macro">format!</span>(<span class="string">&quot;wallet-{addr}&quot;</span>);
         <span class="kw">let </span>key_info = <span class="self">self</span>.keystore.get(<span class="kw-2">&amp;</span>addr_string)<span class="question-mark">?</span>;
         <span class="kw">if </span><span class="self">self</span>.keystore.get(<span class="string">&quot;default&quot;</span>).is_ok() {
-            <span class="self">self</span>.keystore.remove(<span class="string">&quot;default&quot;</span>.to_string())<span class="question-mark">?</span>; <span class="comment">// This line should unregister current default key then continue
+            <span class="self">self</span>.keystore.remove(<span class="string">&quot;default&quot;</span>.to_string())<span class="question-mark">?</span>; <span class="comment">// This line should
+                                                          // unregister current
+                                                          // default key then
+                                                          // continue
         </span>}
         <span class="self">self</span>.keystore.put(<span class="string">&quot;default&quot;</span>.to_string(), key_info)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Generate a new address that fits the requirement of the given `SignatureType`
+    <span class="doccomment">/// Generate a new address that fits the requirement of the given
+    /// `SignatureType`
     </span><span class="kw">pub fn </span>generate_addr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, typ: SignatureType) -&gt; anyhow::Result&lt;Address&gt; {
         <span class="kw">let </span>key = generate_key(typ)<span class="question-mark">?</span>;
         <span class="kw">let </span>addr = <span class="macro">format!</span>(<span class="string">&quot;wallet-{}&quot;</span>, key.address);
@@ -589,7 +614,8 @@
         <span class="prelude-val">Ok</span>(key.address)
     }
 
-    <span class="doccomment">/// Return whether or not the Wallet contains a key that is resolved by the supplied address
+    <span class="doccomment">/// Return whether or not the Wallet contains a key that is resolved by the
+    /// supplied address
     </span><span class="kw">pub fn </span>has_key(<span class="kw-2">&amp;mut </span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; bool {
         <span class="self">self</span>.find_key(addr).is_ok()
     }
@@ -602,7 +628,8 @@
     <span class="prelude-val">Ok</span>(k.address)
 }
 
-<span class="doccomment">/// Return vector of addresses sorted by their string representation in `KeyStore`
+<span class="doccomment">/// Return vector of addresses sorted by their string representation in
+/// `KeyStore`
 </span><span class="kw">pub fn </span>list_addrs(keystore: <span class="kw-2">&amp;</span>KeyStore) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;Address&gt;, Error&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>all = keystore.list();
     all.sort();
@@ -669,11 +696,12 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use crate</span>::{generate, KeyStoreConfig};
     <span class="kw">use </span>anyhow::ensure;
     <span class="kw">use </span>forest_encoding::blake2b_256;
     <span class="kw">use </span>libsecp256k1::{Message <span class="kw">as </span>SecpMessage, SecretKey <span class="kw">as </span>SecpPrivate};
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{generate, KeyStoreConfig};
 
     <span class="kw">fn </span>construct_priv_keys() -&gt; Vec&lt;Key&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>secp_keys = Vec::new();
@@ -720,8 +748,8 @@
 
         <span class="comment">// test to see if the new key has been created and added to the wallet
         </span><span class="macro">assert!</span>(!wallet.has_key(<span class="kw-2">&amp;</span>address));
-        <span class="comment">// test to make sure that the newly made key cannot be added to the wallet because it is not
-        // found in the keystore
+        <span class="comment">// test to make sure that the newly made key cannot be added to the wallet
+        // because it is not found in the keystore
         </span><span class="macro">assert_eq!</span>(wallet.find_key(<span class="kw-2">&amp;</span>address).unwrap_err(), Error::KeyInfo);
         <span class="comment">// sanity check to make sure that the key has not been added to the wallet
         </span><span class="macro">assert!</span>(!wallet.has_key(<span class="kw-2">&amp;</span>address));
@@ -774,7 +802,8 @@
         </span><span class="macro">assert!</span>(wallet.import(test_key_info.clone()).is_ok());
 
         <span class="kw">let </span>duplicate_error = wallet.import(test_key_info).unwrap_err();
-        <span class="comment">// make sure that error is thrown when attempted to re-import a duplicate key_info
+        <span class="comment">// make sure that error is thrown when attempted to re-import a duplicate
+        // key_info
         </span><span class="macro">ensure!</span>(duplicate_error == Error::KeyExists);
         <span class="prelude-val">Ok</span>(())
     }
@@ -815,7 +844,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>wallet = generate_wallet();
         <span class="kw">let </span>addr = wallet.generate_addr(SignatureType::BLS).unwrap();
         <span class="kw">let </span>key = wallet.keystore.get(<span class="string">&quot;default&quot;</span>).unwrap();
-        <span class="comment">// make sure that the newly generated key is the default key - checking by key type
+        <span class="comment">// make sure that the newly generated key is the default key - checking by key
+        // type
         </span><span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span>SignatureType::BLS, key.key_type());
 
         <span class="kw">let </span>address = <span class="macro">format!</span>(<span class="string">&quot;wallet-{addr}&quot;</span>);
@@ -823,7 +853,8 @@
         <span class="kw">let </span>key_info = wallet.keystore.get(<span class="kw-2">&amp;</span>address).unwrap();
         <span class="kw">let </span>key = wallet.keys.get(<span class="kw-2">&amp;</span>addr).unwrap();
 
-        <span class="comment">// these assertions will make sure that the key has actually been added to the wallet
+        <span class="comment">// these assertions will make sure that the key has actually been added to the
+        // wallet
         </span><span class="macro">assert_eq!</span>(key_info.key_type(), <span class="kw-2">&amp;</span>SignatureType::BLS);
         <span class="macro">assert_eq!</span>(key.address, addr);
     }
@@ -848,7 +879,8 @@
         <span class="comment">// check to make sure that the set_default function completed without error
         </span><span class="macro">assert!</span>(wallet.set_default(test_addr).is_ok());
 
-        <span class="comment">// check to make sure that the test_addr is actually the default addr for the wallet
+        <span class="comment">// check to make sure that the test_addr is actually the default addr for the
+        // wallet
         </span><span class="macro">assert_eq!</span>(wallet.get_default().unwrap(), test_addr);
     }
 

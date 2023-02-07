@@ -394,10 +394,20 @@
 <a href="#394" id="394">394</a>
 <a href="#395" id="395">395</a>
 <a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>std::borrow::Cow;
+
+<span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::Policy;
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_shim::state_tree::ActorState;
@@ -405,16 +415,16 @@
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::BytesDe;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::deal::DealID;
-<span class="kw">use </span>fvm_shared::sector::{RegisteredPoStProof, RegisteredSealProof, SectorNumber, SectorSize};
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
+<span class="kw">use </span>fvm_shared::{
+    address::Address,
+    clock::ChainEpoch,
+    deal::DealID,
+    econ::TokenAmount,
+    sector::{RegisteredPoStProof, RegisteredSealProof, SectorNumber, SectorSize},
+};
 <span class="kw">use </span>libp2p::PeerId;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::borrow::Cow;
-
-<span class="kw">use </span>anyhow::Context;
 
 <span class="kw">use </span><span class="kw">crate</span>::power::Claim;
 <span class="doccomment">/// Miner actor method.
@@ -514,7 +524,8 @@
         }
     }
 
-    <span class="doccomment">/// Loads sectors corresponding to the bitfield. If no bitfield is passed in, return all.
+    <span class="doccomment">/// Loads sectors corresponding to the bitfield. If no bitfield is passed
+    /// in, return all.
     </span><span class="kw">pub fn </span>load_sectors&lt;BS: Blockstore&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         store: <span class="kw-2">&amp;</span>BS,
@@ -713,8 +724,9 @@
 }
 
 <span class="kw">mod </span>peer_id_json {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>serde::Serializer;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">pub fn </span>serialize&lt;S&gt;(m: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;PeerId&gt;, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -747,10 +759,12 @@
     <span class="doccomment">/// Pledge collected to commit this sector
     </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>initial_pledge: TokenAmount,
-    <span class="doccomment">/// Expected one day projection of reward for sector computed at activation time
+    <span class="doccomment">/// Expected one day projection of reward for sector computed at activation
+    /// time
     </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>expected_day_reward: TokenAmount,
-    <span class="doccomment">/// Expected twenty day projection of reward for sector computed at activation time
+    <span class="doccomment">/// Expected twenty day projection of reward for sector computed at
+    /// activation time
     </span><span class="attr">#[serde(with = <span class="string">&quot;forest_json::token_amount::json&quot;</span>)]
     </span><span class="kw">pub </span>expected_storage_pledge: TokenAmount,
 }

@@ -166,15 +166,11 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>anyhow::{anyhow, Context};
-<span class="kw">use </span>async_trait::async_trait;
-<span class="kw">use </span>core::time::Duration;
-<span class="kw">use </span>futures::StreamExt;
-<span class="kw">use </span>log::{error, info};
+</span><span class="kw">use </span>core::time::Duration;
 <span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>tokio::task::JoinSet;
-<span class="kw">use </span>tokio_stream::wrappers::IntervalStream;
 
+<span class="kw">use </span>anyhow::{anyhow, Context};
+<span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>forest_blocks::{BlockHeader, GossipBlock, Tipset};
 <span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_chain_sync::consensus::{MessagePoolApi, Proposer, SyncGossipSubmitter};
@@ -182,8 +178,12 @@
 <span class="kw">use </span>forest_key_management::Key;
 <span class="kw">use </span>forest_networks::Height;
 <span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::address::Address;
+<span class="kw">use </span>log::{error, info};
+<span class="kw">use </span>tokio::task::JoinSet;
+<span class="kw">use </span>tokio_stream::wrappers::IntervalStream;
 
 <span class="kw">use </span><span class="kw">crate</span>::DelegatedConsensus;
 

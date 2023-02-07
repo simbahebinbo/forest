@@ -994,12 +994,42 @@
 <a href="#994" id="994">994</a>
 <a href="#995" id="995">995</a>
 <a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a>
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::index::checkpoint_tipsets;
-<span class="kw">use super</span>::{index::ChainIndex, tipset_tracker::TipsetTracker, Error};
-<span class="kw">use </span><span class="kw">crate</span>::Scale;
+</span><span class="kw">use </span>std::{collections::VecDeque, num::NonZeroUsize, sync::Arc, time::SystemTime};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>async_stream::stream;
@@ -1015,34 +1045,42 @@
 <span class="kw">use </span>forest_ipld::{recurse_links_hash, InsertHash};
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
-<span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
-<span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
+<span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait, SignedMessage};
 <span class="kw">use </span>forest_metrics::metrics;
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_shim::state_tree::StateTree;
-<span class="kw">use </span>forest_utils::db::BlockstoreExt;
-<span class="kw">use </span>forest_utils::io::Checksum;
+<span class="kw">use </span>forest_utils::{db::BlockstoreExt, io::Checksum};
 <span class="kw">use </span>futures::Future;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::CarHeader;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, Cbor};
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::receipt::Receipt;
+<span class="kw">use </span>fvm_shared::{
+    address::Address,
+    clock::ChainEpoch,
+    crypto::signature::{Signature, SignatureType},
+    econ::TokenAmount,
+    message::Message,
+    receipt::Receipt,
+};
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::Mutex;
 <span class="kw">use </span>serde::Serialize;
-<span class="kw">use </span>std::num::NonZeroUsize;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::{collections::VecDeque, time::SystemTime};
-<span class="kw">use </span>tokio::io::AsyncWrite;
-<span class="kw">use </span>tokio::sync::broadcast::{<span class="self">self</span>, Sender <span class="kw">as </span>Publisher};
-<span class="kw">use </span>tokio::sync::Mutex <span class="kw">as </span>TokioMutex;
+<span class="kw">use </span>tokio::{
+    io::AsyncWrite,
+    sync::{
+        broadcast::{<span class="self">self</span>, Sender <span class="kw">as </span>Publisher},
+        Mutex <span class="kw">as </span>TokioMutex,
+    },
+};
 <span class="kw">use </span>tokio_util::compat::TokioAsyncWriteCompatExt;
+
+<span class="kw">use super</span>::{
+    index::{checkpoint_tipsets, ChainIndex},
+    tipset_tracker::TipsetTracker,
+    Error,
+};
+<span class="kw">use </span><span class="kw">crate</span>::Scale;
 
 <span class="kw">const </span>GENESIS_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;gen_block&quot;</span>;
 <span class="kw">const </span>HEAD_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;head&quot;</span>;
@@ -1054,7 +1092,8 @@
 <span class="kw">const </span>DEFAULT_TIPSET_CACHE_SIZE: NonZeroUsize =
     <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">8192</span>));
 
-<span class="doccomment">/// `Enum` for `pubsub` channel that defines message type variant and data contained in message type.
+<span class="doccomment">/// `Enum` for `pubsub` channel that defines message type variant and data
+/// contained in message type.
 </span><span class="attr">#[derive(Clone, Debug)]
 </span><span class="kw">pub enum </span>HeadChange {
     Current(Arc&lt;Tipset&gt;),
@@ -1062,9 +1101,9 @@
     Revert(Arc&lt;Tipset&gt;),
 }
 
-<span class="doccomment">/// Stores chain data such as heaviest tipset and cached tipset info at each epoch.
-/// This structure is thread-safe, and all caches are wrapped in a mutex to allow a consistent
-/// `ChainStore` to be shared across tasks.
+<span class="doccomment">/// Stores chain data such as heaviest tipset and cached tipset info at each
+/// epoch. This structure is thread-safe, and all caches are wrapped in a mutex
+/// to allow a consistent `ChainStore` to be shared across tasks.
 </span><span class="kw">pub struct </span>ChainStore&lt;DB&gt; {
     <span class="doccomment">/// Publisher for head change events
     </span>publisher: Publisher&lt;HeadChange&gt;,
@@ -1135,7 +1174,8 @@
             heaviest: Mutex::new(genesis_ts.clone()),
         };
 
-        <span class="comment">// Result intentionally ignored, doesn&#39;t matter if heaviest doesn&#39;t exist in store yet
+        <span class="comment">// Result intentionally ignored, doesn&#39;t matter if heaviest doesn&#39;t exist in
+        // store yet
         </span><span class="kw">let _ </span>= cs.load_heaviest_tipset();
 
         cs.set_genesis(genesis_block_header)<span class="question-mark">?</span>;
@@ -1147,7 +1187,8 @@
         <span class="prelude-val">Ok</span>(cs)
     }
 
-    <span class="doccomment">/// Sets heaviest tipset within `ChainStore` and store its tipset keys under `HEAD_KEY`
+    <span class="doccomment">/// Sets heaviest tipset within `ChainStore` and store its tipset keys under
+    /// `HEAD_KEY`
     </span><span class="kw">pub fn </span>set_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.db.write(HEAD_KEY, ts.key().marshal_cbor()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
         <span class="kw-2">*</span><span class="self">self</span>.heaviest.lock() = ts.clone();
@@ -1166,13 +1207,14 @@
             .map_err(|e| Error::Other(e.to_string()))
     }
 
-    <span class="doccomment">/// Adds a [`BlockHeader`] to the tipset tracker, which tracks valid headers.
+    <span class="doccomment">/// Adds a [`BlockHeader`] to the tipset tracker, which tracks valid
+    /// headers.
     </span><span class="kw">pub fn </span>add_to_tipset_tracker(<span class="kw-2">&amp;</span><span class="self">self</span>, header: <span class="kw-2">&amp;</span>BlockHeader) {
         <span class="self">self</span>.tipset_tracker.add(header);
     }
 
-    <span class="doccomment">/// Writes tipset block headers to data store and updates heaviest tipset with other
-    /// compatible tracked headers.
+    <span class="doccomment">/// Writes tipset block headers to data store and updates heaviest tipset
+    /// with other compatible tracked headers.
     </span><span class="kw">pub fn </span>put_tipset&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
         </span>S: Scale,
@@ -1188,12 +1230,14 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Expands tipset to tipset with all other headers in the same epoch using the tipset tracker.
+    <span class="doccomment">/// Expands tipset to tipset with all other headers in the same epoch using
+    /// the tipset tracker.
     </span><span class="kw">fn </span>expand_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, header: BlockHeader) -&gt; <span class="prelude-ty">Result</span>&lt;Tipset, Error&gt; {
         <span class="self">self</span>.tipset_tracker.expand(header)
     }
 
-    <span class="doccomment">/// Loads heaviest tipset from `datastore` and sets as heaviest in `chainstore`.
+    <span class="doccomment">/// Loads heaviest tipset from `datastore` and sets as heaviest in
+    /// `chainstore`.
     </span><span class="kw">fn </span>load_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>heaviest_ts = <span class="kw">match </span><span class="self">self</span>.db.read(HEAD_KEY)<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>(bz) =&gt; <span class="self">self</span>.tipset_from_keys(<span class="kw-2">&amp;</span>from_slice(<span class="kw-2">&amp;</span>bz)<span class="question-mark">?</span>)<span class="question-mark">?</span>,
@@ -1246,7 +1290,8 @@
         checkpoint_tipsets::tipset_hash(tsk)
     }
 
-    <span class="doccomment">/// Determines if provided tipset is heavier than existing known heaviest tipset
+    <span class="doccomment">/// Determines if provided tipset is heavier than existing known heaviest
+    /// tipset
     </span><span class="kw">fn </span>update_heaviest&lt;S&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
     <span class="kw">where
         </span>S: Scale,
@@ -1265,14 +1310,16 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Checks store if block has already been validated. Key based on the block validation prefix.
+    <span class="doccomment">/// Checks store if block has already been validated. Key based on the block
+    /// validation prefix.
     </span><span class="kw">pub fn </span>is_block_validated(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="kw">let </span>key = block_validation_key(cid);
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.exists(key)<span class="question-mark">?</span>)
     }
 
-    <span class="doccomment">/// Marks block as validated in the store. This is retrieved using the block validation prefix.
+    <span class="doccomment">/// Marks block as validated in the store. This is retrieved using the block
+    /// validation prefix.
     </span><span class="kw">pub fn </span>mark_block_as_validated(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>key = block_validation_key(cid);
 
@@ -1284,7 +1331,8 @@
     /// - If `prev` is `true`, the tipset before the null round is returned.
     /// - If `prev` is `false`, the tipset following the null round is returned.
     ///
-    /// Returns `None` if the tipset provided was the tipset at the given height.
+    /// Returns `None` if the tipset provided was the tipset at the given
+    /// height.
     </span><span class="kw">pub fn </span>tipset_by_height(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         height: ChainEpoch,
@@ -1406,7 +1454,8 @@
         ))
     }
 
-    <span class="doccomment">/// Constructs and returns a full tipset if messages from storage exists - non self version
+    <span class="doccomment">/// Constructs and returns a full tipset if messages from storage exists -
+    /// non self version
     </span><span class="kw">pub fn </span>fill_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Option</span>&lt;FullTipset&gt;
     <span class="kw">where
         </span>DB: Blockstore,
@@ -1488,14 +1537,15 @@
             .collect()
     }
 
-    <span class="doccomment">/// Retrieves ordered valid messages from a `Tipset`. This will only include messages that will
-    /// be passed through the VM.
+    <span class="doccomment">/// Retrieves ordered valid messages from a `Tipset`. This will only include
+    /// messages that will be passed through the VM.
     </span><span class="kw">pub fn </span>messages_for_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;ChainMessage&gt;, Error&gt; {
         <span class="kw">let </span>bmsgs = <span class="self">self</span>.block_msgs_for_tipset(ts)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(bmsgs.into_iter().flat_map(|bm| bm.messages).collect())
     }
 
-    <span class="doccomment">/// Exports a range of tipsets, as well as the state roots based on the `recent_roots`.
+    <span class="doccomment">/// Exports a range of tipsets, as well as the state roots based on the
+    /// `recent_roots`.
     </span><span class="kw">pub async fn </span>export&lt;W, D&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tipset: <span class="kw-2">&amp;</span>Tipset,
@@ -1533,7 +1583,8 @@
         <span class="kw">let </span>global_pre_time = SystemTime::now();
         <span class="macro">info!</span>(<span class="string">&quot;chain export started&quot;</span>);
 
-        <span class="comment">// Walks over tipset and historical data, sending all blocks visited into the car writer.
+        <span class="comment">// Walks over tipset and historical data, sending all blocks visited into the
+        // car writer.
         </span><span class="self">Self</span>::walk_snapshot(tipset, recent_roots, |cid| {
             <span class="kw">let </span>tx_clone = tx.clone();
             <span class="kw">async move </span>{
@@ -1548,7 +1599,8 @@
         })
         .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="comment">// Drop sender, to close the channel to write task, which will end when finished writing
+        <span class="comment">// Drop sender, to close the channel to write task, which will end when finished
+        // writing
         </span>drop(tx);
 
         <span class="comment">// Await on values being written.
@@ -1748,8 +1800,8 @@
     <span class="prelude-val">Ok</span>(cids)
 }
 
-<span class="doccomment">/// Attempts to de-serialize to unsigned message or signed message and then returns it as a
-/// [`ChainMessage`].
+<span class="doccomment">/// Attempts to de-serialize to unsigned message or signed message and then
+/// returns it as a [`ChainMessage`].
 </span><span class="kw">pub fn </span>get_chain_message&lt;DB&gt;(db: <span class="kw-2">&amp;</span>DB, key: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;ChainMessage, Error&gt;
 <span class="kw">where
     </span>DB: Blockstore,
@@ -1847,9 +1899,10 @@
 }
 
 <span class="kw">pub mod </span>headchange_json {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>forest_blocks::tipset_json::TipsetJson;
     <span class="kw">use </span>serde::{Deserialize, Serialize};
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[derive(Debug, Deserialize, Serialize)]
     #[serde(rename_all = <span class="string">&quot;lowercase&quot;</span>)]
@@ -1873,9 +1926,11 @@
     }
 }
 
-<span class="doccomment">/// Result of persisting a vector of `SignedMessage`s that are to be included in a block.
+<span class="doccomment">/// Result of persisting a vector of `SignedMessage`s that are to be included in
+/// a block.
 ///
-/// The fields are public so they can be partially moved, but they should not be modified.
+/// The fields are public so they can be partially moved, but they should not be
+/// modified.
 </span><span class="kw">pub struct </span>PersistedBlockMessages {
     <span class="doccomment">/// Overall CID to be included in the `BlockHeader`.
     </span><span class="kw">pub </span>msg_cid: Cid,
@@ -1883,13 +1938,15 @@
     </span><span class="kw">pub </span>secp_cids: Vec&lt;Cid&gt;,
     <span class="doccomment">/// All CIDs of BLS messages, to be included in `BlockMsg`.
     </span><span class="kw">pub </span>bls_cids: Vec&lt;Cid&gt;,
-    <span class="doccomment">/// Aggregated signature of all BLS messages, to be included in the `BlockHeader`.
+    <span class="doccomment">/// Aggregated signature of all BLS messages, to be included in the
+    /// `BlockHeader`.
     </span><span class="kw">pub </span>bls_agg: Signature,
 }
 
-<span class="doccomment">/// Partition the messages into SECP and BLS variants, store them individually in the IPLD store,
-/// and the corresponding `TxMeta` as well, returning its CID so that it can be put in a block header.
-/// Also return the aggregated BLS signature of all BLS messages.
+<span class="doccomment">/// Partition the messages into SECP and BLS variants, store them individually
+/// in the IPLD store, and the corresponding `TxMeta` as well, returning its CID
+/// so that it can be put in a block header. Also return the aggregated BLS
+/// signature of all BLS messages.
 </span><span class="kw">pub fn </span>persist_block_messages&lt;DB: Blockstore&gt;(
     db: <span class="kw-2">&amp;</span>DB,
     messages: Vec&lt;<span class="kw-2">&amp;</span>SignedMessage&gt;,
@@ -1946,12 +2003,17 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>cid::multihash::Code::{Blake2b256, Identity};
-    <span class="kw">use </span>cid::multihash::MultihashDigest;
-    <span class="kw">use </span>cid::Cid;
+    <span class="kw">use </span>cid::{
+        multihash::{
+            Code::{Blake2b256, Identity},
+            MultihashDigest,
+        },
+        Cid,
+    };
     <span class="kw">use </span>fvm_ipld_encoding::DAG_CBOR;
     <span class="kw">use </span>fvm_shared::address::Address;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>genesis_test() {

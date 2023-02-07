@@ -147,39 +147,43 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::discovery::DiscoveryConfig;
-<span class="kw">use crate</span>::{
-    chain_exchange::{ChainExchangeCodec, ChainExchangeProtocolName},
-    config::Libp2pConfig,
-    discovery::DiscoveryBehaviour,
-    gossip_params::{build_peer_score_params, build_peer_score_threshold},
-    hello::HelloBehaviour,
-};
+</span><span class="kw">use </span>std::time::Duration;
+
 <span class="kw">use </span>ahash::{HashMap, HashSet};
 <span class="kw">use </span>forest_encoding::blake2b_256;
 <span class="kw">use </span>forest_libp2p_bitswap::BitswapBehaviour;
-<span class="kw">use </span>libp2p::swarm::NetworkBehaviour;
-<span class="kw">use </span>libp2p::{core::identity::Keypair, kad::QueryId};
-<span class="kw">use </span>libp2p::{core::PeerId, gossipsub::GossipsubMessage};
 <span class="kw">use </span>libp2p::{
+    core::{identity::Keypair, PeerId},
     gossipsub::{
-        error::PublishError, error::SubscriptionError, Gossipsub, GossipsubConfigBuilder,
-        IdentTopic <span class="kw">as </span>Topic, MessageAuthenticity, MessageId, ValidationMode,
+        error::{PublishError, SubscriptionError},
+        Gossipsub, GossipsubConfigBuilder, GossipsubMessage, IdentTopic <span class="kw">as </span>Topic,
+        MessageAuthenticity, MessageId, ValidationMode,
     },
+    identify,
+    kad::QueryId,
+    metrics::{Metrics, Recorder},
+    ping,
+    request_response::{ProtocolSupport, RequestResponse, RequestResponseConfig},
+    swarm::NetworkBehaviour,
     Multiaddr,
 };
-<span class="kw">use </span>libp2p::{identify, ping};
-<span class="kw">use </span>libp2p::{
-    metrics::{Metrics, Recorder},
-    request_response::{ProtocolSupport, RequestResponse, RequestResponseConfig},
-};
 <span class="kw">use </span>log::warn;
-<span class="kw">use </span>std::time::Duration;
 
-<span class="doccomment">/// Libp2p behavior for the Forest node. This handles all sub protocols needed for a Filecoin node.
+<span class="kw">use crate</span>::{
+    chain_exchange::{ChainExchangeCodec, ChainExchangeProtocolName},
+    config::Libp2pConfig,
+    discovery::{DiscoveryBehaviour, DiscoveryConfig},
+    gossip_params::{build_peer_score_params, build_peer_score_threshold},
+    hello::HelloBehaviour,
+};
+
+<span class="doccomment">/// Libp2p behavior for the Forest node. This handles all sub protocols needed
+/// for a Filecoin node.
 </span><span class="attr">#[derive(NetworkBehaviour)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ForestBehaviour {
     gossipsub: Gossipsub,

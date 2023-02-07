@@ -886,62 +886,59 @@
 <a href="#886" id="886">886</a>
 <a href="#887" id="887">887</a>
 <a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::chain_exchange::{
-    make_chain_exchange_response, ChainExchangeRequest, ChainExchangeResponse,
+</span><span class="kw">use </span>std::{
+    path::Path,
+    sync::Arc,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
-<span class="kw">use super</span>::{ForestBehaviour, ForestBehaviourEvent, Libp2pConfig};
-<span class="kw">use </span><span class="kw">crate</span>::discovery::DiscoveryOut;
-<span class="kw">use </span><span class="kw">crate</span>::hello::HelloBehaviour;
-<span class="kw">use crate</span>::{
-    hello::{HelloRequest, HelloResponse},
-    rpc::RequestResponseError,
-};
-<span class="kw">use crate</span>::{PeerManager, PeerOperation};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>forest_blocks::GossipBlock;
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_libp2p_bitswap::request_manager::BitswapRequestManager;
-<span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
+<span class="kw">use </span>forest_libp2p_bitswap::{
+    request_manager::BitswapRequestManager, BitswapStoreRead, BitswapStoreReadWrite,
+};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_utils::io::read_file_to_vec;
-<span class="kw">use </span>futures::channel::oneshot::Sender <span class="kw">as </span>OneShotSender;
-<span class="kw">use </span>futures::select;
+<span class="kw">use </span>futures::{channel::oneshot::Sender <span class="kw">as </span>OneShotSender, select};
 <span class="kw">use </span>futures_util::stream::StreamExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>libp2p::gossipsub::GossipsubEvent;
-<span class="kw">pub use </span>libp2p::gossipsub::IdentTopic;
-<span class="kw">pub use </span>libp2p::gossipsub::Topic;
-<span class="kw">use </span>libp2p::metrics::{Metrics, Recorder};
-<span class="kw">use </span>libp2p::multiaddr::Protocol;
-<span class="kw">use </span>libp2p::multihash::Multihash;
-<span class="kw">use </span>libp2p::ping::{<span class="self">self</span>};
-<span class="kw">use </span>libp2p::request_response::{
-    RequestId, RequestResponseEvent, RequestResponseMessage, ResponseChannel,
-};
+<span class="kw">pub use </span>libp2p::gossipsub::{IdentTopic, Topic};
 <span class="kw">use </span>libp2p::{
     core,
-    core::muxing::StreamMuxerBox,
-    core::transport::Boxed,
+    core::{muxing::StreamMuxerBox, transport::Boxed, Multiaddr},
+    gossipsub::GossipsubEvent,
     identity::{ed25519, Keypair},
+    metrics::{Metrics, Recorder},
+    multiaddr::Protocol,
+    multihash::Multihash,
     noise,
-    swarm::{ConnectionLimits, SwarmEvent},
+    ping::{<span class="self">self</span>},
+    request_response::{RequestId, RequestResponseEvent, RequestResponseMessage, ResponseChannel},
+    swarm::{ConnectionLimits, SwarmBuilder, SwarmEvent},
     yamux::YamuxConfig,
     PeerId, Swarm, Transport,
 };
-<span class="kw">use </span>libp2p::{core::Multiaddr, swarm::SwarmBuilder};
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
-<span class="kw">use </span>std::path::Path;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time::{Duration, SystemTime, UNIX_EPOCH};
 <span class="kw">use </span>tokio_stream::wrappers::IntervalStream;
+
+<span class="kw">use super</span>::{
+    chain_exchange::{make_chain_exchange_response, ChainExchangeRequest, ChainExchangeResponse},
+    ForestBehaviour, ForestBehaviourEvent, Libp2pConfig,
+};
+<span class="kw">use crate</span>::{
+    discovery::DiscoveryOut,
+    hello::{HelloBehaviour, HelloRequest, HelloResponse},
+    rpc::RequestResponseError,
+    PeerManager, PeerOperation,
+};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>metrics {
     <span class="kw">use </span>lazy_static::lazy_static;
@@ -1143,7 +1140,8 @@
         }
     }
 
-    <span class="doccomment">/// Starts the libp2p service networking stack. This Future resolves when shutdown occurs.
+    <span class="doccomment">/// Starts the libp2p service networking stack. This Future resolves when
+    /// shutdown occurs.
     </span><span class="kw">pub async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">info!</span>(<span class="string">&quot;Running libp2p service&quot;</span>);
         Swarm::listen_on(<span class="kw-2">&amp;mut </span><span class="self">self</span>.swarm, <span class="self">self</span>.config.listening_multiaddr)<span class="question-mark">?</span>;

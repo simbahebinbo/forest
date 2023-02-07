@@ -717,10 +717,23 @@
 <a href="#717" id="717">717</a>
 <a href="#718" id="718">718</a>
 <a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
-</span><span class="kw">use </span><span class="kw">super</span>::Config;
-<span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
+</span><span class="kw">use </span>std::{
+    path::{Path, PathBuf},
+    process::Command,
+    str::FromStr,
+    time::Duration,
+};
+
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>chrono::DateTime;
 <span class="kw">use </span>forest_utils::{
@@ -735,18 +748,15 @@
 <span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>s3::Bucket;
 <span class="kw">use </span>sha2::{Digest, Sha256};
-<span class="kw">use </span>std::str::FromStr;
-<span class="kw">use </span>std::{
-    path::{Path, PathBuf},
-    process::Command,
-    time::Duration,
-};
 <span class="kw">use </span>time::{format_description, format_description::well_known::Iso8601, Date};
 <span class="kw">use </span>tokio::{
     fs::{create_dir_all, File},
     io::{AsyncWriteExt, BufWriter},
 };
 <span class="kw">use </span>url::Url;
+
+<span class="kw">use </span><span class="kw">super</span>::Config;
+<span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
 
 <span class="doccomment">/// Snapshot fetch service provider
 </span><span class="attr">#[derive(Debug)]
@@ -835,8 +845,8 @@
     ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot; </span>|| ext == <span class="string">&quot;aria2&quot;
 </span>}
 
-<span class="doccomment">/// Fetches snapshot from a trusted location and saves it to the given directory. Chain is inferred
-/// from configuration.
+<span class="doccomment">/// Fetches snapshot from a trusted location and saves it to the given
+/// directory. Chain is inferred from configuration.
 </span><span class="kw">pub async fn </span>snapshot_fetch(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
@@ -864,9 +874,9 @@
     which::which(<span class="string">&quot;aria2c&quot;</span>).is_ok()
 }
 
-<span class="doccomment">/// Fetches snapshot for `calibnet` from a default, trusted location. On success, the snapshot will be
-/// saved in the given directory. In case of failure (e.g. connection interrupted) it will not be
-/// removed.
+<span class="doccomment">/// Fetches snapshot for `calibnet` from a default, trusted location. On
+/// success, the snapshot will be saved in the given directory. In case of
+/// failure (e.g. connection interrupted) it will not be removed.
 </span><span class="kw">async fn </span>snapshot_fetch_forest(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
@@ -903,9 +913,9 @@
     create_dir_all(snapshot_out_dir).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="comment">// Download the file
-    // It&#39;d be better to use the bucket directly with `get_object_stream`, but at the time
-    // of writing this code the Stream API is a bit lacking, making adding a progress bar a pain.
-    // https://github.com/durch/rust-s3/issues/275
+    // It&#39;d be better to use the bucket directly with `get_object_stream`, but at
+    // the time of writing this code the Stream API is a bit lacking, making
+    // adding a progress bar a pain. https://github.com/durch/rust-s3/issues/275
     </span><span class="kw">let </span>client = https_client();
     <span class="kw">let </span>snapshot_spaces_url = <span class="kw-2">&amp;</span>snapshot_fetch_config.snapshot_spaces_url;
     <span class="kw">let </span>path = <span class="kw-2">&amp;</span>snapshot_fetch_config.path;
@@ -929,9 +939,9 @@
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
 
-<span class="doccomment">/// Fetches snapshot for `mainnet` from a default, trusted location. On success, the snapshot will be
-/// saved in the given directory. In case of failure (e.g. checksum verification fiasco) it will
-/// not be removed.
+<span class="doccomment">/// Fetches snapshot for `mainnet` from a default, trusted location. On success,
+/// the snapshot will be saved in the given directory. In case of failure (e.g.
+/// checksum verification fiasco) it will not be removed.
 </span><span class="kw">async fn </span>snapshot_fetch_filecoin(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
@@ -988,7 +998,8 @@
     <span class="prelude-val">Ok</span>(snapshot_path)
 }
 
-<span class="doccomment">/// Downloads snapshot to a file with a progress bar. Returns the digest of the downloaded file.
+<span class="doccomment">/// Downloads snapshot to a file with a progress bar. Returns the digest of the
+/// downloaded file.
 </span><span class="kw">async fn </span>download_snapshot_and_validate_checksum&lt;C&gt;(
     client: hyper::Client&lt;C&gt;,
     url: Url,
@@ -1123,9 +1134,10 @@
 }
 
 <span class="doccomment">/// Returns a normalized snapshot name
-/// Filecoin snapshot files are named in the format of `&lt;height&gt;_&lt;YYYY_MM_DD&gt;T&lt;HH_MM_SS&gt;Z.car`.
-/// Normalized snapshot name are in the format `filecoin_snapshot_{mainnet|calibnet}_&lt;YYYY-MM-DD&gt;_height_&lt;height&gt;.car`.
-/// # Example
+/// Filecoin snapshot files are named in the format of
+/// `&lt;height&gt;_&lt;YYYY_MM_DD&gt;T&lt;HH_MM_SS&gt;Z.car`. Normalized snapshot name are in the
+/// format `filecoin_snapshot_{mainnet|calibnet}_&lt;YYYY-MM-DD&gt;_height_&lt;height&gt;.
+/// car`. # Example
 /// ```
 /// # use forest_cli_shared::cli::normalize_filecoin_snapshot_name;
 /// let actual_name = &quot;64050_2022_11_24T00_00_00Z.car&quot;;
@@ -1176,9 +1188,9 @@
     <span class="prelude-val">Ok</span>(url)
 }
 
-<span class="doccomment">/// Fetches the relevant checksum for the snapshot, compares it with the result one. Fails if they
-/// don&#39;t match. The checksum is expected to be located in the same location as the snapshot but
-/// with a `.sha256sum` extension.
+<span class="doccomment">/// Fetches the relevant checksum for the snapshot, compares it with the result
+/// one. Fails if they don&#39;t match. The checksum is expected to be located in
+/// the same location as the snapshot but with a `.sha256sum` extension.
 </span><span class="kw">async fn </span>fetch_checksum_and_validate&lt;C&gt;(
     client: hyper::Client&lt;C&gt;,
     url: Url,
@@ -1195,8 +1207,8 @@
     }
 
     <span class="kw">let </span>checksum_bytes = hyper::body::to_bytes(checksum_expected_file.into_body()).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="comment">// checksum file is hex-encoded with optionally trailing `- ` at the end. Take only what&#39;s needed, i.e.
-    // encoded digest, for SHA256 it&#39;s 32 bytes.
+    <span class="comment">// checksum file is hex-encoded with optionally trailing `- ` at the end. Take
+    // only what&#39;s needed, i.e. encoded digest, for SHA256 it&#39;s 32 bytes.
     </span><span class="kw">let </span>checksum_expected = checksum_from_file(<span class="kw-2">&amp;</span>checksum_bytes, Sha256::output_size())<span class="question-mark">?</span>;
 
     validate_checksum(<span class="kw-2">&amp;</span>checksum_expected, snapshot_checksum)<span class="question-mark">?</span>;
@@ -1229,8 +1241,10 @@
 }
 
 <span class="doccomment">/// Validates checksum
-/// * `expected_checksum` - expected checksum, e.g. provided along with the snapshot file.
-/// * `actual_checksum` - actual checksum, e.g. obtained by running a hasher over a snapshot.
+/// * `expected_checksum` - expected checksum, e.g. provided along with the
+///   snapshot file.
+/// * `actual_checksum` - actual checksum, e.g. obtained by running a hasher
+///   over a snapshot.
 </span><span class="kw">fn </span>validate_checksum(expected_checksum: <span class="kw-2">&amp;</span>[u8], actual_checksum: <span class="kw-2">&amp;</span>[u8]) -&gt; anyhow::Result&lt;()&gt; {
     <span class="kw">if </span>actual_checksum != expected_checksum {
         <span class="macro">bail!</span>(
@@ -1245,15 +1259,17 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::{env::temp_dir, net::TcpListener};
+
     <span class="kw">use </span>anyhow::{ensure, <span class="prelude-ty">Result</span>};
     <span class="kw">use </span>axum::{routing::get_service, Router};
     <span class="kw">use </span>http::StatusCode;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>rand::{distributions::Alphanumeric, Rng};
-    <span class="kw">use </span>std::{env::temp_dir, net::TcpListener};
     <span class="kw">use </span>tempfile::TempDir;
     <span class="kw">use </span>tower_http::services::ServeDir;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>checksum_from_file_test() {

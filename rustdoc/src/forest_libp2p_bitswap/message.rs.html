@@ -102,6 +102,7 @@
 <a href="#102" id="102">102</a>
 <a href="#103" id="103">103</a>
 <a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -152,7 +153,8 @@
     Block(Vec&lt;u8&gt;),
 }
 
-<span class="doccomment">/// `Bitswap` message enum type that is either a [BitswapRequest] or a [BitswapResponse]
+<span class="doccomment">/// `Bitswap` message enum type that is either a [BitswapRequest] or a
+/// [BitswapResponse]
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>BitswapMessage {
     Request(BitswapRequest),

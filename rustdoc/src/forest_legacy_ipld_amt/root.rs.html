@@ -61,14 +61,17 @@
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::{init_sized_vec, node::CollapsedNode, Node, DEFAULT_BIT_WIDTH};
-<span class="kw">use </span>serde::{
+</span><span class="kw">use </span>serde::{
     de::{<span class="self">self</span>, Deserialize},
     ser::{<span class="self">self</span>, Serialize},
 };
+
+<span class="kw">use crate</span>::{init_sized_vec, node::CollapsedNode, Node, DEFAULT_BIT_WIDTH};
 
 <span class="doccomment">/// Root of an AMT vector, can be serialized and keeps track of height and count
 </span><span class="attr">#[derive(PartialEq, Debug)]
@@ -100,8 +103,9 @@
     <span class="kw">where
         </span>S: ser::Serializer,
     {
-        <span class="comment">// This serialization is here for legacy reasons only. For new AMTs it should not be used.
-        // (&amp;self.bit_width, &amp;self.height, &amp;self.count, &amp;self.node).serialize(s)
+        <span class="comment">// This serialization is here for legacy reasons only. For new AMTs it should
+        // not be used. (&amp;self.bit_width, &amp;self.height, &amp;self.count,
+        // &amp;self.node).serialize(s)
         </span>(<span class="kw-2">&amp;</span><span class="self">self</span>.height, <span class="kw-2">&amp;</span><span class="self">self</span>.count, <span class="kw-2">&amp;</span><span class="self">self</span>.node).serialize(s)
     }
 }

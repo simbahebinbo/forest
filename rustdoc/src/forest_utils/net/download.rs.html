@@ -111,23 +111,37 @@
 <a href="#111" id="111">111</a>
 <a href="#112" id="112">112</a>
 <a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::https_client;
-<span class="kw">use </span><span class="kw">crate</span>::io::ProgressBar;
-<span class="kw">use </span>futures::stream::{IntoAsyncRead, MapErr};
-<span class="kw">use </span>futures::TryStreamExt;
+</span><span class="kw">use </span>std::{
+    pin::Pin,
+    task::{Context, Poll},
+    time::Duration,
+};
+
+<span class="kw">use </span>futures::{
+    stream::{IntoAsyncRead, MapErr},
+    TryStreamExt,
+};
 <span class="kw">use </span>pin_project_lite::pin_project;
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>std::task::{Context, Poll};
-<span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>thiserror::Error;
-<span class="kw">use </span>tokio::fs::File;
-<span class="kw">use </span>tokio::io::AsyncRead;
-<span class="kw">use </span>tokio::io::{BufReader, ReadBuf};
+<span class="kw">use </span>tokio::{
+    fs::File,
+    io::{AsyncRead, BufReader, ReadBuf},
+};
 <span class="kw">use </span>tokio_util::compat::{Compat, FuturesAsyncReadCompatExt};
 <span class="kw">use </span>url::Url;
+
+<span class="kw">use </span><span class="kw">super</span>::https_client;
+<span class="kw">use </span><span class="kw">crate</span>::io::ProgressBar;
 
 <span class="attr">#[derive(Debug, Error)]
 </span><span class="kw">enum </span>DownloadError {

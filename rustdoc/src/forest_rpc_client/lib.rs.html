@@ -201,9 +201,6 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -216,16 +213,15 @@
 <span class="kw">pub mod </span>sync_ops;
 <span class="kw">pub mod </span>wallet_ops;
 
+<span class="kw">use </span>std::env;
+
 <span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
-<span class="kw">use </span>forest_utils::net::hyper::http::HeaderValue;
-<span class="kw">use </span>forest_utils::net::{https_client, hyper, HyperBodyExt};
+<span class="kw">use </span>forest_utils::net::{https_client, hyper, hyper::http::HeaderValue, HyperBodyExt};
 <span class="doccomment">/// Filecoin HTTP JSON-RPC client methods
 </span><span class="kw">use </span>jsonrpc_v2::{Error, Id, RequestObject, V2};
 <span class="kw">use </span>log::{debug, error};
 <span class="kw">use </span>once_cell::sync::Lazy;
-<span class="kw">use </span>serde::de::DeserializeOwned;
-<span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::env;
+<span class="kw">use </span>serde::{de::DeserializeOwned, Deserialize, Serialize};
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">pub const </span>API_INFO_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;FULLNODE_API_INFO&quot;</span>;
@@ -236,13 +232,9 @@
 <span class="kw">pub const </span>DEFAULT_URL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;http://127.0.0.1:1234/rpc/v0&quot;</span>;
 <span class="kw">pub const </span>RPC_ENDPOINT: <span class="kw-2">&amp;</span>str = <span class="string">&quot;rpc/v0&quot;</span>;
 
-<span class="kw">pub use </span><span class="self">self</span>::auth_ops::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::chain_ops::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::mpool_ops::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::net_ops::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::state_ops::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::sync_ops::<span class="kw-2">*</span>;
-<span class="kw">pub use </span><span class="self">self</span>::wallet_ops::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::{
+    auth_ops::<span class="kw-2">*</span>, chain_ops::<span class="kw-2">*</span>, mpool_ops::<span class="kw-2">*</span>, net_ops::<span class="kw-2">*</span>, state_ops::<span class="kw-2">*</span>, sync_ops::<span class="kw-2">*</span>, wallet_ops::<span class="kw-2">*</span>,
+};
 
 <span class="kw">pub struct </span>ApiInfo {
     <span class="kw">pub </span>multiaddr: Multiaddr,
@@ -250,7 +242,8 @@
 }
 
 <span class="kw">pub static </span>API_INFO: Lazy&lt;RwLock&lt;ApiInfo&gt;&gt; = Lazy::new(|| {
-    <span class="comment">// Get API_INFO environment variable if exists, otherwise, use default multiaddress
+    <span class="comment">// Get API_INFO environment variable if exists, otherwise, use default
+    // multiaddress
     </span><span class="kw">let </span>api_info = env::var(API_INFO_KEY).unwrap_or_else(|<span class="kw">_</span>| DEFAULT_MULTIADDRESS.to_owned());
 
     <span class="kw">let </span>(multiaddr, token) = <span class="kw">match </span>api_info.split_once(<span class="string">&#39;:&#39;</span>) {
@@ -364,7 +357,8 @@
     <span class="macro">debug!</span>(<span class="string">&quot;Using JSON-RPC v2 HTTP URL: {}&quot;</span>, api_url);
 
     <span class="kw">let </span>client = https_client();
-    <span class="comment">// Split the JWT off if present, format multiaddress as URL, then post RPC request to URL
+    <span class="comment">// Split the JWT off if present, format multiaddress as URL, then post RPC
+    // request to URL
     </span><span class="kw">let </span><span class="kw-2">mut </span>request =
         hyper::Request::post(<span class="kw-2">&amp;</span>api_url).body(serde_json::to_string(<span class="kw-2">&amp;</span>rpc_req)<span class="question-mark">?</span>.into())<span class="question-mark">?</span>;
     <span class="kw">let </span>headers_mut = request.headers_mut();

@@ -149,17 +149,23 @@
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>fvm_shared::receipt::Receipt;
 
 <span class="kw">pub mod </span>json {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>forest_shim::error::ExitCode;
     <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// Wrapper for serializing and de-serializing a `SignedMessage` from JSON.
     </span><span class="attr">#[derive(Deserialize, Serialize)]
@@ -224,9 +230,10 @@
         })
     }
     <span class="kw">pub mod </span>vec {
-        <span class="kw">use super</span>::<span class="kw-2">*</span>;
         <span class="kw">use </span>forest_utils::json::GoVecVisitor;
         <span class="kw">use </span>serde::ser::SerializeSeq;
+
+        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">pub fn </span>serialize&lt;S&gt;(m: <span class="kw-2">&amp;</span>[Receipt], serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
         <span class="kw">where
@@ -287,10 +294,13 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span><span class="kw">super</span>::json::{ReceiptJson, ReceiptJsonRef};
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
+
+    <span class="kw">use super</span>::{
+        json::{ReceiptJson, ReceiptJsonRef},
+        <span class="kw-2">*</span>,
+    };
 
     <span class="attr">#[quickcheck]
     </span><span class="kw">fn </span>message_receipt_roundtrip(message_receipt: MessageReceiptWrapper) {

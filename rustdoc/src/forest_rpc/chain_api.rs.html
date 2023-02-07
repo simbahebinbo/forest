@@ -311,36 +311,34 @@
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
 
-</span><span class="kw">use </span>anyhow::Result;
+</span><span class="kw">use </span>std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+
+<span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_blocks::{
     header::json::BlockHeaderJson, tipset_json::TipsetJson, tipset_keys_json::TipsetKeysJson,
     BlockHeader, Tipset,
 };
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_json::cid::CidJson;
-<span class="kw">use </span>forest_json::message::json::MessageJson;
+<span class="kw">use </span>forest_json::{cid::CidJson, message::json::MessageJson};
 <span class="kw">use </span>forest_rpc_api::{
     chain_api::<span class="kw-2">*</span>,
     data_types::{BlockMessages, RPCState},
 };
-<span class="kw">use </span>forest_utils::db::BlockstoreExt;
-<span class="kw">use </span>forest_utils::io::AsyncWriterWithChecksum;
+<span class="kw">use </span>forest_utils::{db::BlockstoreExt, io::AsyncWriterWithChecksum};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>hex::ToHex;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>log::{debug, error};
 <span class="kw">use </span>sha2::{digest::Output, Sha256};
-<span class="kw">use </span>std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
 <span class="kw">use </span>tokio::{
     fs::File,
     io::{AsyncWriteExt, BufWriter},
@@ -429,8 +427,8 @@
     <span class="prelude-val">Ok</span>(out)
 }
 
-<span class="doccomment">/// Prints hex-encoded representation of SHA-256 checksum and saves it to a file with the same
-/// name but with a `.sha256sum` extension.
+<span class="doccomment">/// Prints hex-encoded representation of SHA-256 checksum and saves it to a file
+/// with the same name but with a `.sha256sum` extension.
 </span><span class="kw">async fn </span>save_checksum(source: <span class="kw-2">&amp;</span>Path, hash: Output&lt;Sha256&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
     <span class="kw">let </span>encoded_hash = <span class="macro">format!</span>(<span class="string">&quot;{} {}&quot;</span>, hash.encode_hex::&lt;String&gt;(), source.display());
 

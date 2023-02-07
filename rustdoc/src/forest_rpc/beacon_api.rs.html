@@ -25,20 +25,14 @@
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
-
-<span class="kw">use </span>forest_beacon::json::BeaconEntryJson;
-<span class="kw">use </span>forest_beacon::Beacon;
+</span><span class="kw">use </span>forest_beacon::{json::BeaconEntryJson, Beacon};
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_rpc_api::beacon_api::<span class="kw-2">*</span>;
-<span class="kw">use </span>forest_rpc_api::data_types::RPCState;
+<span class="kw">use </span>forest_rpc_api::{beacon_api::<span class="kw-2">*</span>, data_types::RPCState};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 
 <span class="doccomment">/// `BeaconGetEntry` returns the beacon entry for the given Filecoin epoch. If
 /// the entry has not yet been produced, the call will block until the entry

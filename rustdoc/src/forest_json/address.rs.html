@@ -145,17 +145,20 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>fvm_shared::address::Address;
 
 <span class="kw">pub mod </span>json {
+    <span class="kw">use </span>std::{borrow::Cow, str::FromStr};
+
+    <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>serde::{de, Serialize};
-    <span class="kw">use </span>serde::{Deserialize, Deserializer, Serializer};
-    <span class="kw">use </span>std::borrow::Cow;
-    <span class="kw">use </span>std::str::FromStr;
 
     <span class="doccomment">/// Wrapper for serializing and de-serializing a `SignedMessage` from JSON.
     </span><span class="attr">#[derive(Deserialize, Serialize)]
@@ -195,10 +198,10 @@
     }
 
     <span class="kw">pub mod </span>vec {
-        <span class="kw">use super</span>::<span class="kw-2">*</span>;
-        <span class="kw">use super</span>::{AddressJson, AddressJsonRef};
         <span class="kw">use </span>forest_utils::json::GoVecVisitor;
         <span class="kw">use </span>serde::ser::SerializeSeq;
+
+        <span class="kw">use super</span>::{AddressJson, AddressJsonRef, <span class="kw-2">*</span>};
 
         <span class="doccomment">/// Wrapper for serializing and de-serializing a Cid vector from JSON.
         </span><span class="attr">#[derive(Deserialize, Serialize)]
@@ -230,9 +233,11 @@
     }
 
     <span class="kw">pub mod </span>opt {
-        <span class="kw">use super</span>::<span class="kw-2">*</span>;
-        <span class="kw">use </span>serde::{<span class="self">self</span>, Deserialize, Deserializer, Serializer};
         <span class="kw">use </span>std::borrow::Cow;
+
+        <span class="kw">use </span>serde::{<span class="self">self</span>, Deserialize, Deserializer, Serializer};
+
+        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">const </span>UNDEF_ADDR_STRING: <span class="kw-2">&amp;</span>str = <span class="string">&quot;&lt;empty&gt;&quot;</span>;
 
@@ -264,9 +269,10 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[cfg(test)]
     #[derive(Clone, Debug, PartialEq)]

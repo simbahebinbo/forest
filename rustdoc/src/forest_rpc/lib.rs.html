@@ -136,6 +136,7 @@
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
 <a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -153,23 +154,24 @@
 <span class="kw">mod </span>sync_api;
 <span class="kw">mod </span>wallet_api;
 
-<span class="kw">use </span><span class="kw">crate</span>::rpc_http_handler::rpc_http_handler;
-<span class="kw">use </span><span class="kw">crate</span>::rpc_ws_handler::rpc_ws_handler;
-<span class="kw">use crate</span>::{beacon_api::beacon_get_entry, common_api::version, state_api::<span class="kw-2">*</span>};
+<span class="kw">use </span>std::{net::TcpListener, sync::Arc};
+
 <span class="kw">use </span>axum::routing::{get, post};
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_rpc_api::data_types::RPCState;
 <span class="kw">use </span>forest_rpc_api::{
-    auth_api::<span class="kw-2">*</span>, beacon_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, common_api::<span class="kw-2">*</span>, gas_api::<span class="kw-2">*</span>, mpool_api::<span class="kw-2">*</span>, net_api::<span class="kw-2">*</span>,
-    state_api::<span class="kw-2">*</span>, sync_api::<span class="kw-2">*</span>, wallet_api::<span class="kw-2">*</span>,
+    auth_api::<span class="kw-2">*</span>, beacon_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, common_api::<span class="kw-2">*</span>, data_types::RPCState, gas_api::<span class="kw-2">*</span>,
+    mpool_api::<span class="kw-2">*</span>, net_api::<span class="kw-2">*</span>, state_api::<span class="kw-2">*</span>, sync_api::<span class="kw-2">*</span>, wallet_api::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JSONRPCError, Server};
 <span class="kw">use </span>log::info;
-<span class="kw">use </span>std::net::TcpListener;
-<span class="kw">use </span>std::sync::Arc;
+
+<span class="kw">use crate</span>::{
+    beacon_api::beacon_get_entry, common_api::version, rpc_http_handler::rpc_http_handler,
+    rpc_ws_handler::rpc_ws_handler, state_api::<span class="kw-2">*</span>,
+};
 
 <span class="kw">pub async fn </span>start_rpc&lt;DB, B, S&gt;(
     state: Arc&lt;RPCState&lt;DB, B&gt;&gt;,

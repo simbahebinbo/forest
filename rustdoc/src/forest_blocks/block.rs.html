@@ -43,19 +43,24 @@
 <a href="#43" id="43">43</a>
 <a href="#44" id="44">44</a>
 <a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::BlockHeader;
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>fvm_shared::message::Message;
 
+<span class="kw">use </span><span class="kw">super</span>::BlockHeader;
+
 <span class="doccomment">/// Limit of BLS and SECP messages combined in a block.
 </span><span class="kw">pub const </span>BLOCK_MESSAGE_LIMIT: usize = <span class="number">10000</span>;
 
-<span class="doccomment">/// A complete Filecoin block. This contains the block header as well as all BLS and SECP messages.
+<span class="doccomment">/// A complete Filecoin block. This contains the block header as well as all BLS
+/// and SECP messages.
 </span><span class="attr">#[derive(Clone, Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Block {
     <span class="kw">pub </span>header: BlockHeader,
@@ -76,7 +81,8 @@
     </span><span class="kw">pub fn </span>secp_msgs(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[SignedMessage] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.secp_messages
     }
-    <span class="doccomment">/// Returns block&#39;s `cid`. This `cid` is the same as the [`BlockHeader::cid`].
+    <span class="doccomment">/// Returns block&#39;s `cid`. This `cid` is the same as the
+    /// [`BlockHeader::cid`].
     </span><span class="kw">pub fn </span>cid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Cid {
         <span class="self">self</span>.header.cid()
     }

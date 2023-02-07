@@ -310,10 +310,19 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::{tipset_from_keys, Error, TipsetCache};
+</span><span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc};
+
 <span class="kw">use </span>forest_blocks::{Tipset, TipsetKeys};
 <span class="kw">use </span>forest_metrics::metrics;
 <span class="kw">use </span>forest_utils::io::ProgressBar;
@@ -322,22 +331,25 @@
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::Mutex;
-<span class="kw">use </span>std::num::NonZeroUsize;
-<span class="kw">use </span>std::sync::Arc;
+
+<span class="kw">use crate</span>::{tipset_from_keys, Error, TipsetCache};
 
 <span class="kw">const </span>DEFAULT_CHAIN_INDEX_CACHE_SIZE: NonZeroUsize =
     <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">32 </span>&lt;&lt; <span class="number">10</span>));
 
-<span class="doccomment">/// Configuration which sets the length of tipsets to skip in between each cached entry.
+<span class="doccomment">/// Configuration which sets the length of tipsets to skip in between each
+/// cached entry.
 </span><span class="kw">const </span>SKIP_LENGTH: ChainEpoch = <span class="number">20</span>;
 
-<span class="comment">// This module helps speed up boot times for forest by checkpointing previously seen tipsets from snapshots.
+<span class="comment">// This module helps speed up boot times for forest by checkpointing previously
+// seen tipsets from snapshots.
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>checkpoint_tipsets {
+    <span class="kw">use </span>std::str::FromStr;
+
     <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_blocks::TipsetKeys;
     <span class="kw">use </span>once_cell::sync::Lazy;
-    <span class="kw">use </span>std::str::FromStr;
 
     <span class="macro">macro_rules! </span>add_calibnet {
         (<span class="macro-nonterminal">$map</span>: ident, <span class="macro-nonterminal">$key_hash</span>:expr) =&gt; {
@@ -363,15 +375,17 @@
         };
     }
 
-    <span class="comment">// The hashes for these checkpoints is obtained by passing the tipset keys&#39; cids (tipset.cids())
-    // through a blake2b hasher.
+    <span class="comment">// The hashes for these checkpoints is obtained by passing the tipset keys&#39; cids
+    // (tipset.cids()) through a blake2b hasher.
     </span><span class="kw">type </span>TipsetKeyHash = <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str;
     <span class="kw">type </span>GenesisTipsetCids = TipsetKeys;
-    <span class="comment">// Represents a static map of validated tipset hashes which helps to remove the need to validate the tipset
-    // back to genesis if it has been validated before, thereby reducing boot times.
-    // NB: Add desired tipset checkpoints below this by using RPC command: forest-cli chain tipset-hash &lt;cid keys&gt;
-    // and one can use forest-cli chain validate-tipset-checkpoints to validate tipset hashes
-    // for entries that fall within the range of epochs in current downloaded snapshot file.
+    <span class="comment">// Represents a static map of validated tipset hashes which helps to remove the
+    // need to validate the tipset back to genesis if it has been validated
+    // before, thereby reducing boot times. NB: Add desired tipset checkpoints
+    // below this by using RPC command: forest-cli chain tipset-hash &lt;cid keys&gt;
+    // and one can use forest-cli chain validate-tipset-checkpoints to validate
+    // tipset hashes for entries that fall within the range of epochs in current
+    // downloaded snapshot file.
     </span><span class="kw">type </span>TipsetCheckpointsRegistry = HashMap&lt;TipsetKeyHash, GenesisTipsetCids&gt;;
     <span class="kw">pub static </span>CALIBNET_CHECKPOINTS: Lazy&lt;TipsetCheckpointsRegistry&gt; = Lazy::new(|| {
         <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
@@ -433,7 +447,8 @@
     }
 }
 
-<span class="doccomment">/// `Lookback` entry to cache in the `ChainIndex`. Stores all relevant info when doing `lookbacks`.
+<span class="doccomment">/// `Lookback` entry to cache in the `ChainIndex`. Stores all relevant info when
+/// doing `lookbacks`.
 </span><span class="attr">#[derive(Clone, PartialEq, Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>LookbackEntry {
     tipset: Arc&lt;Tipset&gt;,
@@ -442,8 +457,8 @@
     target: TipsetKeys,
 }
 
-<span class="doccomment">/// Keeps look-back tipsets in cache at a given interval `skip_length` and can be used to look-back
-/// at the chain to retrieve an old tipset.
+<span class="doccomment">/// Keeps look-back tipsets in cache at a given interval `skip_length` and can
+/// be used to look-back at the chain to retrieve an old tipset.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ChainIndex&lt;BS&gt; {
     <span class="doccomment">/// Cache of look-back entries to speed up lookup.
     </span>skip_cache: Mutex&lt;LruCache&lt;TipsetKeys, Arc&lt;LookbackEntry&gt;&gt;&gt;,
@@ -468,8 +483,8 @@
         tipset_from_keys(<span class="self">self</span>.ts_cache.as_ref(), <span class="kw-2">&amp;</span><span class="self">self</span>.db, tsk)
     }
 
-    <span class="doccomment">/// Loads tipset at `to` [`ChainEpoch`], loading from sparse cache and/or loading parents
-    /// from the `blockstore`.
+    <span class="doccomment">/// Loads tipset at `to` [`ChainEpoch`], loading from sparse cache and/or
+    /// loading parents from the `blockstore`.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_tipset_by_height(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         from: Arc&lt;Tipset&gt;,
@@ -587,7 +602,8 @@
         (height / SKIP_LENGTH) * SKIP_LENGTH
     }
 
-    <span class="doccomment">/// Gets the closest rounded sparse index and returns the loaded tipset at that index.
+    <span class="doccomment">/// Gets the closest rounded sparse index and returns the loaded tipset at
+    /// that index.
     </span><span class="kw">fn </span>round_down(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: Arc&lt;Tipset&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;Tipset&gt;, Error&gt; {
         <span class="kw">let </span>target = <span class="self">self</span>.round_height(ts.epoch());
 

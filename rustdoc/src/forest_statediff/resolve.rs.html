@@ -60,6 +60,7 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -88,7 +89,8 @@
     <span class="prelude-val">Ok</span>(ipld)
 }
 
-<span class="doccomment">/// Resolves [`Ipld`] links recursively, building an [`Ipld`] structure with no hash links.
+<span class="doccomment">/// Resolves [`Ipld`] links recursively, building an [`Ipld`] structure with no
+/// hash links.
 </span><span class="kw">fn </span>resolve_ipld&lt;BS&gt;(bs: <span class="kw-2">&amp;</span>BS, ipld: <span class="kw-2">&amp;mut </span>Ipld, <span class="kw-2">mut </span>depth: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
     </span>BS: Blockstore,

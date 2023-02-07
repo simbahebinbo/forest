@@ -120,15 +120,16 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::errors::Error;
+</span><span class="kw">use </span>std::sync::Arc;
+
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
-<span class="kw">use </span>forest_blocks::BlockHeader;
-<span class="kw">use </span>forest_blocks::Tipset;
-<span class="kw">use </span>forest_blocks::TipsetKeys;
+<span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::HeadChange;
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_message::{ChainMessage, SignedMessage};
@@ -137,24 +138,26 @@
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message};
 <span class="kw">use </span>tokio::sync::broadcast::{Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};
 
-<span class="doccomment">/// Provider Trait. This trait will be used by the message pool to interact with some medium in order to do
-/// the operations that are listed below that are required for the message pool.
+<span class="kw">use </span><span class="kw">crate</span>::errors::Error;
+
+<span class="doccomment">/// Provider Trait. This trait will be used by the message pool to interact with
+/// some medium in order to do the operations that are listed below that are
+/// required for the message pool.
 </span><span class="attr">#[async_trait]
 </span><span class="kw">pub trait </span>Provider {
     <span class="doccomment">/// Update `Mpool`&#39;s `cur_tipset` whenever there is a change to the provider
     </span><span class="kw">fn </span>subscribe_head_changes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Subscriber&lt;HeadChange&gt;;
     <span class="doccomment">/// Get the heaviest Tipset in the provider
     </span><span class="kw">fn </span>get_heaviest_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;Tipset&gt;;
-    <span class="doccomment">/// Add a message to the `MpoolProvider`, return either Cid or Error depending on successful put
+    <span class="doccomment">/// Add a message to the `MpoolProvider`, return either Cid or Error
+    /// depending on successful put
     </span><span class="kw">fn </span>put_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>ChainMessage) -&gt; <span class="prelude-ty">Result</span>&lt;Cid, Error&gt;;
-    <span class="doccomment">/// Return state actor for given address given the tipset that the a temp `StateTree` will be rooted
-    /// at. Return `ActorState` or Error depending on whether or not `ActorState` is found
+    <span class="doccomment">/// Return state actor for given address given the tipset that the a temp
+    /// `StateTree` will be rooted at. Return `ActorState` or Error
+    /// depending on whether or not `ActorState` is found
     </span><span class="kw">fn </span>get_actor_after(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;ActorState, Error&gt;;
     <span class="doccomment">/// Return the signed messages for given block header
     </span><span class="kw">fn </span>messages_for_block(
@@ -169,7 +172,8 @@
     </span><span class="kw">fn </span>chain_compute_base_fee(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt;;
 }
 
-<span class="doccomment">/// This is the default Provider implementation that will be used for the `mpool` RPC.
+<span class="doccomment">/// This is the default Provider implementation that will be used for the
+/// `mpool` RPC.
 </span><span class="kw">pub struct </span>MpoolRpcProvider&lt;DB&gt; {
     subscriber: Publisher&lt;HeadChange&gt;,
     sm: Arc&lt;StateManager&lt;DB&gt;&gt;,

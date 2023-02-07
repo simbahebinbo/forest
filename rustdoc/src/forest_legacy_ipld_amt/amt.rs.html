@@ -382,24 +382,33 @@
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::ValueMut;
-<span class="kw">use crate</span>::{
-    init_sized_vec,
-    node::{CollapsedNode, Link},
-    nodes_for_height, Error, Node, Root, MAX_HEIGHT, MAX_INDEX,
-};
+</span><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_encoding::{de::DeserializeOwned, ser::Serialize};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>itertools::sorted;
-<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
 
-<span class="doccomment">/// Array Mapped Trie allows for the insertion and persistence of data, serializable to a CID.
+<span class="kw">use </span><span class="kw">super</span>::ValueMut;
+<span class="kw">use crate</span>::{
+    init_sized_vec,
+    node::{CollapsedNode, Link},
+    nodes_for_height, Error, Node, Root, MAX_HEIGHT, MAX_INDEX,
+};
+
+<span class="doccomment">/// Array Mapped Trie allows for the insertion and persistence of data,
+/// serializable to a CID.
 ///
 /// Amt is not thread-safe and can&#39;t be shared between threads.
 ///
@@ -548,7 +557,8 @@
     }
 
     <span class="doccomment">/// Batch set (naive for now)
-    </span><span class="comment">// TODO Implement more efficient batch set to not have to traverse tree and keep cache for each
+    </span><span class="comment">// TODO Implement more efficient batch set to not have to traverse tree and keep
+    // cache for each
     </span><span class="kw">pub fn </span>batch_set(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vals: <span class="kw">impl </span>IntoIterator&lt;Item = V&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">for </span>(i, val) <span class="kw">in </span>vals.into_iter().enumerate() {
             <span class="self">self</span>.set(i, val)<span class="question-mark">?</span>;
@@ -621,8 +631,8 @@
     }
 
     <span class="doccomment">/// Deletes multiple items from AMT
-    /// If `strict` is true, all indices are expected to be present, and this will
-    /// return an error if one is not found.
+    /// If `strict` is true, all indices are expected to be present, and this
+    /// will return an error if one is not found.
     ///
     /// Returns true if items were deleted.
     </span><span class="kw">pub fn </span>batch_delete(
@@ -654,8 +664,8 @@
 
     <span class="doccomment">/// Iterates over each value in the Amt and runs a function on the values.
     ///
-    /// The index in the amt is a `usize` and the value is the generic parameter `V` as defined
-    /// in the Amt.
+    /// The index in the amt is a `usize` and the value is the generic parameter
+    /// `V` as defined in the Amt.
     ///
     /// # Examples
     ///
@@ -686,8 +696,8 @@
         })
     }
 
-    <span class="doccomment">/// Iterates over each value in the Amt and runs a function on the values, for as long as that
-    /// function keeps returning `true`.
+    <span class="doccomment">/// Iterates over each value in the Amt and runs a function on the values,
+    /// for as long as that function keeps returning `true`.
     </span><span class="kw">pub fn </span>for_each_while&lt;F&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;
     <span class="kw">where
         </span>F: FnMut(usize, <span class="kw-2">&amp;</span>V) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;,
@@ -698,8 +708,8 @@
             .map(|<span class="kw">_</span>| ())
     }
 
-    <span class="doccomment">/// Iterates over each value in the Amt and runs a function on the values that allows modifying
-    /// each value.
+    <span class="doccomment">/// Iterates over each value in the Amt and runs a function on the values
+    /// that allows modifying each value.
     </span><span class="kw">pub fn </span>for_each_mut&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;
     <span class="kw">where
         </span>V: Clone,
@@ -711,8 +721,9 @@
         })
     }
 
-    <span class="doccomment">/// Iterates over each value in the Amt and runs a function on the values that allows modifying
-    /// each value, for as long as that function keeps returning `true`.
+    <span class="doccomment">/// Iterates over each value in the Amt and runs a function on the values
+    /// that allows modifying each value, for as long as that function keeps
+    /// returning `true`.
     </span><span class="kw">pub fn </span>for_each_while_mut&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>f: F) -&gt; <span class="prelude-ty">Result</span>&lt;(), Box&lt;<span class="kw">dyn </span>StdError&gt;&gt;
     <span class="kw">where
         </span><span class="comment">// TODO remove clone bound when go-interop doesn&#39;t require it.
@@ -729,10 +740,11 @@
         }
 
         <span class="comment">// TODO remove requirement for this when/if changed in go-implementation
-        // This is not 100% compatible, because the blockstore reads/writes are not in the same
-        // order. If this is to be achieved, the for_each iteration would have to pause when
-        // a mutation occurs, set, then continue where it left off. This is a much more extensive
-        // change, and since it should not be feasibly triggered, it&#39;s left as this for now.
+        // This is not 100% compatible, because the blockstore reads/writes are not in
+        // the same order. If this is to be achieved, the for_each iteration
+        // would have to pause when a mutation occurs, set, then continue where
+        // it left off. This is a much more extensive change, and since it
+        // should not be feasibly triggered, it&#39;s left as this for now.
         </span><span class="attr">#[cfg(feature = <span class="string">&quot;go-interop&quot;</span>)]
         </span>{
             <span class="kw">let </span><span class="kw-2">mut </span>mutated = ahash::AHashMap::new();

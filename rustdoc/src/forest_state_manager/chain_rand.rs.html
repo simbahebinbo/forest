@@ -226,10 +226,13 @@
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>anyhow::{bail, Context};
+</span><span class="kw">use </span>std::{io::Write, sync::Arc};
+
+<span class="kw">use </span>anyhow::{bail, Context};
 <span class="kw">use </span>blake2b_simd::Params;
 <span class="kw">use </span>byteorder::{BigEndian, WriteBytesExt};
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconEntry, BeaconSchedule, DrandBeacon};
@@ -241,8 +244,6 @@
 <span class="kw">use </span>fvm::externs::Rand;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>std::io::Write;
-<span class="kw">use </span>std::sync::Arc;
 
 <span class="doccomment">/// Allows for deriving the randomness from a particular tipset.
 </span><span class="kw">pub struct </span>ChainRand&lt;DB&gt; {
@@ -281,8 +282,8 @@
         }
     }
 
-    <span class="doccomment">/// Gets 32 bytes of randomness for `ChainRand` parameterized by the `DomainSeparationTag`, `ChainEpoch`,
-    /// Entropy from the ticket chain.
+    <span class="doccomment">/// Gets 32 bytes of randomness for `ChainRand` parameterized by the
+    /// `DomainSeparationTag`, `ChainEpoch`, Entropy from the ticket chain.
     </span><span class="kw">pub fn </span>get_chain_randomness(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         blocks: <span class="kw-2">&amp;</span>TipsetKeys,
@@ -351,8 +352,9 @@
         draw_randomness(beacon_entry.data(), pers, round, entropy)
     }
 
-    <span class="doccomment">/// Gets 32 bytes of randomness for `ChainRand` parameterized by the `DomainSeparationTag`, `ChainEpoch`,
-    /// Entropy from the latest beacon entry.
+    <span class="doccomment">/// Gets 32 bytes of randomness for `ChainRand` parameterized by the
+    /// `DomainSeparationTag`, `ChainEpoch`, Entropy from the latest beacon
+    /// entry.
     </span><span class="kw">pub fn </span>get_beacon_randomness(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         blocks: <span class="kw-2">&amp;</span>TipsetKeys,

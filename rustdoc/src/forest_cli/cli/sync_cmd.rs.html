@@ -152,21 +152,23 @@
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
 <a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::Config;
+</span><span class="kw">use </span>std::{
+    io::{stdout, Write},
+    time::Duration,
+};
+
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_chain_sync::SyncStage;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_rpc_client::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::{
-    io::{stdout, Write},
-    time::Duration,
-};
 <span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>ticker::Ticker;
 
+<span class="kw">use </span><span class="kw">super</span>::Config;
 <span class="kw">use </span><span class="kw">crate</span>::cli::{format_vec_pretty, handle_rpc_err};
 
 <span class="attr">#[derive(Debug, StructOpt)]

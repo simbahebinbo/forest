@@ -1228,6 +1228,22 @@
 <a href="#1228" id="1228">1228</a>
 <a href="#1229" id="1229">1229</a>
 <a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1237,7 +1253,11 @@
 <span class="kw">mod </span>utils;
 <span class="kw">mod </span>vm_circ_supply;
 
-<span class="kw">pub use </span><span class="self">self</span>::errors::<span class="kw-2">*</span>;
+<span class="kw">use </span>std::{
+    num::NonZeroUsize,
+    sync::{Arc, Mutex <span class="kw">as </span>StdMutex},
+};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>chain_rand::ChainRand;
 <span class="kw">use </span>cid::Cid;
@@ -1252,31 +1272,31 @@
 <span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
-<span class="kw">use </span>forest_shim::state_tree::{ActorState, StateTree};
-<span class="kw">use </span>forest_shim::version::NetworkVersion;
+<span class="kw">use </span>forest_shim::{
+    state_tree::{ActorState, StateTree},
+    version::NetworkVersion,
+};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>futures::{channel::oneshot, select, FutureExt};
-<span class="kw">use </span>fvm::executor::ApplyRet;
-<span class="kw">use </span>fvm::externs::Rand;
+<span class="kw">use </span>fvm::{executor::ApplyRet, externs::Rand};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::{Address, Payload, Protocol, BLS_PUB_LEN};
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::receipt::Receipt;
+<span class="kw">use </span>fvm_shared::{
+    address::{Address, Payload, Protocol, BLS_PUB_LEN},
+    clock::ChainEpoch,
+    econ::TokenAmount,
+    message::Message,
+    receipt::Receipt,
+};
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>num_traits::identities::Zero;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::num::NonZeroUsize;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::sync::Mutex <span class="kw">as </span>StdMutex;
-<span class="kw">use </span>tokio::sync::broadcast::error::RecvError;
-<span class="kw">use </span>tokio::sync::Mutex <span class="kw">as </span>TokioMutex;
-<span class="kw">use </span>tokio::sync::RwLock;
+<span class="kw">use </span>tokio::sync::{broadcast::error::RecvError, Mutex <span class="kw">as </span>TokioMutex, RwLock};
 <span class="kw">use </span>tracing::{debug, error, info, instrument, trace, warn};
 <span class="kw">use </span>vm_circ_supply::GenesisInfo;
+
+<span class="kw">pub use </span><span class="self">self</span>::errors::<span class="kw-2">*</span>;
 
 <span class="kw">const </span>DEFAULT_TIPSET_CACHE_SIZE: NonZeroUsize =
     <span class="macro">forest_utils::const_option!</span>(NonZeroUsize::new(<span class="number">1024</span>));
@@ -1420,10 +1440,11 @@
     locked: TokenAmount,
 }
 
-<span class="doccomment">/// State manager handles all interactions with the internal Filecoin actors state.
-/// This encapsulates the [`ChainStore`] functionality, which only handles chain data, to
-/// allow for interactions with the underlying state of the chain. The state manager not only
-/// allows interfacing with state, but also is used when performing state transitions.
+<span class="doccomment">/// State manager handles all interactions with the internal Filecoin actors
+/// state. This encapsulates the [`ChainStore`] functionality, which only
+/// handles chain data, to allow for interactions with the underlying state of
+/// the chain. The state manager not only allows interfacing with state, but
+/// also is used when performing state transitions.
 </span><span class="kw">pub struct </span>StateManager&lt;DB&gt; {
     cs: Arc&lt;ChainStore&lt;DB&gt;&gt;,
 
@@ -1488,7 +1509,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.cs
     }
 
-    <span class="comment">// This function used to do this: Returns the network name from the init actor state.
+    <span class="comment">// This function used to do this: Returns the network name from the init actor
+    // state.
     </span><span class="doccomment">/// Returns the internal, protocol-level network name.
     </span><span class="kw">pub fn </span>get_network_name(<span class="kw-2">&amp;</span><span class="self">self</span>, _st: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt; {
         <span class="kw">if </span><span class="self">self</span>.chain_config.name == <span class="string">&quot;calibnet&quot; </span>{
@@ -1503,8 +1525,9 @@
         <span class="prelude-val">Err</span>(Error::Other(<span class="string">&quot;Cannot guess network name&quot;</span>.to_owned()))
         <span class="comment">// let init_act = self
         //     .get_actor(actor::init::ADDRESS, *st)?
-        //     .ok_or_else(|| Error::State(&quot;Init actor address could not be resolved&quot;.to_string()))?;
-        // let state = init::State::load(self.blockstore(), &amp;init_act)?;
+        //     .ok_or_else(|| Error::State(&quot;Init actor address could not be
+        // resolved&quot;.to_string()))?; let state =
+        // init::State::load(self.blockstore(), &amp;init_act)?;
         // Ok(state.into_network_name())
     </span>}
 
@@ -1541,7 +1564,8 @@
         <span class="prelude-val">Ok</span>(addr)
     }
 
-    <span class="doccomment">/// Returns specified actor&#39;s claimed power and total network power as a tuple.
+    <span class="doccomment">/// Returns specified actor&#39;s claimed power and total network power as a
+    /// tuple.
     </span><span class="kw">pub fn </span>get_power(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         state_cid: <span class="kw-2">&amp;</span>Cid,
@@ -1573,8 +1597,9 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// Performs the state transition for the tipset and applies all unique messages in all blocks.
-    /// This function returns the state root and receipt root of the transition.
+    <span class="doccomment">/// Performs the state transition for the tipset and applies all unique
+    /// messages in all blocks. This function returns the state root and
+    /// receipt root of the transition.
     </span><span class="attr">#[allow(clippy::too_many_arguments)]
     </span><span class="kw">pub fn </span>apply_blocks&lt;R, CB&gt;(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
@@ -1644,9 +1669,9 @@
         <span class="prelude-val">Ok</span>((state_root, receipt_root))
     }
 
-    <span class="doccomment">/// Returns the pair of (parent state root, message receipt root). This will either be cached
-    /// or will be calculated and fill the cache. Tipset state for a given tipset is guaranteed
-    /// not to be computed twice.
+    <span class="doccomment">/// Returns the pair of (parent state root, message receipt root). This will
+    /// either be cached or will be calculated and fill the cache. Tipset
+    /// state for a given tipset is guaranteed not to be computed twice.
     </span><span class="attr">#[instrument(skip(<span class="self">self</span>))]
     </span><span class="kw">pub async fn </span>tipset_state(<span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;, tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;) -&gt; anyhow::Result&lt;CidPair&gt; {
         <span class="kw">let </span>key = tipset.key();
@@ -1726,7 +1751,8 @@
         })
     }
 
-    <span class="doccomment">/// runs the given message and returns its result without any persisted changes.
+    <span class="doccomment">/// runs the given message and returns its result without any persisted
+    /// changes.
     </span><span class="kw">pub fn </span>call(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         message: <span class="kw-2">&amp;mut </span>Message,
@@ -1737,8 +1763,8 @@
         <span class="self">self</span>.call_raw(message, chain_rand, <span class="kw-2">&amp;</span>ts)
     }
 
-    <span class="doccomment">/// Computes message on the given [Tipset] state, after applying other messages and returns
-    /// the values computed in the VM.
+    <span class="doccomment">/// Computes message on the given [Tipset] state, after applying other
+    /// messages and returns the values computed in the VM.
     </span><span class="kw">pub async fn </span>call_with_gas(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         message: <span class="kw-2">&amp;mut </span>ChainMessage,
@@ -1753,7 +1779,8 @@
         <span class="kw">let </span>chain_rand = <span class="self">self</span>.chain_rand(ts.key().to_owned());
 
         <span class="kw">let </span>store = <span class="self">self</span>.blockstore().clone();
-        <span class="comment">// Since we&#39;re simulating a future message, pretend we&#39;re applying it in the &quot;next&quot; tipset
+        <span class="comment">// Since we&#39;re simulating a future message, pretend we&#39;re applying it in the
+        // &quot;next&quot; tipset
         </span><span class="kw">let </span>epoch = ts.epoch() + <span class="number">1</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>vm = VM::new(
             st,
@@ -1787,8 +1814,8 @@
         })
     }
 
-    <span class="doccomment">/// Replays the given message and returns the result of executing the indicated message,
-    /// assuming it was executed in the indicated tipset.
+    <span class="doccomment">/// Replays the given message and returns the result of executing the
+    /// indicated message, assuming it was executed in the indicated tipset.
     </span><span class="kw">pub async fn </span>replay(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         ts: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
@@ -1796,8 +1823,9 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(Message, ApplyRet), Error&gt; {
         <span class="kw">const </span>ERROR_MSG: <span class="kw-2">&amp;</span>str = <span class="string">&quot;replay_halt&quot;</span>;
 
-        <span class="comment">// This isn&#39;t ideal to have, since the execution is synchronous, but this needs to be the
-        // case because the state transition has to be in blocking thread to avoid starving executor
+        <span class="comment">// This isn&#39;t ideal to have, since the execution is synchronous, but this needs
+        // to be the case because the state transition has to be in blocking
+        // thread to avoid starving executor
         </span><span class="kw">let </span>(m_tx, m_rx) = std::sync::mpsc::channel();
         <span class="kw">let </span>(r_tx, r_rx) = std::sync::mpsc::channel();
         <span class="kw">let </span>callback = <span class="kw">move </span>|cid: <span class="kw-2">&amp;</span>Cid, unsigned: <span class="kw-2">&amp;</span>ChainMessage, apply_ret: <span class="kw-2">&amp;</span>ApplyRet| {
@@ -1830,10 +1858,10 @@
 
     <span class="doccomment">/// Gets look-back tipset for block validations.
     ///
-    /// The look-back tipset for a round is the tipset with epoch `round - chain_finality`.
-    /// Chain finality is usually 900. The given is a reference point in the
-    /// blockchain such that the look-back tipset can be found by tracing the
-    /// `parent` pointers.
+    /// The look-back tipset for a round is the tipset with epoch `round -
+    /// chain_finality`. Chain finality is usually 900. The given is a
+    /// reference point in the blockchain such that the look-back tipset can
+    /// be found by tracing the `parent` pointers.
     </span><span class="kw">pub fn </span>get_lookback_tipset_for_round(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         tipset: Arc&lt;Tipset&gt;,
@@ -1875,8 +1903,8 @@
         <span class="prelude-val">Ok</span>((lbts, <span class="kw-2">*</span>next_ts.parent_state()))
     }
 
-    <span class="doccomment">/// Checks the eligibility of the miner. This is used in the validation that a block&#39;s miner
-    /// has the requirements to mine a block.
+    <span class="doccomment">/// Checks the eligibility of the miner. This is used in the validation that
+    /// a block&#39;s miner has the requirements to mine a block.
     </span><span class="kw">pub fn </span>eligible_to_mine(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         address: <span class="kw-2">&amp;</span>Address,
@@ -1931,7 +1959,8 @@
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
-    <span class="doccomment">/// Performs a state transition, and returns the state and receipt root of the transition.
+    <span class="doccomment">/// Performs a state transition, and returns the state and receipt root of
+    /// the transition.
     </span><span class="attr">#[instrument(skip(<span class="self">self</span>, callback))]
     </span><span class="kw">pub async fn </span>compute_tipset_state&lt;CB: <span class="lifetime">&#39;static</span>&gt;(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
@@ -2002,8 +2031,8 @@
         </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;failed to apply blocks: {e}&quot;</span>)))<span class="question-mark">?
     </span>}
 
-    <span class="doccomment">/// Check if tipset had executed the message, by loading the receipt based on the index of
-    /// the message in the block.
+    <span class="doccomment">/// Check if tipset had executed the message, by loading the receipt based
+    /// on the index of the message in the block.
     </span><span class="kw">fn </span>tipset_executed_message(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tipset: <span class="kw-2">&amp;</span>Tipset,
@@ -2130,9 +2159,10 @@
         <span class="prelude-val">Ok</span>(message_receipt)
     }
 
-    <span class="doccomment">/// `WaitForMessage` blocks until a message appears on chain. It looks backwards in the
-    /// chain to see if this has already happened. It guarantees that the message has been on chain
-    /// for at least confidence epochs without being reverted before returning.
+    <span class="doccomment">/// `WaitForMessage` blocks until a message appears on chain. It looks
+    /// backwards in the chain to see if this has already happened. It
+    /// guarantees that the message has been on chain for at least
+    /// confidence epochs without being reverted before returning.
     </span><span class="kw">pub async fn </span>wait_for_message(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         msg_cid: Cid,
@@ -2256,8 +2286,9 @@
         .fuse();
 
         <span class="comment">// Await on first future to finish.
-        // TODO this should be a future race. I don&#39;t think the task is being cancelled here
-        // This seems like it will keep the other task running even though it&#39;s unneeded.
+        // TODO this should be a future race. I don&#39;t think the task is being cancelled
+        // here This seems like it will keep the other task running even though
+        // it&#39;s unneeded.
         </span><span class="kw">loop </span>{
             <span class="macro">select! </span>{
                 res = subscriber_poll =&gt; {
@@ -2350,8 +2381,8 @@
         <span class="prelude-val">Ok</span>(out)
     }
 
-    <span class="doccomment">/// Similar to `resolve_to_key_addr` in the `forest_vm` crate but does not allow `Actor` type of addresses.
-    /// Uses `ts` to generate the VM state.
+    <span class="doccomment">/// Similar to `resolve_to_key_addr` in the `forest_vm` crate but does not
+    /// allow `Actor` type of addresses. Uses `ts` to generate the VM state.
     </span><span class="kw">pub async fn </span>resolve_to_key_addr(
         <span class="self">self</span>: <span class="kw-2">&amp;</span>Arc&lt;<span class="self">Self</span>&gt;,
         addr: <span class="kw-2">&amp;</span>Address,
@@ -2372,7 +2403,8 @@
         resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="self">self</span>.blockstore(), addr)
     }
 
-    <span class="doccomment">/// Checks power actor state for if miner meets consensus minimum requirements.
+    <span class="doccomment">/// Checks power actor state for if miner meets consensus minimum
+    /// requirements.
     </span><span class="kw">pub fn </span>miner_has_min_power(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         policy: <span class="kw-2">&amp;</span>Policy,

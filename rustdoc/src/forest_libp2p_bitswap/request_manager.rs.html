@@ -243,22 +243,30 @@
 <a href="#243" id="243">243</a>
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="doccomment">//! Request manager implementation that is optimized for `filecoin` network usage
+</span><span class="doccomment">//! Request manager implementation that is optimized for `filecoin` network
+//! usage
 
-</span><span class="kw">use crate</span>::{event_handlers::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
-<span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
-<span class="kw">use </span>flume::TryRecvError;
-<span class="kw">use </span>libipld::Block;
-<span class="kw">use </span>libipld::Cid;
-<span class="kw">use </span>libp2p::PeerId;
-<span class="kw">use </span>parking_lot::RwLock;
-<span class="kw">use </span>std::{
+</span><span class="kw">use </span>std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+
+<span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
+<span class="kw">use </span>flume::TryRecvError;
+<span class="kw">use </span>libipld::{Block, Cid};
+<span class="kw">use </span>libp2p::PeerId;
+<span class="kw">use </span>parking_lot::RwLock;
+
+<span class="kw">use crate</span>::{event_handlers::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 
 <span class="kw">const </span>BITSWAP_BLOCK_REQUEST_INTERVAL: Duration = Duration::from_millis(<span class="number">500</span>);
 
@@ -268,7 +276,8 @@
     block_received: flume::Sender&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt;,
 }
 
-<span class="doccomment">/// Request manager implementation that is optimized for `filecoin` network usage
+<span class="doccomment">/// Request manager implementation that is optimized for `filecoin` network
+/// usage
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>BitswapRequestManager {
     outbound_request_tx: flume::Sender&lt;(PeerId, BitswapRequest)&gt;,
@@ -278,8 +287,10 @@
 }
 
 <span class="kw">impl </span>BitswapRequestManager {
-    <span class="doccomment">/// A receiver channel of the outbound `bitswap` network events that the [BitswapRequestManager] emits.
-    /// The messages from this channel need to be sent with [BitswapBehaviour::send_request] to make [BitswapRequestManager::get_block] work.
+    <span class="doccomment">/// A receiver channel of the outbound `bitswap` network events that the
+    /// [BitswapRequestManager] emits. The messages from this channel need
+    /// to be sent with [BitswapBehaviour::send_request] to make
+    /// [BitswapRequestManager::get_block] work.
     </span><span class="kw">pub fn </span>outbound_request_rx(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>flume::Receiver&lt;(PeerId, BitswapRequest)&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>.outbound_request_rx
     }
@@ -308,8 +319,9 @@
         handle_event_impl(<span class="self">self</span>, bitswap, store, event)
     }
 
-    <span class="doccomment">/// Gets a block, writing it to the given block store that implements [BitswapStoreReadWrite] and respond to the channel.
-    /// Note: this method is a non-blocking, it is intended to return immediately.
+    <span class="doccomment">/// Gets a block, writing it to the given block store that implements
+    /// [BitswapStoreReadWrite] and respond to the channel. Note: this
+    /// method is a non-blocking, it is intended to return immediately.
     </span><span class="kw">pub fn </span>get_block(
         <span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;,
         store: Arc&lt;<span class="kw">impl </span>BitswapStoreReadWrite&gt;,

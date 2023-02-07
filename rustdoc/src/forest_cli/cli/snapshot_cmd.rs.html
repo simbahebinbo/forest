@@ -483,11 +483,16 @@
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
-<span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, handle_rpc_err};
+</span><span class="kw">use </span>std::{fs, path::PathBuf, sync::Arc};
+
 <span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
@@ -502,12 +507,14 @@
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_utils::net::FetchProgress;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>std::{fs, path::PathBuf, sync::Arc};
 <span class="kw">use </span>strfmt::strfmt;
 <span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>tempfile::TempDir;
 <span class="kw">use </span>time::OffsetDateTime;
 <span class="kw">use </span>tokio_util::compat::TokioAsyncReadCompatExt;
+
+<span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span><span class="kw">crate</span>::cli::{cli_error_and_die, handle_rpc_err};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>OUTPUT_PATH_DEFAULT_FORMAT: <span class="kw-2">&amp;</span>str =
     <span class="string">&quot;forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car&quot;</span>;
@@ -522,7 +529,8 @@
         <span class="doccomment">/// Specify the number of recent state roots to include in the export.
         </span><span class="attr">#[structopt(short, long, default_value = <span class="string">&quot;2000&quot;</span>)]
         </span>recent_stateroots: i64,
-        <span class="doccomment">/// Snapshot output path. Default to `forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car`
+        <span class="doccomment">/// Snapshot output path. Default to
+        /// `forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car`
         /// Date is in ISO 8601 date format.
         /// Arguments:
         ///  - chain - chain name e.g. `mainnet`
@@ -539,8 +547,8 @@
 
     <span class="doccomment">/// Fetches the most recent snapshot from a trusted, pre-defined location.
     </span>Fetch {
-        <span class="doccomment">/// Directory to which the snapshot should be downloaded. If not provided, it will be saved
-        /// in default Forest data location.
+        <span class="doccomment">/// Directory to which the snapshot should be downloaded. If not
+        /// provided, it will be saved in default Forest data location.
         </span><span class="attr">#[structopt(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
         <span class="doccomment">/// Snapshot trusted source
@@ -560,8 +568,8 @@
 
     <span class="doccomment">/// List local snapshots
     </span>List {
-        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it will be the
-        /// default Forest data location.
+        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
+        /// will be the default Forest data location.
         </span><span class="attr">#[structopt(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     },
@@ -571,8 +579,8 @@
         <span class="doccomment">/// Snapshot filename to remove
         </span>filename: PathBuf,
 
-        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it will be the
-        /// default Forest data location.
+        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
+        /// will be the default Forest data location.
         </span><span class="attr">#[structopt(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
@@ -582,11 +590,12 @@
     },
 
     <span class="doccomment">/// Prune local snapshot, keeps the latest only.
-    /// Note that file names that do not match forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car
+    /// Note that file names that do not match
+    /// forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car
     /// pattern will be ignored
     </span>Prune {
-        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it will be the
-        /// default Forest data location.
+        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
+        /// will be the default Forest data location.
         </span><span class="attr">#[structopt(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
@@ -597,8 +606,8 @@
 
     <span class="doccomment">/// Clean all local snapshots, use with care.
     </span>Clean {
-        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it will be the
-        /// default Forest data location.
+        <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
+        /// will be the default Forest data location.
         </span><span class="attr">#[structopt(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
@@ -909,11 +918,12 @@
     pb.message(<span class="string">&quot;Validating tipsets: &quot;</span>);
     pb.set_max_refresh_rate(<span class="prelude-val">Some</span>(std::time::Duration::from_millis(<span class="number">500</span>)));
 
-    <span class="comment">// Security: Recursive snapshots are difficult to create but not impossible. This
-    // limits the amount of recursion we do.
+    <span class="comment">// Security: Recursive snapshots are difficult to create but not impossible.
+    // This limits the amount of recursion we do.
     </span><span class="kw">let </span><span class="kw-2">mut </span>prev_epoch = ts.epoch();
     <span class="kw">loop </span>{
-        <span class="comment">// if we reach 0 here, it means parent traversal didn&#39;t end up reaching genesis properly, bail with error.
+        <span class="comment">// if we reach 0 here, it means parent traversal didn&#39;t end up reaching genesis
+        // properly, bail with error.
         </span><span class="kw">if </span>prev_epoch &lt;= <span class="number">0 </span>{
             <span class="macro">bail!</span>(<span class="string">&quot;Broken invariant: no genesis tipset in snapshot.&quot;</span>);
         }

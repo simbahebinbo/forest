@@ -595,23 +595,37 @@
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::{Block, BlockHeader, Error, Ticket};
-<span class="kw">use </span>ahash::{HashSet, HashSetExt};
+</span><span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::{address::Address, clock::ChainEpoch};
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
+<span class="kw">use super</span>::{Block, BlockHeader, Error, Ticket};
+
 <span class="doccomment">/// A set of `CIDs` forming a unique key for a Tipset.
-/// Equal keys will have equivalent iteration order, but note that the `CIDs` are *not* maintained in
-/// the same order as the canonical iteration order of blocks in a tipset (which is by ticket)
+/// Equal keys will have equivalent iteration order, but note that the `CIDs`
+/// are *not* maintained in the same order as the canonical iteration order of
+/// blocks in a tipset (which is by ticket)
 </span><span class="attr">#[derive(Clone, Debug, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 #[serde(transparent)]
 </span><span class="kw">pub struct </span>TipsetKeys {
@@ -672,14 +686,16 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>property_tests {
-    <span class="kw">use </span><span class="kw">crate</span>::ArbitraryCid;
-
-    <span class="kw">use </span><span class="kw">super</span>::tipset_json::{TipsetJson, TipsetJsonRef};
-    <span class="kw">use </span><span class="kw">super</span>::tipset_keys_json::TipsetKeysJson;
-    <span class="kw">use super</span>::{Tipset, TipsetKeys};
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
+
+    <span class="kw">use super</span>::{
+        tipset_json::{TipsetJson, TipsetJsonRef},
+        tipset_keys_json::TipsetKeysJson,
+        Tipset, TipsetKeys,
+    };
+    <span class="kw">use </span><span class="kw">crate</span>::ArbitraryCid;
 
     <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>TipsetKeys {
         <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
@@ -720,9 +736,10 @@
 <span class="attr">#[allow(clippy::len_without_is_empty)]
 </span><span class="kw">impl </span>Tipset {
     <span class="doccomment">/// Builds a new Tipset from a collection of blocks.
-    /// A valid tipset contains a non-empty collection of blocks that have distinct miners and all
-    /// specify identical epoch, parents, weight, height, state root, receipt root;
-    /// content-id for headers are supposed to be distinct but until encoding is added will be equal.
+    /// A valid tipset contains a non-empty collection of blocks that have
+    /// distinct miners and all specify identical epoch, parents, weight,
+    /// height, state root, receipt root; content-id for headers are
+    /// supposed to be distinct but until encoding is added will be equal.
     </span><span class="kw">pub fn </span>new(<span class="kw-2">mut </span>headers: Vec&lt;BlockHeader&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         verify_blocks(<span class="kw-2">&amp;</span>headers)<span class="question-mark">?</span>;
 
@@ -792,7 +809,8 @@
     </span><span class="kw">pub fn </span>weight(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>BigInt {
         <span class="self">self</span>.min_ticket_block().weight()
     }
-    <span class="doccomment">/// Returns true if self wins according to the Filecoin tie-break rule (FIP-0023)
+    <span class="doccomment">/// Returns true if self wins according to the Filecoin tie-break rule
+    /// (FIP-0023)
     </span><span class="kw">pub fn </span>break_weight_tie(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>Tipset) -&gt; bool {
         <span class="comment">// blocks are already sorted by ticket
         </span><span class="kw">let </span>broken = <span class="self">self
@@ -815,7 +833,8 @@
     }
 }
 
-<span class="doccomment">/// `FullTipset` is an expanded version of a tipset that contains all the blocks and messages
+<span class="doccomment">/// `FullTipset` is an expanded version of a tipset that contains all the blocks
+/// and messages
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>FullTipset {
     blocks: Vec&lt;Block&gt;,
@@ -832,8 +851,8 @@
     <span class="kw">pub fn </span>new(<span class="kw-2">mut </span>blocks: Vec&lt;Block&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         verify_blocks(blocks.iter().map(Block::header))<span class="question-mark">?</span>;
 
-        <span class="comment">// sort blocks on creation to allow for more seamless conversions between FullTipset
-        // and Tipset
+        <span class="comment">// sort blocks on creation to allow for more seamless conversions between
+        // FullTipset and Tipset
         </span>blocks.sort_by_cached_key(|block| block.header().to_sort_key());
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             blocks,
@@ -853,7 +872,8 @@
     </span><span class="kw">pub fn </span>into_blocks(<span class="self">self</span>) -&gt; Vec&lt;Block&gt; {
         <span class="self">self</span>.blocks
     }
-    <span class="doccomment">/// Converts the full tipset into a [Tipset] which removes the messages attached.
+    <span class="doccomment">/// Converts the full tipset into a [Tipset] which removes the messages
+    /// attached.
     </span><span class="kw">pub fn </span>into_tipset(<span class="self">self</span>) -&gt; Tipset {
         Tipset::from(<span class="self">self</span>)
     }
@@ -918,8 +938,9 @@
 }
 
 <span class="kw">pub mod </span>tipset_keys_json {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[derive(Clone, Debug, Deserialize, Serialize)]
     #[serde(transparent)]
@@ -955,9 +976,11 @@
 }
 
 <span class="kw">pub mod </span>tipset_json {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
     <span class="kw">use </span>std::sync::Arc;
+
+    <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// Wrapper for serializing and de-serializing a `Tipset` from JSON.
     </span><span class="attr">#[derive(Debug, Deserialize, Serialize)]
@@ -1028,14 +1051,16 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test {
-    <span class="kw">use crate</span>::{BlockHeader, ElectionProof, Error, Ticket, Tipset, TipsetKeys};
-    <span class="kw">use </span>cid::multihash::Code::Identity;
-    <span class="kw">use </span>cid::multihash::MultihashDigest;
-    <span class="kw">use </span>cid::Cid;
+    <span class="kw">use </span>cid::{
+        multihash::{Code::Identity, MultihashDigest},
+        Cid,
+    };
     <span class="kw">use </span>forest_crypto::VRFProof;
     <span class="kw">use </span>fvm_ipld_encoding::DAG_CBOR;
     <span class="kw">use </span>fvm_shared::address::Address;
     <span class="kw">use </span>num_bigint::BigInt;
+
+    <span class="kw">use crate</span>::{BlockHeader, ElectionProof, Error, Ticket, Tipset, TipsetKeys};
 
     <span class="kw">pub fn </span>mock_block(id: u64, weight: u64, ticket_sequence: u64) -&gt; BlockHeader {
         <span class="kw">let </span>addr = Address::new_id(id);
@@ -1109,7 +1134,8 @@
         );
     }
 
-    <span class="comment">// specifically test the case when we are distinct from miner_address 0, but not 1
+    <span class="comment">// specifically test the case when we are distinct from miner_address 0, but not
+    // 1
     </span><span class="attr">#[test]
     </span><span class="kw">fn </span>ensure_multiple_miner_addresses_are_distinct() {
         <span class="kw">let </span>h0 = BlockHeader::builder()

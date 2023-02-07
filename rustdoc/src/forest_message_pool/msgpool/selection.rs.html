@@ -1328,33 +1328,49 @@
 <a href="#1328" id="1328">1328</a>
 <a href="#1329" id="1329">1329</a>
 <a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
+<a href="#1346" id="1346">1346</a>
+<a href="#1347" id="1347">1347</a>
+<a href="#1348" id="1348">1348</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="doccomment">//! Contains routines for message selection APIs.
-//! Whenever a miner is ready to create a block for a tipset, it invokes the `select_messages` API
-//! which selects an appropriate set of messages such that it optimizes miner reward and chain capacity.
-//! See &lt;https://docs.filecoin.io/mine/lotus/message-pool/#message-selection&gt; for more details
+//! Whenever a miner is ready to create a block for a tipset, it invokes the
+//! `select_messages` API which selects an appropriate set of messages such that
+//! it optimizes miner reward and chain capacity. See &lt;https://docs.filecoin.io/mine/lotus/message-pool/#message-selection&gt; for more details
 
-</span><span class="kw">use </span><span class="kw">super</span>::msg_pool::MessagePool;
-<span class="kw">use </span><span class="kw">super</span>::provider::Provider;
-<span class="kw">use </span><span class="kw">crate</span>::msg_chain::{create_message_chains, Chains, NodeKey};
-<span class="kw">use </span><span class="kw">crate</span>::msg_pool::MsgSet;
-<span class="kw">use </span><span class="kw">crate</span>::msgpool::MIN_GAS;
-<span class="kw">use </span><span class="kw">crate</span>::Error;
-<span class="kw">use crate</span>::{add_to_selected_msgs, remove_from_selected_msgs};
+</span><span class="kw">use </span>std::{borrow::BorrowMut, cmp::Ordering, sync::Arc};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>forest_blocks::Tipset;
-<span class="kw">use </span>forest_message::Message;
-<span class="kw">use </span>forest_message::SignedMessage;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
+<span class="kw">use </span>forest_message::{Message, SignedMessage};
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>parking_lot::RwLock;
-<span class="kw">use </span>rand::prelude::SliceRandom;
-<span class="kw">use </span>rand::thread_rng;
-<span class="kw">use </span>std::borrow::BorrowMut;
-<span class="kw">use </span>std::cmp::Ordering;
-<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>rand::{prelude::SliceRandom, thread_rng};
+
+<span class="kw">use super</span>::{msg_pool::MessagePool, provider::Provider};
+<span class="kw">use crate</span>::{
+    add_to_selected_msgs,
+    msg_chain::{create_message_chains, Chains, NodeKey},
+    msg_pool::MsgSet,
+    msgpool::MIN_GAS,
+    remove_from_selected_msgs, Error,
+};
 
 <span class="kw">type </span>Pending = HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt;;
 
@@ -1371,10 +1387,11 @@
     /// This method selects messages for including in a block.
     </span><span class="kw">pub fn </span>select_messages(<span class="kw-2">&amp;</span><span class="self">self</span>, ts: <span class="kw-2">&amp;</span>Tipset, tq: f64) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
         <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
-        <span class="comment">// if the ticket quality is high enough that the first block has higher probability
-        // than any other block, then we don&#39;t bother with optimal selection because the
-        // first block will always have higher effective performance. Otherwise we select
-        // message optimally based on effective performance of chains.
+        <span class="comment">// if the ticket quality is high enough that the first block has higher
+        // probability than any other block, then we don&#39;t bother with optimal
+        // selection because the first block will always have higher effective
+        // performance. Otherwise we select message optimally based on effective
+        // performance of chains.
         </span><span class="kw">let </span><span class="kw-2">mut </span>msgs = <span class="kw">if </span>tq &gt; <span class="number">0.84 </span>{
             <span class="self">self</span>.select_messages_greedy(<span class="kw-2">&amp;</span>cur_ts, ts)
         } <span class="kw">else </span>{
@@ -1395,8 +1412,8 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
         <span class="kw">let </span>base_fee = <span class="self">self</span>.api.chain_compute_base_fee(ts)<span class="question-mark">?</span>;
 
-        <span class="comment">// 0. Load messages from the target tipset; if it is the same as the current tipset in
-        //    the mpool, then this is just the pending messages
+        <span class="comment">// 0. Load messages from the target tipset; if it is the same as the current
+        // tipset in    the mpool, then this is just the pending messages
         </span><span class="kw">let </span><span class="kw-2">mut </span>pending = <span class="self">self</span>.get_pending_messages(cur_ts, ts)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>pending.is_empty() {
@@ -1410,7 +1427,8 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(result);
         }
 
-        <span class="comment">// 1. Create a list of dependent message chains with maximal gas reward per limit consumed
+        <span class="comment">// 1. Create a list of dependent message chains with maximal gas reward per
+        // limit consumed
         </span><span class="kw">let </span><span class="kw-2">mut </span>chains = Chains::new();
         <span class="kw">for </span>(actor, mset) <span class="kw">in </span>pending.into_iter() {
             create_message_chains(
@@ -1436,8 +1454,8 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
         <span class="kw">let </span>base_fee = <span class="self">self</span>.api.chain_compute_base_fee(target_tipset)<span class="question-mark">?</span>;
 
-        <span class="comment">// 0. Load messages from the target tipset; if it is the same as the current tipset in
-        //    the mpool, then this is just the pending messages
+        <span class="comment">// 0. Load messages from the target tipset; if it is the same as the current
+        // tipset in    the mpool, then this is just the pending messages
         </span><span class="kw">let </span><span class="kw-2">mut </span>pending = <span class="self">self</span>.get_pending_messages(cur_ts, target_tipset)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>pending.is_empty() {
@@ -1453,7 +1471,8 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(result);
         }
 
-        <span class="comment">// 1. Create a list of dependent message chains with maximal gas reward per limit consumed
+        <span class="comment">// 1. Create a list of dependent message chains with maximal gas reward per
+        // limit consumed
         </span><span class="kw">let </span><span class="kw-2">mut </span>chains = Chains::new();
         <span class="kw">for </span>(actor, mset) <span class="kw">in </span>pending.into_iter() {
             create_message_chains(
@@ -1479,8 +1498,9 @@
         }
 
         <span class="comment">// 3. Partition chains into blocks (without trimming)
-        //    we use the full block_gas_limit (as opposed to the residual `gas_limit` from the
-        //    priority message selection) as we have to account for what other miners are doing
+        //    we use the full block_gas_limit (as opposed to the residual `gas_limit`
+        // from the    priority message selection) as we have to account for
+        // what other miners are doing
         </span><span class="kw">let </span><span class="kw-2">mut </span>next_chain = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>partitions: Vec&lt;Vec&lt;NodeKey&gt;&gt; = <span class="macro">vec!</span>[<span class="macro">vec!</span>[]; MAX_BLOCKS];
         <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
@@ -1498,8 +1518,9 @@
             i += <span class="number">1</span>;
         }
 
-        <span class="comment">// 4. Compute effective performance for each chain, based on the partition they fall into
-        //    The effective performance is the gas_perf of the chain * block probability
+        <span class="comment">// 4. Compute effective performance for each chain, based on the partition they
+        // fall into    The effective performance is the gas_perf of the chain *
+        // block probability
         </span><span class="kw">let </span>block_prob = <span class="kw">crate</span>::block_probabilities(ticket_quality);
         <span class="kw">let </span><span class="kw-2">mut </span>eff_chains = <span class="number">0</span>;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..MAX_BLOCKS {
@@ -1521,10 +1542,10 @@
         <span class="comment">// 5. Re-sort the chains based on effective performance
         </span>chains.sort_effective();
 
-        <span class="comment">// 6. Merge the head chains to produce the list of messages selected for inclusion
-        //    subject to the residual gas limit
-        //    When a chain is merged in, all its previous dependent chains *must* also be
-        //    merged in or we&#39;ll have a broken block
+        <span class="comment">// 6. Merge the head chains to produce the list of messages selected for
+        // inclusion    subject to the residual gas limit
+        //    When a chain is merged in, all its previous dependent chains *must* also
+        // be    merged in or we&#39;ll have a broken block
         </span><span class="kw">let </span><span class="kw-2">mut </span>last = chains.len();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..chains.len() {
             <span class="comment">// did we run out of performing chains?
@@ -1537,7 +1558,8 @@
                 <span class="kw">continue</span>;
             }
 
-            <span class="comment">// compute the dependencies that must be merged and the gas limit including dependencies
+            <span class="comment">// compute the dependencies that must be merged and the gas limit including
+            // dependencies
             </span><span class="kw">let </span><span class="kw-2">mut </span>chain_gas_limit = chains[i].gas_limit;
             <span class="kw">let </span><span class="kw-2">mut </span>chain_deps = <span class="macro">vec!</span>[];
             <span class="kw">let </span><span class="kw-2">mut </span>cur_chain = chains[i].prev;
@@ -1589,25 +1611,27 @@
                 result.extend(chains[i].msgs.clone());
                 gas_limit -= chain_gas_limit;
 
-                <span class="comment">// re-sort to account for already merged chains and effective performance adjustments
-                // the sort *must* be stable or we end up getting negative gasPerfs pushed up.
+                <span class="comment">// re-sort to account for already merged chains and effective performance
+                // adjustments the sort *must* be stable or we end up getting
+                // negative gasPerfs pushed up.
                 </span>chains.sort_range_effective(i + <span class="number">1</span>..);
 
                 <span class="kw">continue</span>;
             }
 
-            <span class="comment">// we can&#39;t fit this chain and its dependencies because of block gasLimit -- we are
-            // at the edge
+            <span class="comment">// we can&#39;t fit this chain and its dependencies because of block gasLimit -- we
+            // are at the edge
             </span>last = i;
             <span class="kw">break</span>;
         }
 
-        <span class="comment">// 7. We have reached the edge of what can fit wholesale; if we still hae available
-        //    gasLimit to pack some more chains, then trim the last chain and push it down.
-        //    Trimming invalidaates subsequent dependent chains so that they can&#39;t be selected
-        //    as their dependency cannot be (fully) included.
-        //    We do this in a loop because the blocker might have been inordinately large and
-        //    we might have to do it multiple times to satisfy tail packing
+        <span class="comment">// 7. We have reached the edge of what can fit wholesale; if we still hae
+        // available    gasLimit to pack some more chains, then trim the last
+        // chain and push it down.    Trimming invalidaates subsequent dependent
+        // chains so that they can&#39;t be selected    as their dependency cannot
+        // be (fully) included.    We do this in a loop because the blocker
+        // might have been inordinately large and    we might have to do it
+        // multiple times to satisfy tail packing
         </span><span class="lifetime">&#39;tail_loop</span>: <span class="kw">while </span>gas_limit &gt;= MIN_GAS &amp;&amp; last &lt; chains.len() {
             <span class="comment">// trim if necessary
             </span><span class="kw">if </span>chains[last].gas_limit &gt; gas_limit {
@@ -1674,8 +1698,8 @@
                     }
                 }
 
-                <span class="comment">// it doesn&#39;t all fit; now we have to take into account the dependent chains before
-                // making a decision about trimming or invalidating.
+                <span class="comment">// it doesn&#39;t all fit; now we have to take into account the dependent chains
+                // before making a decision about trimming or invalidating.
                 // if the dependencies exceed the gas limit, then we must invalidate the chain
                 // as it can never be included.
                 // Otherwise we can just trim and continue
@@ -1692,13 +1716,14 @@
                 <span class="kw">continue </span><span class="lifetime">&#39;tail_loop</span>;
             }
 
-            <span class="comment">// the merge loop ended after processing all the chains and we we probably have still
-            // gas to spare; end the loop.
+            <span class="comment">// the merge loop ended after processing all the chains and we we probably have
+            // still gas to spare; end the loop.
             </span><span class="kw">break</span>;
         }
 
-        <span class="comment">// if we have gasLimit to spare, pick some random (non-negative) chains to fill the block
-        // we pick randomly so that we minimize the probability of duplication among all miners
+        <span class="comment">// if we have gasLimit to spare, pick some random (non-negative) chains to fill
+        // the block we pick randomly so that we minimize the probability of
+        // duplication among all miners
         </span><span class="kw">if </span>gas_limit &gt;= MIN_GAS {
             <span class="kw">let </span><span class="kw-2">mut </span>random_count = <span class="number">0</span>;
 
@@ -1872,7 +1897,8 @@
         <span class="kw">return </span>(Vec::new(), gas_limit);
     }
 
-    <span class="comment">// 3. Merge chains until the block limit, as long as they have non-negative gas performance
+    <span class="comment">// 3. Merge chains until the block limit, as long as they have non-negative gas
+    // performance
     </span><span class="kw">let </span><span class="kw-2">mut </span>last = chains.len();
     <span class="kw">let </span>chain_len = chains.len();
     <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..chain_len {
@@ -1952,7 +1978,8 @@
 <span class="kw">where
     </span>T: Provider,
 {
-    <span class="comment">// TODO: This logic should probably be implemented in the ChainStore. It handles reorgs.
+    <span class="comment">// TODO: This logic should probably be implemented in the ChainStore. It handles
+    // reorgs.
     </span><span class="kw">let </span><span class="kw-2">mut </span>left = Arc::new(from);
     <span class="kw">let </span><span class="kw-2">mut </span>right = Arc::new(to);
     <span class="kw">let </span><span class="kw-2">mut </span>left_chain = Vec::new();
@@ -1996,17 +2023,22 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>test_selection {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use </span>std::sync::Arc;
 
-    <span class="kw">use </span><span class="kw">crate</span>::head_change;
-    <span class="kw">use </span><span class="kw">crate</span>::msgpool::test_provider::{mock_block, TestApi};
-    <span class="kw">use </span><span class="kw">crate</span>::msgpool::tests::create_smsg;
     <span class="kw">use </span>forest_db::MemoryDB;
     <span class="kw">use </span>forest_key_management::{KeyStore, KeyStoreConfig, Wallet};
     <span class="kw">use </span>forest_message::Message;
     <span class="kw">use </span>fvm_shared::crypto::signature::SignatureType;
-    <span class="kw">use </span>std::sync::Arc;
     <span class="kw">use </span>tokio::task::JoinSet;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use crate</span>::{
+        head_change,
+        msgpool::{
+            test_provider::{mock_block, TestApi},
+            tests::create_smsg,
+        },
+    };
 
     <span class="kw">const </span>TEST_GAS_LIMIT: i64 = <span class="number">6955002</span>;
 
@@ -2064,8 +2096,9 @@
         </span>api.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_whole(<span class="number">1</span>));
         api.set_state_balance_raw(<span class="kw-2">&amp;</span>a2, TokenAmount::from_whole(<span class="number">1</span>));
 
-        <span class="comment">// we create 10 messages from each actor to another, with the first actor paying higher
-        // gas prices than the second; we expect message selection to order his messages first
+        <span class="comment">// we create 10 messages from each actor to another, with the first actor paying
+        // higher gas prices than the second; we expect message selection to
+        // order his messages first
         </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
             <span class="kw">let </span>m = create_smsg(<span class="kw-2">&amp;</span>a2, <span class="kw-2">&amp;</span>a1, <span class="kw-2">&amp;mut </span>w1, i, TEST_GAS_LIMIT, <span class="number">2 </span>* i + <span class="number">1</span>);
             mpool.add(m).unwrap();
@@ -2151,9 +2184,9 @@
                 .add(create_smsg(<span class="kw-2">&amp;</span>a1, <span class="kw-2">&amp;</span>a2, <span class="kw-2">&amp;mut </span>w2, i, TEST_GAS_LIMIT, i + <span class="number">1</span>))
                 .unwrap();
         }
-        <span class="comment">// select messages in the last tipset; this should include the missed messages as well as
-        // the last messages we added, with the first actor&#39;s messages first
-        // first we need to update the nonce on the api
+        <span class="comment">// select messages in the last tipset; this should include the missed messages
+        // as well as the last messages we added, with the first actor&#39;s
+        // messages first first we need to update the nonce on the api
         </span>mpool.api.set_state_sequence(<span class="kw-2">&amp;</span>a1, <span class="number">10</span>);
         mpool.api.set_state_sequence(<span class="kw-2">&amp;</span>a2, <span class="number">10</span>);
         <span class="kw">let </span>msgs = mpool.select_messages(<span class="kw-2">&amp;</span>ts3, <span class="number">1.0</span>).unwrap();
@@ -2405,8 +2438,9 @@
 
         <span class="kw">let </span>n_msgs = <span class="number">10 </span>* fvm_shared::BLOCK_GAS_LIMIT / TEST_GAS_LIMIT;
 
-        <span class="comment">// we create 10 messages from each actor to another, with the first actor paying higher
-        // gas prices than the second; we expect message selection to order his messages first
+        <span class="comment">// we create 10 messages from each actor to another, with the first actor paying
+        // higher gas prices than the second; we expect message selection to
+        // order his messages first
         </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..(n_msgs <span class="kw">as </span>usize) {
             <span class="kw">let </span>bias = (n_msgs <span class="kw">as </span>usize - i) / <span class="number">3</span>;
             <span class="kw">let </span>m = create_smsg(
@@ -2444,8 +2478,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
         <span class="comment">// this test uses two actors sending messages to each other, with the first
         // actor paying (much) higher gas premium than the second.
-        // We select with a low ticket quality; the chain depenent merging algorithm should pick
-        // messages from the second actor from the start
+        // We select with a low ticket quality; the chain depenent merging algorithm
+        // should pick messages from the second actor from the start
         </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="comment">// create two actors
@@ -2554,10 +2588,11 @@
     #[tokio::test]
     </span><span class="kw">async fn </span>test_optimal_message_selection3() {
         <span class="kw">let </span><span class="kw-2">mut </span>joinset = JoinSet::new();
-        <span class="comment">// this test uses 10 actors sending a block of messages to each other, with the the first
-        // actors paying higher gas premium than the subsequent actors.
-        // We select with a low ticket quality; the chain depenent merging algorithm should pick
-        // messages from the median actor from the start
+        <span class="comment">// this test uses 10 actors sending a block of messages to each other, with the
+        // the first actors paying higher gas premium than the subsequent
+        // actors. We select with a low ticket quality; the chain depenent
+        // merging algorithm should pick messages from the median actor from the
+        // start
         </span><span class="kw">let </span>mpool = make_test_mpool(<span class="kw-2">&amp;mut </span>joinset);
 
         <span class="kw">let </span>n_actors = <span class="number">10</span>;
@@ -2636,7 +2671,8 @@
                     <span class="kw">return </span>i;
                 }
             }
-            <span class="comment">// Lotus has -1, but since we don&#39;t have -ve indexes, set it some unrealistic number
+            <span class="comment">// Lotus has -1, but since we don&#39;t have -ve indexes, set it some unrealistic
+            // number
             </span><span class="number">9999999
         </span>};
 

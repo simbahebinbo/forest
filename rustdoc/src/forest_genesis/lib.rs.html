@@ -208,32 +208,34 @@
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>anyhow::bail;
+</span><span class="kw">use </span>std::{sync::Arc, time};
+
+<span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>forest_utils::db::BlockstoreExt;
-<span class="kw">use </span>forest_utils::net::FetchProgress;
+<span class="kw">use </span>forest_utils::{db::BlockstoreExt, net::FetchProgress};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::{load_car, CarReader};
 <span class="kw">use </span>log::{debug, info};
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time;
-<span class="kw">use </span>tokio::fs::File;
-<span class="kw">use </span>tokio::io::AsyncRead;
-<span class="kw">use </span>tokio::io::BufReader;
+<span class="kw">use </span>tokio::{
+    fs::File,
+    io::{AsyncRead, BufReader},
+};
 <span class="kw">use </span>tokio_util::compat::TokioAsyncReadCompatExt;
 <span class="kw">use </span>url::Url;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;testing&quot;</span>)]
 </span><span class="kw">pub const </span>EXPORT_SR_40: <span class="kw-2">&amp;</span>[u8] = <span class="macro">std::include_bytes!</span>(<span class="string">&quot;export40.car&quot;</span>);
 
-<span class="doccomment">/// Uses an optional file path or the default genesis to parse the genesis and determine if
-/// chain store has existing data for the given genesis.
+<span class="doccomment">/// Uses an optional file path or the default genesis to parse the genesis and
+/// determine if chain store has existing data for the given genesis.
 </span><span class="kw">pub async fn </span>read_genesis_header&lt;DB&gt;(
     genesis_fp: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>String&gt;,
     genesis_bytes: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
@@ -308,8 +310,8 @@
     <span class="prelude-val">Ok</span>(genesis_block)
 }
 
-<span class="doccomment">/// Import a chain from a CAR file. If the snapshot boolean is set, it will not verify the chain
-/// state and instead accept the largest height as genesis.
+<span class="doccomment">/// Import a chain from a CAR file. If the snapshot boolean is set, it will not
+/// verify the chain state and instead accept the largest height as genesis.
 </span><span class="kw">pub async fn </span>import_chain&lt;DB&gt;(
     sm: <span class="kw-2">&amp;</span>Arc&lt;StateManager&lt;DB&gt;&gt;,
     path: <span class="kw-2">&amp;</span>str,
@@ -372,7 +374,8 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Loads car file into database, and returns the block header CIDs from the CAR header.
+<span class="doccomment">/// Loads car file into database, and returns the block header CIDs from the CAR
+/// header.
 </span><span class="kw">async fn </span>load_and_retrieve_header&lt;DB, R&gt;(
     store: <span class="kw-2">&amp;</span>DB,
     reader: FetchProgress&lt;R&gt;,
@@ -394,8 +397,9 @@
 }
 
 <span class="doccomment">/// Optimizations:
-/// 1. ParityDB could benefit from a larger buffer. It&#39;s hard coded as 1000 blocks in [fvm_ipld_car::load_car]
-/// 2. Use [Store::bulk_write] instead of [Blockstore] to avoid tons of unneccesary allocations
+/// 1. ParityDB could benefit from a larger buffer. It&#39;s hard coded as 1000
+/// blocks in [fvm_ipld_car::load_car] 2. Use [Store::bulk_write] instead of
+/// [Blockstore] to avoid tons of unneccesary allocations
 </span><span class="kw">pub async fn </span>forest_load_car&lt;DB, R&gt;(store: DB, reader: R) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
 <span class="kw">where
     </span>R: futures::AsyncRead + Send + Unpin,

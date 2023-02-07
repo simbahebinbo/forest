@@ -903,6 +903,17 @@
 <a href="#903" id="903">903</a>
 <a href="#904" id="904">904</a>
 <a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a>
+<a href="#913" id="913">913</a>
+<a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -912,11 +923,8 @@
 <span class="kw">pub mod </span>test_provider;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>utils;
 
-<span class="kw">use </span><span class="kw">super</span>::errors::Error;
-<span class="kw">use </span><span class="kw">crate</span>::msg_chain::{create_message_chains, Chains};
-<span class="kw">use </span><span class="kw">crate</span>::msg_pool::MsgSet;
-<span class="kw">use </span><span class="kw">crate</span>::msg_pool::{add_helper, remove};
-<span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
+<span class="kw">use </span>std::{borrow::BorrowMut, cmp::Ordering, sync::Arc};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::Tipset;
@@ -924,15 +932,19 @@
 <span class="kw">use </span>forest_message::{Message <span class="kw">as </span>MessageTrait, SignedMessage};
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::crypto::signature::Signature;
+<span class="kw">use </span>fvm_shared::{address::Address, crypto::signature::Signature};
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::{Mutex, RwLock <span class="kw">as </span>SyncRwLock};
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::{borrow::BorrowMut, cmp::Ordering};
 <span class="kw">use </span>tokio::sync::broadcast::{Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};
 <span class="kw">use </span>utils::{get_base_fee_lower_bound, recover_sig};
+
+<span class="kw">use </span><span class="kw">super</span>::errors::Error;
+<span class="kw">use crate</span>::{
+    msg_chain::{create_message_chains, Chains},
+    msg_pool::{add_helper, remove, MsgSet},
+    provider::Provider,
+};
 
 <span class="kw">const </span>REPLACE_BY_FEE_RATIO: f32 = <span class="number">1.25</span>;
 <span class="kw">const </span>RBF_NUM: u64 = ((REPLACE_BY_FEE_RATIO - <span class="number">1f32</span>) * <span class="number">256f32</span>) <span class="kw">as </span>u64;
@@ -944,7 +956,8 @@
 <span class="comment">// TODO: Implement guess gas module
 </span><span class="kw">const </span>MIN_GAS: i64 = <span class="number">1298450</span>;
 
-<span class="doccomment">/// Get the state of the `base_sequence` for a given address in the current Tipset
+<span class="doccomment">/// Get the state of the `base_sequence` for a given address in the current
+/// Tipset
 </span><span class="kw">fn </span>get_state_sequence&lt;T&gt;(api: <span class="kw-2">&amp;</span>T, addr: <span class="kw-2">&amp;</span>Address, cur_ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt;
 <span class="kw">where
     </span>T: Provider,
@@ -974,7 +987,8 @@
 
     republished.write().clear();
 
-    <span class="comment">// Only republish messages from local addresses, ie. transactions which were sent to this node directly.
+    <span class="comment">// Only republish messages from local addresses, ie. transactions which were
+    // sent to this node directly.
     </span><span class="kw">for </span>actor <span class="kw">in </span>local_addrs.read().iter() {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(mset) = pending.read().get(actor) {
             <span class="kw">if </span>mset.msgs.is_empty() {
@@ -1010,9 +1024,10 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Select messages from the mempool to be included in the next block that builds on
-/// a given base tipset. The messages should be eligible for inclusion based on their
-/// sequences and the overall number of them should observe block gas limits.
+<span class="doccomment">/// Select messages from the mempool to be included in the next block that
+/// builds on a given base tipset. The messages should be eligible for inclusion
+/// based on their sequences and the overall number of them should observe block
+/// gas limits.
 </span><span class="kw">fn </span>select_messages_for_block&lt;T&gt;(
     api: <span class="kw-2">&amp;</span>T,
     chain_config: <span class="kw-2">&amp;</span>ChainConfig,
@@ -1071,8 +1086,8 @@
 
         <span class="comment">// check if fits in block
         </span><span class="kw">if </span>chain.gas_limit &lt;= gas_limit {
-            <span class="comment">// check the baseFee lower bound -- only republish messages that can be included in the chain
-            // within the next 20 blocks.
+            <span class="comment">// check the baseFee lower bound -- only republish messages that can be included
+            // in the chain within the next 20 blocks.
             </span><span class="kw">for </span>m <span class="kw">in </span>chain.msgs.iter() {
                 <span class="kw">if </span>m.gas_fee_cap() &lt; <span class="kw-2">&amp;</span>base_fee_lower_bound {
                     <span class="kw">let </span>key = chains.get_key_at(i);
@@ -1103,8 +1118,9 @@
     <span class="prelude-val">Ok</span>(msgs)
 }
 
-<span class="doccomment">/// This function will revert and/or apply tipsets to the message pool. This function should be
-/// called every time that there is a head change in the message pool.
+<span class="doccomment">/// This function will revert and/or apply tipsets to the message pool. This
+/// function should be called every time that there is a head change in the
+/// message pool.
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">pub async fn </span>head_change&lt;T&gt;(
     api: <span class="kw-2">&amp;</span>T,
@@ -1176,8 +1192,9 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// This is a helper function for `head_change`. This method will remove a sequence for a from address
-/// from the messages selected by priority hash-map. It also removes the &#39;from&#39; address and sequence from the `MessagePool`.
+<span class="doccomment">/// This is a helper function for `head_change`. This method will remove a
+/// sequence for a from address from the messages selected by priority hash-map.
+/// It also removes the &#39;from&#39; address and sequence from the `MessagePool`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove_from_selected_msgs(
     from: <span class="kw-2">&amp;</span>Address,
     pending: <span class="kw-2">&amp;</span>SyncRwLock&lt;HashMap&lt;Address, MsgSet&gt;&gt;,
@@ -1196,8 +1213,8 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// This is a helper function for `head_change`. This method will add a signed message to
-/// the given messages selected by priority `HashMap`.
+<span class="doccomment">/// This is a helper function for `head_change`. This method will add a signed
+/// message to the given messages selected by priority `HashMap`.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_to_selected_msgs(
     m: SignedMessage,
     rmsgs: <span class="kw-2">&amp;mut </span>HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt;,
@@ -1213,27 +1230,28 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
-    </span><span class="kw">use </span><span class="kw">crate</span>::msg_chain::{create_message_chains, Chains};
-    <span class="kw">use </span><span class="kw">crate</span>::msg_pool::MessagePool;
+    </span><span class="kw">use </span>std::borrow::BorrowMut;
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    </span><span class="kw">use </span>std::time::Duration;
+
     <span class="kw">use </span>forest_blocks::Tipset;
     <span class="kw">use </span>forest_key_management::{KeyStore, KeyStoreConfig, Wallet};
     <span class="kw">use </span>forest_message::SignedMessage;
     <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">use </span>forest_networks::ChainConfig;
-    <span class="kw">use </span>fvm_shared::address::Address;
-    <span class="kw">use </span>fvm_shared::crypto::signature::SignatureType;
-    <span class="kw">use </span>fvm_shared::econ::TokenAmount;
-    <span class="kw">use </span>fvm_shared::message::Message;
+    <span class="kw">use </span>fvm_shared::{
+        address::Address, crypto::signature::SignatureType, econ::TokenAmount, message::Message,
+    };
     <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">use </span>num_traits::Zero;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
-    </span><span class="kw">use </span>std::borrow::BorrowMut;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
-    </span><span class="kw">use </span>std::time::Duration;
     <span class="kw">use </span>test_provider::<span class="kw-2">*</span>;
     <span class="kw">use </span>tokio::task::JoinSet;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+    <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
+    </span><span class="kw">use </span><span class="kw">crate</span>::msg_chain::{create_message_chains, Chains};
+    <span class="kw">use </span><span class="kw">crate</span>::msg_pool::MessagePool;
 
     <span class="kw">pub fn </span>create_smsg(
         to: <span class="kw-2">&amp;</span>Address,
@@ -1570,8 +1588,9 @@
             );
         }
 
-        <span class="comment">// Test 3a: 10 messages from a1 to a2, with gasPerf increasing in groups of 3; it should
-        //          merge them in two chains, one with 9 messages and one with the last message
+        <span class="comment">// Test 3a: 10 messages from a1 to a2, with gasPerf increasing in groups of 3;
+        // it should          merge them in two chains, one with 9 messages and
+        // one with the last message
         </span><span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
@@ -1607,9 +1626,10 @@
             }
         }
 
-        <span class="comment">// Test 3b: 10 messages from a1 to a2, with gasPerf decreasing in groups of 3 with a bias for the
-        //          earlier chains; it should make 4 chains, the first 3 with 3 messages and the last with
-        //          a single message
+        <span class="comment">// Test 3b: 10 messages from a1 to a2, with gasPerf decreasing in groups of 3
+        // with a bias for the          earlier chains; it should make 4 chains,
+        // the first 3 with 3 messages and the last with          a single
+        // message
         </span><span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
@@ -1665,8 +1685,8 @@
         }
 
         <span class="comment">// --- Test Chain Breaks ---
-        // Test 4: 10 messages with non-consecutive nonces; it should make a single chain with just
-        //         the first message
+        // Test 4: 10 messages with non-consecutive nonces; it should make a single
+        // chain with just         the first message
         </span><span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
@@ -1697,8 +1717,9 @@
             );
         }
 
-        <span class="comment">// Test 5: 10 messages with increasing gasLimit, except for the 6th message which has less than
-        //         the epoch gasLimit; it should create a single chain with the first 5 messages
+        <span class="comment">// Test 5: 10 messages with increasing gasLimit, except for the 6th message
+        // which has less than         the epoch gasLimit; it should create a
+        // single chain with the first 5 messages
         </span><span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         tma.set_state_balance_raw(<span class="kw-2">&amp;</span>a1, TokenAmount::from_atto(<span class="number">1_000_000_000_000_000_000_u64</span>));
@@ -1734,8 +1755,9 @@
             );
         }
 
-        <span class="comment">// Test 6: one more message than what can fit in a block according to gas limit, with increasing
-        //         gasPerf; it should create a single chain with the max messages
+        <span class="comment">// Test 6: one more message than what can fit in a block according to gas limit,
+        // with increasing         gasPerf; it should create a single chain with
+        // the max messages
         </span><span class="kw">let </span><span class="kw-2">mut </span>mset = HashMap::new();
         <span class="kw">let </span><span class="kw-2">mut </span>smsg_vec = Vec::new();
         <span class="kw">let </span>max_messages = fvm_shared::BLOCK_GAS_LIMIT / gas_limit;

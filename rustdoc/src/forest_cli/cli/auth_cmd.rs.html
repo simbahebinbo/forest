@@ -71,14 +71,14 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::{handle_rpc_err, print_rpc_res_bytes, Config};
+</span><span class="kw">use </span>forest_auth::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
 <span class="kw">use </span>forest_rpc_api::auth_api::AuthNewParams;
 <span class="kw">use </span>forest_rpc_client::auth_new;
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
 <span class="kw">use </span>structopt::StructOpt;
 
-<span class="kw">use </span>forest_auth::<span class="kw-2">*</span>;
+<span class="kw">use super</span>::{handle_rpc_err, print_rpc_res_bytes, Config};
 
 <span class="attr">#[derive(Debug, StructOpt)]
 </span><span class="kw">pub enum </span>AuthCommands {

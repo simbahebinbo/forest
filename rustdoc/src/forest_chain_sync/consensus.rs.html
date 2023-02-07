@@ -195,29 +195,32 @@
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
 <a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>async_trait::async_trait;
-<span class="kw">use </span>forest_chain::Scale;
-<span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_BLOCK_STR};
-<span class="kw">use </span>forest_message::SignedMessage;
-<span class="kw">use </span>forest_message_pool::MessagePool;
-<span class="kw">use </span>futures::stream::FuturesUnordered;
-<span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>nonempty::NonEmpty;
-<span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::{
+</span><span class="kw">use </span>std::{
+    borrow::Cow,
     fmt::{Debug, Display},
     sync::Arc,
 };
-<span class="kw">use </span>tokio::task::JoinSet;
 
+<span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>forest_blocks::{Block, GossipBlock, Tipset};
+<span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_db::Store;
+<span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_BLOCK_STR};
+<span class="kw">use </span>forest_message::SignedMessage;
+<span class="kw">use </span>forest_message_pool::MessagePool;
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>futures::StreamExt;
+<span class="kw">use </span>futures::{stream::FuturesUnordered, StreamExt};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>fvm_ipld_encoding::Cbor;
+<span class="kw">use </span>nonempty::NonEmpty;
+<span class="kw">use </span>tokio::task::JoinSet;
 
 <span class="doccomment">/// The `Consensus` trait encapsulates consensus specific rules of validation
 /// and block creation. Behind the scenes they can farm out the total ordering
@@ -233,7 +236,8 @@
 </span><span class="kw">pub trait </span>Consensus: Scale + Debug + Send + Sync + Unpin + <span class="lifetime">&#39;static </span>{
     <span class="kw">type </span>Error: Debug + Display + Send + Sync;
 
-    <span class="doccomment">/// Perform block validation asynchronously and return all encountered errors if failed.
+    <span class="doccomment">/// Perform block validation asynchronously and return all encountered
+    /// errors if failed.
     ///
     /// Being asynchronous gives the method a chance to construct a pipeline of
     /// validations, i.e. do some common ones before branching out.
@@ -295,8 +299,8 @@
     /// The method returns a vector of handles so that it can start unspecified
     /// number of background tasks, which can all be canceled by the main thread
     /// if the application needs to exit. The method is async so that it can
-    /// use async operations to initialize itself, during which it might encounter
-    /// some errors.
+    /// use async operations to initialize itself, during which it might
+    /// encounter some errors.
     </span><span class="kw">async fn </span>spawn&lt;DB, MP&gt;(
         <span class="self">self</span>,
         <span class="comment">// NOTE: We will need access to the `ChainStore` as well, or, ideally
@@ -315,22 +319,24 @@
         MP: MessagePoolApi + Sync + Send + <span class="lifetime">&#39;static</span>;
 }
 
-<span class="doccomment">/// The `MessagePoolApi` is the window of consensus to the contents of the `MessagePool`.
+<span class="doccomment">/// The `MessagePoolApi` is the window of consensus to the contents of the
+/// `MessagePool`.
 ///
-/// It exists to narrow down the possible operations that a consensus engine can do with
-/// the `MessagePool` to only those that it should reasonably exercise, which are mostly
-/// read-only queries to get transactions which can be expected to be put in the next
-/// block, based on their account nonce values and the current state.
+/// It exists to narrow down the possible operations that a consensus engine can
+/// do with the `MessagePool` to only those that it should reasonably exercise,
+/// which are mostly read-only queries to get transactions which can be expected
+/// to be put in the next block, based on their account nonce values and the
+/// current state.
 ///
-/// The `MessagePool` is still expected to monitor the chain growth and remove messages
-/// which were included in blocks on its own.
+/// The `MessagePool` is still expected to monitor the chain growth and remove
+/// messages which were included in blocks on its own.
 </span><span class="kw">pub trait </span>MessagePoolApi {
-    <span class="doccomment">/// Select the set of suitable signed messages based on a tipset we are about
-    /// to build the next block on.
+    <span class="doccomment">/// Select the set of suitable signed messages based on a tipset we are
+    /// about to build the next block on.
     ///
-    /// The result is a `Cow` in case the source can avoid cloning messages and just
-    /// return a reference. They will be sent to the data store for storage, but a
-    /// reference is enough for that.
+    /// The result is a `Cow` in case the source can avoid cloning messages and
+    /// just return a reference. They will be sent to the data store for
+    /// storage, but a reference is enough for that.
     </span><span class="kw">fn </span>select_signed&lt;DB&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         state_manager: <span class="kw-2">&amp;</span>StateManager&lt;DB&gt;,
@@ -358,9 +364,11 @@
     }
 }
 
-<span class="doccomment">/// `SyncGossipSubmitter` dispatches proposed blocks to the network and the local chain synchronizer.
+<span class="doccomment">/// `SyncGossipSubmitter` dispatches proposed blocks to the network and the
+/// local chain synchronizer.
 ///
-/// Similar to `sync_api::sync_submit_block` but assumes that the block is correct and already persisted.
+/// Similar to `sync_api::sync_submit_block` but assumes that the block is
+/// correct and already persisted.
 </span><span class="kw">pub struct </span>SyncGossipSubmitter {
     network_name: String,
     network_tx: flume::Sender&lt;NetworkMessage&gt;,

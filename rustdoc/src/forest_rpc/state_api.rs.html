@@ -194,6 +194,9 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -215,7 +218,8 @@
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 
-<span class="comment">// TODO handle using configurable verification implementation in RPC (all defaulting to Full).
+<span class="comment">// TODO handle using configurable verification implementation in RPC (all
+// defaulting to Full).
 
 </span><span class="doccomment">/// runs the given message and returns its result without any persisted changes.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_call&lt;
@@ -235,7 +239,8 @@
     <span class="prelude-val">Ok</span>(state_manager.call(<span class="kw-2">&amp;mut </span>message, <span class="prelude-val">Some</span>(tipset))<span class="question-mark">?</span>)
 }
 
-<span class="doccomment">/// returns the result of executing the indicated message, assuming it was executed in the indicated tipset.
+<span class="doccomment">/// returns the result of executing the indicated message, assuming it was
+/// executed in the indicated tipset.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_replay&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
@@ -286,7 +291,8 @@
     <span class="prelude-val">Ok</span>(data.state_manager.get_network_version(ts.epoch()))
 }
 
-<span class="doccomment">/// looks up the Escrow and Locked balances of the given address in the Storage Market
+<span class="doccomment">/// looks up the Escrow and Locked balances of the given address in the Storage
+/// Market
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>state_market_balance&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,

@@ -304,19 +304,34 @@
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>std::{
+    cmp::Ordering,
+    sync::Arc,
+    time::{Duration, Instant},
+};
+
 <span class="kw">use </span>ahash::{HashMap, HashSet};
 <span class="kw">use </span>flume::{Receiver, Sender};
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>log::{debug, trace, warn};
 <span class="kw">use </span>rand::seq::SliceRandom;
-<span class="kw">use </span>std::cmp::Ordering;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time::{Duration, Instant};
 <span class="kw">use </span>tokio::sync::RwLock;
+
+<span class="kw">use crate</span>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// New peer multiplier slightly less than 1 to incentivize choosing new peers.
 </span><span class="kw">const </span>NEW_PEER_MUL: f64 = <span class="number">0.9</span>;
@@ -353,17 +368,19 @@
     }
 }
 
-<span class="doccomment">/// Peer tracking sets, these are handled together to avoid race conditions or deadlocks
-/// when updating state.
+<span class="doccomment">/// Peer tracking sets, these are handled together to avoid race conditions or
+/// deadlocks when updating state.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">struct </span>PeerSets {
     <span class="doccomment">/// Map of full peers available.
     </span>full_peers: HashMap&lt;PeerId, PeerInfo&gt;,
-    <span class="doccomment">/// Set of peers to ignore for being incompatible/ failing to accept connections.
+    <span class="doccomment">/// Set of peers to ignore for being incompatible/ failing to accept
+    /// connections.
     </span>bad_peers: HashSet&lt;PeerId&gt;,
 }
 
-<span class="doccomment">/// Thread safe peer manager which handles peer management for the `ChainExchange` protocol.
+<span class="doccomment">/// Thread safe peer manager which handles peer management for the
+/// `ChainExchange` protocol.
 </span><span class="kw">pub struct </span>PeerManager {
     <span class="doccomment">/// Full and bad peer sets.
     </span>peers: RwLock&lt;PeerSets&gt;,
@@ -391,8 +408,8 @@
 }
 
 <span class="kw">impl </span>PeerManager {
-    <span class="doccomment">/// Updates peer&#39;s heaviest tipset. If the peer does not exist in the set, a new `PeerInfo`
-    /// will be generated.
+    <span class="doccomment">/// Updates peer&#39;s heaviest tipset. If the peer does not exist in the set, a
+    /// new `PeerInfo` will be generated.
     </span><span class="kw">pub async fn </span>update_peer_head(<span class="kw-2">&amp;</span><span class="self">self</span>, peer_id: PeerId, ts: Arc&lt;Tipset&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>peers = <span class="self">self</span>.peers.write().<span class="kw">await</span>;
         <span class="macro">trace!</span>(<span class="string">&quot;Updating head for PeerId {}&quot;</span>, <span class="kw-2">&amp;</span>peer_id);
@@ -410,7 +427,8 @@
         !peers.bad_peers.contains(peer_id) &amp;&amp; !peers.full_peers.contains_key(peer_id)
     }
 
-    <span class="doccomment">/// Sort peers based on a score function with the success rate and latency of requests.
+    <span class="doccomment">/// Sort peers based on a score function with the success rate and latency
+    /// of requests.
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>sorted_peers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;PeerId&gt; {
         <span class="kw">let </span>peer_lk = <span class="self">self</span>.peers.read().<span class="kw">await</span>;
         <span class="kw">let </span>average_time = <span class="self">self</span>.avg_global_time.read().<span class="kw">await</span>;
@@ -435,8 +453,8 @@
         peers.into_iter().map(|(p, <span class="kw">_</span>)| p).cloned().collect()
     }
 
-    <span class="doccomment">/// Return shuffled slice of ordered peers from the peer manager. Ordering is based
-    /// on failure rate and latency of the peer.
+    <span class="doccomment">/// Return shuffled slice of ordered peers from the peer manager. Ordering
+    /// is based on failure rate and latency of the peer.
     </span><span class="kw">pub async fn </span>top_peers_shuffled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;PeerId&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>peers: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
             </span>.sorted_peers()
@@ -451,7 +469,8 @@
         peers
     }
 
-    <span class="doccomment">/// Logs a global request success. This just updates the average for the peer manager.
+    <span class="doccomment">/// Logs a global request success. This just updates the average for the
+    /// peer manager.
     </span><span class="kw">pub async fn </span>log_global_success(<span class="kw-2">&amp;</span><span class="self">self</span>, dur: Duration) {
         <span class="macro">debug!</span>(<span class="string">&quot;logging global success&quot;</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>avg_global = <span class="self">self</span>.avg_global_time.write().<span class="kw">await</span>;
@@ -466,7 +485,8 @@
         }
     }
 
-    <span class="doccomment">/// Logs a success for the given peer, and updates the average request duration.
+    <span class="doccomment">/// Logs a success for the given peer, and updates the average request
+    /// duration.
     </span><span class="kw">pub async fn </span>log_success(<span class="kw-2">&amp;</span><span class="self">self</span>, peer: PeerId, dur: Duration) {
         <span class="macro">debug!</span>(<span class="string">&quot;logging success for {:?}&quot;</span>, peer);
         <span class="kw">let </span><span class="kw-2">mut </span>peers = <span class="self">self</span>.peers.write().<span class="kw">await</span>;
@@ -483,7 +503,8 @@
         log_time(peer_stats, dur);
     }
 
-    <span class="doccomment">/// Logs a failure for the given peer, and updates the average request duration.
+    <span class="doccomment">/// Logs a failure for the given peer, and updates the average request
+    /// duration.
     </span><span class="kw">pub async fn </span>log_failure(<span class="kw-2">&amp;</span><span class="self">self</span>, peer: PeerId, dur: Duration) {
         <span class="macro">debug!</span>(<span class="string">&quot;logging failure for {:?}&quot;</span>, peer);
         <span class="kw">let </span><span class="kw-2">mut </span>peers = <span class="self">self</span>.peers.write().<span class="kw">await</span>;
@@ -498,7 +519,8 @@
         }
     }
 
-    <span class="doccomment">/// Removes a peer from the set and returns true if the value was present previously
+    <span class="doccomment">/// Removes a peer from the set and returns true if the value was present
+    /// previously
     </span><span class="kw">pub async fn </span>mark_peer_bad(<span class="kw-2">&amp;</span><span class="self">self</span>, peer_id: PeerId) -&gt; bool {
         <span class="kw">let </span><span class="kw-2">mut </span>peers = <span class="self">self</span>.peers.write().<span class="kw">await</span>;
         <span class="kw">let </span>removed = remove_peer(<span class="kw-2">&amp;mut </span>peers, <span class="kw-2">&amp;</span>peer_id);

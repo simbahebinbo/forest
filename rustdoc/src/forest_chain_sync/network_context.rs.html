@@ -376,10 +376,33 @@
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>anyhow::Context;
+</span><span class="kw">use </span>std::{
+    convert::TryFrom,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+    time::{Duration, SystemTime},
+};
+
+<span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{FullTipset, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_encoding::de::DeserializeOwned;
@@ -397,27 +420,27 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>log::{debug, trace, warn};
-<span class="kw">use </span>std::sync::{atomic::Ordering, Arc};
-<span class="kw">use </span>std::time::{Duration, SystemTime};
-<span class="kw">use </span>std::{convert::TryFrom, sync::atomic::AtomicU64};
 <span class="kw">use </span>tokio::{task::JoinSet, time::timeout};
 
 <span class="doccomment">/// Timeout for response from an RPC request
-</span><span class="comment">// TODO this value can be tweaked, this is just set pretty low to avoid peers timing out
-// requests from slowing the node down. If increase, should create a countermeasure for this.
+</span><span class="comment">// TODO this value can be tweaked, this is just set pretty low to avoid peers
+// timing out requests from slowing the node down. If increase, should create a
+// countermeasure for this.
 </span><span class="kw">const </span>CHAIN_EXCHANGE_TIMEOUT: Duration = Duration::from_secs(<span class="number">5</span>);
 
-<span class="doccomment">/// Maximum number of concurrent chain exchange request being sent to the network
+<span class="doccomment">/// Maximum number of concurrent chain exchange request being sent to the
+/// network
 </span><span class="kw">const </span>MAX_CONCURRENT_CHAIN_EXCHANGE_REQUESTS: usize = <span class="number">2</span>;
 
 <span class="doccomment">/// Context used in chain sync to handle network requests.
-/// This contains the peer manager, P2P service interface, and [`BlockStore`] required to make
-/// network requests.
+/// This contains the peer manager, P2P service interface, and [`BlockStore`]
+/// required to make network requests.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>SyncNetworkContext&lt;DB&gt; {
     <span class="doccomment">/// Channel to send network messages through P2P service
     </span>network_send: flume::Sender&lt;NetworkMessage&gt;,
 
-    <span class="doccomment">/// Manages peers to send requests to and updates request stats for the respective peers.
+    <span class="doccomment">/// Manages peers to send requests to and updates request stats for the
+    /// respective peers.
     </span><span class="kw">pub </span>peer_manager: Arc&lt;PeerManager&gt;,
     db: Box&lt;DB&gt;,
 }
@@ -453,8 +476,9 @@
         <span class="self">self</span>.peer_manager.as_ref()
     }
 
-    <span class="doccomment">/// Send a `chain_exchange` request for only block headers (ignore messages).
-    /// If `peer_id` is `None`, requests will be sent to a set of shuffled peers.
+    <span class="doccomment">/// Send a `chain_exchange` request for only block headers (ignore
+    /// messages). If `peer_id` is `None`, requests will be sent to a set of
+    /// shuffled peers.
     </span><span class="kw">pub async fn </span>chain_exchange_headers(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         peer_id: <span class="prelude-ty">Option</span>&lt;PeerId&gt;,
@@ -464,8 +488,9 @@
         <span class="self">self</span>.handle_chain_exchange_request(peer_id, tsk, count, HEADERS)
             .<span class="kw">await
     </span>}
-    <span class="doccomment">/// Send a `chain_exchange` request for only messages (ignore block headers).
-    /// If `peer_id` is `None`, requests will be sent to a set of shuffled peers.
+    <span class="doccomment">/// Send a `chain_exchange` request for only messages (ignore block
+    /// headers). If `peer_id` is `None`, requests will be sent to a set of
+    /// shuffled peers.
     </span><span class="kw">pub async fn </span>chain_exchange_messages(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         peer_id: <span class="prelude-ty">Option</span>&lt;PeerId&gt;,
@@ -476,8 +501,9 @@
             .<span class="kw">await
     </span>}
 
-    <span class="doccomment">/// Send a `chain_exchange` request for a single full tipset (includes messages)
-    /// If `peer_id` is `None`, requests will be sent to a set of shuffled peers.
+    <span class="doccomment">/// Send a `chain_exchange` request for a single full tipset (includes
+    /// messages) If `peer_id` is `None`, requests will be sent to a set of
+    /// shuffled peers.
     </span><span class="kw">pub async fn </span>chain_exchange_fts(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         peer_id: <span class="prelude-ty">Option</span>&lt;PeerId&gt;,
@@ -496,8 +522,8 @@
         <span class="prelude-val">Ok</span>(fts.remove(<span class="number">0</span>))
     }
 
-    <span class="doccomment">/// Requests that some content with a particular `Cid` get fetched over `Bitswap` if it doesn&#39;t
-    /// exist in the `BlockStore`.
+    <span class="doccomment">/// Requests that some content with a particular `Cid` get fetched over
+    /// `Bitswap` if it doesn&#39;t exist in the `BlockStore`.
     </span><span class="kw">pub async fn </span>bitswap_get&lt;TMessage: DeserializeOwned&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         epoch: ChainEpoch,
@@ -537,8 +563,8 @@
         }
     }
 
-    <span class="doccomment">/// Helper function to handle the peer retrieval if no peer supplied as well as the logging
-    /// and updating of the peer info in the `PeerManager`.
+    <span class="doccomment">/// Helper function to handle the peer retrieval if no peer supplied as well
+    /// as the logging and updating of the peer info in the `PeerManager`.
     </span><span class="kw">async fn </span>handle_chain_exchange_request&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         peer_id: <span class="prelude-ty">Option</span>&lt;PeerId&gt;,
@@ -686,7 +712,8 @@
         };
 
         <span class="comment">// Add timeout to receiving response from p2p service to avoid stalling.
-        // There is also a timeout inside the request-response calls, but this ensures this.
+        // There is also a timeout inside the request-response calls, but this ensures
+        // this.
         </span><span class="kw">let </span>res = timeout(CHAIN_EXCHANGE_TIMEOUT, rx).<span class="kw">await</span>;
         <span class="kw">let </span>res_duration = SystemTime::now()
             .duration_since(req_pre_time)
@@ -716,8 +743,8 @@
                 <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Internal libp2p error: {e:?}&quot;</span>))
             }
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="kw">_</span>)) | <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                <span class="comment">// Sender channel internally dropped or timeout, both should log failure which will
-                // negatively score the peer, but not drop yet.
+                <span class="comment">// Sender channel internally dropped or timeout, both should log failure which
+                // will negatively score the peer, but not drop yet.
                 </span>peer_manager.log_failure(peer_id, res_duration).<span class="kw">await</span>;
                 <span class="macro">log::debug!</span>(<span class="string">&quot;Timeout: ChainExchange Request to {peer_id}&quot;</span>);
                 <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;Chain exchange request to {peer_id} timed out&quot;</span>))
@@ -725,7 +752,8 @@
         }
     }
 
-    <span class="doccomment">/// Send a hello request to the network (does not immediately await response).
+    <span class="doccomment">/// Send a hello request to the network (does not immediately await
+    /// response).
     </span><span class="kw">pub async fn </span>hello_request(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         peer_id: PeerId,

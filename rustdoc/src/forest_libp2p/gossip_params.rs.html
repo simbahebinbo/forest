@@ -116,19 +116,25 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::{PUBSUB_BLOCK_STR, PUBSUB_MSG_STR};
+</span><span class="kw">use </span>std::time::Duration;
+
 <span class="kw">use </span>libp2p::gossipsub::{
     score_parameter_decay, IdentTopic, PeerScoreParams, PeerScoreThresholds, TopicScoreParams,
 };
-<span class="kw">use </span>std::time::Duration;
 
-<span class="comment">// All these parameters are copied from what Lotus has set for their Topic scores.
-// They are currently unused because enabling them causes GossipSub blocks to come
-// delayed usually by 1 second compared to when we have these parameters disabled.
-// Leaving these here so that we can enable and fix these parameters when they are needed.
+<span class="kw">use crate</span>::{PUBSUB_BLOCK_STR, PUBSUB_MSG_STR};
+
+<span class="comment">// All these parameters are copied from what Lotus has set for their Topic
+// scores. They are currently unused because enabling them causes GossipSub
+// blocks to come delayed usually by 1 second compared to when we have these
+// parameters disabled. Leaving these here so that we can enable and fix these
+// parameters when they are needed.
 
 </span><span class="kw">fn </span>build_msg_topic_config() -&gt; TopicScoreParams {
     TopicScoreParams {
@@ -142,7 +148,7 @@
 
         <span class="comment">// deliveries decay after 10min, cap at 100 tx
         </span>first_message_deliveries_weight: <span class="number">0.5</span>,
-        first_message_deliveries_decay: score_parameter_decay(Duration::from_secs(<span class="number">10 </span>* <span class="number">60</span>)), <span class="comment">// 10mins
+        first_message_deliveries_decay: score_parameter_decay(Duration::from_secs(<span class="number">10 </span>* <span class="number">60</span>)), <span class="comment">/* 10mins */
         // 100 blocks in an hour
         </span>first_message_deliveries_cap: <span class="number">100.0</span>,
 

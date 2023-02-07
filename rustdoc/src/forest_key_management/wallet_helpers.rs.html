@@ -80,16 +80,25 @@
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::errors::Error;
-<span class="kw">use </span>bls_signatures::{PrivateKey <span class="kw">as </span>BlsPrivate, Serialize};
+</span><span class="kw">use </span>bls_signatures::{PrivateKey <span class="kw">as </span>BlsPrivate, Serialize};
 <span class="kw">use </span>forest_encoding::blake2b_256;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
+<span class="kw">use </span>fvm_shared::{
+    address::Address,
+    crypto::signature::{Signature, SignatureType},
+};
 <span class="kw">use </span>libsecp256k1::{Message <span class="kw">as </span>SecpMessage, PublicKey <span class="kw">as </span>SecpPublic, SecretKey <span class="kw">as </span>SecpPrivate};
 <span class="kw">use </span>rand::rngs::OsRng;
+
+<span class="kw">use </span><span class="kw">super</span>::errors::Error;
 
 <span class="doccomment">/// Return the public key for a given private key and `SignatureType`
 </span><span class="kw">pub fn </span>to_public(sig_type: SignatureType, private_key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, Error&gt; {
@@ -107,7 +116,8 @@
     }
 }
 
-<span class="doccomment">/// Return a new Address that is of a given `SignatureType` and uses the supplied public key
+<span class="doccomment">/// Return a new Address that is of a given `SignatureType` and uses the
+/// supplied public key
 </span><span class="kw">pub fn </span>new_address(sig_type: SignatureType, public_key: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Address, Error&gt; {
     <span class="kw">match </span>sig_type {
         SignatureType::BLS =&gt; {
@@ -122,13 +132,15 @@
     }
 }
 
-<span class="doccomment">/// Sign takes in `SignatureType`, private key and message. Returns a Signature for that message
+<span class="doccomment">/// Sign takes in `SignatureType`, private key and message. Returns a Signature
+/// for that message
 </span><span class="kw">pub fn </span>sign(sig_type: SignatureType, private_key: <span class="kw-2">&amp;</span>[u8], msg: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;Signature, Error&gt; {
     <span class="kw">match </span>sig_type {
         SignatureType::BLS =&gt; {
             <span class="kw">let </span>priv_key =
                 BlsPrivate::from_bytes(private_key).map_err(|err| Error::Other(err.to_string()))<span class="question-mark">?</span>;
-            <span class="comment">// this returns a signature from bls-signatures, so we need to convert this to a crypto signature
+            <span class="comment">// this returns a signature from bls-signatures, so we need to convert this to a
+            // crypto signature
             </span><span class="kw">let </span>sig = priv_key.sign(msg);
             <span class="kw">let </span>crypto_sig = Signature::new_bls(sig.as_bytes());
             <span class="prelude-val">Ok</span>(crypto_sig)

@@ -49,9 +49,9 @@
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="doccomment">/// `RocksDB` configuration exposed in Forest.
-/// Only subset of possible options is implemented, add missing ones when needed.
-/// For description of different options please refer to the `rocksdb` crate documentation.
-/// &lt;https://docs.rs/rocksdb/latest/rocksdb/&gt;
+/// Only subset of possible options is implemented, add missing ones when
+/// needed. For description of different options please refer to the `rocksdb`
+/// crate documentation. &lt;https://docs.rs/rocksdb/latest/rocksdb/&gt;
 </span><span class="attr">#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default)]
 </span><span class="kw">pub struct </span>RocksDbConfig {

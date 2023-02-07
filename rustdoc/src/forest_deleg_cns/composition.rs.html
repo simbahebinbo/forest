@@ -42,9 +42,12 @@
 <a href="#42" id="42">42</a>
 <a href="#43" id="43">43</a>
 <a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
-</span><span class="kw">use </span><span class="kw">crate</span>::DelegatedConsensus;
+</span><span class="kw">use </span>std::sync::Arc;
+
 <span class="kw">use </span>forest_chain_sync::consensus::{MessagePoolApi, Proposer, SyncGossipSubmitter};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_key_management::KeyStore;
@@ -52,8 +55,9 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>log::info;
-<span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::{sync::RwLock, task::JoinSet};
+
+<span class="kw">use </span><span class="kw">crate</span>::DelegatedConsensus;
 
 <span class="kw">pub type </span>FullConsensus = DelegatedConsensus;
 

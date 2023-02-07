@@ -94,14 +94,17 @@
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_db::Store;
+</span><span class="kw">use </span>std::time::Duration;
+
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, to_vec};
 <span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
-<span class="kw">use </span>std::time::Duration;
 
 <span class="kw">const </span>MPOOL_CONFIG_KEY: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;/mpool/config&quot;</span>;
 <span class="kw">const </span>SIZE_LIMIT_LOW: i64 = <span class="number">20000</span>;
@@ -172,7 +175,8 @@
         <span class="prelude-val">Ok</span>(store.write(MPOOL_CONFIG_KEY, to_vec(<span class="kw-2">&amp;</span><span class="self">self</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>)
     }
 
-    <span class="doccomment">/// Load `config` from store, if exists. If there is no `config`, uses default.
+    <span class="doccomment">/// Load `config` from store, if exists. If there is no `config`, uses
+    /// default.
     </span><span class="kw">pub fn </span>load_config&lt;DB: Store&gt;(store: <span class="kw-2">&amp;</span>DB) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
         <span class="kw">match </span>store.read(MPOOL_CONFIG_KEY)<span class="question-mark">? </span>{
             <span class="prelude-val">Some</span>(v) =&gt; <span class="prelude-val">Ok</span>(from_slice(<span class="kw-2">&amp;</span>v)<span class="question-mark">?</span>),

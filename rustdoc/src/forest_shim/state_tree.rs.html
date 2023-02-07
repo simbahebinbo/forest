@@ -91,14 +91,15 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::ops::{Deref, DerefMut};
 
-<span class="kw">use crate</span>::{econ::TokenAmount, Inner};
 <span class="kw">use </span>fvm::state_tree::ActorState <span class="kw">as </span>ActorStateV2;
+<span class="doccomment">/// Re-use `StateTree` from FVM2 directly, without wrapping. Moving forward, we
+/// should use `StateTree` from FVM3. Unfortunately, for the time being, we are
+/// blocked by lack of migrations.
+</span><span class="kw">pub use </span>fvm::state_tree::StateTree;
 <span class="kw">use </span>fvm3::state_tree::ActorState <span class="kw">as </span>ActorStateV3;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="doccomment">/// Re-use `StateTree` from FVM2 directly, without wrapping. Moving forward, we should use
-/// `StateTree` from FVM3. Unfortunately, for the time being, we are blocked by lack of migrations.
-</span><span class="kw">pub use </span>fvm::state_tree::StateTree;
+<span class="kw">use crate</span>::{econ::TokenAmount, Inner};
 
 <span class="doccomment">/// Newtype to wrap different versions of `fvm::state_tree::ActorState`
 ///
@@ -118,7 +119,6 @@
 /// let state_shim = forest_shim::state_tree::ActorState::from(fvm2_actor_state.clone());
 /// assert_eq!(fvm3_actor_state, *state_shim);
 /// assert_eq!(fvm2_actor_state, state_shim.into());
-///
 /// ```
 </span><span class="attr">#[derive(PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 #[serde(transparent)]

@@ -114,28 +114,22 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
-</span><span class="kw">use </span>anyhow::anyhow;
-<span class="kw">use </span>async_trait::async_trait;
-<span class="kw">use </span>std::fmt::Debug;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>thiserror::Error;
+</span><span class="kw">use </span>std::{fmt::Debug, sync::Arc};
 
+<span class="kw">use </span>anyhow::anyhow;
+<span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconSchedule};
 <span class="kw">use </span>forest_blocks::{Block, Tipset};
-<span class="kw">use </span>forest_chain::Weight;
-<span class="kw">use </span>forest_chain::{Error <span class="kw">as </span>ChainStoreError, Scale};
+<span class="kw">use </span>forest_chain::{Error <span class="kw">as </span>ChainStoreError, Scale, Weight};
 <span class="kw">use </span>forest_chain_sync::Consensus;
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_state_manager::Error <span class="kw">as </span>StateManagerError;
-<span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>forest_state_manager::{Error <span class="kw">as </span>StateManagerError, StateManager};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Error <span class="kw">as </span>ForestEncodingError;
 <span class="kw">use </span>nonempty::NonEmpty;
+<span class="kw">use </span>thiserror::Error;
 
 <span class="kw">mod </span>metrics;
 <span class="kw">mod </span>validation;

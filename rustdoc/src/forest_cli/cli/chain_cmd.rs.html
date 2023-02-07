@@ -93,16 +93,22 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>std::str::FromStr;
+
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::TipsetKeys;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>structopt::StructOpt;
+
+<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 <span class="attr">#[derive(Debug, StructOpt)]
 </span><span class="kw">pub enum </span>ChainCommands {
@@ -119,10 +125,12 @@
     <span class="doccomment">/// Prints out the canonical head of the chain
     </span>Head,
 
-    <span class="doccomment">/// Prints a BLAKE2b hash of the tipset given its keys. Useful for setting checkpoints to speed up boot times from a snapshot
+    <span class="doccomment">/// Prints a BLAKE2b hash of the tipset given its keys. Useful for setting
+    /// checkpoints to speed up boot times from a snapshot
     </span>TipsetHash { cids: Vec&lt;String&gt; },
 
-    <span class="doccomment">/// Runs through all epochs back to 0 and validates the tipset checkpoint hashes
+    <span class="doccomment">/// Runs through all epochs back to 0 and validates the tipset checkpoint
+    /// hashes
     </span>ValidateTipsetCheckpoints,
 
     <span class="doccomment">/// Reads and prints out a message referenced by the specified CID from the
@@ -133,8 +141,8 @@
         </span>cid: String,
     },
 
-    <span class="doccomment">/// Reads and prints out IPLD nodes referenced by the specified CID from chain
-    /// block store and returns raw bytes
+    <span class="doccomment">/// Reads and prints out IPLD nodes referenced by the specified CID from
+    /// chain block store and returns raw bytes
     </span>ReadObj {
         <span class="doccomment">/// Input a valid CID
         </span><span class="attr">#[structopt(short)]

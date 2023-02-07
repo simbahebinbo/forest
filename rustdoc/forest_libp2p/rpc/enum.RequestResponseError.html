@@ -3,10 +3,11 @@
     Timeout,
     ConnectionClosed,
     UnsupportedProtocols,
-}</code></pre></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Libp2p request response outbound error type. This indicates a failure sending a request to
-a peer. This is different from a failure response from a node, as this is an error that
-prevented a response.</p>
-<p>This type mirrors the internal libp2p type, but this avoids having to expose that internal type.</p>
+}</code></pre></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Libp2p request response outbound error type. This indicates a failure
+sending a request to a peer. This is different from a failure response from
+a node, as this is an error that prevented a response.</p>
+<p>This type mirrors the internal libp2p type, but this avoids having to expose
+that internal type.</p>
 </div></details><h2 id="variants" class="variants small-section-header">Variants<a href="#variants" class="anchor">§</a></h2><div class="variants"><section id="variant.DialFailure" class="variant"><a href="#variant.DialFailure" class="anchor">§</a><h3 class="code-header">DialFailure</h3></section><div class="docblock"><p>The request could not be sent because a dialing attempt failed.</p>
 </div><section id="variant.Timeout" class="variant"><a href="#variant.Timeout" class="anchor">§</a><h3 class="code-header">Timeout</h3></section><div class="docblock"><p>The request timed out before a response was received.</p>
 <p>It is not known whether the request may have been

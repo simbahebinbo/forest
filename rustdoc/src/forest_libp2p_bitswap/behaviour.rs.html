@@ -147,10 +147,14 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use crate</span>::{codec::<span class="kw-2">*</span>, protocol::<span class="kw-2">*</span>, request_manager::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
+</span><span class="kw">use </span>std::sync::Arc;
+
 <span class="kw">use </span>libp2p::{
     request_response::{
         ProtocolSupport, RequestId, RequestResponse, RequestResponseConfig, RequestResponseEvent,
@@ -158,12 +162,14 @@
     swarm::NetworkBehaviour,
     PeerId,
 };
-<span class="kw">use </span>std::sync::Arc;
+
+<span class="kw">use crate</span>::{codec::<span class="kw-2">*</span>, protocol::<span class="kw-2">*</span>, request_manager::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 
 <span class="doccomment">/// `libp2p` swarm network behaviour event of `bitswap`
 </span><span class="kw">pub type </span>BitswapBehaviourEvent = RequestResponseEvent&lt;Vec&lt;BitswapMessage&gt;, ()&gt;;
 
-<span class="doccomment">/// A `go-bitswap` compatible protocol that is built on top of [RequestResponse].
+<span class="doccomment">/// A `go-bitswap` compatible protocol that is built on top of
+/// [RequestResponse].
 </span><span class="kw">pub struct </span>BitswapBehaviour {
     inner: RequestResponse&lt;BitswapRequestResponseCodec&gt;,
     request_manager: Arc&lt;BitswapRequestManager&gt;,

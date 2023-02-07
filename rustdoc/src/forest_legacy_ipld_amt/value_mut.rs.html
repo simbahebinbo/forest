@@ -44,13 +44,16 @@
 <a href="#44" id="44">44</a>
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>std::ops::{Deref, DerefMut};
 
-<span class="doccomment">/// A wrapper around a mutable reference to a value in an Amt. Keeps track of whether
-/// the value was mutated by setting a flag when `DerefMut::deref_mut` is called.
+<span class="doccomment">/// A wrapper around a mutable reference to a value in an Amt. Keeps track of
+/// whether the value was mutated by setting a flag when `DerefMut::deref_mut`
+/// is called.
 </span><span class="kw">pub struct </span>ValueMut&lt;<span class="lifetime">&#39;a</span>, V&gt; {
     value: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>V,
     value_mutated: bool,
@@ -68,8 +71,9 @@
         <span class="self">self</span>.value_mutated
     }
 
-    <span class="doccomment">/// Marks guard as unchanged. This should only be used when the value was updated but it is
-    /// intended to remove it. Otherwise, this function would give unexpected behavior on flush.
+    <span class="doccomment">/// Marks guard as unchanged. This should only be used when the value was
+    /// updated but it is intended to remove it. Otherwise, this function
+    /// would give unexpected behavior on flush.
     </span><span class="attr">#[cfg(feature = <span class="string">&quot;go-interop&quot;</span>)]
     </span><span class="kw">pub fn </span>mark_unchanged(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.value_mutated = <span class="bool-val">false</span>;

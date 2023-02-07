@@ -317,26 +317,44 @@
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::resolve_to_key_addr;
+</span><span class="kw">use </span>std::{cell::Ref, sync::Arc};
+
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::BlockHeader;
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_shim::state_tree::StateTree;
-<span class="kw">use </span>forest_shim::version::NetworkVersion;
-<span class="kw">use </span>fvm::externs::{Consensus, Externs, Rand};
-<span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas, GasTracker};
-<span class="kw">use </span>fvm_ipld_blockstore::tracking::{BSStats, TrackingBlockstore};
-<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>forest_shim::{state_tree::StateTree, version::NetworkVersion};
+<span class="kw">use </span>fvm::{
+    externs::{Consensus, Externs, Rand},
+    gas::{price_list_by_network_version, Gas, GasTracker},
+};
+<span class="kw">use </span>fvm_ipld_blockstore::{
+    tracking::{BSStats, TrackingBlockstore},
+    Blockstore,
+};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::consensus::{ConsensusFault, ConsensusFaultType};
-<span class="kw">use </span>std::cell::Ref;
-<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>fvm_shared::{
+    address::Address,
+    clock::ChainEpoch,
+    consensus::{ConsensusFault, ConsensusFaultType},
+};
+
+<span class="kw">use </span><span class="kw">crate</span>::resolve_to_key_addr;
 
 <span class="kw">pub struct </span>ForestExterns&lt;DB&gt; {
     rand: Box&lt;<span class="kw">dyn </span>Rand&gt;,
@@ -444,10 +462,12 @@
     ) -&gt; anyhow::Result&lt;(<span class="prelude-ty">Option</span>&lt;ConsensusFault&gt;, i64)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>total_gas: i64 = <span class="number">0</span>;
 
-        <span class="comment">// Note that block syntax is not validated. Any validly signed block will be accepted pursuant to the below conditions.
-        // Whether or not it could ever have been accepted in a chain is not checked/does not matter here.
-        // for that reason when checking block parent relationships, rather than instantiating a Tipset to do so
-        // (which runs a syntactic check), we do it directly on the CIDs.
+        <span class="comment">// Note that block syntax is not validated. Any validly signed block will be
+        // accepted pursuant to the below conditions. Whether or not it could
+        // ever have been accepted in a chain is not checked/does not matter here.
+        // for that reason when checking block parent relationships, rather than
+        // instantiating a Tipset to do so (which runs a syntactic check), we do
+        // it directly on the CIDs.
 
         // (0) cheap preliminary checks
 
@@ -475,7 +495,8 @@
                 bh_2.miner_address()
             );
         };
-        <span class="comment">// block a must be earlier or equal to block b, epoch wise (ie at least as early in the chain).
+        <span class="comment">// block a must be earlier or equal to block b, epoch wise (ie at least as early
+        // in the chain).
         </span><span class="kw">if </span>bh_2.epoch() &lt; bh_1.epoch() {
             <span class="macro">bail!</span>(
                 <span class="string">&quot;first block must not be of higher height than second: {:?}, {:?}&quot;</span>,
@@ -494,16 +515,17 @@
         };
 
         <span class="comment">// (b) time-offset mining fault
-        // strictly speaking no need to compare heights based on double fork mining check above,
-        // but at same height this would be a different fault.
+        // strictly speaking no need to compare heights based on double fork mining
+        // check above, but at same height this would be a different fault.
         </span><span class="kw">if </span>bh_1.parents() == bh_2.parents() &amp;&amp; bh_1.epoch() != bh_2.epoch() {
             fault_type = <span class="prelude-val">Some</span>(ConsensusFaultType::TimeOffsetMining);
         };
 
         <span class="comment">// (c) parent-grinding fault
-        // Here extra is the &quot;witness&quot;, a third block that shows the connection between A and B as
-        // A&#39;s sibling and B&#39;s parent.
-        // Specifically, since A is of lower height, it must be that B was mined omitting A from its tipset
+        // Here extra is the &quot;witness&quot;, a third block that shows the connection between
+        // A and B as A&#39;s sibling and B&#39;s parent.
+        // Specifically, since A is of lower height, it must be that B was mined
+        // omitting A from its tipset
         </span><span class="kw">if </span>!extra.is_empty() {
             <span class="kw">let </span>bh_3 = BlockHeader::unmarshal_cbor(extra)<span class="question-mark">?</span>;
             <span class="kw">if </span>bh_1.parents() == bh_3.parents()
@@ -572,9 +594,11 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>anyhow::ensure;
     <span class="kw">use </span>std::{cell::RefCell, iter::repeat};
+
+    <span class="kw">use </span>anyhow::ensure;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_cal_gas_used_from_stats_1_read() -&gt; anyhow::Result&lt;()&gt; {

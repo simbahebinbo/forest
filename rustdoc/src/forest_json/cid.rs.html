@@ -119,6 +119,9 @@
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -164,9 +167,10 @@
 }
 
 <span class="kw">pub mod </span>vec {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>forest_utils::json::GoVecVisitor;
     <span class="kw">use </span>serde::ser::SerializeSeq;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="doccomment">/// Wrapper for serializing and de-serializing a Cid vector from JSON.
     </span><span class="attr">#[derive(Deserialize, Serialize)]
@@ -198,8 +202,9 @@
 }
 
 <span class="kw">pub mod </span>opt {
-    <span class="kw">use super</span>::{Cid, CidJson, CidJsonRef};
     <span class="kw">use </span>serde::{<span class="self">self</span>, Deserialize, Deserializer, Serialize, Serializer};
+
+    <span class="kw">use super</span>::{Cid, CidJson, CidJsonRef};
 
     <span class="kw">pub fn </span>serialize&lt;S&gt;(v: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Cid&gt;, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
     <span class="kw">where
@@ -219,9 +224,10 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>CidJson {
         <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{

@@ -661,24 +661,28 @@
 <a href="#661" id="661">661</a>
 <a href="#662" id="662">662</a>
 <a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 // Contains the implementation of Message Pool component.
-// The Message Pool is the component of forest that handles pending messages for inclusion
-// in the chain. Messages are added either directly for locally published messages
-// or through pubsub propagation.
+// The Message Pool is the component of forest that handles pending messages for
+// inclusion in the chain. Messages are added either directly for locally
+// published messages or through pubsub propagation.
 
-</span><span class="kw">use </span><span class="kw">crate</span>::config::MpoolConfig;
-<span class="kw">use </span><span class="kw">crate</span>::errors::Error;
-<span class="kw">use </span><span class="kw">crate</span>::head_change;
-<span class="kw">use </span><span class="kw">crate</span>::msgpool::recover_sig;
-<span class="kw">use </span><span class="kw">crate</span>::msgpool::BASE_FEE_LOWER_BOUND_FACTOR_CONSERVATIVE;
-<span class="kw">use </span><span class="kw">crate</span>::msgpool::PROPAGATION_DELAY_SECS;
-<span class="kw">use </span><span class="kw">crate</span>::msgpool::{republish_pending_messages, select_messages_for_block};
-<span class="kw">use </span><span class="kw">crate</span>::msgpool::{RBF_DENOM, RBF_NUM};
-<span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
-<span class="kw">use </span><span class="kw">crate</span>::utils::get_base_fee_lower_bound;
+</span><span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc, time::Duration};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
@@ -686,33 +690,41 @@
 <span class="kw">use </span>forest_chain::{HeadChange, MINIMUM_BASE_FEE};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
-<span class="kw">use </span>forest_message::message::valid_for_block_inclusion;
-<span class="kw">use </span>forest_message::{ChainMessage, Message, SignedMessage};
+<span class="kw">use </span>forest_message::{message::valid_for_block_inclusion, ChainMessage, Message, SignedMessage};
 <span class="kw">use </span>forest_networks::{ChainConfig, NEWEST_NETWORK_VERSION};
 <span class="kw">use </span>forest_utils::const_option;
 <span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
+<span class="kw">use </span>fvm_shared::{
+    address::Address,
+    crypto::signature::{Signature, SignatureType},
+    econ::TokenAmount,
+};
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>parking_lot::{Mutex, RwLock <span class="kw">as </span>SyncRwLock};
-<span class="kw">use </span>std::num::NonZeroUsize;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time::Duration;
-<span class="kw">use </span>tokio::sync::broadcast::error::RecvError;
-<span class="kw">use </span>tokio::task::JoinSet;
-<span class="kw">use </span>tokio::time::interval;
+<span class="kw">use </span>tokio::{sync::broadcast::error::RecvError, task::JoinSet, time::interval};
+
+<span class="kw">use crate</span>::{
+    config::MpoolConfig,
+    errors::Error,
+    head_change,
+    msgpool::{
+        recover_sig, republish_pending_messages, select_messages_for_block,
+        BASE_FEE_LOWER_BOUND_FACTOR_CONSERVATIVE, PROPAGATION_DELAY_SECS, RBF_DENOM, RBF_NUM,
+    },
+    provider::Provider,
+    utils::get_base_fee_lower_bound,
+};
 
 <span class="comment">// LruCache sizes have been taken from the lotus implementation
 </span><span class="kw">const </span>BLS_SIG_CACHE_SIZE: NonZeroUsize = <span class="macro">const_option!</span>(NonZeroUsize::new(<span class="number">40000</span>));
 <span class="kw">const </span>SIG_VAL_CACHE_SIZE: NonZeroUsize = <span class="macro">const_option!</span>(NonZeroUsize::new(<span class="number">32000</span>));
 
-<span class="doccomment">/// Simple structure that contains a hash-map of messages where k: a message from address, v: a message
-/// which corresponds to that address.
+<span class="doccomment">/// Simple structure that contains a hash-map of messages where k: a message
+/// from address, v: a message which corresponds to that address.
 </span><span class="attr">#[derive(Clone, Default, Debug)]
 </span><span class="kw">pub struct </span>MsgSet {
     <span class="kw">pub</span>(<span class="kw">crate</span>) msgs: HashMap&lt;u64, SignedMessage&gt;,
@@ -720,7 +732,8 @@
 }
 
 <span class="kw">impl </span>MsgSet {
-    <span class="doccomment">/// Generate a new `MsgSet` with an empty hash-map and setting the sequence specifically.
+    <span class="doccomment">/// Generate a new `MsgSet` with an empty hash-map and setting the sequence
+    /// specifically.
     </span><span class="kw">pub fn </span>new(sequence: u64) -&gt; <span class="self">Self </span>{
         MsgSet {
             msgs: HashMap::new(),
@@ -728,8 +741,8 @@
         }
     }
 
-    <span class="doccomment">/// Add a signed message to the `MsgSet`. Increase `next_sequence` if the message has a
-    /// sequence greater than any existing message sequence.
+    <span class="doccomment">/// Add a signed message to the `MsgSet`. Increase `next_sequence` if the
+    /// message has a sequence greater than any existing message sequence.
     </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;mut </span><span class="self">self</span>, m: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">if </span><span class="self">self</span>.msgs.is_empty() || m.sequence() &gt;= <span class="self">self</span>.next_sequence {
             <span class="self">self</span>.next_sequence = m.sequence() + <span class="number">1</span>;
@@ -751,7 +764,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Removes message with the given sequence. If applied, update the set&#39;s next sequence.
+    <span class="doccomment">/// Removes message with the given sequence. If applied, update the set&#39;s
+    /// next sequence.
     </span><span class="kw">pub fn </span>rm(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sequence: u64, applied: bool) {
         <span class="kw">if </span><span class="self">self</span>.msgs.remove(<span class="kw-2">&amp;</span>sequence).is_none() {
             <span class="kw">if </span>applied &amp;&amp; sequence &gt;= <span class="self">self</span>.next_sequence {
@@ -781,7 +795,8 @@
 }
 
 <span class="doccomment">/// This contains all necessary information needed for the message pool.
-/// Keeps track of messages to apply, as well as context needed for verifying transactions.
+/// Keeps track of messages to apply, as well as context needed for verifying
+/// transactions.
 </span><span class="kw">pub struct </span>MessagePool&lt;T&gt; {
     <span class="doccomment">/// The local address of the client
     </span>local_addrs: Arc&lt;SyncRwLock&lt;Vec&lt;Address&gt;&gt;&gt;,
@@ -791,7 +806,8 @@
     </span><span class="kw">pub </span>cur_tipset: Arc&lt;Mutex&lt;Arc&lt;Tipset&gt;&gt;&gt;,
     <span class="doccomment">/// The underlying provider
     </span><span class="kw">pub </span>api: Arc&lt;T&gt;,
-    <span class="doccomment">/// The minimum gas price needed for executing the transaction based on number of included blocks
+    <span class="doccomment">/// The minimum gas price needed for executing the transaction based on
+    /// number of included blocks
     </span><span class="kw">pub </span>min_gas_price: BigInt,
     <span class="doccomment">/// This is max number of messages in the pool.
     </span><span class="kw">pub </span>max_tx_pool_size: i64,
@@ -805,7 +821,8 @@
     </span><span class="kw">pub </span>sig_val_cache: Arc&lt;Mutex&lt;LruCache&lt;Cid, ()&gt;&gt;&gt;,
     <span class="doccomment">/// A set of republished messages identified by their Cid
     </span><span class="kw">pub </span>republished: Arc&lt;SyncRwLock&lt;HashSet&lt;Cid&gt;&gt;&gt;,
-    <span class="doccomment">/// Acts as a signal to republish messages from the republished set of messages
+    <span class="doccomment">/// Acts as a signal to republish messages from the republished set of
+    /// messages
     </span><span class="kw">pub </span>repub_trigger: flume::Sender&lt;()&gt;,
     <span class="comment">// TODO look into adding a cap to `local_msgs`
     </span>local_msgs: Arc&lt;SyncRwLock&lt;HashSet&lt;SignedMessage&gt;&gt;&gt;,
@@ -990,8 +1007,8 @@
         <span class="self">self</span>.verify_msg_sig(msg)
     }
 
-    <span class="doccomment">/// This is a helper to push that will help to make sure that the message fits the parameters
-    /// to be pushed to the `MessagePool`.
+    <span class="doccomment">/// This is a helper to push that will help to make sure that the message
+    /// fits the parameters to be pushed to the `MessagePool`.
     </span><span class="kw">pub fn </span>add(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="self">self</span>.check_message(<span class="kw-2">&amp;</span>msg)<span class="question-mark">?</span>;
 
@@ -1001,8 +1018,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Verify the message signature. first check if it has already been verified and put into
-    /// cache. If it has not, then manually verify it then put it into cache for future use.
+    <span class="doccomment">/// Verify the message signature. first check if it has already been
+    /// verified and put into cache. If it has not, then manually verify it
+    /// then put it into cache for future use.
     </span><span class="kw">fn </span>verify_msg_sig(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>cid = msg.cid()<span class="question-mark">?</span>;
 
@@ -1017,8 +1035,9 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Verify the `state_sequence` and balance for the sender of the message given then
-    /// call `add_locked` to finish adding the `signed_message` to pending.
+    <span class="doccomment">/// Verify the `state_sequence` and balance for the sender of the message
+    /// given then call `add_locked` to finish adding the `signed_message`
+    /// to pending.
     </span><span class="kw">fn </span>add_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage, cur_ts: <span class="kw-2">&amp;</span>Tipset, local: bool) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
         <span class="kw">let </span>sequence = <span class="self">self</span>.get_state_sequence(msg.from(), cur_ts)<span class="question-mark">?</span>;
 
@@ -1038,9 +1057,10 @@
         <span class="prelude-val">Ok</span>(publish)
     }
 
-    <span class="doccomment">/// Finish verifying signed message before adding it to the pending `mset` hash-map. If an entry
-    /// in the hash-map does not yet exist, create a new `mset` that will correspond to the from
-    /// message and push it to the pending hash-map.
+    <span class="doccomment">/// Finish verifying signed message before adding it to the pending `mset`
+    /// hash-map. If an entry in the hash-map does not yet exist, create a
+    /// new `mset` that will correspond to the from message and push it to
+    /// the pending hash-map.
     </span><span class="kw">fn </span>add_helper(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
         <span class="kw">let </span>from = <span class="kw-2">*</span>msg.from();
         <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
@@ -1053,8 +1073,8 @@
         )
     }
 
-    <span class="doccomment">/// Get the sequence for a given address, return Error if there is a failure to retrieve
-    /// the respective sequence.
+    <span class="doccomment">/// Get the sequence for a given address, return Error if there is a failure
+    /// to retrieve the respective sequence.
     </span><span class="kw">pub fn </span>get_sequence(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;u64, Error&gt; {
         <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
 
@@ -1080,8 +1100,8 @@
         <span class="prelude-val">Ok</span>(actor.sequence)
     }
 
-    <span class="doccomment">/// Get the state balance for the actor that corresponds to the supplied address and tipset,
-    /// if this actor does not exist, return an error.
+    <span class="doccomment">/// Get the state balance for the actor that corresponds to the supplied
+    /// address and tipset, if this actor does not exist, return an error.
     </span><span class="kw">fn </span>get_state_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>actor = <span class="self">self</span>.api.get_actor_after(addr, ts)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(forest_shim::econ::TokenAmount::from(<span class="kw-2">&amp;</span>actor.balance).into())
@@ -1092,8 +1112,8 @@
         remove(from, <span class="self">self</span>.pending.as_ref(), sequence, applied)
     }
 
-    <span class="doccomment">/// Return a tuple that contains a vector of all signed messages and the current tipset for
-    /// self.
+    <span class="doccomment">/// Return a tuple that contains a vector of all signed messages and the
+    /// current tipset for self.
     </span><span class="kw">pub fn </span>pending(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(Vec&lt;SignedMessage&gt;, Arc&lt;Tipset&gt;), Error&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>out: Vec&lt;SignedMessage&gt; = Vec::new();
         <span class="kw">let </span>pending = <span class="self">self</span>.pending.read().clone();
@@ -1111,8 +1131,9 @@
         <span class="prelude-val">Ok</span>((out, cur_ts))
     }
 
-    <span class="doccomment">/// Return a Vector of signed messages for a given from address. This vector will be sorted by
-    /// each `messsage`&#39;s sequence. If no corresponding messages found, return None result type.
+    <span class="doccomment">/// Return a Vector of signed messages for a given from address. This vector
+    /// will be sorted by each `messsage`&#39;s sequence. If no corresponding
+    /// messages found, return None result type.
     </span><span class="kw">pub fn </span>pending_for(<span class="kw-2">&amp;</span><span class="self">self</span>, a: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;SignedMessage&gt;&gt; {
         <span class="kw">let </span>pending = <span class="self">self</span>.pending.read();
         <span class="kw">let </span>mset = pending.get(a)<span class="question-mark">?</span>;
@@ -1143,8 +1164,8 @@
         <span class="prelude-val">Ok</span>(msg_vec)
     }
 
-    <span class="doccomment">/// Return gas price estimate this has been translated from lotus, a more smart implementation will
-    /// most likely need to be implemented.
+    <span class="doccomment">/// Return gas price estimate this has been translated from lotus, a more
+    /// smart implementation will most likely need to be implemented.
     </span><span class="comment">// TODO: UPDATE https://github.com/ChainSafe/forest/issues/901
     </span><span class="kw">pub fn </span>estimate_gas_premium(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1175,8 +1196,9 @@
 
         <span class="prelude-val">Ok</span>(())
     }
-    <span class="doccomment">/// If `local = true`, the local messages will be removed as well as pending messages.
-    /// If `local = false`, pending messages will be removed while retaining local messages.
+    <span class="doccomment">/// If `local = true`, the local messages will be removed as well as pending
+    /// messages. If `local = false`, pending messages will be removed while
+    /// retaining local messages.
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>, local: bool) {
         <span class="kw">if </span>local {
             <span class="kw">for </span>a <span class="kw">in </span><span class="self">self</span>.local_addrs.read().iter() {
@@ -1208,7 +1230,8 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Select messages that can be included in a block built on a given base tipset.
+    <span class="doccomment">/// Select messages that can be included in a block built on a given base
+    /// tipset.
     </span><span class="kw">pub fn </span>select_messages_for_block(<span class="kw-2">&amp;</span><span class="self">self</span>, base: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;SignedMessage&gt;, Error&gt; {
         <span class="comment">// Take a snapshot of the pending messages.
         </span><span class="kw">let </span>pending: HashMap&lt;Address, HashMap&lt;u64, SignedMessage&gt;&gt; = {
@@ -1231,9 +1254,10 @@
 
 <span class="comment">// Helpers for MessagePool
 
-</span><span class="doccomment">/// Finish verifying signed message before adding it to the pending `mset` hash-map. If an entry
-/// in the hash-map does not yet exist, create a new `mset` that will correspond to the from message
-/// and push it to the pending hash-map.
+</span><span class="doccomment">/// Finish verifying signed message before adding it to the pending `mset`
+/// hash-map. If an entry in the hash-map does not yet exist, create a new
+/// `mset` that will correspond to the from message and push it to the pending
+/// hash-map.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_helper&lt;T&gt;(
     api: <span class="kw-2">&amp;</span>T,
     bls_sig_cache: <span class="kw-2">&amp;</span>Mutex&lt;LruCache&lt;Cid, Signature&gt;&gt;,

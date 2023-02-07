@@ -1672,53 +1672,73 @@
 <a href="#1672" id="1672">1672</a>
 <a href="#1673" id="1673">1673</a>
 <a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::bad_block_cache::BadBlockCache;
-<span class="kw">use </span><span class="kw">crate</span>::consensus::{collect_errs, Consensus};
-<span class="kw">use </span><span class="kw">crate</span>::metrics;
-<span class="kw">use </span><span class="kw">crate</span>::network_context::SyncNetworkContext;
-<span class="kw">use </span><span class="kw">crate</span>::sync_state::SyncStage;
-<span class="kw">use </span><span class="kw">crate</span>::validation::TipsetValidator;
+</span><span class="kw">use </span>std::{
+    cmp::{min, Ordering},
+    convert::TryFrom,
+    future::Future,
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+    time::{SystemTime, UNIX_EPOCH},
+};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::is_account_actor;
 <span class="kw">use </span>forest_blocks::{
     Block, BlockHeader, Error <span class="kw">as </span>ForestBlockError, FullTipset, Tipset, TipsetKeys,
 };
-<span class="kw">use </span>forest_chain::Error <span class="kw">as </span>ChainStoreError;
-<span class="kw">use </span>forest_chain::{persist_objects, ChainStore};
+<span class="kw">use </span>forest_chain::{persist_objects, ChainStore, Error <span class="kw">as </span>ChainStoreError};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p::chain_exchange::TipsetBundle;
-<span class="kw">use </span>forest_message::message::valid_for_block_inclusion;
-<span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
+<span class="kw">use </span>forest_message::{message::valid_for_block_inclusion, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::Height;
 <span class="kw">use </span>forest_shim::state_tree::StateTree;
-<span class="kw">use </span>forest_state_manager::Error <span class="kw">as </span>StateManagerError;
-<span class="kw">use </span>forest_state_manager::StateManager;
+<span class="kw">use </span>forest_state_manager::{Error <span class="kw">as </span>StateManagerError, StateManager};
 <span class="kw">use </span>forest_utils::io::ProgressBar;
-<span class="kw">use </span>futures::stream::FuturesUnordered;
-<span class="kw">use </span>futures::{Stream, StreamExt, TryFutureExt};
+<span class="kw">use </span>futures::{stream::FuturesUnordered, Stream, StreamExt, TryFutureExt};
 <span class="kw">use </span>fvm::gas::price_list_by_network_version;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
-<span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_aggregate;
-<span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::{ALLOWABLE_CLOCK_DRIFT, BLOCK_GAS_LIMIT};
+<span class="kw">use </span>fvm_shared::{
+    address::Address, clock::ChainEpoch, crypto::signature::ops::verify_bls_aggregate,
+    message::Message, ALLOWABLE_CLOCK_DRIFT, BLOCK_GAS_LIMIT,
+};
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>nonempty::NonEmpty;
 <span class="kw">use </span>num::BigInt;
-<span class="kw">use </span>std::cmp::{min, Ordering};
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::task::{Context, Poll};
-<span class="kw">use </span>std::time::{SystemTime, UNIX_EPOCH};
 <span class="kw">use </span>thiserror::Error;
+
+<span class="kw">use crate</span>::{
+    bad_block_cache::BadBlockCache,
+    consensus::{collect_errs, Consensus},
+    metrics,
+    network_context::SyncNetworkContext,
+    sync_state::SyncStage,
+    validation::TipsetValidator,
+};
 
 <span class="kw">const </span>MAX_TIPSETS_TO_REQUEST: u64 = <span class="number">100</span>;
 
@@ -1799,7 +1819,8 @@
 }
 
 <span class="kw">impl</span>&lt;C: Consensus&gt; TipsetRangeSyncerError&lt;C&gt; {
-    <span class="doccomment">/// Concatenate all validation error messages into one comma separated version.
+    <span class="doccomment">/// Concatenate all validation error messages into one comma separated
+    /// version.
     </span><span class="kw">fn </span>concat(errs: NonEmpty&lt;TipsetRangeSyncerError&lt;C&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>msg = errs
             .iter()
@@ -1915,12 +1936,14 @@
 }
 
 <span class="doccomment">/// The `TipsetProcessor` receives and prioritizes a stream of Tipsets
-/// for syncing from the `ChainMuxer` and the `SyncSubmitBlock` API before syncing.
-/// Each unique Tipset, by epoch and parents, is mapped into a Tipset range which will be synced into the Chain Store.
+/// for syncing from the `ChainMuxer` and the `SyncSubmitBlock` API before
+/// syncing. Each unique Tipset, by epoch and parents, is mapped into a Tipset
+/// range which will be synced into the Chain Store.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>TipsetProcessor&lt;DB, C: Consensus&gt; {
     state: TipsetProcessorState&lt;DB, C&gt;,
     tracker: <span class="kw">crate</span>::chain_muxer::WorkerState,
-    <span class="doccomment">/// Tipsets pushed into this stream _must_ be validated beforehand by the `TipsetValidator`
+    <span class="doccomment">/// Tipsets pushed into this stream _must_ be validated beforehand by the
+    /// `TipsetValidator`
     </span>tipsets: Pin&lt;Box&lt;<span class="kw">dyn </span>futures::Stream&lt;Item = Arc&lt;Tipset&gt;&gt; + Send&gt;&gt;,
     consensus: Arc&lt;C&gt;,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
@@ -2029,15 +2052,17 @@
         <span class="macro">trace!</span>(<span class="string">&quot;Polling TipsetProcessor&quot;</span>);
 
         <span class="comment">// TODO: Determine if polling the tipset stream before the state machine
-        //       introduces a DOS attack vector where peers send duplicate, valid tipsets over
-        //       GossipSub to divert resources away from syncing tipset ranges.
-        // First, gather the tipsets off of the channel. Reading off the receiver will return immediately.
-        // Ensure that the task will wake up when the stream has a new item by registering it for wakeup.
+        //       introduces a DOS attack vector where peers send duplicate, valid
+        // tipsets over       GossipSub to divert resources away from syncing
+        // tipset ranges. First, gather the tipsets off of the channel. Reading
+        // off the receiver will return immediately. Ensure that the task will
+        // wake up when the stream has a new item by registering it for wakeup.
         // As a tipset is received through the stream we assume:
         //   1. Tipset has at least 1 block
         //   2. Tipset epoch is not behind the current max epoch in the store
-        //   3. Tipset is heavier than the heaviest tipset in the store at the time when it was queued
-        //   4. Tipset message roots were calculated and integrity checks were run
+        //   3. Tipset is heavier than the heaviest tipset in the store at the time when
+        // it was queued   4. Tipset message roots were calculated and integrity
+        // checks were run
 
         // Read all of the tipsets available on the stream
         </span><span class="kw">let </span><span class="kw-2">mut </span>grouped_tipsets: HashMap&lt;(i64, TipsetKeys), TipsetGroup&gt; = HashMap::new();
@@ -2067,11 +2092,13 @@
 
         <span class="macro">trace!</span>(<span class="string">&quot;Tipsets received through stream: {}&quot;</span>, grouped_tipsets.len());
 
-        <span class="comment">// Consume the tipsets read off of the stream and attempt to update the state machine
+        <span class="comment">// Consume the tipsets read off of the stream and attempt to update the state
+        // machine
         </span><span class="kw">match </span><span class="self">self</span>.state {
             TipsetProcessorState::Idle =&gt; {
                 <span class="comment">// Set the state to FindRange if we have a tipset to sync towards
-                // Consume the tipsets received, start syncing the heaviest tipset group, and discard the rest
+                // Consume the tipsets received, start syncing the heaviest tipset group, and
+                // discard the rest
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(((epoch, parents), heaviest_tipset_group)) = grouped_tipsets
                     .into_iter()
                     .max_by(|(<span class="kw">_</span>, a), (<span class="kw">_</span>, b)| a.weight_cmp(b))
@@ -2121,7 +2148,8 @@
                                 <span class="comment">// Both tipsets groups have the same epoch &amp; parents, so merge them
                                 </span>ns.merge(heaviest_tipset_group);
                             } <span class="kw">else if </span>heaviest_tipset_group.is_heavier_than(ns) {
-                                <span class="comment">// The tipset group received is heavier than the one saved, replace it.
+                                <span class="comment">// The tipset group received is heavier than the one saved, replace
+                                // it.
                                 </span><span class="kw-2">*</span>next_sync = <span class="prelude-val">Some</span>(heaviest_tipset_group);
                             }
                             <span class="comment">// Otherwise, drop the heaviest tipset group
@@ -2168,7 +2196,8 @@
                                 <span class="comment">// Both tipsets groups have the same epoch &amp; parents, so merge them
                                 </span>ns.merge(heaviest_tipset_group);
                             } <span class="kw">else if </span>heaviest_tipset_group.is_heavier_than(ns) {
-                                <span class="comment">// The tipset group received is heavier than the one saved, replace it.
+                                <span class="comment">// The tipset group received is heavier than the one saved, replace
+                                // it.
                                 </span><span class="kw-2">*</span>next_sync = <span class="prelude-val">Some</span>(heaviest_tipset_group);
                             } <span class="kw">else </span>{
                                 <span class="comment">// Otherwise, drop the heaviest tipset group
@@ -2421,9 +2450,10 @@
     }
 }
 
-<span class="doccomment">/// Sync headers backwards from the proposed head to the current one, requesting missing tipsets from the network.
-/// Once headers are available, download messages going forward on the chain and validate each extension.
-/// Finally set the proposed head as the heaviest tipset.
+<span class="doccomment">/// Sync headers backwards from the proposed head to the current one, requesting
+/// missing tipsets from the network. Once headers are available, download
+/// messages going forward on the chain and validate each extension. Finally set
+/// the proposed head as the heaviest tipset.
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">fn </span>sync_tipset_range&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     proposed_head: Arc&lt;Tipset&gt;,
@@ -2489,7 +2519,8 @@
         };
         tracker.write().set_stage(SyncStage::Complete);
 
-        <span class="comment">// At this point the head is synced and it can be set in the store as the heaviest
+        <span class="comment">// At this point the head is synced and it can be set in the store as the
+        // heaviest
         </span><span class="macro">debug!</span>(
             <span class="string">&quot;Tipset range successfully verified: EPOCH = [{}, {}], HEAD_KEY = {:?}&quot;</span>,
             proposed_head.epoch(),
@@ -2509,9 +2540,9 @@
     })
 }
 
-<span class="doccomment">/// Download headers between the proposed head and the current one available locally.
-/// If they turn out to be on different forks, download more headers up to a certain limit
-/// to try to find a common ancestor.
+<span class="doccomment">/// Download headers between the proposed head and the current one available
+/// locally. If they turn out to be on different forks, download more headers up
+/// to a certain limit to try to find a common ancestor.
 </span><span class="kw">async fn </span>sync_headers_in_reverse&lt;
     DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     C: Consensus,
@@ -2619,7 +2650,8 @@
                 </span><span class="kw">if </span>fork_length &gt; FORK_LENGTH_THRESHOLD {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::ChainForkLengthExceedsMaximum);
                 }
-                <span class="comment">// If we have not found a common ancestor by the last iteration, then return an error
+                <span class="comment">// If we have not found a common ancestor by the last iteration, then return an
+                // error
                 </span><span class="kw">if </span>i == (fork_tipsets.len() - <span class="number">1</span>) {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::ChainForkLengthExceedsFinalityThreshold);
                 }
@@ -2665,8 +2697,9 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(e);
         }
 
-        <span class="comment">// Add the tipset to the store. The tipset will be expanded with other blocks with
-        // the same [epoch, parents] before updating the heaviest Tipset in the store.
+        <span class="comment">// Add the tipset to the store. The tipset will be expanded with other blocks
+        // with the same [epoch, parents] before updating the heaviest Tipset in
+        // the store.
         </span><span class="kw">if let </span><span class="prelude-val">Err</span>(why) = chain_store.put_tipset::&lt;C&gt;(<span class="kw-2">&amp;</span>proposed_head) {
             <span class="macro">error!</span>(
                 <span class="string">&quot;Putting tipset [EPOCH = {}, KEYS = {:?}] in the store failed: {}&quot;</span>,
@@ -2724,8 +2757,9 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Going forward along the tipsets, try to load the messages in them from the `BlockStore`,
-/// or download them from the network, then validate the full tipset on each epoch.
+<span class="doccomment">/// Going forward along the tipsets, try to load the messages in them from the
+/// `BlockStore`, or download them from the network, then validate the full
+/// tipset on each epoch.
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
 </span><span class="kw">async fn </span>sync_messages_check_state&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -2800,9 +2834,10 @@
     handle.<span class="kw">await</span><span class="question-mark">?
 </span>}
 
-<span class="doccomment">/// Validates full blocks in the tipset in parallel (since the messages are not executed),
-/// adding the successful ones to the tipset tracker, and the failed ones to the bad block cache,
-/// depending on strategy. Any bad block fails validation.
+<span class="doccomment">/// Validates full blocks in the tipset in parallel (since the messages are not
+/// executed), adding the successful ones to the tipset tracker, and the failed
+/// ones to the bad block cache, depending on strategy. Any bad block fails
+/// validation.
 </span><span class="kw">async fn </span>validate_tipset&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     consensus: Arc&lt;C&gt;,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
@@ -2874,8 +2909,9 @@
     </span><span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Validate the block according to the rules specific to the consensus being used,
-/// and the common rules that pertain to the assumptions of the `ChainSync` protocol.
+<span class="doccomment">/// Validate the block according to the rules specific to the consensus being
+/// used, and the common rules that pertain to the assumptions of the
+/// `ChainSync` protocol.
 ///
 /// Returns the validated block if `Ok`.
 /// Returns the block CID (for marking bad) and `Error` if invalid (`Err`).
@@ -2889,7 +2925,8 @@
 /// * NB: This is where the messages in the *parent* tipset are executed.
 ///
 /// Consensus specific validation should include:
-/// * Checking that the messages in the block correspond to the agreed upon total ordering
+/// * Checking that the messages in the block correspond to the agreed upon
+///   total ordering
 /// * That the block is a deterministic derivative of the underlying consensus
 </span><span class="kw">async fn </span>validate_block&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     consensus: Arc&lt;C&gt;,
@@ -3083,7 +3120,8 @@
 /// * account nonce values
 /// * the message root in the header
 ///
-/// NB: This loads/computes the state resulting from the execution of the parent tipset.
+/// NB: This loads/computes the state resulting from the execution of the parent
+/// tipset.
 </span><span class="kw">async fn </span>check_block_messages&lt;
     DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     C: Consensus,

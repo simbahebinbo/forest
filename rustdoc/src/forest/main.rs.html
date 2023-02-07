@@ -188,9 +188,10 @@
 <span class="kw">mod </span>cli;
 <span class="kw">mod </span>daemon;
 
-<span class="kw">use </span>cli::Cli;
+<span class="kw">use </span>std::{fs::File, process, sync::Arc, time::Duration};
 
 <span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>cli::Cli;
 <span class="kw">use </span>daemonize_me::{Daemon, Group, User};
 <span class="kw">use </span>forest_cli_shared::{
     cli::{check_for_unknown_keys, cli_error_and_die, ConfigPath, DaemonConfig},
@@ -200,13 +201,11 @@
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>log::{error, info, warn};
-<span class="kw">use </span>raw_sync::events::{Event, EventInit};
-<span class="kw">use </span>raw_sync::Timeout;
+<span class="kw">use </span>raw_sync::{
+    events::{Event, EventInit},
+    Timeout,
+};
 <span class="kw">use </span>shared_memory::ShmemConf;
-<span class="kw">use </span>std::fs::File;
-<span class="kw">use </span>std::process;
-<span class="kw">use </span>std::sync::Arc;
-<span class="kw">use </span>std::time::Duration;
 <span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>tempfile::{Builder, TempPath};
 <span class="kw">use </span>tokio::runtime::Runtime;
@@ -284,7 +283,8 @@
 
     <span class="kw">let </span>(cfg, path) = opts.to_config().context(<span class="string">&quot;Error parsing config&quot;</span>)<span class="question-mark">?</span>;
 
-    <span class="comment">// Run forest as a daemon if no other subcommands are used. Otherwise, run the subcommand.
+    <span class="comment">// Run forest as a daemon if no other subcommands are used. Otherwise, run the
+    // subcommand.
 
     </span><span class="kw">let </span>(loki_task,) = logger::setup_logger(<span class="kw-2">&amp;</span>cfg.log, <span class="kw-2">&amp;</span>opts);
     ProgressBar::set_progress_bars_visibility(cfg.client.show_progress_bars);

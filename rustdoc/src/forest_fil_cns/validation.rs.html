@@ -399,10 +399,15 @@
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>std::sync::Arc;
+
+<span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::DomainSeparationTag;
 <span class="kw">use </span>forest_actor_interface::power;
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconEntry, BeaconSchedule, IGNORE_DRAND_VAR};
@@ -416,12 +421,11 @@
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::crypto::signature::ops::verify_bls_sig;
-<span class="kw">use </span>fvm_shared::randomness::Randomness;
-<span class="kw">use </span>fvm_shared::TICKET_RANDOMNESS_LOOKBACK;
+<span class="kw">use </span>fvm_shared::{
+    address::Address, crypto::signature::ops::verify_bls_sig, randomness::Randomness,
+    TICKET_RANDOMNESS_LOOKBACK,
+};
 <span class="kw">use </span>nonempty::NonEmpty;
-<span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use crate</span>::{metrics, FilecoinConsensusError};
 
@@ -430,7 +434,8 @@
 }
 
 <span class="doccomment">/// Validates block semantically according to https://github.com/filecoin-project/specs/blob/6ab401c0b92efb6420c6e198ec387cf56dc86057/validation.md
-/// Returns all encountered errors, so they can be merged with the common validations performed by the synchronizer.
+/// Returns all encountered errors, so they can be merged with the common
+/// validations performed by the synchronizer.
 ///
 /// Validation includes:
 /// * Sanity checks
@@ -580,7 +585,8 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Check the timestamp corresponds exactly to the number of epochs since the parents.
+<span class="doccomment">/// Check the timestamp corresponds exactly to the number of epochs since the
+/// parents.
 </span><span class="kw">fn </span>block_timestamp_checks(
     header: <span class="kw-2">&amp;</span>BlockHeader,
     base_tipset: <span class="kw-2">&amp;</span>Tipset,

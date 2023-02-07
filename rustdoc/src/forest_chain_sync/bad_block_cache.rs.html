@@ -43,16 +43,20 @@
 <a href="#43" id="43">43</a>
 <a href="#44" id="44">44</a>
 <a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>std::num::NonZeroUsize;
+
+<span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::Mutex;
-<span class="kw">use </span>std::num::NonZeroUsize;
 
 <span class="doccomment">/// Thread-safe cache for tracking bad blocks.
-/// This cache is checked before validating a block, to ensure no duplicate work.
+/// This cache is checked before validating a block, to ensure no duplicate
+/// work.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>BadBlockCache {
     cache: Mutex&lt;LruCache&lt;Cid, String&gt;&gt;,

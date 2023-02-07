@@ -283,36 +283,34 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="doccomment">//! Contains mock implementations for testing internal `MessagePool` APIs
 
-</span><span class="kw">use </span><span class="kw">crate</span>::msgpool::{Publisher, Subscriber};
-<span class="kw">use </span><span class="kw">crate</span>::provider::Provider;
-<span class="kw">use </span><span class="kw">crate</span>::Error;
+</span><span class="kw">use </span>std::{convert::TryFrom, sync::Arc};
+
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>async_trait::async_trait;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_blocks::TipsetKeys;
-<span class="kw">use </span>forest_blocks::{BlockHeader, ElectionProof, Ticket, Tipset};
+<span class="kw">use </span>forest_blocks::{BlockHeader, ElectionProof, Ticket, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::HeadChange;
 <span class="kw">use </span>forest_crypto::VRFProof;
-<span class="kw">use </span>forest_message::ChainMessage;
-<span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
-<span class="kw">use </span>forest_message::SignedMessage;
+<span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait, SignedMessage};
 <span class="kw">use </span>forest_shim::state_tree::ActorState;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::message::Message;
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>parking_lot::Mutex;
-<span class="kw">use </span>std::convert::TryFrom;
-<span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>tokio::sync::broadcast;
 
-<span class="doccomment">/// Structure used for creating a provider when writing tests involving message pool
+<span class="kw">use crate</span>::{
+    msgpool::{Publisher, Subscriber},
+    provider::Provider,
+    Error,
+};
+
+<span class="doccomment">/// Structure used for creating a provider when writing tests involving message
+/// pool
 </span><span class="kw">pub struct </span>TestApi {
     <span class="kw">pub </span>inner: Mutex&lt;TestApiInner&gt;,
     <span class="kw">pub </span>publisher: Publisher&lt;HeadChange&gt;,

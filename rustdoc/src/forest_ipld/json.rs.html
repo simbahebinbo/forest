@@ -285,13 +285,17 @@
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="doccomment">//! Differences between serializers
 //!
-//! The serializer created here uses `multihash` and `libipld-json` uses plain `base64`.
-//! That means one has an extra `m` in front of all the encoded byte values, using our serializer.
+//! The serializer created here uses `multihash` and `libipld-json` uses plain
+//! `base64`. That means one has an extra `m` in front of all the encoded byte
+//! values, using our serializer.
 //!
 //! For example:
 //!
@@ -304,12 +308,13 @@
 //! Since `Lotus` is also using `multihash-base64` and we&#39;re trying to be
 //! compatible, we cannot switch to `libipld-json`. It may be worthwhile
 //! to reconsider whether we want to stay compatible with Lotus in the future.
-</span><span class="kw">use </span><span class="kw">super</span>::Ipld;
+</span><span class="kw">use </span>std::{collections::BTreeMap, fmt};
+
 <span class="kw">use </span>libipld_macro::ipld;
 <span class="kw">use </span>multibase::Base;
 <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-<span class="kw">use </span>std::collections::BTreeMap;
-<span class="kw">use </span>std::fmt;
+
+<span class="kw">use </span><span class="kw">super</span>::Ipld;
 
 <span class="kw">const </span>BYTES_JSON_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;bytes&quot;</span>;
 <span class="kw">const </span>INT_JSON_KEY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;int&quot;</span>;
@@ -525,10 +530,11 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[derive(Clone, Debug, PartialEq)]
     </span><span class="kw">struct </span>IpldWrapper {

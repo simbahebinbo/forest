@@ -175,24 +175,20 @@
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">crate</span>::FilterEstimate;
+</span><span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::Policy;
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_shim::state_tree::ActorState;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::address::Address;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::sector::StoragePower;
+<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, sector::StoragePower};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
-<span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span><span class="kw">crate</span>::FilterEstimate;
 
 <span class="doccomment">/// Power actor address.
 </span><span class="comment">// TODO: Select address based on actors version

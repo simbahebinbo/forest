@@ -22,12 +22,14 @@
 <a href="#22" id="22">22</a>
 <a href="#23" id="23">23</a>
 <a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-<span class="comment">// This is only used as a utility because go impl serializes no data as an empty map
+<span class="comment">// This is only used as a utility because go impl serializes no data as an empty
+// map
 
 </span><span class="attr">#[derive(Serialize, Deserialize)]
 </span><span class="kw">struct </span>EmptyMap {}

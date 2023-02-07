@@ -146,6 +146,7 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -227,9 +228,10 @@
     }
 
     <span class="kw">pub mod </span>vec {
-        <span class="kw">use super</span>::<span class="kw-2">*</span>;
         <span class="kw">use </span>forest_utils::json::GoVecVisitor;
         <span class="kw">use </span>serde::ser::SerializeSeq;
+
+        <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
         <span class="kw">pub fn </span>serialize&lt;S&gt;(m: <span class="kw-2">&amp;</span>[PoStProof], serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
         <span class="kw">where

@@ -569,11 +569,16 @@
 <a href="#569" id="569">569</a>
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span><span class="kw">super</span>::ValueMut;
-<span class="kw">use crate</span>::{bmap_bytes, init_sized_vec, nodes_for_height, Error};
+</span><span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>forest_encoding::cs_serde_bytes;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
@@ -584,7 +589,9 @@
     de::{<span class="self">self</span>, DeserializeOwned},
     ser, Deserialize, Serialize,
 };
-<span class="kw">use </span>std::error::Error <span class="kw">as </span>StdError;
+
+<span class="kw">use </span><span class="kw">super</span>::ValueMut;
+<span class="kw">use crate</span>::{bmap_bytes, init_sized_vec, nodes_for_height, Error};
 
 <span class="doccomment">/// This represents a link to another Node
 </span><span class="attr">#[derive(Debug)]
@@ -638,7 +645,8 @@
     }
 }
 
-<span class="doccomment">/// Node represents either a shard of values in the form of bytes or links to other nodes
+<span class="doccomment">/// Node represents either a shard of values in the form of bytes or links to
+/// other nodes
 </span><span class="attr">#[derive(PartialEq, Eq, Debug)]
 #[allow(clippy::large_enum_variant)]
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>Node&lt;V&gt; {
@@ -749,8 +757,8 @@
 <span class="kw">where
     </span>V: Serialize + DeserializeOwned,
 {
-    <span class="doccomment">/// Empty node. This is an invalid format and should only be used temporarily to avoid
-    /// allocations.
+    <span class="doccomment">/// Empty node. This is an invalid format and should only be used
+    /// temporarily to avoid allocations.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>empty() -&gt; <span class="self">Self </span>{
         Node::Leaf {
             vals: Default::default(),
@@ -1043,10 +1051,11 @@
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     }
 
-    <span class="doccomment">/// Returns a `(keep_going, did_mutate)` pair. `keep_going` will be `false` if-and-only-if
-    /// a closure call returned `Ok(false)`, indicating that a `break` has happened.
-    /// `did_mutate` will be `true` if-and-only-if any of the values in the node was actually
-    /// mutated inside the closure, requiring the node to be cached.
+    <span class="doccomment">/// Returns a `(keep_going, did_mutate)` pair. `keep_going` will be `false`
+    /// if-and-only-if a closure call returned `Ok(false)`, indicating that
+    /// a `break` has happened. `did_mutate` will be `true` if-and-only-if
+    /// any of the values in the node was actually mutated inside the
+    /// closure, requiring the node to be cached.
     </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>for_each_while_mut&lt;S, F&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bs: <span class="kw-2">&amp;</span>S,
@@ -1124,8 +1133,9 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use super</span>::<span class="kw-2">*</span>;
     <span class="kw">use </span>fvm_ipld_encoding::{from_slice, to_vec};
+
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>serialize_node_symmetric() {

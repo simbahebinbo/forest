@@ -257,34 +257,26 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
 
-</span><span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
-<span class="kw">use </span>num_traits::{FromPrimitive, Zero};
-<span class="kw">use </span>rand_distr::{Distribution, Normal};
-
-<span class="kw">use </span>forest_beacon::Beacon;
+</span><span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_blocks::{tipset_keys_json::TipsetKeysJson, TipsetKeys};
 <span class="kw">use </span>forest_chain::{BASE_FEE_MAX_CHANGE_DENOM, BLOCK_GAS_TARGET, MINIMUM_BASE_FEE};
 <span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_json::address::json::AddressJson;
-<span class="kw">use </span>forest_json::message::json::MessageJson;
+<span class="kw">use </span>forest_json::{address::json::AddressJson, message::json::MessageJson};
 <span class="kw">use </span>forest_message::ChainMessage;
 <span class="kw">use </span>forest_rpc_api::{
     data_types::{MessageSendSpec, RPCState},
     gas_api::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::message::Message;
-<span class="kw">use </span>fvm_shared::BLOCK_GAS_LIMIT;
+<span class="kw">use </span>fvm_shared::{econ::TokenAmount, message::Message, BLOCK_GAS_LIMIT};
+<span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>num::BigInt;
+<span class="kw">use </span>num_traits::{FromPrimitive, Zero};
+<span class="kw">use </span>rand_distr::{Distribution, Normal};
 
 <span class="kw">const </span>MIN_GAS_PREMIUM: f64 = <span class="number">100000.0</span>;
 
@@ -475,8 +467,8 @@
             <span class="kw">if </span>rct.exit_code.value() != <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(-<span class="number">1</span>);
             }
-            <span class="comment">// TODO: Figure out why we always under estimate the gas calculation so we dont need to add 200000
-            // https://github.com/ChainSafe/forest/issues/901
+            <span class="comment">// TODO: Figure out why we always under estimate the gas calculation so we dont
+            // need to add 200000 https://github.com/ChainSafe/forest/issues/901
             </span><span class="prelude-val">Ok</span>(rct.gas_used + <span class="number">200000</span>)
         }
         <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(-<span class="number">1</span>),

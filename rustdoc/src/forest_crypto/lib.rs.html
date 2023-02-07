@@ -5,14 +5,12 @@
 <a href="#5" id="5">5</a>
 <a href="#6" id="6">6</a>
 <a href="#7" id="7">7</a>
-<a href="#8" id="8">8</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">mod </span>signer;
 <span class="kw">pub mod </span>vrf;
 
-<span class="kw">pub use </span><span class="self">self</span>::signer::Signer;
-<span class="kw">pub use </span><span class="self">self</span>::vrf::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::{signer::Signer, vrf::<span class="kw-2">*</span>};
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest_crypto" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (e972bc808 2023-01-29)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

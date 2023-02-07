@@ -389,6 +389,12 @@
 <a href="#389" id="389">389</a>
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -533,14 +539,14 @@
 </span><span class="kw">pub mod </span>chain_api {
     <span class="kw">use </span>std::path::PathBuf;
 
-    <span class="kw">use </span><span class="kw">crate</span>::data_types::BlockMessages;
     <span class="kw">use </span>forest_blocks::{
         header::json::BlockHeaderJson, tipset_json::TipsetJson, tipset_keys_json::TipsetKeysJson,
         TipsetKeys,
     };
-    <span class="kw">use </span>forest_json::cid::CidJson;
-    <span class="kw">use </span>forest_json::message::json::MessageJson;
+    <span class="kw">use </span>forest_json::{cid::CidJson, message::json::MessageJson};
     <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+
+    <span class="kw">use </span><span class="kw">crate</span>::data_types::BlockMessages;
 
     <span class="kw">pub const </span>CHAIN_GET_MESSAGE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.ChainGetMessage&quot;</span>;
     <span class="kw">pub type </span>ChainGetMessageParams = (CidJson,);
@@ -597,12 +603,14 @@
 
 <span class="doccomment">/// Message Pool API
 </span><span class="kw">pub mod </span>mpool_api {
-    <span class="kw">use </span><span class="kw">crate</span>::data_types::MessageSendSpec;
-    <span class="kw">use </span>forest_json::signed_message::json::SignedMessageJson;
-    <span class="kw">use </span>forest_json::{cid::CidJson, message::json::MessageJson};
-
-    <span class="kw">use </span>forest_json::cid::vec::CidJsonVec;
+    <span class="kw">use </span>forest_json::{
+        cid::{vec::CidJsonVec, CidJson},
+        message::json::MessageJson,
+        signed_message::json::SignedMessageJson,
+    };
     <span class="kw">use </span>forest_message::SignedMessage;
+
+    <span class="kw">use </span><span class="kw">crate</span>::data_types::MessageSendSpec;
 
     <span class="kw">pub const </span>MPOOL_PENDING: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.MpoolPending&quot;</span>;
     <span class="kw">pub type </span>MpoolPendingParams = (CidJsonVec,);
@@ -619,8 +627,9 @@
 
 <span class="doccomment">/// Sync API
 </span><span class="kw">pub mod </span>sync_api {
-    <span class="kw">use </span><span class="kw">crate</span>::data_types::RPCSyncState;
     <span class="kw">use </span>forest_json::cid::CidJson;
+
+    <span class="kw">use </span><span class="kw">crate</span>::data_types::RPCSyncState;
 
     <span class="kw">pub const </span>SYNC_CHECK_BAD: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.SyncCheckBad&quot;</span>;
     <span class="kw">pub type </span>SyncCheckBadParams = (CidJson,);
@@ -637,8 +646,10 @@
 
 <span class="doccomment">/// Wallet API
 </span><span class="kw">pub mod </span>wallet_api {
-    <span class="kw">use </span>forest_json::address::json::AddressJson;
-    <span class="kw">use </span>forest_json::signature::json::{signature_type::SignatureTypeJson, SignatureJson};
+    <span class="kw">use </span>forest_json::{
+        address::json::AddressJson,
+        signature::json::{signature_type::SignatureTypeJson, SignatureJson},
+    };
     <span class="kw">use </span>forest_key_management::json::KeyInfoJson;
 
     <span class="kw">pub const </span>WALLET_BALANCE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.WalletBalance&quot;</span>;
@@ -684,15 +695,16 @@
 
 <span class="doccomment">/// State API
 </span><span class="kw">pub mod </span>state_api {
-    <span class="kw">use </span><span class="kw">crate</span>::data_types::{MarketDeal, MessageLookup};
     <span class="kw">use </span>ahash::HashMap;
     <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
-    <span class="kw">use </span>forest_json::address::json::AddressJson;
-    <span class="kw">use </span>forest_json::cid::CidJson;
-    <span class="kw">use </span>forest_json::message::json::MessageJson;
-    <span class="kw">use </span>forest_json::message_receipt::json::ReceiptJson;
+    <span class="kw">use </span>forest_json::{
+        address::json::AddressJson, cid::CidJson, message::json::MessageJson,
+        message_receipt::json::ReceiptJson,
+    };
     <span class="kw">use </span>forest_shim::version::NetworkVersion;
     <span class="kw">use </span>forest_state_manager::{InvocResult, MarketBalance};
+
+    <span class="kw">use </span><span class="kw">crate</span>::data_types::{MarketDeal, MessageLookup};
 
     <span class="kw">pub const </span>STATE_CALL: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.StateCall&quot;</span>;
     <span class="kw">pub type </span>StateCallParams = (MessageJson, TipsetKeysJson);
@@ -729,10 +741,10 @@
 
 <span class="doccomment">/// Gas API
 </span><span class="kw">pub mod </span>gas_api {
-    <span class="kw">use </span><span class="kw">crate</span>::data_types::MessageSendSpec;
     <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
-    <span class="kw">use </span>forest_json::address::json::AddressJson;
-    <span class="kw">use </span>forest_json::message::json::MessageJson;
+    <span class="kw">use </span>forest_json::{address::json::AddressJson, message::json::MessageJson};
+
+    <span class="kw">use </span><span class="kw">crate</span>::data_types::MessageSendSpec;
 
     <span class="kw">pub const </span>GAS_ESTIMATE_FEE_CAP: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.GasEstimateFeeCap&quot;</span>;
     <span class="kw">pub type </span>GasEstimateFeeCapParams = (MessageJson, i64, TipsetKeysJson);
