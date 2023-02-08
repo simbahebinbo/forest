@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Randomness","Represents a shim over Randomness from fvm_shared with convenience methods to convert to an older version of the type"]]};
