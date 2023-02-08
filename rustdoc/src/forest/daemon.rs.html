@@ -567,6 +567,29 @@
 <a href="#567" id="567">567</a>
 <a href="#568" id="568">568</a>
 <a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -590,7 +613,9 @@
     Store,
 };
 <span class="kw">use </span>forest_genesis::{get_network_name_from_genesis, import_chain, read_genesis_header};
-<span class="kw">use </span>forest_key_management::{KeyStore, KeyStoreConfig, ENCRYPTED_KEYSTORE_NAME};
+<span class="kw">use </span>forest_key_management::{
+    KeyStore, KeyStoreConfig, ENCRYPTED_KEYSTORE_NAME, FOREST_KEYSTORE_PHRASE_ENV,
+};
 <span class="kw">use </span>forest_libp2p::{
     ed25519, get_keypair, Keypair, Libp2pConfig, Libp2pService, PeerId, PeerManager,
 };
@@ -658,54 +683,19 @@
     // from.
     </span><span class="macro">info!</span>(<span class="string">&quot;PeerId: {}&quot;</span>, PeerId::from(net_keypair.public()));
 
-    <span class="kw">let </span><span class="kw-2">mut </span>ks = <span class="kw">if </span>config.client.encrypt_keystore {
-        <span class="kw">loop </span>{
-            <span class="macro">print!</span>(<span class="string">&quot;Enter the keystore passphrase: &quot;</span>);
-            std::io::stdout().flush()<span class="question-mark">?</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>keystore = create_keystore(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>passphrase = read_password()<span class="question-mark">?</span>;
-
-            <span class="kw">let </span>data_dir = PathBuf::from(<span class="kw-2">&amp;</span>config.client.data_dir).join(ENCRYPTED_KEYSTORE_NAME);
-            <span class="kw">if </span>!data_dir.exists() {
-                <span class="macro">print!</span>(<span class="string">&quot;Confirm passphrase: &quot;</span>);
-                std::io::stdout().flush()<span class="question-mark">?</span>;
-
-                <span class="kw">if </span>passphrase != read_password()<span class="question-mark">? </span>{
-                    <span class="macro">error!</span>(<span class="string">&quot;Passphrases do not match. Please retry.&quot;</span>);
-                    <span class="kw">continue</span>;
-                }
-            }
-
-            <span class="kw">let </span>key_store_init_result = KeyStore::new(KeyStoreConfig::Encrypted(
-                PathBuf::from(<span class="kw-2">&amp;</span>config.client.data_dir),
-                passphrase,
-            ));
-
-            <span class="kw">match </span>key_store_init_result {
-                <span class="prelude-val">Ok</span>(ks) =&gt; <span class="kw">break </span>ks,
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="macro">error!</span>(<span class="string">&quot;Incorrect passphrase entered. Please try again.&quot;</span>)
-                }
-            };
-        }
-    } <span class="kw">else </span>{
-        <span class="macro">warn!</span>(<span class="string">&quot;Warning: Keystore encryption disabled!&quot;</span>);
-        KeyStore::new(KeyStoreConfig::Persistent(PathBuf::from(
-            <span class="kw-2">&amp;</span>config.client.data_dir,
-        )))<span class="question-mark">?
-    </span>};
-
-    <span class="kw">if </span>ks.get(JWT_IDENTIFIER).is_err() {
-        ks.put(JWT_IDENTIFIER.to_owned(), generate_priv_key())<span class="question-mark">?</span>;
+    <span class="kw">if </span>keystore.get(JWT_IDENTIFIER).is_err() {
+        keystore.put(JWT_IDENTIFIER.to_owned(), generate_priv_key())<span class="question-mark">?</span>;
     }
 
     <span class="comment">// Print admin token
-    </span><span class="kw">let </span>ki = ks.get(JWT_IDENTIFIER)<span class="question-mark">?</span>;
+    </span><span class="kw">let </span>ki = keystore.get(JWT_IDENTIFIER)<span class="question-mark">?</span>;
     <span class="kw">let </span>token_exp = config.client.token_exp;
     <span class="kw">let </span>token = create_token(ADMIN.to_owned(), ki.private_key(), token_exp)<span class="question-mark">?</span>;
     <span class="macro">info!</span>(<span class="string">&quot;Admin token: {}&quot;</span>, token);
 
-    <span class="kw">let </span>keystore = Arc::new(RwLock::new(ks));
+    <span class="kw">let </span>keystore = Arc::new(RwLock::new(keystore));
 
     <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path(<span class="kw-2">&amp;</span>chain_path(<span class="kw-2">&amp;</span>config)), config.db_config())<span class="question-mark">?</span>;
 
@@ -1054,6 +1044,62 @@
         <span class="string">&quot;testnetnet&quot; </span>=&gt; <span class="string">&quot;mainnet&quot;</span>,
         <span class="string">&quot;calibrationnet&quot; </span>=&gt; <span class="string">&quot;calibnet&quot;</span>,
         <span class="kw">_ </span>=&gt; internal_network_name,
+    }
+}
+
+<span class="kw">fn </span>create_keystore(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;KeyStore&gt; {
+    <span class="kw">let </span>passphrase = std::env::var(FOREST_KEYSTORE_PHRASE_ENV);
+    <span class="kw">let </span>is_interactive = atty::is(atty::Stream::Stdin);
+
+    <span class="comment">// encrypted keystore, headless
+    </span><span class="kw">if </span>config.client.encrypt_keystore &amp;&amp; passphrase.is_err() &amp;&amp; !is_interactive {
+        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Passphrase for the keystore was not provided and the encryption was not explicitly disabled. Please set the {FOREST_KEYSTORE_PHRASE_ENV} environmental variable and re-run the command&quot;</span>);
+    <span class="comment">// encrypted keystore, either headless or interactive, passphrase provided
+    </span>} <span class="kw">else if </span>config.client.encrypt_keystore &amp;&amp; passphrase.is_ok() {
+        <span class="kw">let </span>passphrase = passphrase.unwrap();
+
+        <span class="kw">let </span>keystore = KeyStore::new(KeyStoreConfig::Encrypted(
+            PathBuf::from(<span class="kw-2">&amp;</span>config.client.data_dir),
+            passphrase,
+        ));
+
+        keystore.map_err(|<span class="kw">_</span>| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Incorrect passphrase. Please verify the {FOREST_KEYSTORE_PHRASE_ENV} environmental variable.&quot;</span>))
+    <span class="comment">// encrypted keystore, interactive, passphrase not provided
+    </span>} <span class="kw">else if </span>config.client.encrypt_keystore &amp;&amp; passphrase.is_err() &amp;&amp; is_interactive {
+        <span class="kw">loop </span>{
+            <span class="macro">print!</span>(<span class="string">&quot;Enter the keystore passphrase: &quot;</span>);
+            std::io::stdout().flush()<span class="question-mark">?</span>;
+
+            <span class="kw">let </span>passphrase = read_password()<span class="question-mark">?</span>;
+
+            <span class="kw">let </span>data_dir = PathBuf::from(<span class="kw-2">&amp;</span>config.client.data_dir).join(ENCRYPTED_KEYSTORE_NAME);
+            <span class="kw">if </span>!data_dir.exists() {
+                <span class="macro">print!</span>(<span class="string">&quot;Confirm passphrase: &quot;</span>);
+                std::io::stdout().flush()<span class="question-mark">?</span>;
+
+                <span class="kw">if </span>passphrase != read_password()<span class="question-mark">? </span>{
+                    <span class="macro">error!</span>(<span class="string">&quot;Passphrases do not match. Please retry.&quot;</span>);
+                    <span class="kw">continue</span>;
+                }
+            }
+
+            <span class="kw">let </span>key_store_init_result = KeyStore::new(KeyStoreConfig::Encrypted(
+                config.client.data_dir.clone(),
+                passphrase,
+            ));
+
+            <span class="kw">match </span>key_store_init_result {
+                <span class="prelude-val">Ok</span>(ks) =&gt; <span class="kw">break </span><span class="prelude-val">Ok</span>(ks),
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="macro">error!</span>(<span class="string">&quot;Incorrect passphrase entered. Please try again.&quot;</span>)
+                }
+            };
+        }
+    } <span class="kw">else </span>{
+        <span class="macro">warn!</span>(<span class="string">&quot;Warning: Keystore encryption disabled!&quot;</span>);
+        <span class="prelude-val">Ok</span>(KeyStore::new(KeyStoreConfig::Persistent(
+            config.client.data_dir.clone(),
+        ))<span class="question-mark">?</span>)
     }
 }
 
