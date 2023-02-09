@@ -211,6 +211,7 @@
 <span class="kw">use </span>std::{cmp::max, fs::File, process, sync::Arc, time::Duration};
 
 <span class="kw">use </span>anyhow::Context;
+<span class="kw">use </span>clap::Parser;
 <span class="kw">use </span>cli::Cli;
 <span class="kw">use </span>daemonize_me::{Daemon, Group, User};
 <span class="kw">use </span>forest_cli_shared::{
@@ -226,7 +227,6 @@
     Timeout,
 };
 <span class="kw">use </span>shared_memory::ShmemConf;
-<span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>tempfile::{Builder, TempPath};
 <span class="kw">use </span>tokio::runtime::Builder <span class="kw">as </span>RuntimeBuilder;
 
@@ -299,7 +299,7 @@
 
 <span class="kw">fn </span>main() -&gt; anyhow::Result&lt;()&gt; {
     <span class="comment">// Capture Cli inputs
-    </span><span class="kw">let </span>Cli { opts, cmd } = Cli::from_args();
+    </span><span class="kw">let </span>Cli { opts, cmd } = Cli::parse();
 
     <span class="kw">let </span>(cfg, path) = opts.to_config().context(<span class="string">&quot;Error parsing config&quot;</span>)<span class="question-mark">?</span>;
 

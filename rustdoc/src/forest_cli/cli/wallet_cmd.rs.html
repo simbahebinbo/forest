@@ -251,6 +251,7 @@
 
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
+<span class="kw">use </span>clap::Subcommand;
 <span class="kw">use </span>forest_json::{
     address::json::AddressJson,
     signature::json::{signature_type::SignatureTypeJson, SignatureJson},
@@ -265,16 +266,15 @@
 };
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>rpassword::read_password;
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use super</span>::{handle_rpc_err, Config};
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>WalletCommands {
     <span class="doccomment">/// Create a new wallet
     </span>New {
         <span class="doccomment">/// The signature type to use. One of SECP256k1, or BLS
-        </span><span class="attr">#[structopt(default_value = <span class="string">&quot;secp256k1&quot;</span>)]
+        </span><span class="attr">#[arg(default_value = <span class="string">&quot;secp256k1&quot;</span>)]
         </span>signature_type: String,
     },
     <span class="doccomment">/// Get account balance
@@ -309,23 +309,23 @@
     <span class="doccomment">/// Sign a message
     </span>Sign {
         <span class="doccomment">/// The hex encoded message to sign
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>message: String,
         <span class="doccomment">/// The address to be used to sign the message
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>address: String,
     },
     <span class="doccomment">/// Verify the signature of a message. Returns true if the signature matches
     /// the message and address
     </span>Verify {
         <span class="doccomment">/// The address used to sign the message
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>address: String,
         <span class="doccomment">/// The message to verify
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>message: String,
         <span class="doccomment">/// The signature of the message to verify
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>signature: String,
     },
 }

@@ -63,21 +63,21 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_cli_shared::{chain_path, cli::Config};
+</span><span class="kw">use </span>clap::Subcommand;
+<span class="kw">use </span>forest_cli_shared::{chain_path, cli::Config};
 <span class="kw">use </span>forest_db::db_engine::db_path;
 <span class="kw">use </span>log::error;
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use </span><span class="kw">crate</span>::cli::prompt_confirm;
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>DBCommands {
     <span class="doccomment">/// Show DB stats
     </span>Stats,
     <span class="doccomment">/// DB Clean up
     </span>Clean {
         <span class="doccomment">/// Answer yes to all forest-cli yes/no questions without prompting
-        </span><span class="attr">#[structopt(long)]
+        </span><span class="attr">#[arg(long)]
         </span>force: bool,
     },
 }

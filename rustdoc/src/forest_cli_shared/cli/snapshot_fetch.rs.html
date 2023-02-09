@@ -759,7 +759,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
 
 <span class="doccomment">/// Snapshot fetch service provider
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>SnapshotServer {
     Forest,
     Filecoin,

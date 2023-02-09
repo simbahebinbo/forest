@@ -103,19 +103,19 @@
 </span><span class="kw">use </span>std::str::FromStr;
 
 <span class="kw">use </span>cid::Cid;
+<span class="kw">use </span>clap::Subcommand;
 <span class="kw">use </span>forest_blocks::TipsetKeys;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>ChainCommands {
     <span class="doccomment">/// Retrieves and prints out the block specified by the given CID
     </span>Block {
         <span class="doccomment">/// Input a valid CID
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>cid: String,
     },
 
@@ -137,7 +137,7 @@
     /// chain block store
     </span>Message {
         <span class="doccomment">/// Input a valid CID
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>cid: String,
     },
 
@@ -145,7 +145,7 @@
     /// chain block store and returns raw bytes
     </span>ReadObj {
         <span class="doccomment">/// Input a valid CID
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>cid: String,
     },
 }

@@ -71,27 +71,27 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_auth::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>clap::Subcommand;
+<span class="kw">use </span>forest_auth::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
 <span class="kw">use </span>forest_rpc_api::auth_api::AuthNewParams;
 <span class="kw">use </span>forest_rpc_client::auth_new;
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use super</span>::{handle_rpc_err, print_rpc_res_bytes, Config};
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>AuthCommands {
     <span class="doccomment">/// Create a new Authentication token with given permission
     </span>CreateToken {
         <span class="doccomment">/// permission to assign to the token, one of: read, write, sign, admin
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>perm: String,
     },
     <span class="doccomment">/// Get RPC API Information
     </span>ApiInfo {
         <span class="doccomment">/// permission to assign the token, one of: read, write, sign, admin
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>perm: String,
     },
 }

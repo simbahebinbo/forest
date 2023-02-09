@@ -162,35 +162,35 @@
 };
 
 <span class="kw">use </span>cid::Cid;
+<span class="kw">use </span>clap::Subcommand;
 <span class="kw">use </span>forest_chain_sync::SyncStage;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_rpc_client::<span class="kw-2">*</span>;
-<span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>ticker::Ticker;
 
 <span class="kw">use </span><span class="kw">super</span>::Config;
 <span class="kw">use </span><span class="kw">crate</span>::cli::{format_vec_pretty, handle_rpc_err};
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>SyncCommands {
     <span class="doccomment">/// Display continuous sync data until sync is complete
     </span>Wait {
         <span class="doccomment">/// Don&#39;t exit after node is synced
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>watch: bool,
     },
     <span class="doccomment">/// Check sync status
     </span>Status,
     <span class="doccomment">/// Check if a given block is marked bad, and for what reason
     </span>CheckBad {
-        <span class="attr">#[structopt(short)]
+        <span class="attr">#[arg(short)]
         </span><span class="doccomment">/// The block CID to check
         </span>cid: String,
     },
     <span class="doccomment">/// Mark a given block as bad
     </span>MarkBad {
         <span class="doccomment">/// The block CID to mark as a bad block
-        </span><span class="attr">#[structopt(short)]
+        </span><span class="attr">#[arg(short)]
         </span>cid: String,
     },
 }

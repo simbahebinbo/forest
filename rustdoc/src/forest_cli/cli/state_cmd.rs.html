@@ -30,9 +30,9 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>clap::Subcommand;
+<span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
 <span class="kw">use </span>fvm_shared::{clock::ChainEpoch, econ::TokenAmount};
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use </span><span class="kw">super</span>::Config;
 
@@ -47,7 +47,7 @@
     amount: TokenAmount,
 }
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>StateCommands {}
 
 <span class="kw">impl </span>StateCommands {

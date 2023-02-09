@@ -218,6 +218,10 @@
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
 <a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -242,76 +246,80 @@
 <span class="kw">use </span>std::io::{<span class="self">self</span>, Write};
 
 <span class="kw">use </span>cid::Cid;
+<span class="kw">use </span>clap::Parser;
 <span class="kw">use </span>forest_blocks::tipset_json::TipsetJson;
-<span class="kw">use </span>forest_cli_shared::cli::CliOpts;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>forest_cli_shared::cli::{Config, FOREST_VERSION_STRING};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>forest_cli_shared::cli::Config;
+<span class="kw">use </span>forest_cli_shared::cli::{CliOpts, FOREST_VERSION_STRING, HELP_MESSAGE};
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>serde::Serialize;
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::{
-    auth_cmd::AuthCommands, chain_cmd::ChainCommands, db_cmd::DBCommands,
-    fetch_params_cmd::FetchCommands, mpool_cmd::MpoolCommands, net_cmd::NetCommands,
-    send_cmd::SendCommand, snapshot_cmd::SnapshotCommands, state_cmd::StateCommands,
-    sync_cmd::SyncCommands, wallet_cmd::WalletCommands,
+    auth_cmd::AuthCommands, chain_cmd::ChainCommands, config_cmd::ConfigCommands,
+    db_cmd::DBCommands, fetch_params_cmd::FetchCommands, mpool_cmd::MpoolCommands,
+    net_cmd::NetCommands, send_cmd::SendCommand, snapshot_cmd::SnapshotCommands,
+    state_cmd::StateCommands, sync_cmd::SyncCommands, wallet_cmd::WalletCommands,
 };
-<span class="kw">use </span><span class="kw">crate</span>::cli::config_cmd::ConfigCommands;
 
 <span class="doccomment">/// CLI structure generated when interacting with Forest binary
-</span><span class="attr">#[derive(StructOpt)]
-#[structopt(
-    name = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>),
-    version = FOREST_VERSION_STRING.as_str(),
-    about = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_DESCRIPTION&quot;</span>),
-    author = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>)
-)]
+</span><span class="attr">#[derive(Parser)]
+#[command(name = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>), author = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_AUTHORS&quot;</span>), version = FOREST_VERSION_STRING.as_str(), about = <span class="macro">env!</span>(<span class="string">&quot;CARGO_PKG_DESCRIPTION&quot;</span>))]
+#[command(help_template(HELP_MESSAGE))]
 </span><span class="kw">pub struct </span>Cli {
-    <span class="attr">#[structopt(flatten)]
+    <span class="attr">#[command(flatten)]
     </span><span class="kw">pub </span>opts: CliOpts,
-    <span class="attr">#[structopt(subcommand)]
+    <span class="attr">#[command(subcommand)]
     </span><span class="kw">pub </span>cmd: Subcommand,
 }
 
 <span class="doccomment">/// Forest binary sub-commands available.
-</span><span class="attr">#[derive(StructOpt)]
-#[structopt(setting = structopt::clap::AppSettings::VersionlessSubcommands)]
+</span><span class="attr">#[derive(clap::Subcommand)]
 </span><span class="kw">pub enum </span>Subcommand {
     <span class="doccomment">/// Download parameters for generating and verifying proofs for given size
-    </span><span class="attr">#[structopt(name = <span class="string">&quot;fetch-params&quot;</span>)]
+    </span><span class="attr">#[command(name = <span class="string">&quot;fetch-params&quot;</span>)]
     </span>Fetch(FetchCommands),
 
     <span class="doccomment">/// Interact with Filecoin blockchain
+    </span><span class="attr">#[command(subcommand)]
     </span>Chain(ChainCommands),
 
     <span class="doccomment">/// Manage RPC permissions
+    </span><span class="attr">#[command(subcommand)]
     </span>Auth(AuthCommands),
 
     <span class="doccomment">/// Manage P2P network
+    </span><span class="attr">#[command(subcommand)]
     </span>Net(NetCommands),
 
     <span class="doccomment">/// Manage wallet
+    </span><span class="attr">#[command(subcommand)]
     </span>Wallet(WalletCommands),
 
     <span class="doccomment">/// Inspect or interact with the chain synchronizer
+    </span><span class="attr">#[command(subcommand)]
     </span>Sync(SyncCommands),
 
     <span class="doccomment">/// Interact with the message pool
+    </span><span class="attr">#[command(subcommand)]
     </span>Mpool(MpoolCommands),
 
     <span class="doccomment">/// Interact with and query Filecoin chain state
+    </span><span class="attr">#[command(subcommand)]
     </span>State(StateCommands),
 
     <span class="doccomment">/// Manage node configuration
+    </span><span class="attr">#[command(subcommand)]
     </span>Config(ConfigCommands),
 
     <span class="doccomment">/// Manage snapshots
+    </span><span class="attr">#[command(subcommand)]
     </span>Snapshot(SnapshotCommands),
 
     <span class="doccomment">/// Send funds between accounts
     </span>Send(SendCommand),
 
     <span class="doccomment">/// Database management
+    </span><span class="attr">#[command(subcommand)]
     </span>DB(DBCommands),
 }
 

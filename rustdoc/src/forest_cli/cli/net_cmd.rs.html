@@ -118,15 +118,15 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>ahash::HashSet;
+<span class="kw">use </span>clap::Subcommand;
 <span class="kw">use </span>forest_libp2p::{Multiaddr, Protocol};
 <span class="kw">use </span>forest_rpc_api::data_types::AddrInfo;
 <span class="kw">use </span>forest_rpc_client::net_ops::<span class="kw-2">*</span>;
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use super</span>::{handle_rpc_err, print_stdout, Config};
 <span class="kw">use </span><span class="kw">crate</span>::cli::cli_error_and_die;
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>NetCommands {
     <span class="doccomment">/// Lists `libp2p` swarm listener addresses
     </span>Listen,

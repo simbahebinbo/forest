@@ -53,11 +53,11 @@
 </span><span class="kw">use </span>std::io::Write;
 
 <span class="kw">use </span>anyhow::Context;
-<span class="kw">use </span>structopt::StructOpt;
+<span class="kw">use </span>clap::Subcommand;
 
 <span class="kw">use </span><span class="kw">crate</span>::cli::Config;
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>ConfigCommands {
     <span class="doccomment">/// Dump current configuration to standard output
     </span>Dump,

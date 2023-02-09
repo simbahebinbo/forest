@@ -76,30 +76,26 @@
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_paramfetch::{get_params_default, SectorSizeOpt};
 <span class="kw">use </span>fvm_shared::sector::SectorSize;
-<span class="kw">use </span>structopt::StructOpt;
 
 <span class="kw">use </span><span class="kw">super</span>::cli_error_and_die;
 <span class="kw">use </span><span class="kw">crate</span>::cli::Config;
 
 <span class="attr">#[allow(missing_docs)]
-#[derive(Debug, StructOpt)]
+#[derive(Debug, clap::Args)]
 </span><span class="kw">pub struct </span>FetchCommands {
     <span class="doccomment">/// Download all proof parameters
-    </span><span class="attr">#[structopt(short, long)]
+    </span><span class="attr">#[arg(short, long)]
     </span>all: bool,
     <span class="doccomment">/// Download only verification keys
-    </span><span class="attr">#[structopt(short, long)]
+    </span><span class="attr">#[arg(short, long)]
     </span>keys: bool,
     <span class="doccomment">/// Size in bytes
-    </span><span class="attr">#[structopt(required_ifs(<span class="kw-2">&amp;</span>[(<span class="string">&quot;all&quot;</span>, <span class="string">&quot;false&quot;</span>), (<span class="string">&quot;keys&quot;</span>, <span class="string">&quot;false&quot;</span>)]</span>))]
-    params_size: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    </span>params_size: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
 <span class="kw">impl </span>FetchCommands {

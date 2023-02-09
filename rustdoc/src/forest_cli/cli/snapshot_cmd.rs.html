@@ -484,10 +484,6 @@
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
 <a href="#486" id="486">486</a>
-<a href="#487" id="487">487</a>
-<a href="#488" id="488">488</a>
-<a href="#489" id="489">489</a>
-<a href="#490" id="490">490</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -495,6 +491,7 @@
 
 <span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>anyhow::bail;
+<span class="kw">use </span>clap::Subcommand;
 <span class="kw">use </span>dialoguer::{theme::ColorfulTheme, Confirm};
 <span class="kw">use </span>forest_blocks::{tipset_keys_json::TipsetKeysJson, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::ChainStore;
@@ -508,7 +505,6 @@
 <span class="kw">use </span>forest_utils::net::FetchProgress;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>strfmt::strfmt;
-<span class="kw">use </span>structopt::StructOpt;
 <span class="kw">use </span>tempfile::TempDir;
 <span class="kw">use </span>time::OffsetDateTime;
 <span class="kw">use </span>tokio_util::compat::TokioAsyncReadCompatExt;
@@ -519,15 +515,15 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>OUTPUT_PATH_DEFAULT_FORMAT: <span class="kw-2">&amp;</span>str =
     <span class="string">&quot;forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car&quot;</span>;
 
-<span class="attr">#[derive(Debug, StructOpt)]
+<span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>SnapshotCommands {
     <span class="doccomment">/// Export a snapshot of the chain to `&lt;output_path&gt;`
     </span>Export {
         <span class="doccomment">/// Tipset to start the export from, default is the chain head
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>tipset: <span class="prelude-ty">Option</span>&lt;i64&gt;,
         <span class="doccomment">/// Specify the number of recent state roots to include in the export.
-        </span><span class="attr">#[structopt(short, long, default_value = <span class="string">&quot;2000&quot;</span>)]
+        </span><span class="attr">#[arg(short, long, default_value = <span class="string">&quot;2000&quot;</span>)]
         </span>recent_stateroots: i64,
         <span class="doccomment">/// Snapshot output path. Default to
         /// `forest_snapshot_{chain}_{year}-{month}-{day}_height_{height}.car`
@@ -538,10 +534,10 @@
         ///  - month
         ///  - day
         ///  - height - the epoch
-        </span><span class="attr">#[structopt(short, default_value = OUTPUT_PATH_DEFAULT_FORMAT, verbatim_doc_comment)]
+        </span><span class="attr">#[arg(short, default_value = OUTPUT_PATH_DEFAULT_FORMAT, verbatim_doc_comment)]
         </span>output_path: PathBuf,
         <span class="doccomment">/// Skip creating the checksum file.
-        </span><span class="attr">#[structopt(long)]
+        </span><span class="attr">#[arg(long)]
         </span>skip_checksum: bool,
     },
 
@@ -549,17 +545,13 @@
     </span>Fetch {
         <span class="doccomment">/// Directory to which the snapshot should be downloaded. If not
         /// provided, it will be saved in default Forest data location.
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
         <span class="doccomment">/// Snapshot trusted source
-        </span><span class="attr">#[structopt(
-            short,
-            long,
-            possible_values = <span class="kw-2">&amp;</span>[<span class="string">&quot;forest&quot;</span>, <span class="string">&quot;filecoin&quot;</span>]</span>,
-        )]
-        provider: <span class="prelude-ty">Option</span>&lt;SnapshotServer&gt;,
+        </span><span class="attr">#[arg(short, long, value_enum)]
+        </span>provider: <span class="prelude-ty">Option</span>&lt;SnapshotServer&gt;,
         <span class="doccomment">/// Use [`aria2`](https://aria2.github.io/) for downloading, default is false. Requires `aria2c` in PATH.
-        </span><span class="attr">#[structopt(long)]
+        </span><span class="attr">#[arg(long)]
         </span>aria2: bool,
     },
 
@@ -570,7 +562,7 @@
     </span>List {
         <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
         /// will be the default Forest data location.
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
     },
 
@@ -581,11 +573,11 @@
 
         <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
         /// will be the default Forest data location.
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
         <span class="doccomment">/// Answer yes to all forest-cli yes/no questions without prompting
-        </span><span class="attr">#[structopt(long)]
+        </span><span class="attr">#[arg(long)]
         </span>force: bool,
     },
 
@@ -596,11 +588,11 @@
     </span>Prune {
         <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
         /// will be the default Forest data location.
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
         <span class="doccomment">/// Answer yes to all forest-cli yes/no questions without prompting
-        </span><span class="attr">#[structopt(long)]
+        </span><span class="attr">#[arg(long)]
         </span>force: bool,
     },
 
@@ -608,22 +600,22 @@
     </span>Clean {
         <span class="doccomment">/// Directory to which the snapshots are downloaded. If not provided, it
         /// will be the default Forest data location.
-        </span><span class="attr">#[structopt(short, long)]
+        </span><span class="attr">#[arg(short, long)]
         </span>snapshot_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
         <span class="doccomment">/// Answer yes to all forest-cli yes/no questions without prompting
-        </span><span class="attr">#[structopt(long)]
+        </span><span class="attr">#[arg(long)]
         </span>force: bool,
     },
     <span class="doccomment">/// Validates the snapshot.
     </span>Validate {
         <span class="doccomment">/// Number of block headers to validate from the tip
-        </span><span class="attr">#[structopt(long, default_value = <span class="string">&quot;2000&quot;</span>)]
+        </span><span class="attr">#[arg(long, default_value = <span class="string">&quot;2000&quot;</span>)]
         </span>recent_stateroots: i64,
         <span class="doccomment">/// Path to snapshot file
         </span>snapshot: PathBuf,
         <span class="doccomment">/// Force validation and answers yes to all prompts.
-        </span><span class="attr">#[structopt(long)]
+        </span><span class="attr">#[arg(long)]
         </span>force: bool,
     },
 }
