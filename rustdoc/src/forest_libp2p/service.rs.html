@@ -851,41 +851,6 @@
 <a href="#851" id="851">851</a>
 <a href="#852" id="852">852</a>
 <a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
-<a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
-<a href="#866" id="866">866</a>
-<a href="#867" id="867">867</a>
-<a href="#868" id="868">868</a>
-<a href="#869" id="869">869</a>
-<a href="#870" id="870">870</a>
-<a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
-<a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -895,7 +860,7 @@
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-<span class="kw">use </span>ahash::{HashMap, HashMapExt};
+<span class="kw">use </span>ahash::HashMap;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>forest_blocks::GossipBlock;
@@ -919,8 +884,7 @@
     metrics::{Metrics, Recorder},
     multiaddr::Protocol,
     multihash::Multihash,
-    noise,
-    ping::{<span class="self">self</span>},
+    noise, ping,
     request_response::{RequestId, RequestResponseEvent, RequestResponseMessage, ResponseChannel},
     swarm::{ConnectionLimits, SwarmBuilder, SwarmEvent},
     yamux::YamuxConfig,
@@ -934,6 +898,7 @@
     ForestBehaviour, ForestBehaviourEvent, Libp2pConfig,
 };
 <span class="kw">use crate</span>::{
+    chain_exchange::ChainExchangeBehaviour,
     discovery::DiscoveryOut,
     hello::{HelloBehaviour, HelloRequest, HelloResponse},
     rpc::RequestResponseError,
@@ -964,7 +929,7 @@
 
     <span class="kw">pub mod </span>values {
         <span class="kw">pub const </span>HELLO_REQUEST_TABLE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;hello_request_table&quot;</span>;
-        <span class="kw">pub const </span>CX_REQUEST_TABLE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;cx_request_table&quot;</span>;
+        <span class="kw">pub const </span>CHAIN_EXCHANGE_REQUEST_TABLE: <span class="kw-2">&amp;</span>str = <span class="string">&quot;cx_request_table&quot;</span>;
     }
 
     <span class="kw">pub mod </span>labels {
@@ -983,10 +948,7 @@
 
 <span class="kw">const </span>BAN_PEER_DURATION: Duration = Duration::from_secs(<span class="number">60 </span>* <span class="number">60</span>); <span class="comment">//1h
 
-</span><span class="kw">type </span>CxRequestTable =
-    HashMap&lt;RequestId, OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;&gt;;
-
-<span class="doccomment">/// Events emitted by this Service.
+</span><span class="doccomment">/// Events emitted by this Service.
 </span><span class="attr">#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 </span><span class="kw">pub enum </span>NetworkEvent {
@@ -1044,7 +1006,7 @@
     ChainExchangeRequest {
         peer_id: PeerId,
         request: ChainExchangeRequest,
-        response_channel: OneShotSender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;,
+        response_channel: flume::Sender&lt;<span class="prelude-ty">Result</span>&lt;ChainExchangeResponse, RequestResponseError&gt;&gt;,
     },
     HelloRequest {
         peer_id: PeerId,
@@ -1158,7 +1120,6 @@
         <span class="kw">let </span>pubsub_block_str = <span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_BLOCK_STR, <span class="self">self</span>.network_name);
         <span class="kw">let </span>pubsub_msg_str = <span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, PUBSUB_MSG_STR, <span class="self">self</span>.network_name);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>cx_request_table = HashMap::new();
         <span class="kw">let </span>(cx_response_tx, cx_response_rx) = flume::unbounded();
 
         <span class="kw">let </span><span class="kw-2">mut </span>cx_response_rx_stream = cx_response_rx.stream().fuse();
@@ -1184,7 +1145,6 @@
                             <span class="kw-2">&amp;</span><span class="self">self</span>.cs,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.genesis_cid,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out,
-                            <span class="kw-2">&amp;mut </span>cx_request_table,
                             cx_response_tx.clone(),
                             <span class="kw-2">&amp;</span>pubsub_block_str,
                             <span class="kw-2">&amp;</span>pubsub_msg_str,).<span class="kw">await</span>;
@@ -1200,8 +1160,7 @@
                             <span class="self">self</span>.cs.clone(),
                             bitswap_request_manager.clone(),
                             message,
-                            <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out,
-                            <span class="kw-2">&amp;mut </span>cx_request_table).<span class="kw">await</span>;
+                            <span class="kw-2">&amp;</span><span class="self">self</span>.network_sender_out).<span class="kw">await</span>;
                     }
                     <span class="prelude-val">None </span>=&gt; { <span class="kw">break</span>; }
                 },
@@ -1264,7 +1223,6 @@
     bitswap_request_manager: Arc&lt;BitswapRequestManager&gt;,
     message: NetworkMessage,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
-    cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
 ) {
     <span class="kw">match </span>message {
         NetworkMessage::PubsubMessage { topic, message } =&gt; {
@@ -1293,14 +1251,11 @@
             request,
             response_channel,
         } =&gt; {
-            <span class="kw">let </span>request_id = swarm
-                .behaviour_mut()
-                .chain_exchange
-                .send_request(<span class="kw-2">&amp;</span>peer_id, request);
-            cx_request_table.insert(request_id, response_channel);
-            metrics::NETWORK_CONTAINER_CAPACITIES
-                .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CX_REQUEST_TABLE])
-                .set(cx_request_table.capacity() <span class="kw">as </span>u64);
+            <span class="kw">let </span>request_id = swarm.behaviour_mut().chain_exchange.send_request(
+                <span class="kw-2">&amp;</span>peer_id,
+                request,
+                response_channel,
+            );
             emit_event(
                 network_sender_out,
                 NetworkEvent::ChainExchangeRequestOutbound { request_id },
@@ -1562,10 +1517,10 @@
 }
 
 <span class="kw">async fn </span>handle_chain_exchange_event&lt;DB&gt;(
+    chain_exchange: <span class="kw-2">&amp;mut </span>ChainExchangeBehaviour,
     ce_event: RequestResponseEvent&lt;ChainExchangeRequest, ChainExchangeResponse&gt;,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
-    cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
     cx_response_tx: Sender&lt;(
         RequestId,
         ResponseChannel&lt;ChainExchangeResponse&gt;,
@@ -1608,42 +1563,18 @@
                         NetworkEvent::ChainExchangeResponseInbound { request_id },
                     )
                     .<span class="kw">await</span>;
-                    <span class="kw">let </span>tx = cx_request_table.remove(<span class="kw-2">&amp;</span>request_id);
-                    <span class="comment">// Send the successful response through channel out.
-                    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
-                        metrics::NETWORK_CONTAINER_CAPACITIES
-                            .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CX_REQUEST_TABLE])
-                            .set(cx_request_table.capacity() <span class="kw">as </span>u64);
-                        <span class="kw">if </span>tx.send(<span class="prelude-val">Ok</span>(response)).is_err() {
-                            <span class="macro">debug!</span>(<span class="string">&quot;Failed to send ChainExchange response&quot;</span>)
-                        }
-                    } <span class="kw">else </span>{
-                        <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed: channel not found&quot;</span>);
-                    };
+                    chain_exchange
+                        .handle_inbound_response(<span class="kw-2">&amp;</span>request_id, response)
+                        .<span class="kw">await</span>;
                 }
             }
         }
         RequestResponseEvent::OutboundFailure {
-            peer,
+            peer: <span class="kw">_</span>,
             request_id,
             error,
         } =&gt; {
-            <span class="macro">warn!</span>(
-                <span class="string">&quot;ChainExchange outbound error (peer: {:?}) (id: {:?}): {:?}&quot;</span>,
-                peer, request_id, error
-            );
-
-            <span class="kw">let </span>tx = cx_request_table.remove(<span class="kw-2">&amp;</span>request_id);
-
-            <span class="comment">// Send error through channel out.
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = tx {
-                metrics::NETWORK_CONTAINER_CAPACITIES
-                    .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::CX_REQUEST_TABLE])
-                    .set(cx_request_table.capacity() <span class="kw">as </span>u64);
-                <span class="kw">if </span>tx.send(<span class="prelude-val">Err</span>(error.into())).is_err() {
-                    <span class="macro">warn!</span>(<span class="string">&quot;RPCResponse receive failed&quot;</span>)
-                }
-            }
+            chain_exchange.on_outbound_error(<span class="kw-2">&amp;</span>request_id, error);
         }
         RequestResponseEvent::InboundFailure {
             peer,
@@ -1674,7 +1605,6 @@
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
-    cx_request_table: <span class="kw-2">&amp;mut </span>CxRequestTable,
     cx_response_tx: Sender&lt;(
         RequestId,
         ResponseChannel&lt;ChainExchangeResponse&gt;,
@@ -1715,10 +1645,10 @@
         ForestBehaviourEvent::Identify(<span class="kw">_</span>) =&gt; {}
         ForestBehaviourEvent::ChainExchange(ce_event) =&gt; {
             handle_chain_exchange_event(
+                <span class="kw-2">&amp;mut </span>swarm.behaviour_mut().chain_exchange,
                 ce_event,
                 db,
                 network_sender_out,
-                cx_request_table,
                 cx_response_tx,
             )
             .<span class="kw">await

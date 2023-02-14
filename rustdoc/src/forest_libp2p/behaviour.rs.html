@@ -140,21 +140,10 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::time::Duration;
-
-<span class="kw">use </span>ahash::{HashMap, HashSet};
+</span><span class="kw">use </span>ahash::{HashMap, HashSet};
 <span class="kw">use </span>forest_encoding::blake2b_256;
 <span class="kw">use </span>forest_libp2p_bitswap::BitswapBehaviour;
 <span class="kw">use </span>libp2p::{
@@ -168,14 +157,13 @@
     kad::QueryId,
     metrics::{Metrics, Recorder},
     ping,
-    request_response::{ProtocolSupport, RequestResponse, RequestResponseConfig},
     swarm::NetworkBehaviour,
     Multiaddr,
 };
 <span class="kw">use </span>log::warn;
 
 <span class="kw">use crate</span>::{
-    chain_exchange::{ChainExchangeCodec, ChainExchangeProtocolName},
+    chain_exchange::ChainExchangeBehaviour,
     config::Libp2pConfig,
     discovery::{DiscoveryBehaviour, DiscoveryConfig},
     gossip_params::{build_peer_score_params, build_peer_score_threshold},
@@ -191,7 +179,7 @@
     ping: ping::Behaviour,
     identify: identify::Behaviour,
     <span class="kw">pub</span>(<span class="kw">super</span>) hello: HelloBehaviour,
-    <span class="kw">pub</span>(<span class="kw">super</span>) chain_exchange: RequestResponse&lt;ChainExchangeCodec&gt;,
+    <span class="kw">pub</span>(<span class="kw">super</span>) chain_exchange: ChainExchangeBehaviour,
     <span class="kw">pub</span>(<span class="kw">super</span>) bitswap: BitswapBehaviour,
 }
 
@@ -251,12 +239,6 @@
             <span class="comment">// TODO allow configuring this through config.
             </span>.discovery_limit(config.target_peer_count <span class="kw">as </span>u64);
 
-        <span class="kw">let </span>cp = std::iter::once((ChainExchangeProtocolName, ProtocolSupport::Full));
-
-        <span class="kw">let </span><span class="kw-2">mut </span>req_res_config = RequestResponseConfig::default();
-        req_res_config.set_request_timeout(Duration::from_secs(<span class="number">20</span>));
-        req_res_config.set_connection_keep_alive(Duration::from_secs(<span class="number">20</span>));
-
         ForestBehaviour {
             gossipsub,
             discovery: discovery_config.finish(),
@@ -267,7 +249,7 @@
             )),
             bitswap,
             hello: HelloBehaviour::default(),
-            chain_exchange: RequestResponse::new(ChainExchangeCodec::default(), cp, req_res_config),
+            chain_exchange: ChainExchangeBehaviour::default(),
         }
     }
 

@@ -416,11 +416,10 @@
     NetworkMessage, PeerId, PeerManager, BITSWAP_TIMEOUT,
 };
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
-<span class="kw">use </span>futures::channel::oneshot::channel <span class="kw">as </span>oneshot_channel;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>log::{debug, trace, warn};
-<span class="kw">use </span>tokio::{task::JoinSet, time::timeout};
+<span class="kw">use </span>tokio::task::JoinSet;
 
 <span class="doccomment">/// Timeout for response from an RPC request
 </span><span class="comment">// TODO this value can be tweaked, this is just set pretty low to avoid peers
@@ -698,7 +697,7 @@
 
         <span class="kw">let </span>req_pre_time = SystemTime::now();
 
-        <span class="kw">let </span>(tx, rx) = oneshot_channel();
+        <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">1</span>);
         <span class="kw">if </span>network_send
             .send_async(NetworkMessage::ChainExchangeRequest {
                 peer_id,
@@ -714,7 +713,8 @@
         <span class="comment">// Add timeout to receiving response from p2p service to avoid stalling.
         // There is also a timeout inside the request-response calls, but this ensures
         // this.
-        </span><span class="kw">let </span>res = timeout(CHAIN_EXCHANGE_TIMEOUT, rx).<span class="kw">await</span>;
+        </span><span class="kw">let </span>res =
+            tokio::task::spawn_blocking(<span class="kw">move </span>|| rx.recv_timeout(CHAIN_EXCHANGE_TIMEOUT)).<span class="kw">await</span>;
         <span class="kw">let </span>res_duration = SystemTime::now()
             .duration_since(req_pre_time)
             .unwrap_or_default();

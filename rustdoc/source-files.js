@@ -21,7 +21,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","message.rs","message_receipt.rs","sector.rs","signature.rs","signed_message.rs","token_amount.rs"]],\
 "forest_key_management":["",[],["errors.rs","keystore.rs","lib.rs","wallet.rs","wallet_helpers.rs"]],\
 "forest_legacy_ipld_amt":["",[],["amt.rs","error.rs","lib.rs","node.rs","root.rs","value_mut.rs"]],\
-"forest_libp2p":["",[["chain_exchange",[],["message.rs","mod.rs","provider.rs"]],["hello",[],["behaviour.rs","codec.rs","message.rs","mod.rs"]],["rpc",[],["decoder.rs","mod.rs"]]],["behaviour.rs","config.rs","discovery.rs","gossip_params.rs","lib.rs","metrics.rs","peer_manager.rs","service.rs"]],\
+"forest_libp2p":["",[["chain_exchange",[],["behaviour.rs","message.rs","mod.rs","provider.rs"]],["hello",[],["behaviour.rs","codec.rs","message.rs","mod.rs"]],["rpc",[],["decoder.rs","mod.rs"]]],["behaviour.rs","config.rs","discovery.rs","gossip_params.rs","lib.rs","metrics.rs","peer_manager.rs","service.rs"]],\
 "forest_libp2p_bitswap":["",[["internals",[],["codec.rs","event_handlers.rs","mod.rs","prefix.rs","protocol.rs","utils.rs"]]],["behaviour.rs","lib.rs","message.rs","metrics.rs","request_manager.rs","store.rs"]],\
 "forest_message":["",[],["chain_message.rs","lib.rs","message.rs","signed_message.rs"]],\
 "forest_message_pool":["",[["msgpool",[],["mod.rs","msg_pool.rs","provider.rs","selection.rs","test_provider.rs","utils.rs"]]],["block_prob.rs","config.rs","errors.rs","lib.rs","msg_chain.rs"]],\
