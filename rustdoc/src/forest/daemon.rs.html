@@ -590,6 +590,8 @@
 <a href="#590" id="590">590</a>
 <a href="#591" id="591">591</a>
 <a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -604,8 +606,8 @@
 <span class="kw">use </span>forest_cli_shared::{
     chain_path,
     cli::{
-        default_snapshot_dir, is_aria2_installed, snapshot_fetch, Client, Config,
-        FOREST_VERSION_STRING,
+        default_snapshot_dir, is_aria2_installed, snapshot_fetch, snapshot_fetch_size,
+        to_size_string, Client, Config, FOREST_VERSION_STRING,
     },
 };
 <span class="kw">use </span>forest_db::{
@@ -747,7 +749,7 @@
     </span><span class="kw">let </span>epoch = chain_store.heaviest_tipset().epoch();
     <span class="kw">let </span>nv = config.chain.network_version(epoch);
     <span class="kw">let </span>should_fetch_snapshot = <span class="kw">if </span>nv &lt; NetworkVersion::V16 {
-        prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config)<span class="question-mark">?
+        prompt_snapshot_or_die(<span class="kw-2">&amp;</span>config).<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
         <span class="bool-val">false
     </span>};
@@ -982,15 +984,17 @@
 
 <span class="doccomment">/// Last resort in case a snapshot is needed. If it is not to be downloaded,
 /// this method fails and exits the process.
-</span><span class="kw">fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;bool&gt; {
+</span><span class="kw">async fn </span>prompt_snapshot_or_die(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;bool&gt; {
     <span class="kw">if </span>config.client.snapshot_path.is_some() {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
     }
     <span class="kw">let </span>should_download = <span class="kw">if </span>!config.client.auto_download_snapshot &amp;&amp; atty::is(atty::Stream::Stdin)
     {
+        <span class="kw">let </span>required_size: u64 = snapshot_fetch_size(config).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>required_size = to_size_string(<span class="kw-2">&amp;</span>required_size.into())<span class="question-mark">?</span>;
         Confirm::with_theme(<span class="kw-2">&amp;</span>ColorfulTheme::default())
                 .with_prompt(
-                    <span class="string">&quot;Forest needs a snapshot to sync with the network. Would you like to download one now?&quot;</span>,
+                    <span class="macro">format!</span>(<span class="string">&quot;Forest needs a snapshot to sync with the network. Would you like to download one now? Required disk space {required_size}.&quot;</span>),
                 )
                 .default(<span class="bool-val">false</span>)
                 .interact()

@@ -725,6 +725,38 @@
 <a href="#725" id="725">725</a>
 <a href="#726" id="726">726</a>
 <a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::{
@@ -845,6 +877,37 @@
     ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot; </span>|| ext == <span class="string">&quot;aria2&quot;
 </span>}
 
+<span class="doccomment">/// gets the size of a snapshot from filecoin.
+</span><span class="kw">pub async fn </span>snapshot_fetch_size(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;u64&gt; {
+    <span class="kw">let </span>service_url = <span class="kw">match </span>config.chain.name.to_lowercase().as_ref() {
+        <span class="string">&quot;mainnet&quot; </span>=&gt; config.snapshot_fetch.filecoin.mainnet.clone(),
+        <span class="string">&quot;calibnet&quot; </span>=&gt; config.snapshot_fetch.filecoin.calibnet.clone(),
+        <span class="kw">_ </span>=&gt; <span class="macro">bail!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name,),
+    };
+    <span class="kw">let </span>client = https_client();
+
+    <span class="kw">let </span>snapshot_url = {
+        <span class="kw">let </span>head_response = client
+            .request(hyper::Request::head(service_url.as_str()).body(<span class="string">&quot;&quot;</span>.into())<span class="question-mark">?</span>)
+            .<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="comment">// Use the redirect if available.
+        </span><span class="kw">match </span>head_response.headers().get(<span class="string">&quot;location&quot;</span>) {
+            <span class="prelude-val">Some</span>(url) =&gt; url.to_str()<span class="question-mark">?</span>.try_into()<span class="question-mark">?</span>,
+            <span class="prelude-val">None </span>=&gt; service_url,
+        }
+    };
+
+    <span class="kw">let </span>snapshot_response = client.get(snapshot_url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="kw">let </span>total_size = snapshot_response
+        .headers()
+        .get(<span class="string">&quot;content-length&quot;</span>)
+        .and_then(|ct_len| ct_len.to_str().ok())
+        .and_then(|ct_len| ct_len.parse::&lt;u64&gt;().ok())
+        .ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Couldn&#39;t retrieve content length&quot;</span>))<span class="question-mark">?</span>;
+    anyhow::Ok(total_size)
+}
+
 <span class="doccomment">/// Fetches snapshot from a trusted location and saves it to the given
 /// directory. Chain is inferred from configuration.
 </span><span class="kw">pub async fn </span>snapshot_fetch(
@@ -922,6 +985,7 @@
     <span class="kw">let </span>url = snapshot_spaces_url.join(path)<span class="question-mark">?</span>.join(filename)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>snapshot_response = client.get(url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+
     <span class="kw">if </span>use_aria2 {
         download_snapshot_and_validate_checksum_with_aria2(client, url, <span class="kw-2">&amp;</span>snapshot_path).<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
