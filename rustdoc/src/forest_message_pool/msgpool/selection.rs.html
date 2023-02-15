@@ -1346,6 +1346,7 @@
 <a href="#1346" id="1346">1346</a>
 <a href="#1347" id="1347">1347</a>
 <a href="#1348" id="1348">1348</a>
+<a href="#1349" id="1349">1349</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1359,7 +1360,8 @@
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_message::{Message, SignedMessage};
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
+<span class="kw">use </span>forest_shim::econ::TokenAmount;
+<span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>parking_lot::RwLock;
 <span class="kw">use </span>rand::{prelude::SliceRandom, thread_rng};
 

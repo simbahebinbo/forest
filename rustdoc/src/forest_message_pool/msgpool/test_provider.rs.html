@@ -297,8 +297,8 @@
 <span class="kw">use </span>forest_chain::HeadChange;
 <span class="kw">use </span>forest_crypto::VRFProof;
 <span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait, SignedMessage};
-<span class="kw">use </span>forest_shim::state_tree::ActorState;
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message};
+<span class="kw">use </span>forest_shim::{econ::TokenAmount, state_tree::ActorState};
+<span class="kw">use </span>fvm_shared::{address::Address, message::Message};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>parking_lot::Mutex;
 <span class="kw">use </span>tokio::sync::broadcast;
@@ -435,7 +435,7 @@
         <span class="kw">let </span>actor = &lt;ActorState <span class="kw">as </span>forest_shim::Inner&gt;::FVM::new(
             Cid::default(),
             Cid::default(),
-            forest_shim::econ::TokenAmount::from(balance).into(),
+            balance.into(),
             sequence,
             <span class="prelude-val">None</span>,
         );

@@ -42,6 +42,7 @@
 <a href="#42" id="42">42</a>
 <a href="#43" id="43">43</a>
 <a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -50,8 +51,9 @@
 <span class="kw">pub mod </span>signed_message;
 
 <span class="kw">pub use </span>chain_message::ChainMessage;
+<span class="kw">use </span>forest_shim::econ::TokenAmount;
 <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, MethodNum};
+<span class="kw">use </span>fvm_shared::{address::Address, MethodNum};
 <span class="kw">pub use </span>signed_message::SignedMessage;
 
 <span class="doccomment">/// Message interface to interact with Signed and unsigned messages in a generic
@@ -64,7 +66,7 @@
     <span class="doccomment">/// Returns the message sequence or nonce.
     </span><span class="kw">fn </span>sequence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
     <span class="doccomment">/// Returns the amount sent in message.
-    </span><span class="kw">fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TokenAmount;
+    </span><span class="kw">fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount;
     <span class="doccomment">/// Returns the method number to be called.
     </span><span class="kw">fn </span>method_num(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MethodNum;
     <span class="doccomment">/// Returns the encoded parameters for the method call.
@@ -78,9 +80,9 @@
     <span class="doccomment">/// Returns the required funds for the message.
     </span><span class="kw">fn </span>required_funds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount;
     <span class="doccomment">/// gets gas fee cap for the message.
-    </span><span class="kw">fn </span>gas_fee_cap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TokenAmount;
+    </span><span class="kw">fn </span>gas_fee_cap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount;
     <span class="doccomment">/// gets gas premium for the message.
-    </span><span class="kw">fn </span>gas_premium(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>TokenAmount;
+    </span><span class="kw">fn </span>gas_premium(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount;
     <span class="doccomment">/// sets the gas fee cap.
     </span><span class="kw">fn </span>set_gas_fee_cap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cap: TokenAmount);
     <span class="doccomment">/// sets the gas premium.

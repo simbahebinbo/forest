@@ -671,8 +671,6 @@
 <a href="#671" id="671">671</a>
 <a href="#672" id="672">672</a>
 <a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -692,6 +690,7 @@
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
 <span class="kw">use </span>forest_message::{message::valid_for_block_inclusion, ChainMessage, Message, SignedMessage};
 <span class="kw">use </span>forest_networks::{ChainConfig, NEWEST_NETWORK_VERSION};
+<span class="kw">use </span>forest_shim::econ::TokenAmount;
 <span class="kw">use </span>forest_utils::const_option;
 <span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
@@ -699,7 +698,6 @@
 <span class="kw">use </span>fvm_shared::{
     address::Address,
     crypto::signature::{Signature, SignatureType},
-    econ::TokenAmount,
 };
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>lru::LruCache;
@@ -749,11 +747,11 @@
         }
         <span class="kw">if let </span><span class="prelude-val">Some</span>(exms) = <span class="self">self</span>.msgs.get(<span class="kw-2">&amp;</span>m.sequence()) {
             <span class="kw">if </span>m.cid()<span class="question-mark">? </span>!= exms.cid()<span class="question-mark">? </span>{
-                <span class="kw">let </span>premium = exms.message().gas_premium.clone();
+                <span class="kw">let </span>premium = TokenAmount::from(<span class="kw-2">&amp;</span>exms.message().gas_premium);
                 <span class="kw">let </span>min_price = premium.clone()
                     + ((premium * RBF_NUM).div_floor(RBF_DENOM))
                     + TokenAmount::from_atto(<span class="number">1u8</span>);
-                <span class="kw">if </span>m.message().gas_premium &lt;= min_price {
+                <span class="kw">if </span>m.message().gas_premium &lt;= min_price.into() {
                     <span class="kw">return </span><span class="prelude-val">Err</span>(Error::GasPriceTooLow);
                 }
             } <span class="kw">else </span>{
@@ -998,7 +996,7 @@
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MessageTooBig);
         }
         valid_for_block_inclusion(msg.message(), Gas::new(<span class="number">0</span>), NEWEST_NETWORK_VERSION)<span class="question-mark">?</span>;
-        <span class="kw">if </span>msg.value() &gt; <span class="kw-2">&amp;</span>fvm_shared::TOTAL_FILECOIN {
+        <span class="kw">if </span>msg.value() &gt; TokenAmount::from(<span class="kw-2">&amp;*</span>fvm_shared::TOTAL_FILECOIN) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MessageValueTooHigh);
         }
         <span class="kw">if </span>msg.gas_fee_cap().atto() &lt; <span class="kw-2">&amp;</span>MINIMUM_BASE_FEE.into() {
@@ -1104,7 +1102,7 @@
     /// address and tipset, if this actor does not exist, return an error.
     </span><span class="kw">fn </span>get_state_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, ts: <span class="kw-2">&amp;</span>Tipset) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>actor = <span class="self">self</span>.api.get_actor_after(addr, ts)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(forest_shim::econ::TokenAmount::from(<span class="kw-2">&amp;</span>actor.balance).into())
+        <span class="prelude-val">Ok</span>(TokenAmount::from(<span class="kw-2">&amp;</span>actor.balance))
     }
 
     <span class="doccomment">/// Remove a message given a sequence and address from the message pool.
@@ -1310,11 +1308,9 @@
     valid_for_block_inclusion(m.message(), min_gas.total(), NEWEST_NETWORK_VERSION)<span class="question-mark">?</span>;
     <span class="kw">if </span>!cur_ts.blocks().is_empty() {
         <span class="kw">let </span>base_fee = cur_ts.blocks()[<span class="number">0</span>].parent_base_fee();
-        <span class="kw">let </span>base_fee_lower_bound = get_base_fee_lower_bound(
-            <span class="kw-2">&amp;</span>base_fee.clone().into(),
-            BASE_FEE_LOWER_BOUND_FACTOR_CONSERVATIVE,
-        );
-        <span class="kw">if </span>m.gas_fee_cap() &lt; <span class="kw-2">&amp;</span>base_fee_lower_bound {
+        <span class="kw">let </span>base_fee_lower_bound =
+            get_base_fee_lower_bound(base_fee, BASE_FEE_LOWER_BOUND_FACTOR_CONSERVATIVE);
+        <span class="kw">if </span>m.gas_fee_cap() &lt; base_fee_lower_bound {
             <span class="kw">if </span>local {
                 <span class="macro">warn!</span>(<span class="string">&quot;local message will not be immediately published because GasFeeCap doesn&#39;t meet the lower bound for inclusion in the next 20 blocks (GasFeeCap: {}, baseFeeLowerBound: {})&quot;</span>,m.gas_fee_cap(), base_fee_lower_bound);
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
