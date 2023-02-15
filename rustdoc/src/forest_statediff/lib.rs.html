@@ -215,8 +215,6 @@
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -241,9 +239,11 @@
 <span class="kw">use </span>fil_actor_system_v9::State <span class="kw">as </span>SystemState;
 <span class="kw">use </span>forest_ipld::json::{IpldJson, IpldJsonRef};
 <span class="kw">use </span>forest_json::cid::CidJson;
-<span class="kw">use </span>forest_shim::state_tree::{ActorState, StateTree};
+<span class="kw">use </span>forest_shim::{
+    address::Address,
+    state_tree::{ActorState, StateTree},
+};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>libipld_core::ipld::Ipld;
 <span class="kw">use </span>resolve::resolve_cids_recursive;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -278,11 +278,8 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;HashMap&lt;Address, ActorState&gt;, anyhow::Error&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>actors = HashMap::default();
     <span class="kw">let </span>state_tree = StateTree::new_from_root(bs, root)<span class="question-mark">?</span>;
-    state_tree.for_each(|addr: Address, actor| {
-        actors.insert(
-            addr,
-            forest_shim::state_tree::ActorState::from(actor.clone()),
-        );
+    state_tree.for_each(|addr: Address, actor: <span class="kw-2">&amp;</span>ActorState| {
+        actors.insert(addr, actor.clone());
         <span class="prelude-val">Ok</span>(())
     })<span class="question-mark">?</span>;
 
@@ -307,11 +304,10 @@
     </span><span class="kw">let </span>state_tree = StateTree::new_from_root(bs, root)<span class="question-mark">?</span>;
 
     state_tree.for_each(|addr: Address, actor| {
-        <span class="kw">let </span>actor = forest_shim::state_tree::ActorState::from(actor.clone());
-        <span class="kw">let </span>calc_pp = pp_actor_state(bs, <span class="kw-2">&amp;</span>actor, depth)<span class="question-mark">?</span>;
+        <span class="kw">let </span>calc_pp = pp_actor_state(bs, actor, depth)<span class="question-mark">?</span>;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(other) = e_state.remove(<span class="kw-2">&amp;</span>addr) {
-            <span class="kw">if </span>other != actor {
+            <span class="kw">if </span><span class="kw-2">&amp;</span>other != actor {
                 <span class="kw">let </span>comma = <span class="string">&quot;,&quot;</span>;
                 <span class="kw">let </span>expected_pp = pp_actor_state(bs, <span class="kw-2">&amp;</span>other, depth)<span class="question-mark">?</span>;
                 <span class="kw">let </span>expected = expected_pp.split(comma).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;();

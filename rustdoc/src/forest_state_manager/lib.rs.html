@@ -1496,7 +1496,7 @@
     <span class="doccomment">/// Gets actor from given [`Cid`], if it exists.
     </span><span class="kw">pub fn </span>get_actor(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, state_cid: Cid) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;ActorState&gt;&gt; {
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore().clone(), <span class="kw-2">&amp;</span>state_cid)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(state.get_actor(addr)<span class="question-mark">?</span>.map(|v| v.into()))
+        state.get_actor(<span class="kw-2">&amp;</span>addr.into())
     }
 
     <span class="doccomment">/// Returns a reference to the state manager&#39;s [`Blockstore`].
@@ -1552,11 +1552,11 @@
             .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>act = state
-            .get_actor(addr)
+            .get_actor(<span class="kw-2">&amp;</span>addr.into())
             .map_err(|e| Error::State(e.to_string()))<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Miner actor not found&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>ms = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>act.into())<span class="question-mark">?</span>;
+        <span class="kw">let </span>ms = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>act)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>info = ms.info(<span class="self">self</span>.blockstore()).map_err(|e| e.to_string())<span class="question-mark">?</span>;
 
@@ -2103,7 +2103,7 @@
                 .map_err(|e| Error::State(e.to_string()))<span class="question-mark">?</span>;
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(actor_state) = state
-                .get_actor(message_from_address)
+                .get_actor(<span class="kw-2">&amp;</span>message_from_address.into())
                 .map_err(|e| Error::State(e.to_string()))<span class="question-mark">?
             </span>{
                 <span class="kw">if </span>actor_state.sequence == <span class="number">0 </span>|| actor_state.sequence &lt; <span class="kw-2">*</span>message_sequence {
@@ -2342,7 +2342,7 @@
             .map_err(|e| e.to_string())<span class="question-mark">?</span>;
         <span class="kw">let </span>address = forest_shim::address::Address::from(addr);
         <span class="prelude-val">Ok</span>(state_tree
-            .lookup_id(<span class="kw-2">&amp;</span>address.into())
+            .lookup_id(<span class="kw-2">&amp;</span>address)
             .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?
             </span>.map(Address::new_id))
     }

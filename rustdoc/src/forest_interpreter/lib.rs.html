@@ -64,17 +64,17 @@
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Address, anyhow::Error&gt;
 <span class="kw">where
     </span>BS: Blockstore,
-    S: Blockstore,
+    S: Blockstore + Clone,
 {
     <span class="kw">if </span>addr.protocol() == Protocol::BLS || addr.protocol() == Protocol::Secp256k1 {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>addr);
     }
 
     <span class="kw">let </span>act = st
-        .get_actor(addr)<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>addr.into())<span class="question-mark">?
         </span>.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Failed to retrieve actor: {}&quot;</span>, addr))<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>acc_st = account::State::load(store, <span class="kw-2">&amp;</span>act.into())<span class="question-mark">?</span>;
+    <span class="kw">let </span>acc_st = account::State::load(store, <span class="kw-2">&amp;</span>act)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(acc_st.pubkey_address())
 }

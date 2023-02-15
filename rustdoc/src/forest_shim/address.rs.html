@@ -69,6 +69,24 @@
 <a href="#69" id="69">69</a>
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -104,7 +122,12 @@
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;Address_v3&gt; <span class="kw">for </span>Address {
+<span class="comment">// Conversion implementations.
+// Note for `::from_bytes`. Both FVM2 and FVM3 addresses values as bytes must be
+// identical and able to do a conversion, otherwise it is a logic error and
+// Forest should not continue so there is no point in `TryFrom`.
+
+</span><span class="kw">impl </span>From&lt;Address_v3&gt; <span class="kw">for </span>Address {
     <span class="kw">fn </span>from(other: Address_v3) -&gt; <span class="self">Self </span>{
         Address(other)
     }
@@ -139,6 +162,19 @@
         Address_v2::from_bytes(<span class="kw-2">&amp;</span>other.to_bytes())
             .expect(<span class="string">&quot;Couldn&#39;t convert between FVM2 and FVM3 addresses&quot;</span>)
     }
+}
+
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>Address&gt; <span class="kw">for </span>Address_v2 {
+    <span class="kw">fn </span>from(other: <span class="kw-2">&amp;</span>Address) -&gt; <span class="self">Self </span>{
+        Address_v2::from_bytes(<span class="kw-2">&amp;</span>other.to_bytes())
+            .expect(<span class="string">&quot;Couldn&#39;t convert between FVM2 and FVM3 addresses&quot;</span>)
+    }
+}
+
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>Address&gt; <span class="kw">for </span>Address_v3 {
+    <span class="kw">fn </span>from(other: <span class="kw-2">&amp;</span>Address) -&gt; <span class="self">Self </span>{
+        other.<span class="number">0
+    </span>}
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest_shim" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (e972bc808 2023-01-29)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

@@ -1830,11 +1830,11 @@
             <span class="kw">let </span>from_address = message.from();
             <span class="kw">if </span>applied.contains_key(from_address) {
                 <span class="kw">let </span>actor_state = state
-                    .get_actor(from_address)
+                    .get_actor(<span class="kw-2">&amp;</span>from_address.into())
                     .map_err(|e| Error::Other(e.to_string()))<span class="question-mark">?
                     </span>.ok_or_else(|| Error::Other(<span class="string">&quot;Actor state not found&quot;</span>.to_string()))<span class="question-mark">?</span>;
                 applied.insert(<span class="kw-2">*</span>from_address, actor_state.sequence);
-                balances.insert(<span class="kw-2">*</span>from_address, actor_state.balance.into());
+                balances.insert(<span class="kw-2">*</span>from_address, actor_state.balance.clone().into());
             }
             <span class="kw">if let </span><span class="prelude-val">Some</span>(seq) = applied.get_mut(from_address) {
                 <span class="kw">if </span><span class="kw-2">*</span>seq != message.sequence() {

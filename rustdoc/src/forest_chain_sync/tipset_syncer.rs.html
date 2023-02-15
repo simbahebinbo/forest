@@ -3192,7 +3192,7 @@
         </span><span class="kw">let </span>sequence: u64 = <span class="kw">match </span>account_sequences.get(<span class="kw-2">&amp;</span>msg.from) {
             <span class="prelude-val">Some</span>(sequence) =&gt; <span class="kw-2">*</span>sequence,
             <span class="prelude-val">None </span>=&gt; {
-                <span class="kw">let </span>actor = tree.get_actor(<span class="kw-2">&amp;</span>msg.from)<span class="question-mark">?</span>.ok_or_else(|| {
+                <span class="kw">let </span>actor = tree.get_actor(<span class="kw-2">&amp;</span>msg.from.into())<span class="question-mark">?</span>.ok_or_else(|| {
                     <span class="macro">anyhow::anyhow!</span>(
                         <span class="string">&quot;Failed to retrieve nonce for addr: Actor does not exist in state&quot;
                     </span>)

@@ -379,8 +379,8 @@
                     <span class="kw">let </span>migrator = <span class="self">self</span>.migrations.get(<span class="kw-2">&amp;</span>state.code).cloned().unwrap();
                     scope.spawn(<span class="kw">move </span>|<span class="kw">_</span>| {
                         <span class="kw">let </span>job = MigrationJob {
-                            address: forest_shim::address::Address::from(address).into(),
-                            actor_state: state.into(),
+                            address: address.into(),
+                            actor_state: state,
                             actor_migration: migrator,
                         };
 
@@ -404,7 +404,7 @@
                     actor_state,
                 } = job_output;
                 actors_out
-                    .set_actor(<span class="kw-2">&amp;</span>address, actor_state.into())
+                    .set_actor(<span class="kw-2">&amp;</span>address.into(), actor_state)
                     .unwrap_or_else(|e| {
                         <span class="macro">panic!</span>(
                             <span class="string">&quot;Failed setting new actor state at given address: {address}, Reason: {e}&quot;
