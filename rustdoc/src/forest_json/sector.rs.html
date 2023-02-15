@@ -147,15 +147,16 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>json {
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>cid::Cid;
-    <span class="kw">use </span>fvm_shared::sector::{
-        PoStProof, RegisteredPoStProof, RegisteredSealProof, SectorInfo, SectorNumber,
-    };
+    <span class="kw">use </span>forest_shim::sector::{PoStProof, RegisteredPoStProof, RegisteredSealProof, SectorInfo};
+    <span class="kw">use </span>fvm_shared::sector::SectorNumber;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="doccomment">/// Wrapper for serializing a `PoStProof` to JSON.
@@ -182,7 +183,7 @@
     <span class="kw">impl </span>From&lt;SectorInfo&gt; <span class="kw">for </span>SectorInfoJson {
         <span class="kw">fn </span>from(sector: SectorInfo) -&gt; <span class="self">Self </span>{
             <span class="self">Self </span>{
-                proof: sector.proof,
+                proof: sector.proof.into(),
                 sector_number: sector.sector_number,
                 sealed_cid: sector.sealed_cid,
             }
@@ -219,15 +220,16 @@
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>m: JsonHelper = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(PoStProof {
-            post_proof: RegisteredPoStProof::from(m.post_proof),
-            proof_bytes: BASE64_STANDARD
-                .decode(m.proof_bytes)
-                .map_err(de::Error::custom)<span class="question-mark">?</span>,
-        })
+        <span class="kw">let </span>reg_post_proof = RegisteredPoStProof::from(m.post_proof);
+        <span class="kw">let </span>proof_bytes = BASE64_STANDARD
+            .decode(m.proof_bytes)
+            .map_err(de::Error::custom)<span class="question-mark">?</span>;
+        <span class="kw">let </span>post_proof = PoStProof::new(reg_post_proof, proof_bytes);
+        <span class="prelude-val">Ok</span>(post_proof)
     }
 
     <span class="kw">pub mod </span>vec {
+        <span class="kw">use </span>forest_shim::sector::PoStProof;
         <span class="kw">use </span>forest_utils::json::GoVecVisitor;
         <span class="kw">use </span>serde::ser::SerializeSeq;
 
@@ -255,7 +257,10 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-    <span class="kw">use </span>fvm_shared::sector::{PoStProof, RegisteredPoStProof};
+    <span class="kw">use </span>forest_shim::{
+        sector::{PoStProof, RegisteredPoStProof},
+        Inner,
+    };
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
 
@@ -264,26 +269,25 @@
         postproof: PoStProof,
     }
 
+    <span class="kw">type </span>RegisteredPoStProofFVM = &lt;RegisteredPoStProof <span class="kw">as </span>Inner&gt;::FVM;
+
     <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>PoStProofWrapper {
         <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
             <span class="kw">let </span>registered_postproof = g
                 .choose(<span class="kw-2">&amp;</span>[
-                    RegisteredPoStProof::StackedDRGWinning2KiBV1,
-                    RegisteredPoStProof::StackedDRGWinning8MiBV1,
-                    RegisteredPoStProof::StackedDRGWinning512MiBV1,
-                    RegisteredPoStProof::StackedDRGWinning32GiBV1,
-                    RegisteredPoStProof::StackedDRGWinning64GiBV1,
-                    RegisteredPoStProof::StackedDRGWindow2KiBV1,
-                    RegisteredPoStProof::StackedDRGWindow8MiBV1,
-                    RegisteredPoStProof::StackedDRGWindow512MiBV1,
-                    RegisteredPoStProof::StackedDRGWindow32GiBV1,
-                    RegisteredPoStProof::StackedDRGWindow64GiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWinning2KiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWinning8MiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWinning512MiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWinning32GiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWinning64GiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWindow2KiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWindow8MiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWindow512MiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWindow32GiBV1,
+                    RegisteredPoStProofFVM::StackedDRGWindow64GiBV1,
                 ])
                 .unwrap();
-            <span class="kw">let </span>postproof = PoStProof {
-                post_proof: <span class="kw-2">*</span>registered_postproof,
-                proof_bytes: Vec::arbitrary(g),
-            };
+            <span class="kw">let </span>postproof = PoStProof::new((<span class="kw-2">*</span>registered_postproof).into(), Vec::arbitrary(g));
             PoStProofWrapper { postproof }
         }
     }

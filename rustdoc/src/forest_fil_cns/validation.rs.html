@@ -797,9 +797,9 @@
         .map_err(|e| FilecoinConsensusError::WinningPoStValidation(e.to_string()))<span class="question-mark">?</span>;
 
     verify_winning_post(
-        Randomness::new(rand.to_vec()),
+        Randomness::new(rand.to_vec()).into(),
         header.winning_post_proof(),
-        <span class="kw-2">&amp;</span>sectors,
+        sectors.as_slice(),
         id,
     )
     .map_err(|e| FilecoinConsensusError::WinningPoStValidation(e.to_string()))

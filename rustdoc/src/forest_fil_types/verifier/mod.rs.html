@@ -92,23 +92,15 @@
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>std::{collections::BTreeMap, convert::TryInto};
 
 <span class="kw">use </span>filecoin_proofs_api::{post, ProverId, PublicReplicaInfo, SectorId};
-<span class="kw">use </span>forest_shim::randomness::Randomness;
+<span class="kw">use </span>forest_shim::sector::{PoStProof, RegisteredPoStProof, SectorInfo};
 <span class="kw">use </span>fvm_ipld_encoding::bytes_32;
-<span class="kw">use </span>fvm_shared::{
-    address::Address,
-    commcid::cid_to_replica_commitment_v1,
-    sector::{PoStProof, RegisteredPoStProof, SectorInfo},
-};
+<span class="kw">use </span>fvm_shared::{address::Address, commcid::cid_to_replica_commitment_v1, randomness::Randomness};
 
 <span class="doccomment">/// Functionality for verification of seal, winning PoSt and window PoSt proofs.
 /// Proof verification will be full validation by default.
@@ -156,7 +148,7 @@
     </span>rand.<span class="number">0</span>[<span class="number">31</span>] &amp;= <span class="number">0x3f</span>;
 
     post::generate_winning_post_sector_challenge(
-        proof.try_into().map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{}&quot;</span>, e))<span class="question-mark">?</span>,
+        proof.try_into()<span class="question-mark">?</span>,
         <span class="kw-2">&amp;</span>bytes_32(<span class="kw-2">&amp;</span>rand.<span class="number">0</span>),
         eligible_sector_count,
         prover_id_from_u64(prover_id),

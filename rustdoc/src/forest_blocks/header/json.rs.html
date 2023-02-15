@@ -171,11 +171,13 @@
 <a href="#171" id="171">171</a>
 <a href="#172" id="172">172</a>
 <a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_beacon::beacon_entries;
 <span class="kw">use </span>forest_json::{sector, signature};
+<span class="kw">use </span>forest_shim::sector::PoStProof;
 <span class="kw">use </span>serde::{de, Deserialize, Serialize};
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -238,7 +240,7 @@
         miner: m.miner_address.to_string(),
         ticket: <span class="kw-2">&amp;</span>m.ticket,
         election_proof: <span class="kw-2">&amp;</span>m.election_proof,
-        winning_post_proof: <span class="kw-2">&amp;</span>m.winning_post_proof,
+        winning_post_proof: m.winning_post_proof.as_slice(),
         parents: <span class="kw-2">&amp;</span>m.parents,
         weight: m.weight.to_string(),
         height: <span class="kw-2">&amp;</span>m.epoch,

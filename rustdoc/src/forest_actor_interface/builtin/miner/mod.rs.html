@@ -400,7 +400,6 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -410,17 +409,16 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::Policy;
 <span class="kw">use </span>forest_json::bigint::json;
-<span class="kw">use </span>forest_shim::state_tree::ActorState;
+<span class="kw">use </span>forest_shim::{
+    sector::{RegisteredPoStProof, RegisteredSealProof, SectorSize},
+    state_tree::ActorState,
+};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::BytesDe;
 <span class="kw">use </span>fvm_shared::{
-    address::Address,
-    clock::ChainEpoch,
-    deal::DealID,
-    econ::TokenAmount,
-    sector::{RegisteredPoStProof, RegisteredSealProof, SectorNumber, SectorSize},
+    address::Address, clock::ChainEpoch, deal::DealID, econ::TokenAmount, sector::SectorNumber,
 };
 <span class="kw">use </span>libp2p::PeerId;
 <span class="kw">use </span>num::BigInt;
@@ -616,8 +614,8 @@
                 .unwrap_or(-<span class="number">1</span>),
             peer_id,
             multiaddrs: info.multi_address,
-            window_post_proof_type: info.window_post_proof_type,
-            sector_size: info.sector_size,
+            window_post_proof_type: info.window_post_proof_type.into(),
+            sector_size: info.sector_size.into(),
             window_post_partition_sectors: info.window_post_partition_sectors,
             consensus_fault_elapsed: info.consensus_fault_elapsed,
         }
@@ -640,8 +638,8 @@
                 .unwrap_or(-<span class="number">1</span>),
             peer_id,
             multiaddrs: info.multi_address,
-            window_post_proof_type: info.window_post_proof_type,
-            sector_size: info.sector_size,
+            window_post_proof_type: info.window_post_proof_type.into(),
+            sector_size: info.sector_size.into(),
             window_post_partition_sectors: info.window_post_partition_sectors,
             consensus_fault_elapsed: info.consensus_fault_elapsed,
         }
@@ -773,7 +771,7 @@
     <span class="kw">fn </span>from(info: fil_actor_miner_v8::SectorOnChainInfo) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             sector_number: info.sector_number,
-            seal_proof: info.seal_proof,
+            seal_proof: info.seal_proof.into(),
             sealed_cid: info.sealed_cid,
             deal_ids: info.deal_ids,
             activation: info.activation,
@@ -791,7 +789,7 @@
     <span class="kw">fn </span>from(info: fil_actor_miner_v9::SectorOnChainInfo) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             sector_number: info.sector_number,
-            seal_proof: info.seal_proof,
+            seal_proof: info.seal_proof.into(),
             sealed_cid: info.sealed_cid,
             deal_ids: info.deal_ids,
             activation: info.activation,

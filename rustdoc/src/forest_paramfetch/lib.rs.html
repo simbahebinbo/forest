@@ -235,9 +235,9 @@
 <span class="kw">use </span>ahash::HashMap;
 <span class="kw">use </span>backoff::{future::retry, ExponentialBackoff};
 <span class="kw">use </span>blake2b_simd::{Hash, State <span class="kw">as </span>Blake2b};
+<span class="kw">use </span>forest_shim::sector::SectorSize;
 <span class="kw">use </span>forest_utils::net::{https_client, hyper};
 <span class="kw">use </span>futures::TryStreamExt;
-<span class="kw">use </span>fvm_shared::sector::SectorSize;
 <span class="kw">use </span>log::{debug, warn};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>tokio::{
@@ -313,7 +313,7 @@
         .filter(|(name, info)| <span class="kw">match </span>storage_size {
             SectorSizeOpt::Keys =&gt; !name.ends_with(<span class="string">&quot;params&quot;</span>),
             SectorSizeOpt::Size(size) =&gt; {
-                size <span class="kw">as </span>u64 == info.sector_size || !name.ends_with(<span class="string">&quot;.params&quot;</span>)
+                (<span class="kw-2">*</span>size) <span class="kw">as </span>u64 == info.sector_size || !name.ends_with(<span class="string">&quot;.params&quot;</span>)
             }
             SectorSizeOpt::All =&gt; <span class="bool-val">true</span>,
         })
