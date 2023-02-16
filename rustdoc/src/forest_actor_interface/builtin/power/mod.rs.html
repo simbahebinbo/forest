@@ -175,6 +175,10 @@
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -182,10 +186,10 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>fil_actors_runtime::runtime::Policy;
 <span class="kw">use </span>forest_json::bigint::json;
-<span class="kw">use </span>forest_shim::state_tree::ActorState;
+<span class="kw">use </span>forest_shim::{address::Address, state_tree::ActorState};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, sector::StoragePower};
+<span class="kw">use </span>fvm_shared::{econ::TokenAmount, sector::StoragePower};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">use </span><span class="kw">crate</span>::FilterEstimate;
@@ -285,8 +289,8 @@
         miner: <span class="kw-2">&amp;</span>Address,
     ) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;Claim&gt;&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; <span class="prelude-val">Ok</span>(st.miner_power(<span class="kw-2">&amp;</span>s, miner)<span class="question-mark">?</span>.map(From::from)),
-            State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st.miner_power(<span class="kw-2">&amp;</span>s, miner)<span class="question-mark">?</span>.map(From::from)),
+            State::V8(st) =&gt; <span class="prelude-val">Ok</span>(st.miner_power(<span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())<span class="question-mark">?</span>.map(From::from)),
+            State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st.miner_power(<span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())<span class="question-mark">?</span>.map(From::from)),
         }
     }
 
@@ -303,8 +307,12 @@
         miner: <span class="kw-2">&amp;</span>Address,
     ) -&gt; anyhow::Result&lt;bool&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; st.miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, miner),
-            State::V9(st) =&gt; st.miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, miner),
+            State::V8(st) =&gt; {
+                st.miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())
+            }
+            State::V9(st) =&gt; {
+                st.miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())
+            }
         }
     }
 

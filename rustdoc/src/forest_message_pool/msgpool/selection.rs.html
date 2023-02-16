@@ -1347,6 +1347,15 @@
 <a href="#1347" id="1347">1347</a>
 <a href="#1348" id="1348">1348</a>
 <a href="#1349" id="1349">1349</a>
+<a href="#1350" id="1350">1350</a>
+<a href="#1351" id="1351">1351</a>
+<a href="#1352" id="1352">1352</a>
+<a href="#1353" id="1353">1353</a>
+<a href="#1354" id="1354">1354</a>
+<a href="#1355" id="1355">1355</a>
+<a href="#1356" id="1356">1356</a>
+<a href="#1357" id="1357">1357</a>
+<a href="#1358" id="1358">1358</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1360,8 +1369,7 @@
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_message::{Message, SignedMessage};
-<span class="kw">use </span>forest_shim::econ::TokenAmount;
-<span class="kw">use </span>fvm_shared::address::Address;
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>parking_lot::RwLock;
 <span class="kw">use </span>rand::{prelude::SliceRandom, thread_rng};
 
@@ -2013,10 +2021,20 @@
             <span class="kw">let </span>(msgs, smsgs) = api.messages_for_block(b)<span class="question-mark">?</span>;
 
             <span class="kw">for </span>msg <span class="kw">in </span>smsgs {
-                remove_from_selected_msgs(msg.from(), pending, msg.sequence(), rmsgs.borrow_mut())<span class="question-mark">?</span>;
+                remove_from_selected_msgs(
+                    <span class="kw-2">&amp;</span>msg.from(),
+                    pending,
+                    msg.sequence(),
+                    rmsgs.borrow_mut(),
+                )<span class="question-mark">?</span>;
             }
             <span class="kw">for </span>msg <span class="kw">in </span>msgs {
-                remove_from_selected_msgs(<span class="kw-2">&amp;</span>msg.from, pending, msg.sequence, rmsgs.borrow_mut())<span class="question-mark">?</span>;
+                remove_from_selected_msgs(
+                    <span class="kw-2">&amp;</span>msg.from.into(),
+                    pending,
+                    msg.sequence,
+                    rmsgs.borrow_mut(),
+                )<span class="question-mark">?</span>;
             }
         }
     }
@@ -2117,7 +2135,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>next_nonce = <span class="number">0</span>;
         <span class="kw">for </span>(i, msg) <span class="kw">in </span>msgs.iter().enumerate().take(<span class="number">10</span>) {
             <span class="macro">assert_eq!</span>(
-                <span class="kw-2">*</span>msg.from(),
+                msg.from(),
                 a1,
                 <span class="string">&quot;first 10 returned messages should be from actor a1 {i}&quot;</span>,
             );
@@ -2128,7 +2146,7 @@
         next_nonce = <span class="number">0</span>;
         <span class="kw">for </span>(i, msg) <span class="kw">in </span>msgs.iter().enumerate().take(<span class="number">20</span>).skip(<span class="number">10</span>) {
             <span class="macro">assert_eq!</span>(
-                <span class="kw-2">*</span>msg.from(),
+                msg.from(),
                 a2,
                 <span class="string">&quot;next 10 returned messages should be from actor a2 {i}&quot;</span>,
             );
@@ -2203,7 +2221,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>next_nonce = <span class="number">20</span>;
         <span class="kw">for </span>msg <span class="kw">in </span>msgs.iter().take(<span class="number">10</span>) {
             <span class="macro">assert_eq!</span>(
-                <span class="kw-2">*</span>msg.from(),
+                msg.from(),
                 a1,
                 <span class="string">&quot;first 10 returned messages should be from actor a1&quot;
             </span>);
@@ -2213,7 +2231,7 @@
         next_nonce = <span class="number">20</span>;
         <span class="kw">for </span>msg <span class="kw">in </span>msgs.iter().take(<span class="number">20</span>).skip(<span class="number">10</span>) {
             <span class="macro">assert_eq!</span>(
-                <span class="kw-2">*</span>msg.from(),
+                msg.from(),
                 a2,
                 <span class="string">&quot;next 10 returned messages should be from actor a2&quot;
             </span>);
@@ -2376,7 +2394,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>next_nonce = <span class="number">0</span>;
         <span class="kw">for </span>msg <span class="kw">in </span>msgs.iter().take(<span class="number">10</span>) {
             <span class="macro">assert_eq!</span>(
-                <span class="kw-2">*</span>msg.from(),
+                msg.from(),
                 a1,
                 <span class="string">&quot;first 10 returned messages should be from actor a1&quot;
             </span>);
@@ -2386,7 +2404,7 @@
         next_nonce = <span class="number">0</span>;
         <span class="kw">for </span>msg <span class="kw">in </span>msgs.iter().take(<span class="number">20</span>).skip(<span class="number">10</span>) {
             <span class="macro">assert_eq!</span>(
-                <span class="kw-2">*</span>msg.from(),
+                msg.from(),
                 a2,
                 <span class="string">&quot;next 10 returned messages should be from actor a2&quot;
             </span>);
@@ -2463,7 +2481,7 @@
         <span class="macro">assert_eq!</span>(msgs.len(), expected_msgs <span class="kw">as </span>usize);
 
         <span class="kw">for </span>(next_nonce, m) <span class="kw">in </span>msgs.into_iter().enumerate() {
-            <span class="macro">assert_eq!</span>(m.message().from, a1, <span class="string">&quot;Expected message from a1&quot;</span>);
+            <span class="macro">assert_eq!</span>(m.from(), a1, <span class="string">&quot;Expected message from a1&quot;</span>);
             <span class="macro">assert_eq!</span>(
                 m.message().sequence,
                 next_nonce <span class="kw">as </span>u64,
@@ -2558,7 +2576,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>next_nonce2 = <span class="number">0</span>;
 
         <span class="kw">for </span>m <span class="kw">in </span>msgs {
-            <span class="kw">if </span>m.message.from == a1 {
+            <span class="kw">if </span>m.from() == a1 {
                 <span class="kw">if </span>m.message.sequence != next_nonce1 {
                     <span class="macro">panic!</span>(
                         <span class="string">&quot;Expected nonce {}, but got {}&quot;</span>,
@@ -2680,7 +2698,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>nonces = <span class="macro">vec!</span>[<span class="number">0</span>; n_actors <span class="kw">as </span>usize];
         <span class="kw">for </span>m <span class="kw">in </span><span class="kw-2">&amp;</span>msgs {
-            <span class="kw">let </span>who = who_is(m.message.from);
+            <span class="kw">let </span>who = who_is(m.from());
             <span class="kw">if </span>who &lt; <span class="number">3 </span>{
                 <span class="macro">panic!</span>(<span class="string">&quot;got message from {who}th actor&quot;</span>,);
             }

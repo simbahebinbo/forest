@@ -687,7 +687,7 @@
 
         <span class="kw">let </span>rew_msg = Message {
             from: system::ADDRESS,
-            to: reward::ADDRESS,
+            to: reward::ADDRESS.into(),
             method_num: reward::Method::AwardBlockReward <span class="kw">as </span>u64,
             params,
             <span class="comment">// Epoch as sequence is intentional
@@ -736,7 +736,7 @@
         gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
         <span class="kw">let </span>msg = Message {
-            from: reward::ADDRESS,
+            from: reward::ADDRESS.into(),
             to: miner,
             method_num: METHOD_SEND,
             params: Default::default(),

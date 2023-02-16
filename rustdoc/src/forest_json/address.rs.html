@@ -148,10 +148,12 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>fvm_shared::address::Address;
+</span><span class="kw">use </span>forest_shim::address::Address;
 
 <span class="kw">pub mod </span>json {
     <span class="kw">use </span>std::{borrow::Cow, str::FromStr};
@@ -283,11 +285,13 @@
     <span class="attr">#[cfg(test)]
     </span><span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>AddressWrapper {
         <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>address = arbitrary::Arbitrary::arbitrary(<span class="kw-2">&amp;mut </span>arbitrary::Unstructured::new(
-                <span class="kw-2">&amp;</span>Vec::arbitrary(g),
-            ))
+            <span class="kw">let </span>address: fvm_shared::address::Address = arbitrary::Arbitrary::arbitrary(
+                <span class="kw-2">&amp;mut </span>arbitrary::Unstructured::new(<span class="kw-2">&amp;</span>Vec::arbitrary(g)),
+            )
             .unwrap();
-            AddressWrapper { address }
+            AddressWrapper {
+                address: Address::from(address),
+            }
         }
     }
 

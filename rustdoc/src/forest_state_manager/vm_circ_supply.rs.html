@@ -414,7 +414,7 @@
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
     <span class="kw">let </span>actor = state_tree
-        .get_actor(<span class="kw-2">&amp;</span>reward::ADDRESS.into())<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>reward::ADDRESS)<span class="question-mark">?
         </span>.context(<span class="string">&quot;Reward actor address could not be resolved&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>state = reward::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
 
@@ -425,7 +425,7 @@
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
     <span class="kw">let </span>actor = state_tree
-        .get_actor(<span class="kw-2">&amp;</span>market::ADDRESS.into())<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>market::ADDRESS)<span class="question-mark">?
         </span>.ok_or_else(|| Error::State(<span class="string">&quot;Market actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
     <span class="kw">let </span>state = market::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
 
@@ -436,7 +436,7 @@
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
     <span class="kw">let </span>actor = state_tree
-        .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS.into())<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS)<span class="question-mark">?
         </span>.ok_or_else(|| Error::State(<span class="string">&quot;Power actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
     <span class="kw">let </span>state = power::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
 

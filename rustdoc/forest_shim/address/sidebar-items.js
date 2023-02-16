@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Address",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["BLS_PUB_LEN","BLS public key length used for validation of BLS addresses."]],"enum":[["Error","Address error"],["Network","Network defines the preconfigured networks to use with address encoding"],["Payload","Payload is the data of the Address. Variants are the supported Address protocols."],["Protocol","Protocol defines the addressing protocol used to derive data to an address"]],"fn":[["set_current_network","Sets the default network."]],"struct":[["Address",""]]};

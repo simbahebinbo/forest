@@ -202,10 +202,10 @@
 
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_shim::state_tree::ActorState;
+<span class="kw">use </span>forest_shim::{address::Address, state_tree::ActorState};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{address::Address, clock::ChainEpoch, econ::TokenAmount, piece::PaddedPieceSize};
+<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, econ::TokenAmount, piece::PaddedPieceSize};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>serde::Serialize;
 

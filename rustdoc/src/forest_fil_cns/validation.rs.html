@@ -399,8 +399,6 @@
 <a href="#399" id="399">399</a>
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -415,14 +413,12 @@
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::verify_winning_post;
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
-<span class="kw">use </span>forest_shim::{randomness::Randomness, version::NetworkVersion};
+<span class="kw">use </span>forest_shim::{address::Address, randomness::Randomness, version::NetworkVersion};
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>futures::stream::FuturesUnordered;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::{
-    address::Address, crypto::signature::ops::verify_bls_sig, TICKET_RANDOMNESS_LOOKBACK,
-};
+<span class="kw">use </span>fvm_shared::{crypto::signature::ops::verify_bls_sig, TICKET_RANDOMNESS_LOOKBACK};
 <span class="kw">use </span>nonempty::NonEmpty;
 
 <span class="kw">use crate</span>::{metrics, FilecoinConsensusError};
@@ -736,7 +732,7 @@
     rand: <span class="kw-2">&amp;</span>[u8],
     evrf: <span class="kw-2">&amp;</span>[u8],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), FilecoinConsensusError&gt; {
-    verify_bls_sig(evrf, rand, worker).map_err(FilecoinConsensusError::VrfValidation)
+    verify_bls_sig(evrf, rand, <span class="kw-2">&amp;</span>worker.into()).map_err(FilecoinConsensusError::VrfValidation)
 }
 
 <span class="kw">fn </span>verify_winning_post_proof&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(

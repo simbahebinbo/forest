@@ -458,18 +458,14 @@
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
 <a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>std::{convert::TryFrom, str::FromStr};
 
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
-<span class="kw">use </span>fvm_shared::{
-    address::Address,
-    crypto::signature::{Signature, SignatureType},
-};
+<span class="kw">use </span>forest_shim::address::Address;
+<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">use super</span>::{errors::Error, wallet_helpers, KeyInfo, KeyStore};
@@ -896,11 +892,11 @@
         <span class="kw">let </span>msg = [<span class="number">0u8</span>; <span class="number">64</span>];
 
         <span class="kw">let </span>sig = wallet.sign(<span class="kw-2">&amp;</span>addr, <span class="kw-2">&amp;</span>msg).unwrap();
-        sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>addr).unwrap();
+        sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>addr.into()).unwrap();
 
         <span class="comment">// invalid verify check
         </span><span class="kw">let </span>invalid_addr = wallet.generate_addr(SignatureType::Secp256k1).unwrap();
-        <span class="macro">assert!</span>(sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>invalid_addr).is_err())
+        <span class="macro">assert!</span>(sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>invalid_addr.into()).is_err())
     }
 
     <span class="attr">#[test]
@@ -915,11 +911,11 @@
         <span class="kw">let </span>msg = [<span class="number">0u8</span>; <span class="number">64</span>];
 
         <span class="kw">let </span>sig = wallet.sign(<span class="kw-2">&amp;</span>addr, <span class="kw-2">&amp;</span>msg).unwrap();
-        sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>addr).unwrap();
+        sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>addr.into()).unwrap();
 
         <span class="comment">// invalid verify check
         </span><span class="kw">let </span>invalid_addr = wallet.generate_addr(SignatureType::BLS).unwrap();
-        <span class="macro">assert!</span>(sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>invalid_addr).is_err())
+        <span class="macro">assert!</span>(sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>invalid_addr.into()).is_err())
     }
 }
 </code></pre></div>

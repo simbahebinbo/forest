@@ -3141,7 +3141,7 @@
     <span class="kw">for </span>m <span class="kw">in </span>block.bls_msgs() {
         <span class="kw">let </span>pk = StateManager::get_bls_public_key(
             state_manager.blockstore(),
-            <span class="kw-2">&amp;</span>m.from,
+            <span class="kw-2">&amp;</span>m.from.into(),
             <span class="kw-2">*</span>base_tipset.parent_state(),
         )<span class="question-mark">?</span>;
         pub_keys.push(pk);
@@ -3246,12 +3246,12 @@
         })<span class="question-mark">?</span>;
         <span class="comment">// Resolve key address for signature verification
         </span><span class="kw">let </span>key_addr = state_manager
-            .resolve_to_key_addr(msg.from(), <span class="kw-2">&amp;</span>base_tipset)
+            .resolve_to_key_addr(<span class="kw-2">&amp;</span>msg.from(), <span class="kw-2">&amp;</span>base_tipset)
             .<span class="kw">await
             </span>.map_err(|e| TipsetRangeSyncerError::ResolvingAddressFromMessage(e.to_string()))<span class="question-mark">?</span>;
         <span class="comment">// SecP256K1 Signature validation
         </span>msg.signature
-            .verify(<span class="kw-2">&amp;</span>msg.message().cid().unwrap().to_bytes(), <span class="kw-2">&amp;</span>key_addr)
+            .verify(<span class="kw-2">&amp;</span>msg.message().cid().unwrap().to_bytes(), <span class="kw-2">&amp;</span>key_addr.into())
             .map_err(TipsetRangeSyncerError::MessageSignatureInvalid)<span class="question-mark">?</span>;
     }
 
@@ -3333,7 +3333,7 @@
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_blocks::{BlockHeader, ElectionProof, Ticket, Tipset};
     <span class="kw">use </span>forest_crypto::VRFProof;
-    <span class="kw">use </span>fvm_shared::address::Address;
+    <span class="kw">use </span>forest_shim::address::Address;
     <span class="kw">use </span>num_bigint::BigInt;
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;

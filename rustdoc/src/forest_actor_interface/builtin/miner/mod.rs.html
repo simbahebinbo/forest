@@ -400,6 +400,19 @@
 <a href="#400" id="400">400</a>
 <a href="#401" id="401">401</a>
 <a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -410,6 +423,7 @@
 <span class="kw">use </span>fil_actors_runtime::runtime::Policy;
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_shim::{
+    address::Address,
     sector::{RegisteredPoStProof, RegisteredSealProof, SectorSize},
     state_tree::ActorState,
 };
@@ -417,9 +431,7 @@
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::BytesDe;
-<span class="kw">use </span>fvm_shared::{
-    address::Address, clock::ChainEpoch, deal::DealID, econ::TokenAmount, sector::SectorNumber,
-};
+<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, deal::DealID, econ::TokenAmount, sector::SectorNumber};
 <span class="kw">use </span>libp2p::PeerId;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -604,10 +616,17 @@
         </span><span class="kw">let </span>peer_id = PeerId::from_bytes(<span class="kw-2">&amp;</span>info.peer_id).ok();
 
         MinerInfo {
-            owner: info.owner,
-            worker: info.worker,
-            control_addresses: info.control_addresses,
-            new_worker: info.pending_worker_key.as_ref().map(|k| k.new_worker),
+            owner: info.owner.into(),
+            worker: info.worker.into(),
+            control_addresses: info
+                .control_addresses
+                .into_iter()
+                .map(Address::from)
+                .collect(),
+            new_worker: info
+                .pending_worker_key
+                .as_ref()
+                .map(|k| k.new_worker.into()),
             worker_change_epoch: info
                 .pending_worker_key
                 .map(|k| k.effective_at)
@@ -628,10 +647,17 @@
         </span><span class="kw">let </span>peer_id = PeerId::from_bytes(<span class="kw-2">&amp;</span>info.peer_id).ok();
 
         MinerInfo {
-            owner: info.owner,
-            worker: info.worker,
-            control_addresses: info.control_addresses,
-            new_worker: info.pending_worker_key.as_ref().map(|k| k.new_worker),
+            owner: info.owner.into(),
+            worker: info.worker.into(),
+            control_addresses: info
+                .control_addresses
+                .into_iter()
+                .map(Address::from)
+                .collect(),
+            new_worker: info
+                .pending_worker_key
+                .as_ref()
+                .map(|k| k.new_worker.into()),
             worker_change_epoch: info
                 .pending_worker_key
                 .map(|k| k.effective_at)

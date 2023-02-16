@@ -542,7 +542,6 @@
 <a href="#542" id="542">542</a>
 <a href="#543" id="543">543</a>
 <a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -556,10 +555,9 @@
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_message::{Message, SignedMessage};
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_shim::econ::TokenAmount;
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::address::Address;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>num_traits::Zero;
 <span class="kw">use </span>slotmap::{new_key_type, SlotMap};

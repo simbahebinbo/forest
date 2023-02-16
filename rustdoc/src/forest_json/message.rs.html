@@ -161,12 +161,14 @@
 <a href="#161" id="161">161</a>
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>json {
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>cid::Cid;
+    <span class="kw">use </span>forest_shim::address::Address;
     <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
     <span class="kw">use </span>fvm_shared::{econ::TokenAmount, message::Message};
     <span class="kw">use </span>serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
@@ -223,8 +225,8 @@
     {
         JsonHelper {
             version: m.version,
-            to: m.to.into(),
-            from: m.from.into(),
+            to: Address::from(m.to).into(),
+            from: Address::from(m.from).into(),
             sequence: m.sequence,
             value: m.value.clone(),
             gas_limit: m.gas_limit,
@@ -244,8 +246,8 @@
         <span class="kw">let </span>m: JsonHelper = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Message {
             version: m.version,
-            to: m.to.into(),
-            from: m.from.into(),
+            to: Address::from(m.to).into(),
+            from: Address::from(m.from).into(),
             sequence: m.sequence,
             value: m.value,
             gas_limit: m.gas_limit,

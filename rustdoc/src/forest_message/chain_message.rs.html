@@ -135,9 +135,9 @@
 </span><span class="kw">use </span>std::borrow::Borrow;
 
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_shim::econ::TokenAmount;
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, message::Message};
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error, RawBytes};
-<span class="kw">use </span>fvm_shared::{address::Address, message::Message, MethodNum};
+<span class="kw">use </span>fvm_shared::MethodNum;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">use </span><span class="kw">super</span>::Message <span class="kw">as </span>MessageTrait;
@@ -162,16 +162,16 @@
 }
 
 <span class="kw">impl </span>MessageTrait <span class="kw">for </span>ChainMessage {
-    <span class="kw">fn </span>from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Address {
+    <span class="kw">fn </span>from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Address {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.from(),
-            <span class="self">Self</span>::Unsigned(t) =&gt; <span class="kw-2">&amp;</span>t.from,
+            <span class="self">Self</span>::Unsigned(t) =&gt; Address::from(t.from),
         }
     }
-    <span class="kw">fn </span>to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Address {
+    <span class="kw">fn </span>to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Address {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.to(),
-            <span class="self">Self</span>::Unsigned(t) =&gt; <span class="kw-2">&amp;</span>t.to,
+            <span class="self">Self</span>::Unsigned(t) =&gt; Address::from(t.to),
         }
     }
     <span class="kw">fn </span>sequence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {

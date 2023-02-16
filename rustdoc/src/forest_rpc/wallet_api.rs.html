@@ -232,7 +232,6 @@
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -244,9 +243,8 @@
 <span class="kw">use </span>forest_json::{address::json::AddressJson, signature::json::SignatureJson};
 <span class="kw">use </span>forest_key_management::{json::KeyInfoJson, Error, Key};
 <span class="kw">use </span>forest_rpc_api::{data_types::RPCState, wallet_api::<span class="kw-2">*</span>};
-<span class="kw">use </span>forest_shim::state_tree::StateTree;
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, state_tree::StateTree};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>num_traits::Zero;
 
@@ -266,7 +264,7 @@
     <span class="kw">let </span>cid = heaviest_ts.parent_state();
 
     <span class="kw">let </span>state = StateTree::new_from_root(data.state_manager.blockstore(), cid)<span class="question-mark">?</span>;
-    <span class="kw">match </span>state.get_actor(<span class="kw-2">&amp;</span>address.into()) {
+    <span class="kw">match </span>state.get_actor(<span class="kw-2">&amp;</span>address) {
         <span class="prelude-val">Ok</span>(act) =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(actor) = act {
                 <span class="kw">let </span>actor_balance = <span class="kw-2">&amp;</span>actor.balance;
@@ -465,7 +463,7 @@
     <span class="kw">let </span>(addr, msg, SignatureJson(sig)) = params;
     <span class="kw">let </span>address = addr.<span class="number">0</span>;
 
-    <span class="kw">let </span>ret = sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>address).is_ok();
+    <span class="kw">let </span>ret = sig.verify(<span class="kw-2">&amp;</span>msg, <span class="kw-2">&amp;</span>address.into()).is_ok();
     <span class="prelude-val">Ok</span>(ret)
 }
 </code></pre></div>

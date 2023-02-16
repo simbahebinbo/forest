@@ -668,9 +668,6 @@
 <a href="#668" id="668">668</a>
 <a href="#669" id="669">669</a>
 <a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -690,15 +687,12 @@
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
 <span class="kw">use </span>forest_message::{message::valid_for_block_inclusion, ChainMessage, Message, SignedMessage};
 <span class="kw">use </span>forest_networks::{ChainConfig, NEWEST_NETWORK_VERSION};
-<span class="kw">use </span>forest_shim::econ::TokenAmount;
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount};
 <span class="kw">use </span>forest_utils::const_option;
 <span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::{
-    address::Address,
-    crypto::signature::{Signature, SignatureType},
-};
+<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num::BigInt;
@@ -965,7 +959,7 @@
 
     <span class="doccomment">/// Add a signed message to the pool and its address.
     </span><span class="kw">fn </span>add_local(<span class="kw-2">&amp;</span><span class="self">self</span>, m: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="self">self</span>.local_addrs.write().push(<span class="kw-2">*</span>m.from());
+        <span class="self">self</span>.local_addrs.write().push(m.from());
         <span class="self">self</span>.local_msgs.write().insert(m);
         <span class="prelude-val">Ok</span>(())
     }
@@ -1037,7 +1031,7 @@
     /// given then call `add_locked` to finish adding the `signed_message`
     /// to pending.
     </span><span class="kw">fn </span>add_tipset(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage, cur_ts: <span class="kw-2">&amp;</span>Tipset, local: bool) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
-        <span class="kw">let </span>sequence = <span class="self">self</span>.get_state_sequence(msg.from(), cur_ts)<span class="question-mark">?</span>;
+        <span class="kw">let </span>sequence = <span class="self">self</span>.get_state_sequence(<span class="kw-2">&amp;</span>msg.from(), cur_ts)<span class="question-mark">?</span>;
 
         <span class="kw">if </span>sequence &gt; msg.message().sequence {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::SequenceTooLow);
@@ -1045,7 +1039,7 @@
 
         <span class="kw">let </span>publish = verify_msg_before_add(<span class="kw-2">&amp;</span>msg, cur_ts, local, <span class="kw-2">&amp;</span><span class="self">self</span>.chain_config)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>balance = <span class="self">self</span>.get_state_balance(msg.from(), cur_ts)<span class="question-mark">?</span>;
+        <span class="kw">let </span>balance = <span class="self">self</span>.get_state_balance(<span class="kw-2">&amp;</span>msg.from(), cur_ts)<span class="question-mark">?</span>;
 
         <span class="kw">let </span>msg_balance = msg.required_funds();
         <span class="kw">if </span>balance &lt; msg_balance {
@@ -1060,7 +1054,7 @@
     /// new `mset` that will correspond to the from message and push it to
     /// the pending hash-map.
     </span><span class="kw">fn </span>add_helper(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: SignedMessage) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="kw">let </span>from = <span class="kw-2">*</span>msg.from();
+        <span class="kw">let </span>from = msg.from();
         <span class="kw">let </span>cur_ts = <span class="self">self</span>.cur_tipset.lock().clone();
         add_helper(
             <span class="self">self</span>.api.as_ref(),
@@ -1282,12 +1276,12 @@
     api.put_message(<span class="kw-2">&amp;</span>ChainMessage::Unsigned(msg.message().clone()))<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>pending = pending.write();
-    <span class="kw">let </span>msett = pending.get_mut(<span class="kw-2">&amp;</span>msg.message().from);
+    <span class="kw">let </span>msett = pending.get_mut(<span class="kw-2">&amp;</span>msg.from());
     <span class="kw">match </span>msett {
         <span class="prelude-val">Some</span>(mset) =&gt; mset.add(msg)<span class="question-mark">?</span>,
         <span class="prelude-val">None </span>=&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>mset = MsgSet::new(sequence);
-            <span class="kw">let </span>from = msg.message().from;
+            <span class="kw">let </span>from = msg.from();
             mset.add(msg)<span class="question-mark">?</span>;
             pending.insert(from, mset);
         }

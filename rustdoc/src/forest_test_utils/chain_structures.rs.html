@@ -180,6 +180,7 @@
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -196,8 +197,9 @@
     ChainExchangeResponse, ChainExchangeResponseStatus, CompactedMessages, TipsetBundle,
 };
 <span class="kw">use </span>forest_message::SignedMessage;
+<span class="kw">use </span>forest_shim::address::Address;
 <span class="kw">use </span>fvm_ipld_encoding::{to_vec, DAG_CBOR};
-<span class="kw">use </span>fvm_shared::{address::Address, crypto::signature::Signature, message::Message};
+<span class="kw">use </span>fvm_shared::{crypto::signature::Signature, message::Message};
 <span class="kw">use </span>num::BigInt;
 
 <span class="doccomment">/// Defines a `TipsetKey` used in testing
@@ -312,8 +314,8 @@
 <span class="doccomment">/// Returns a tuple of unsigned and signed messages used for testing
 </span><span class="kw">pub fn </span>construct_messages() -&gt; (Message, SignedMessage) {
     <span class="kw">let </span>bls_messages = Message {
-        to: Address::new_id(<span class="number">1</span>),
-        from: Address::new_id(<span class="number">2</span>),
+        to: Address::new_id(<span class="number">1</span>).into(),
+        from: Address::new_id(<span class="number">2</span>).into(),
         ..Message::default()
     };
 

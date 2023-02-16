@@ -982,6 +982,7 @@
 <a href="#982" id="982">982</a>
 <a href="#983" id="983">983</a>
 <a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1918,8 +1919,9 @@
     <span class="kw">use </span>forest_db::MemoryDB;
     <span class="kw">use </span>forest_message::SignedMessage;
     <span class="kw">use </span>forest_networks::{ChainConfig, Height};
+    <span class="kw">use </span>forest_shim::address::Address;
     <span class="kw">use </span>forest_test_utils::construct_messages;
-    <span class="kw">use </span>fvm_shared::{address::Address, message::Message};
+    <span class="kw">use </span>fvm_shared::message::Message;
 
     <span class="kw">use </span><span class="kw">crate</span>::validation::TipsetValidator;
 

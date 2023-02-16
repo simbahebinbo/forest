@@ -122,18 +122,14 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
-<span class="kw">use </span>forest_shim::econ::TokenAmount;
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, message::Message};
 <span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError, RawBytes};
 <span class="kw">use </span>fvm_shared::{
-    address::Address,
     crypto::signature::{Signature, SignatureType},
-    message::Message,
     MethodNum,
 };
 
@@ -190,16 +186,16 @@
     <span class="doccomment">/// Verifies that the from address of the message generated the signature.
     </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
         <span class="self">self</span>.signature
-            .verify(<span class="kw-2">&amp;</span><span class="self">self</span>.message.cid().unwrap().to_bytes(), <span class="self">self</span>.from())
+            .verify(<span class="kw-2">&amp;</span><span class="self">self</span>.message.cid().unwrap().to_bytes(), <span class="kw-2">&amp;</span><span class="self">self</span>.from().into())
     }
 }
 
 <span class="kw">impl </span>MessageTrait <span class="kw">for </span>SignedMessage {
-    <span class="kw">fn </span>from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Address {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.message.from
+    <span class="kw">fn </span>from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Address {
+        Address::from(<span class="self">self</span>.message.from)
     }
-    <span class="kw">fn </span>to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Address {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.message.to
+    <span class="kw">fn </span>to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Address {
+        Address::from(<span class="self">self</span>.message.to)
     }
     <span class="kw">fn </span>sequence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.message.sequence

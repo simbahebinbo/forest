@@ -529,13 +529,14 @@
 <span class="kw">use </span>forest_beacon::{<span class="self">self</span>, Beacon, BeaconEntry, BeaconSchedule};
 <span class="kw">use </span>forest_encoding::blake2b_256;
 <span class="kw">use </span>forest_shim::{
+    address::Address,
     bigint::{BigIntDe, BigIntSer},
     econ::TokenAmount,
     sector::PoStProof,
     version::NetworkVersion,
 };
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error <span class="kw">as </span>EncodingError, DAG_CBOR};
-<span class="kw">use </span>fvm_shared::{address::Address, clock::ChainEpoch, crypto::signature::Signature};
+<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, crypto::signature::Signature};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -865,7 +866,7 @@
             .ok_or_else(|| Error::InvalidSignature(<span class="string">&quot;Signature is nil in header&quot;</span>.to_owned()))<span class="question-mark">?</span>;
 
         signature
-            .verify(<span class="kw-2">&amp;</span><span class="self">self</span>.to_signing_bytes(), addr)
+            .verify(<span class="kw-2">&amp;</span><span class="self">self</span>.to_signing_bytes(), <span class="kw-2">&amp;</span>addr.into())
             .map_err(|e| Error::InvalidSignature(<span class="macro">format!</span>(<span class="string">&quot;Block signature invalid: {e}&quot;</span>)))<span class="question-mark">?</span>;
 
         <span class="comment">// Set validated cache to true
@@ -977,9 +978,8 @@
     <span class="kw">use </span>std::{sync::Arc, time::Duration};
 
     <span class="kw">use </span>forest_beacon::{BeaconEntry, BeaconPoint, BeaconSchedule, MockBeacon};
-    <span class="kw">use </span>forest_shim::version::NetworkVersion;
+    <span class="kw">use </span>forest_shim::{address::Address, version::NetworkVersion};
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-    <span class="kw">use </span>fvm_shared::address::Address;
 
     <span class="kw">use crate</span>::{errors::Error, BlockHeader};
 
