@@ -222,6 +222,12 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -238,7 +244,7 @@
 <span class="kw">use </span>forest_shim::sector::SectorSize;
 <span class="kw">use </span>forest_utils::net::{https_client, hyper};
 <span class="kw">use </span>futures::TryStreamExt;
-<span class="kw">use </span>log::{debug, warn};
+<span class="kw">use </span>log::{debug, error, info, warn};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>tokio::{
     fs::{<span class="self">self</span>, File},
@@ -320,8 +326,13 @@
         .for_each(|(name, info)| {
             <span class="kw">let </span>data_dir_clone = data_dir.to_owned();
             tasks.push(tokio::task::spawn(<span class="kw">async move </span>{
-                fetch_verify_params(<span class="kw-2">&amp;</span>data_dir_clone, <span class="kw-2">&amp;</span>name, Arc::new(info)).<span class="kw">await
-            </span>}))
+                fetch_verify_params(<span class="kw-2">&amp;</span>data_dir_clone, <span class="kw-2">&amp;</span>name, Arc::new(info))
+                    .<span class="kw">await
+                    </span>.map_err(|err| {
+                        <span class="macro">error!</span>(<span class="string">&quot;Error fetching param file {name}: {err}&quot;</span>);
+                        err
+                    })
+            }))
         });
 
     <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
@@ -380,14 +391,15 @@
 
 <span class="kw">async fn </span>fetch_params(path: <span class="kw-2">&amp;</span>Path, info: <span class="kw-2">&amp;</span>ParameterData) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
     <span class="kw">let </span>gw = std::env::var(GATEWAY_ENV).unwrap_or_else(|<span class="kw">_</span>| GATEWAY.to_owned());
-    <span class="macro">debug!</span>(<span class="string">&quot;Fetching {:?} from {}&quot;</span>, path, gw);
+    <span class="macro">info!</span>(<span class="string">&quot;Fetching param file {:?} from {}&quot;</span>, path, gw);
     <span class="kw">let </span>url = <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, gw, info.cid);
-
-    retry(ExponentialBackoff::default(), || <span class="kw">async </span>{
+    <span class="kw">let </span>result = retry(ExponentialBackoff::default(), || <span class="kw">async </span>{
         <span class="prelude-val">Ok</span>(fetch_params_inner(<span class="kw-2">&amp;</span>url, path).<span class="kw">await</span><span class="question-mark">?</span>)
     })
-    .<span class="kw">await
-</span>}
+    .<span class="kw">await</span>;
+    <span class="macro">info!</span>(<span class="string">&quot;Done fetching param file {:?} from {}&quot;</span>, path, gw);
+    result
+}
 
 <span class="kw">async fn </span>fetch_params_inner(url: <span class="kw">impl </span>AsRef&lt;str&gt;, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
     <span class="kw">let </span>client = https_client();
