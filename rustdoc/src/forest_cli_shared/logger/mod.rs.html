@@ -193,7 +193,7 @@
         .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Unable to create loki layer: {e}&quot;</span>))
         .unwrap();
         loki_task = <span class="prelude-val">Some</span>(task);
-        <span class="prelude-val">Some</span>(layer.with_filter(LevelFilter::TRACE))
+        <span class="prelude-val">Some</span>(layer.with_filter(LevelFilter::DEBUG))
     } <span class="kw">else </span>{
         <span class="prelude-val">None
     </span>};
