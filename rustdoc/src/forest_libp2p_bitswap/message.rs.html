@@ -142,16 +142,18 @@
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>pb::bitswap_pb;
 <span class="kw">use </span>protobuf::{EnumOrUnknown, Message};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">use crate</span>::{prefix::Prefix, <span class="kw-2">*</span>};
 
 <span class="doccomment">/// Type of a `bitswap` request
-</span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+</span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq, Deserialize, Serialize)]
 </span><span class="kw">pub enum </span>RequestType {
     Have,
     Block,
@@ -193,7 +195,7 @@
 }
 
 <span class="doccomment">/// `Bitswap` request type
-</span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 </span><span class="kw">pub struct </span>BitswapRequest {
     <span class="kw">pub </span>ty: RequestType,
     <span class="kw">pub </span>cid: Cid,
@@ -224,7 +226,7 @@
 }
 
 <span class="doccomment">/// `Bitswap` response type
-</span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 </span><span class="kw">pub enum </span>BitswapResponse {
     Have(bool),
     Block(Vec&lt;u8&gt;),
@@ -232,7 +234,7 @@
 
 <span class="doccomment">/// `Bitswap` message enum type that is either a [BitswapRequest] or a
 /// [BitswapResponse]
-</span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 </span><span class="kw">pub enum </span>BitswapMessage {
     Request(BitswapRequest),
     Response(Cid, BitswapResponse),

@@ -249,6 +249,7 @@
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -322,6 +323,7 @@
     <span class="doccomment">/// Gets a block, writing it to the given block store that implements
     /// [BitswapStoreReadWrite] and respond to the channel. Note: this
     /// method is a non-blocking, it is intended to return immediately.
+    </span><span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
     </span><span class="kw">pub fn </span>get_block(
         <span class="self">self</span>: Arc&lt;<span class="self">Self</span>&gt;,
         store: Arc&lt;<span class="kw">impl </span>BitswapStoreReadWrite&gt;,
