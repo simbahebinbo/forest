@@ -179,12 +179,51 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>fil_actors_runtime::runtime::Policy;
+<span class="kw">use </span>fil_actors_runtime_v9::runtime::Policy;
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_shim::{address::Address, state_tree::ActorState};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
@@ -224,12 +263,23 @@
     known_cids.contains(cid)
 }
 
+<span class="kw">pub fn </span>is_v10_power_cid(cid: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
+    <span class="kw">let </span>known_cids = <span class="macro">vec!</span>[
+        <span class="comment">// calibnet v10
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzacedu3c67spbf2dmwo77ymkjel6i2o5gpzyksgu2iuwu2xvcnxgfdjg&quot;</span>).unwrap(),
+        <span class="comment">// mainnet v10
+        </span>Cid::try_from(<span class="string">&quot;bafk2bzacedfxlpyj5uxlh5uuhl55lazmhm7q6pr3qoywxb25qrytbptpy7zb6&quot;</span>).unwrap(),
+    ];
+    known_cids.contains(cid)
+}
+
 <span class="doccomment">/// Power actor state.
 </span><span class="attr">#[derive(Serialize)]
 #[serde(untagged)]
 </span><span class="kw">pub enum </span>State {
     V8(fil_actor_power_v8::State),
     V9(fil_actor_power_v9::State),
+    V10(fil_actor_power_v10::State),
 }
 
 <span class="kw">impl </span>State {
@@ -249,6 +299,12 @@
                 </span>.map(State::V9)
                 .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
         }
+        <span class="kw">if </span>is_v10_power_cid(<span class="kw-2">&amp;</span>actor.code) {
+            <span class="kw">return </span>store
+                .get_obj(<span class="kw-2">&amp;</span>actor.state)<span class="question-mark">?
+                </span>.map(State::V10)
+                .context(<span class="string">&quot;Actor state doesn&#39;t exist in store&quot;</span>);
+        }
         <span class="prelude-val">Err</span>(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Unknown power actor code {}&quot;</span>, actor.code))
     }
 
@@ -257,6 +313,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.total_quality_adj_power,
             State::V9(st) =&gt; st.total_quality_adj_power,
+            State::V10(st) =&gt; st.total_quality_adj_power,
         }
     }
 
@@ -271,6 +328,10 @@
                 raw_byte_power: st.total_raw_byte_power.clone(),
                 quality_adj_power: st.total_quality_adj_power.clone(),
             },
+            State::V10(st) =&gt; Claim {
+                raw_byte_power: st.total_raw_byte_power.clone(),
+                quality_adj_power: st.total_quality_adj_power.clone(),
+            },
         }
     }
 
@@ -279,6 +340,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.into_total_locked(),
             State::V9(st) =&gt; st.into_total_locked(),
+            State::V10(st) =&gt; st.into_total_locked(),
         }
     }
 
@@ -291,6 +353,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; <span class="prelude-val">Ok</span>(st.miner_power(<span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())<span class="question-mark">?</span>.map(From::from)),
             State::V9(st) =&gt; <span class="prelude-val">Ok</span>(st.miner_power(<span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())<span class="question-mark">?</span>.map(From::from)),
+            State::V10(st) =&gt; <span class="prelude-val">Ok</span>(st.miner_power(<span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())<span class="question-mark">?</span>.map(From::from)),
         }
     }
 
@@ -313,6 +376,10 @@
             State::V9(st) =&gt; {
                 st.miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, <span class="kw-2">&amp;</span>miner.into())
             }
+            State::V10(st) =&gt; st
+                .miner_nominal_power_meets_consensus_minimum(policy, <span class="kw-2">&amp;</span>s, miner.id()<span class="question-mark">?</span>)
+                .map(|(<span class="kw">_</span>, bool_val)| bool_val)
+                .map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{}&quot;</span>, e)),
         }
     }
 
@@ -321,6 +388,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.this_epoch_qa_power_smoothed.clone(),
             State::V9(st) =&gt; st.this_epoch_qa_power_smoothed.clone(),
+            State::V10(st) =&gt; st.this_epoch_qa_power_smoothed.clone(),
         }
     }
 
@@ -329,6 +397,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             State::V8(st) =&gt; st.total_pledge_collateral.clone(),
             State::V9(st) =&gt; st.total_pledge_collateral.clone(),
+            State::V10(st) =&gt; st.total_pledge_collateral.clone(),
         }
     }
 }
@@ -354,6 +423,15 @@
 
 <span class="kw">impl </span>From&lt;fil_actor_power_v9::Claim&gt; <span class="kw">for </span>Claim {
     <span class="kw">fn </span>from(cl: fil_actor_power_v9::Claim) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            raw_byte_power: cl.raw_byte_power,
+            quality_adj_power: cl.quality_adj_power,
+        }
+    }
+}
+
+<span class="kw">impl </span>From&lt;fil_actor_power_v10::Claim&gt; <span class="kw">for </span>Claim {
+    <span class="kw">fn </span>from(cl: fil_actor_power_v10::Claim) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             raw_byte_power: cl.raw_byte_power,
             quality_adj_power: cl.quality_adj_power,

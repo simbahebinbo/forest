@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["State","Account actor state."]],"fn":[["is_v8_account_cid",""],["is_v9_account_cid",""]],"type":[["Method","Account actor method."]]};
+window.SIDEBAR_ITEMS = {"enum":[["State","Account actor state."]],"fn":[["is_v10_account_cid",""],["is_v8_account_cid",""],["is_v9_account_cid",""]],"type":[["Method","Account actor method."]]};
