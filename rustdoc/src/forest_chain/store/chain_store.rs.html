@@ -1023,6 +1023,17 @@
 <a href="#1023" id="1023">1023</a>
 <a href="#1024" id="1024">1024</a>
 <a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1032,7 +1043,10 @@
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
-<span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
+<span class="kw">use </span>cid::{
+    multihash::{Code, Code::Blake2b256},
+    Cid,
+};
 <span class="kw">use </span>digest::Digest;
 <span class="kw">use </span>forest_actor_interface::EPOCHS_IN_DAY;
 <span class="kw">use </span>forest_beacon::{BeaconEntry, IGNORE_DRAND_VAR};
@@ -1589,7 +1603,15 @@
                     .get(<span class="kw-2">&amp;</span>cid)<span class="question-mark">?
                     </span>.ok_or_else(|| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Cid {cid} not found in blockstore&quot;</span>)))<span class="question-mark">?</span>;
 
-                tx_clone.send_async((cid, block.clone())).<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="comment">// Don&#39;t include identity CIDs.
+                // We only include raw and dagcbor, for now.
+                // Raw for &quot;code&quot; CIDs.
+                </span><span class="kw">if </span>u64::from(Code::Identity) != cid.hash().code()
+                    &amp;&amp; (cid.codec() == fvm_shared::IPLD_RAW
+                        || cid.codec() == fvm_ipld_encoding::DAG_CBOR)
+                {
+                    tx_clone.send_async((cid, block.clone())).<span class="kw">await</span><span class="question-mark">?</span>;
+                }
                 <span class="prelude-val">Ok</span>(block)
             }
         })
