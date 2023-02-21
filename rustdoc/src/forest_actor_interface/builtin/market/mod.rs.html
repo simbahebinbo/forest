@@ -220,10 +220,10 @@
 
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_shim::{address::Address, state_tree::ActorState};
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, state_tree::ActorState};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, econ::TokenAmount, piece::PaddedPieceSize};
+<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, piece::PaddedPieceSize};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>serde::Serialize;
 
@@ -335,9 +335,9 @@
     <span class="doccomment">/// Consume state to return just total funds locked
     </span><span class="kw">pub fn </span>total_locked(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; st.total_locked(),
-            State::V9(st) =&gt; st.total_locked(),
-            State::V10(st) =&gt; st.get_total_locked(),
+            State::V8(st) =&gt; st.total_locked().into(),
+            State::V9(st) =&gt; st.total_locked().into(),
+            State::V10(st) =&gt; st.get_total_locked().into(),
         }
     }
 

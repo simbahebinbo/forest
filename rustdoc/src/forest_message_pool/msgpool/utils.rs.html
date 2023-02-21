@@ -57,9 +57,9 @@
 </span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_chain::MINIMUM_BASE_FEE;
 <span class="kw">use </span>forest_message::{Message <span class="kw">as </span>MessageTrait, SignedMessage};
-<span class="kw">use </span>forest_shim::econ::TokenAmount;
+<span class="kw">use </span>forest_shim::{econ::TokenAmount, message::Message};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::{crypto::signature::Signature, message::Message};
+<span class="kw">use </span>fvm_shared::crypto::signature::Signature;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num_rational::BigRational;
 <span class="kw">use </span>num_traits::ToPrimitive;

@@ -514,6 +514,7 @@
 <a href="#514" id="514">514</a>
 <a href="#515" id="515">515</a>
 <a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -525,6 +526,7 @@
 <span class="kw">use </span>forest_json::bigint::json;
 <span class="kw">use </span>forest_shim::{
     address::Address,
+    econ::TokenAmount,
     sector::{RegisteredPoStProof, RegisteredSealProof, SectorSize},
     state_tree::ActorState,
 };
@@ -532,7 +534,7 @@
 <span class="kw">use </span>fvm_ipld_bitfield::BitField;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::BytesDe;
-<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, deal::DealID, econ::TokenAmount, sector::SectorNumber};
+<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, deal::DealID, sector::SectorNumber};
 <span class="kw">use </span>libp2p::PeerId;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
@@ -725,9 +727,9 @@
     <span class="doccomment">/// Gets fee debt of miner state
     </span><span class="kw">pub fn </span>fee_debt(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; st.fee_debt.clone(),
-            State::V9(st) =&gt; st.fee_debt.clone(),
-            State::V10(st) =&gt; st.fee_debt.clone(),
+            State::V8(st) =&gt; st.fee_debt.clone().into(),
+            State::V9(st) =&gt; st.fee_debt.clone().into(),
+            State::V10(st) =&gt; st.fee_debt.clone().into(),
         }
     }
 }
@@ -988,9 +990,9 @@
             expiration: info.expiration,
             deal_weight: info.deal_weight,
             verified_deal_weight: info.verified_deal_weight,
-            initial_pledge: info.initial_pledge,
-            expected_day_reward: info.expected_day_reward,
-            expected_storage_pledge: info.expected_storage_pledge,
+            initial_pledge: info.initial_pledge.into(),
+            expected_day_reward: info.expected_day_reward.into(),
+            expected_storage_pledge: info.expected_storage_pledge.into(),
         }
     }
 }
@@ -1006,9 +1008,9 @@
             expiration: info.expiration,
             deal_weight: info.deal_weight,
             verified_deal_weight: info.verified_deal_weight,
-            initial_pledge: info.initial_pledge,
-            expected_day_reward: info.expected_day_reward,
-            expected_storage_pledge: info.expected_storage_pledge,
+            initial_pledge: info.initial_pledge.into(),
+            expected_day_reward: info.expected_day_reward.into(),
+            expected_storage_pledge: info.expected_storage_pledge.into(),
         }
     }
 }
@@ -1024,9 +1026,9 @@
             expiration: info.expiration,
             deal_weight: info.deal_weight,
             verified_deal_weight: info.verified_deal_weight,
-            initial_pledge: info.initial_pledge,
-            expected_day_reward: info.expected_day_reward,
-            expected_storage_pledge: info.expected_storage_pledge,
+            initial_pledge: info.initial_pledge.into(),
+            expected_day_reward: info.expected_day_reward.into(),
+            expected_storage_pledge: info.expected_storage_pledge.into(),
         }
     }
 }

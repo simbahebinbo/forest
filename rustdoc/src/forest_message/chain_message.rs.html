@@ -129,6 +129,7 @@
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -136,7 +137,8 @@
 
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, message::Message};
-<span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error, RawBytes};
+<span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error};
+<span class="kw">use </span>fvm_ipld_encoding3::RawBytes;
 <span class="kw">use </span>fvm_shared::MethodNum;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
@@ -195,25 +197,25 @@
     <span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBytes {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.params(),
-            <span class="self">Self</span>::Unsigned(t) =&gt; <span class="kw-2">&amp;</span>t.params,
+            <span class="self">Self</span>::Unsigned(t) =&gt; t.params(),
         }
     }
     <span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.gas_limit(),
-            <span class="self">Self</span>::Unsigned(t) =&gt; t.gas_limit,
+            <span class="self">Self</span>::Unsigned(t) =&gt; t.gas_limit(),
         }
     }
     <span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token_amount: i64) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.set_gas_limit(token_amount),
-            <span class="self">Self</span>::Unsigned(t) =&gt; t.gas_limit = token_amount,
+            <span class="self">Self</span>::Unsigned(t) =&gt; t.set_gas_limit(token_amount),
         }
     }
     <span class="kw">fn </span>set_sequence(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_sequence: u64) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.set_sequence(new_sequence),
-            <span class="self">Self</span>::Unsigned(t) =&gt; t.sequence = new_sequence,
+            <span class="self">Self</span>::Unsigned(t) =&gt; t.set_sequence(new_sequence),
         }
     }
     <span class="kw">fn </span>required_funds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
@@ -238,14 +240,14 @@
     <span class="kw">fn </span>set_gas_fee_cap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cap: TokenAmount) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.set_gas_fee_cap(cap),
-            <span class="self">Self</span>::Unsigned(t) =&gt; t.gas_fee_cap = cap.into(),
+            <span class="self">Self</span>::Unsigned(t) =&gt; t.set_gas_fee_cap(cap),
         }
     }
 
     <span class="kw">fn </span>set_gas_premium(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prem: TokenAmount) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Signed(t) =&gt; t.set_gas_premium(prem),
-            <span class="self">Self</span>::Unsigned(t) =&gt; t.gas_premium = prem.into(),
+            <span class="self">Self</span>::Unsigned(t) =&gt; t.set_gas_premium(prem),
         }
     }
 }

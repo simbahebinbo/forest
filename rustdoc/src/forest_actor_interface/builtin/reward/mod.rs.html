@@ -90,16 +90,14 @@
 <a href="#90" id="90">90</a>
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_shim::{address::Address, state_tree::ActorState};
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, state_tree::ActorState};
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::econ::TokenAmount;
 <span class="kw">use </span>serde::Serialize;
 
 <span class="doccomment">/// Reward actor address.
@@ -178,9 +176,9 @@
     <span class="doccomment">/// Consume state to return just storage power reward
     </span><span class="kw">pub fn </span>into_total_storage_power_reward(<span class="self">self</span>) -&gt; TokenAmount {
         <span class="kw">match </span><span class="self">self </span>{
-            State::V8(st) =&gt; st.into_total_storage_power_reward(),
-            State::V9(st) =&gt; st.into_total_storage_power_reward(),
-            State::V10(st) =&gt; st.into_total_storage_power_reward(),
+            State::V8(st) =&gt; st.into_total_storage_power_reward().into(),
+            State::V9(st) =&gt; st.into_total_storage_power_reward().into(),
+            State::V10(st) =&gt; st.into_total_storage_power_reward().into(),
         }
     }
 }

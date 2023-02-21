@@ -139,12 +139,12 @@
 <span class="kw">use </span>forest_shim::{
     address::Address,
     econ::TokenAmount,
+    message::Message,
     state_tree::{ActorState, StateTree},
 };
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>tokio::sync::broadcast::{Receiver <span class="kw">as </span>Subscriber, Sender <span class="kw">as </span>Publisher};
 
 <span class="kw">use </span><span class="kw">crate</span>::errors::Error;

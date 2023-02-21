@@ -356,7 +356,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::resolve_to_key_addr;
 
-<span class="kw">pub struct </span>ForestExterns&lt;DB&gt; {
+<span class="kw">pub struct </span>ForestExternsV2&lt;DB&gt; {
     rand: Box&lt;<span class="kw">dyn </span>Rand&gt;,
     epoch: ChainEpoch,
     root: Cid,
@@ -365,7 +365,7 @@
     chain_config: Arc&lt;ChainConfig&gt;,
 }
 
-<span class="kw">impl</span>&lt;DB: Blockstore&gt; ForestExterns&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB: Blockstore&gt; ForestExternsV2&lt;DB&gt; {
     <span class="kw">pub fn </span>new(
         rand: <span class="kw">impl </span>Rand + <span class="lifetime">&#39;static</span>,
         epoch: ChainEpoch,
@@ -374,7 +374,7 @@
         db: DB,
         chain_config: Arc&lt;ChainConfig&gt;,
     ) -&gt; <span class="self">Self </span>{
-        ForestExterns {
+        ForestExternsV2 {
             rand: Box::new(rand),
             epoch,
             root,
@@ -430,9 +430,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;DB: Blockstore&gt; Externs <span class="kw">for </span>ForestExterns&lt;DB&gt; {}
+<span class="kw">impl</span>&lt;DB: Blockstore&gt; Externs <span class="kw">for </span>ForestExternsV2&lt;DB&gt; {}
 
-<span class="kw">impl</span>&lt;DB&gt; Rand <span class="kw">for </span>ForestExterns&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB&gt; Rand <span class="kw">for </span>ForestExternsV2&lt;DB&gt; {
     <span class="kw">fn </span>get_chain_randomness(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         pers: i64,
@@ -452,7 +452,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;DB: Blockstore&gt; Consensus <span class="kw">for </span>ForestExterns&lt;DB&gt; {
+<span class="kw">impl</span>&lt;DB: Blockstore&gt; Consensus <span class="kw">for </span>ForestExternsV2&lt;DB&gt; {
     <span class="comment">// See https://github.com/filecoin-project/lotus/blob/v1.18.0/chain/vm/fvm.go#L102-L216 for reference implementation
     </span><span class="kw">fn </span>verify_consensus_fault(
         <span class="kw-2">&amp;</span><span class="self">self</span>,

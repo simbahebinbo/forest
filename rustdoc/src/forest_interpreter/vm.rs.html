@@ -375,6 +375,96 @@
 <a href="#375" id="375">375</a>
 <a href="#376" id="376">376</a>
 <a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -385,30 +475,52 @@
 <span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
 <span class="kw">use </span>forest_message::ChainMessage;
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_shim::{error::ExitCode, Inner};
+<span class="kw">use </span>forest_shim::{
+    address::Address,
+    econ::TokenAmount,
+    error::ExitCode,
+    executor::{ApplyRet, Receipt},
+    message::{Message, Message_v3},
+    state_tree::ActorState,
+    version::NetworkVersion,
+    Inner,
+};
 <span class="kw">use </span>fvm::{
-    executor::{ApplyRet, DefaultExecutor},
+    executor::{DefaultExecutor, Executor},
     externs::Rand,
-    machine::{DefaultMachine, Machine, MultiEngine, NetworkConfig},
+    machine::{DefaultMachine, Machine, MultiEngine <span class="kw">as </span>MultiEngine_v2, NetworkConfig},
+};
+<span class="kw">use </span>fvm3::{
+    engine::MultiEngine <span class="kw">as </span>MultiEngine_v3,
+    executor::{DefaultExecutor <span class="kw">as </span>DefaultExecutor_v3, Executor <span class="kw">as </span>Executor_v3},
+    externs::Rand <span class="kw">as </span>Rand_v3,
+    machine::{
+        DefaultMachine <span class="kw">as </span>DefaultMachine_v3, Machine <span class="kw">as </span>Machine_v3,
+        NetworkConfig <span class="kw">as </span>NetworkConfig_v3,
+    },
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
-<span class="kw">use </span>fvm_shared::{
-    address::Address, clock::ChainEpoch, econ::TokenAmount, message::Message, receipt::Receipt,
-    BLOCK_GAS_LIMIT, METHOD_SEND,
-};
+<span class="kw">use </span>fvm_ipld_encoding::Cbor;
+<span class="kw">use </span>fvm_ipld_encoding3::RawBytes;
+<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, BLOCK_GAS_LIMIT, METHOD_SEND};
 <span class="kw">use </span>num::Zero;
 
-<span class="kw">use </span><span class="kw">crate</span>::fvm::ForestExterns;
+<span class="kw">use crate</span>::{fvm::ForestExternsV2, fvm3::ForestExterns <span class="kw">as </span>ForestExterns_v3};
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ForestMachine&lt;DB&gt; = DefaultMachine&lt;DB, ForestExterns&lt;DB&gt;&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ForestMachine&lt;DB&gt; = DefaultMachine&lt;DB, ForestExternsV2&lt;DB&gt;&gt;;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ForestMachineV3&lt;DB&gt; = DefaultMachine_v3&lt;DB, ForestExterns_v3&lt;DB&gt;&gt;;
 
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;instrumented_kernel&quot;</span>))]
 </span><span class="kw">type </span>ForestKernel&lt;DB&gt; =
     fvm::DefaultKernel&lt;fvm::call_manager::DefaultCallManager&lt;ForestMachine&lt;DB&gt;&gt;&gt;;
 
+<span class="kw">type </span>ForestKernelV3&lt;DB&gt; =
+    fvm3::DefaultKernel&lt;fvm3::call_manager::DefaultCallManager&lt;ForestMachineV3&lt;DB&gt;&gt;&gt;;
+
 <span class="attr">#[cfg(not(feature = <span class="string">&quot;instrumented_kernel&quot;</span>))]
 </span><span class="kw">type </span>ForestExecutor&lt;DB&gt; = DefaultExecutor&lt;ForestKernel&lt;DB&gt;&gt;;
+
+<span class="kw">type </span>ForestExecutorV3&lt;DB&gt; = DefaultExecutor_v3&lt;ForestKernelV3&lt;DB&gt;&gt;;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;instrumented_kernel&quot;</span>)]
 </span><span class="kw">type </span>ForestExecutor&lt;DB&gt; = DefaultExecutor&lt;<span class="kw">crate</span>::instrumented_kernel::ForestInstrumentedKernel&lt;DB&gt;&gt;;
@@ -440,9 +552,15 @@
 
 <span class="doccomment">/// Interpreter which handles execution of state transitioning messages and
 /// returns receipts from the VM execution.
-</span><span class="kw">pub struct </span>VM&lt;DB: Blockstore + <span class="lifetime">&#39;static</span>&gt; {
-    fvm_executor: ForestExecutor&lt;DB&gt;,
-    reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
+</span><span class="kw">pub enum </span>VM&lt;DB: Blockstore + <span class="lifetime">&#39;static</span>&gt; {
+    VM2 {
+        fvm_executor: ForestExecutor&lt;DB&gt;,
+        reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
+    },
+    VM3 {
+        fvm_executor: ForestExecutorV3&lt;DB&gt;,
+        reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
+    },
 }
 
 <span class="kw">impl</span>&lt;DB&gt; VM&lt;DB&gt;
@@ -454,45 +572,81 @@
         root: Cid,
         store: DB,
         epoch: ChainEpoch,
-        rand: <span class="kw">impl </span>Rand + <span class="lifetime">&#39;static</span>,
+        rand: <span class="kw">impl </span>Rand + Rand_v3 + <span class="lifetime">&#39;static</span>,
         base_fee: TokenAmount,
         circ_supply: TokenAmount,
         reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
         lb_fn: Box&lt;<span class="kw">dyn </span>Fn(ChainEpoch) -&gt; anyhow::Result&lt;Cid&gt;&gt;,
-        multi_engine: <span class="kw-2">&amp;</span>MultiEngine,
+        multi_engine_v2: <span class="kw-2">&amp;</span>MultiEngine_v2,
+        multi_engine_v3: <span class="kw-2">&amp;</span>MultiEngine_v3,
         chain_config: Arc&lt;ChainConfig&gt;,
+        timestamp: u64,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, anyhow::Error&gt; {
         <span class="kw">let </span>network_version = chain_config.network_version(epoch);
-        <span class="kw">let </span>config = NetworkConfig::new(network_version.into());
-        <span class="kw">let </span>engine = multi_engine.get(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>context = config.for_epoch(epoch, root);
-        context.set_base_fee(base_fee);
-        context.set_circulating_supply(circ_supply);
-        <span class="kw">let </span>fvm: fvm::machine::DefaultMachine&lt;DB, ForestExterns&lt;DB&gt;&gt; =
-            fvm::machine::DefaultMachine::new(
-                <span class="kw-2">&amp;</span>engine,
-                <span class="kw-2">&amp;</span>context,
-                store.clone(),
-                ForestExterns::new(rand, epoch, root, lb_fn, store, chain_config),
-            )<span class="question-mark">?</span>;
-        <span class="kw">let </span>exec: ForestExecutor&lt;DB&gt; = DefaultExecutor::new(fvm);
-        <span class="prelude-val">Ok</span>(VM {
-            fvm_executor: exec,
-            reward_calc,
-        })
+        <span class="kw">if </span>network_version &gt;= NetworkVersion::V18 {
+            <span class="kw">let </span>config = NetworkConfig_v3::new(network_version.into());
+            <span class="kw">let </span>engine = multi_engine_v3.get(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>context = config.for_epoch(epoch, timestamp, root);
+            context.set_base_fee(base_fee.into());
+            context.set_circulating_supply(circ_supply.into());
+            <span class="kw">let </span>fvm: fvm3::machine::DefaultMachine&lt;DB, ForestExterns_v3&lt;DB&gt;&gt; =
+                fvm3::machine::DefaultMachine::new(
+                    <span class="kw-2">&amp;</span>context,
+                    store.clone(),
+                    ForestExterns_v3::new(rand, epoch, root, lb_fn, store, chain_config),
+                )<span class="question-mark">?</span>;
+            <span class="kw">let </span>exec: ForestExecutorV3&lt;DB&gt; = DefaultExecutor_v3::new(engine, fvm)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(VM::VM3 {
+                fvm_executor: exec,
+                reward_calc,
+            })
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>config = NetworkConfig::new(network_version.into());
+            <span class="kw">let </span>engine = multi_engine_v2.get(<span class="kw-2">&amp;</span>config)<span class="question-mark">?</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>context = config.for_epoch(epoch, root);
+            context.set_base_fee(base_fee.into());
+            context.set_circulating_supply(circ_supply.into());
+            <span class="kw">let </span>fvm: fvm::machine::DefaultMachine&lt;DB, ForestExternsV2&lt;DB&gt;&gt; =
+                fvm::machine::DefaultMachine::new(
+                    <span class="kw-2">&amp;</span>engine,
+                    <span class="kw-2">&amp;</span>context,
+                    store.clone(),
+                    ForestExternsV2::new(rand, epoch, root, lb_fn, store, chain_config),
+                )<span class="question-mark">?</span>;
+            <span class="kw">let </span>exec: ForestExecutor&lt;DB&gt; = DefaultExecutor::new(fvm);
+            <span class="prelude-val">Ok</span>(VM::VM2 {
+                fvm_executor: exec,
+                reward_calc,
+            })
+        }
     }
 
     <span class="doccomment">/// Flush stores in VM and return state root.
     </span><span class="kw">pub fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;Cid&gt; {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.fvm_executor.flush()<span class="question-mark">?</span>)
+        <span class="kw">match </span><span class="self">self </span>{
+            VM::VM2 { fvm_executor, .. } =&gt; <span class="prelude-val">Ok</span>(fvm_executor.flush()<span class="question-mark">?</span>),
+            VM::VM3 { fvm_executor, .. } =&gt; <span class="prelude-val">Ok</span>(fvm_executor.flush()<span class="question-mark">?</span>),
+        }
     }
 
     <span class="doccomment">/// Get actor state from an address. Will be resolved to ID address.
-    </span><span class="kw">pub fn </span>get_actor(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        addr: <span class="kw-2">&amp;</span>Address,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;fvm::state_tree::ActorState&gt;, anyhow::Error&gt; {
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.fvm_executor.state_tree().get_actor(addr)<span class="question-mark">?</span>)
+    </span><span class="kw">pub fn </span>get_actor(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;ActorState&gt;, anyhow::Error&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            VM::VM2 { fvm_executor, .. } =&gt; <span class="prelude-val">Ok</span>(fvm_executor
+                .state_tree()
+                .get_actor(<span class="kw-2">&amp;</span>addr.into())<span class="question-mark">?
+                </span>.map(ActorState::from)),
+            VM::VM3 { fvm_executor, .. } =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(id) = fvm_executor.state_tree().lookup_id(<span class="kw-2">&amp;</span>addr.into())<span class="question-mark">? </span>{
+                    <span class="prelude-val">Ok</span>(fvm_executor
+                        .state_tree()
+                        .get_actor(id)<span class="question-mark">?
+                        </span>.map(ActorState::from))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+                }
+            }
+        }
     }
 
     <span class="kw">pub fn </span>run_cron(
@@ -502,23 +656,24 @@
             <span class="kw-2">&amp;mut </span><span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;,
         &gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
-        <span class="kw">let </span>cron_msg = Message {
-            from: system::ADDRESS,
-            to: cron::ADDRESS,
+        <span class="kw">let </span>cron_msg: Message = Message_v3 {
+            from: system::ADDRESS.into(),
+            to: cron::ADDRESS.into(),
             <span class="comment">// Epoch as sequence is intentional
             </span>sequence: epoch <span class="kw">as </span>u64,
             <span class="comment">// Arbitrarily large gas limit for cron (matching Lotus value)
-            </span>gas_limit: BLOCK_GAS_LIMIT * <span class="number">10000</span>,
+            </span>gas_limit: BLOCK_GAS_LIMIT <span class="kw">as </span>u64 * <span class="number">10000</span>,
             method_num: cron::Method::EpochTick <span class="kw">as </span>u64,
             params: Default::default(),
             value: Default::default(),
             version: Default::default(),
             gas_fee_cap: Default::default(),
             gas_premium: Default::default(),
-        };
+        }
+        .into();
 
         <span class="kw">let </span>ret = <span class="self">self</span>.apply_implicit_message(<span class="kw-2">&amp;</span>cron_msg)<span class="question-mark">?</span>;
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = ret.failure_info {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = ret.failure_info() {
             <span class="macro">anyhow::bail!</span>(<span class="string">&quot;failed to apply block cron message: {}&quot;</span>, err);
         }
 
@@ -558,9 +713,9 @@
                 }
 
                 <span class="comment">// Update totals
-                </span>gas_reward += <span class="kw-2">&amp;</span>ret.miner_tip;
-                penalty += <span class="kw-2">&amp;</span>ret.penalty;
-                receipts.push(ret.msg_receipt);
+                </span>gas_reward += ret.miner_tip();
+                penalty += ret.penalty();
+                receipts.push(ret.msg_receipt());
 
                 <span class="comment">// Add processed Cid to set of processed messages
                 </span>processed.insert(cid);
@@ -572,15 +727,11 @@
             }
 
             <span class="comment">// Generate reward transaction for the miner of the block
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(rew_msg) = <span class="self">self</span>.reward_calc.reward_message(
-                epoch,
-                block.miner,
-                block.win_count,
-                penalty,
-                gas_reward,
-            )<span class="question-mark">? </span>{
+            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(rew_msg) =
+                <span class="self">self</span>.reward_message(epoch, block.miner, block.win_count, penalty, gas_reward)<span class="question-mark">?
+            </span>{
                 <span class="kw">let </span>ret = <span class="self">self</span>.apply_implicit_message(<span class="kw-2">&amp;</span>rew_msg)<span class="question-mark">?</span>;
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = ret.failure_info {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = ret.failure_info() {
                     <span class="macro">anyhow::bail!</span>(
                         <span class="string">&quot;failed to apply reward message for miner {}: {}&quot;</span>,
                         block.miner,
@@ -588,10 +739,10 @@
                     );
                 }
                 <span class="comment">// This is more of a sanity check, this should not be able to be hit.
-                </span><span class="kw">if </span>!ret.msg_receipt.exit_code.is_success() {
+                </span><span class="kw">if </span>!ret.msg_receipt().exit_code().is_success() {
                     <span class="macro">anyhow::bail!</span>(
                         <span class="string">&quot;reward application message failed (exit: {:?})&quot;</span>,
-                        ret.msg_receipt.exit_code
+                        ret.msg_receipt().exit_code()
                     );
                 }
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(callback) = <span class="kw-2">&amp;mut </span>callback {
@@ -608,33 +759,56 @@
 
     <span class="doccomment">/// Applies single message through VM and returns result from execution.
     </span><span class="kw">pub fn </span>apply_implicit_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>Message) -&gt; <span class="prelude-ty">Result</span>&lt;ApplyRet, anyhow::Error&gt; {
-        <span class="kw">use </span>fvm::executor::Executor;
         <span class="comment">// raw_length is not used for Implicit messages.
         </span><span class="kw">let </span>raw_length = msg.marshal_cbor().expect(<span class="string">&quot;encoding error&quot;</span>).len();
-        <span class="kw">let </span>ret = <span class="self">self</span>.fvm_executor.execute_message(
-            msg.clone(),
-            fvm::executor::ApplyKind::Implicit,
-            raw_length,
-        )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(ret)
+
+        <span class="kw">match </span><span class="self">self </span>{
+            VM::VM2 { fvm_executor, .. } =&gt; {
+                <span class="kw">let </span>ret = fvm_executor.execute_message(
+                    msg.into(),
+                    fvm::executor::ApplyKind::Implicit,
+                    raw_length,
+                )<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(ret.into())
+            }
+            VM::VM3 { fvm_executor, .. } =&gt; {
+                <span class="kw">let </span>ret = fvm_executor.execute_message(
+                    msg.into(),
+                    fvm3::executor::ApplyKind::Implicit,
+                    raw_length,
+                )<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(ret.into())
+            }
+        }
     }
 
     <span class="doccomment">/// Applies the state transition for a single message.
     /// Returns `ApplyRet` structure which contains the message receipt and some
     /// meta data.
     </span><span class="kw">pub fn </span>apply_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, msg: <span class="kw-2">&amp;</span>ChainMessage) -&gt; <span class="prelude-ty">Result</span>&lt;ApplyRet, anyhow::Error&gt; {
-        check_message(msg.message())<span class="question-mark">?</span>;
+        <span class="comment">// Basic validity check
+        </span>msg.message().check()<span class="question-mark">?</span>;
 
-        <span class="kw">use </span>fvm::executor::Executor;
         <span class="kw">let </span>unsigned = msg.message().clone();
         <span class="kw">let </span>raw_length = msg.marshal_cbor().expect(<span class="string">&quot;encoding error&quot;</span>).len();
-        <span class="kw">let </span>ret = <span class="self">self</span>.fvm_executor.execute_message(
-            unsigned,
-            fvm::executor::ApplyKind::Explicit,
-            raw_length,
-        )<span class="question-mark">?</span>;
+        <span class="kw">let </span>ret: ApplyRet = <span class="kw">match </span><span class="self">self </span>{
+            VM::VM2 { fvm_executor, .. } =&gt; fvm_executor
+                .execute_message(
+                    unsigned.into(),
+                    fvm::executor::ApplyKind::Explicit,
+                    raw_length,
+                )<span class="question-mark">?
+                </span>.into(),
+            VM::VM3 { fvm_executor, .. } =&gt; fvm_executor
+                .execute_message(
+                    unsigned.into(),
+                    fvm3::executor::ApplyKind::Explicit,
+                    raw_length,
+                )<span class="question-mark">?
+                </span>.into(),
+        };
 
-        <span class="kw">let </span>exit_code = ret.msg_receipt.exit_code;
+        <span class="kw">let </span>exit_code = ret.msg_receipt().exit_code();
 
         <span class="kw">if </span>!exit_code.is_success() {
             <span class="kw">match </span>exit_code.value() {
@@ -652,18 +826,24 @@
 
         <span class="prelude-val">Ok</span>(ret)
     }
-}
 
-<span class="doccomment">/// Does some basic checks on the Message to see if the fields are valid.
-</span><span class="kw">fn </span>check_message(msg: <span class="kw-2">&amp;</span>Message) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
-    <span class="kw">if </span>msg.gas_limit == <span class="number">0 </span>{
-        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Message has no gas limit set&quot;</span>);
+    <span class="kw">fn </span>reward_message(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        epoch: ChainEpoch,
+        miner: Address,
+        win_count: i64,
+        penalty: TokenAmount,
+        gas_reward: TokenAmount,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            VM::VM2 { reward_calc, .. } =&gt; {
+                reward_calc.reward_message(epoch, miner, win_count, penalty, gas_reward)
+            }
+            VM::VM3 { reward_calc, .. } =&gt; {
+                reward_calc.reward_message(epoch, miner, win_count, penalty, gas_reward)
+            }
+        }
     }
-    <span class="kw">if </span>msg.gas_limit &lt; <span class="number">0 </span>{
-        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Message has negative gas limit&quot;</span>);
-    }
-
-    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="doccomment">/// Default reward working with the Filecoin Reward Actor.
@@ -679,14 +859,14 @@
         gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
         <span class="kw">let </span>params = RawBytes::serialize(AwardBlockRewardParams {
-            miner,
-            penalty,
-            gas_reward,
+            miner: miner.into(),
+            penalty: penalty.into(),
+            gas_reward: gas_reward.into(),
             win_count,
         })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>rew_msg = Message {
-            from: system::ADDRESS,
+        <span class="kw">let </span>rew_msg = Message_v3 {
+            from: system::ADDRESS.into(),
             to: reward::ADDRESS.into(),
             method_num: reward::Method::AwardBlockReward <span class="kw">as </span>u64,
             params,
@@ -699,7 +879,7 @@
             gas_premium: Default::default(),
         };
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(rew_msg))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(rew_msg.into()))
     }
 }
 
@@ -735,21 +915,21 @@
         _penalty: TokenAmount,
         gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
-        <span class="kw">let </span>msg = Message {
+        <span class="kw">let </span>msg = Message_v3 {
             from: reward::ADDRESS.into(),
-            to: miner,
+            to: miner.into(),
             method_num: METHOD_SEND,
             params: Default::default(),
             <span class="comment">// Epoch as sequence is intentional
             </span>sequence: epoch <span class="kw">as </span>u64,
             gas_limit: <span class="number">1 </span>&lt;&lt; <span class="number">30</span>,
-            value: gas_reward + <span class="self">self</span>.reward.clone(),
+            value: (gas_reward + <span class="kw-2">&amp;</span><span class="self">self</span>.reward).into(),
             version: Default::default(),
             gas_fee_cap: Default::default(),
             gas_premium: Default::default(),
         };
 
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(msg))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(msg.into()))
     }
 }
 </code></pre></div>

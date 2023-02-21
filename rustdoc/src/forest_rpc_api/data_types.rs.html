@@ -141,9 +141,9 @@
 <span class="kw">use </span>forest_libp2p::{Multihash, NetworkMessage};
 <span class="kw">use </span>forest_message::signed_message::SignedMessage;
 <span class="kw">use </span>forest_message_pool::{MessagePool, MpoolRpcProvider};
+<span class="kw">use </span>forest_shim::{econ::TokenAmount, message::Message};
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{econ::TokenAmount, message::Message};
 <span class="kw">use </span>jsonrpc_v2::{MapRouter <span class="kw">as </span>JsonRpcMapRouter, Server <span class="kw">as </span>JsonRpcServer};
 <span class="kw">use </span>parking_lot::RwLock <span class="kw">as </span>SyncRwLock;
 <span class="kw">use </span>serde::{Deserialize, Serialize};

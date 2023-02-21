@@ -60,6 +60,9 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -115,9 +118,12 @@
             ..Default::default()
         };
 
-        mpool_push_message((MessageJson(message), <span class="prelude-val">None</span>), <span class="kw-2">&amp;</span>config.client.rpc_token)
-            .<span class="kw">await
-            </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
+        mpool_push_message(
+            (MessageJson(message.into()), <span class="prelude-val">None</span>),
+            <span class="kw-2">&amp;</span>config.client.rpc_token,
+        )
+        .<span class="kw">await
+        </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(())
     }

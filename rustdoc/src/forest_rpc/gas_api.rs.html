@@ -257,6 +257,7 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -266,13 +267,14 @@
 <span class="kw">use </span>forest_chain::{BASE_FEE_MAX_CHANGE_DENOM, BLOCK_GAS_TARGET, MINIMUM_BASE_FEE};
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::{address::json::AddressJson, message::json::MessageJson};
-<span class="kw">use </span>forest_message::ChainMessage;
+<span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_rpc_api::{
     data_types::{MessageSendSpec, RPCState},
     gas_api::<span class="kw-2">*</span>,
 };
+<span class="kw">use </span>forest_shim::{econ::TokenAmount, message::Message};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{econ::TokenAmount, message::Message, BLOCK_GAS_LIMIT};
+<span class="kw">use </span>fvm_shared::BLOCK_GAS_LIMIT;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>num_traits::{FromPrimitive, Zero};
@@ -314,8 +316,8 @@
         * BigInt::from_f64(increase_factor * (<span class="number">1 </span>&lt;&lt; <span class="number">8</span>) <span class="kw">as </span>f64)
             .ok_or(<span class="string">&quot;failed to convert fee_in_future f64 to bigint&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>out: forest_shim::econ::TokenAmount = fee_in_future.div_floor(<span class="number">1 </span>&lt;&lt; <span class="number">8</span>);
-    out += msg.gas_premium.into();
-    <span class="prelude-val">Ok</span>(out.into())
+    out += msg.gas_premium();
+    <span class="prelude-val">Ok</span>(out)
 }
 
 <span class="doccomment">/// Estimate the fee cap
@@ -370,8 +372,8 @@
             <span class="kw-2">&amp;mut </span>msgs
                 .iter()
                 .map(|msg| GasMeta {
-                    price: msg.message().gas_premium.clone(),
-                    limit: msg.message().gas_limit,
+                    price: msg.message().gas_premium(),
+                    limit: msg.message().gas_limit(),
                 })
                 .collect(),
         );
@@ -442,9 +444,9 @@
     B: Beacon,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>msg = msg;
-    msg.gas_limit = BLOCK_GAS_LIMIT;
-    msg.gas_fee_cap = TokenAmount::from_atto(MINIMUM_BASE_FEE + <span class="number">1</span>);
-    msg.gas_premium = TokenAmount::from_atto(<span class="number">1</span>);
+    msg.set_gas_limit(BLOCK_GAS_LIMIT);
+    msg.set_gas_fee_cap(TokenAmount::from_atto(MINIMUM_BASE_FEE + <span class="number">1</span>));
+    msg.set_gas_premium(TokenAmount::from_atto(<span class="number">1</span>));
 
     <span class="kw">let </span>curr_ts = data.state_manager.chain_store().heaviest_tipset();
     <span class="kw">let </span>from_a = data
@@ -464,12 +466,12 @@
         .<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">match </span>res.msg_rct {
         <span class="prelude-val">Some</span>(rct) =&gt; {
-            <span class="kw">if </span>rct.exit_code.value() != <span class="number">0 </span>{
+            <span class="kw">if </span>rct.exit_code().value() != <span class="number">0 </span>{
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(-<span class="number">1</span>);
             }
             <span class="comment">// TODO: Figure out why we always under estimate the gas calculation so we dont
             // need to add 200000 https://github.com/ChainSafe/forest/issues/901
-            </span><span class="prelude-val">Ok</span>(rct.gas_used + <span class="number">200000</span>)
+            </span><span class="prelude-val">Ok</span>(rct.gas_used() <span class="kw">as </span>i64 + <span class="number">200000</span>)
         }
         <span class="prelude-val">None </span>=&gt; <span class="prelude-val">Ok</span>(-<span class="number">1</span>),
     }
@@ -503,15 +505,15 @@
     <span class="kw">let </span><span class="kw-2">mut </span>msg = msg;
     <span class="kw">if </span>msg.gas_limit == <span class="number">0 </span>{
         <span class="kw">let </span>gl = estimate_gas_limit::&lt;DB, B&gt;(data, msg.clone(), tsk.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
-        msg.gas_limit = gl;
+        msg.set_gas_limit(gl);
     }
     <span class="kw">if </span>msg.gas_premium.is_zero() {
         <span class="kw">let </span>gp = estimate_gas_premium(data, <span class="number">10</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-        msg.gas_premium = gp;
+        msg.set_gas_premium(gp);
     }
     <span class="kw">if </span>msg.gas_fee_cap.is_zero() {
         <span class="kw">let </span>gfp = estimate_fee_cap(data, msg.clone(), <span class="number">20</span>, tsk)<span class="question-mark">?</span>;
-        msg.gas_fee_cap = gfp;
+        msg.set_gas_fee_cap(gfp);
     }
     <span class="comment">// TODO: Cap Gas Fee https://github.com/ChainSafe/forest/issues/901
     </span><span class="prelude-val">Ok</span>(msg)

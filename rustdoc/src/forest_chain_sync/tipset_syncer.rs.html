@@ -1715,7 +1715,7 @@
 <span class="kw">use </span>forest_libp2p::chain_exchange::TipsetBundle;
 <span class="kw">use </span>forest_message::{message::valid_for_block_inclusion, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::Height;
-<span class="kw">use </span>forest_shim::state_tree::StateTree;
+<span class="kw">use </span>forest_shim::{address::Address, message::Message, state_tree::StateTree};
 <span class="kw">use </span>forest_state_manager::{Error <span class="kw">as </span>StateManagerError, StateManager};
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>futures::{stream::FuturesUnordered, Stream, StreamExt, TryFutureExt};
@@ -1723,8 +1723,8 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::{
-    address::Address, clock::ChainEpoch, crypto::signature::ops::verify_bls_aggregate,
-    message::Message, ALLOWABLE_CLOCK_DRIFT, BLOCK_GAS_LIMIT,
+    clock::ChainEpoch, crypto::signature::ops::verify_bls_aggregate, ALLOWABLE_CLOCK_DRIFT,
+    BLOCK_GAS_LIMIT,
 };
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>nonempty::NonEmpty;
@@ -3183,13 +3183,13 @@
         valid_for_block_inclusion(msg, min_gas.total(), network_version)
             .map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{}&quot;</span>, e))<span class="question-mark">?</span>;
         sum_gas_limit += msg.gas_limit;
-        <span class="kw">if </span>sum_gas_limit &gt; BLOCK_GAS_LIMIT {
+        <span class="kw">if </span>sum_gas_limit &gt; BLOCK_GAS_LIMIT <span class="kw">as </span>u64 {
             <span class="macro">anyhow::bail!</span>(<span class="string">&quot;block gas limit exceeded&quot;</span>);
         }
 
         <span class="comment">// Phase 2: (Partial) Semantic validation
         // Send exists and is an account actor, and sequence is correct
-        </span><span class="kw">let </span>sequence: u64 = <span class="kw">match </span>account_sequences.get(<span class="kw-2">&amp;</span>msg.from) {
+        </span><span class="kw">let </span>sequence: u64 = <span class="kw">match </span>account_sequences.get(<span class="kw-2">&amp;</span>msg.from()) {
             <span class="prelude-val">Some</span>(sequence) =&gt; <span class="kw-2">*</span>sequence,
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let </span>actor = tree.get_actor(<span class="kw-2">&amp;</span>msg.from.into())<span class="question-mark">?</span>.ok_or_else(|| {
@@ -3212,7 +3212,7 @@
                 msg.sequence
             );
         }
-        account_sequences.insert(msg.from, sequence + <span class="number">1</span>);
+        account_sequences.insert(msg.from(), sequence + <span class="number">1</span>);
         <span class="prelude-val">Ok</span>(())
     };
 

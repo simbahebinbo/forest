@@ -154,15 +154,20 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>fvm_shared::receipt::Receipt;
+</span><span class="kw">use </span>forest_shim::executor::{Receipt, Receipt_v3};
 
 <span class="kw">pub mod </span>json {
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>forest_shim::error::ExitCode;
-    <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
+    <span class="kw">use </span>fvm_ipld_encoding3::RawBytes;
     <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -195,7 +200,7 @@
         exit_code: u64,
         <span class="attr">#[serde(rename = <span class="string">&quot;Return&quot;</span>)]
         </span>return_data: String,
-        gas_used: i64,
+        gas_used: u64,
     }
 
     <span class="kw">pub fn </span>serialize&lt;S&gt;(m: <span class="kw-2">&amp;</span>Receipt, serializer: S) -&gt; <span class="prelude-ty">Result</span>&lt;S::Ok, S::Error&gt;
@@ -203,9 +208,9 @@
         </span>S: Serializer,
     {
         JsonHelper {
-            exit_code: m.exit_code.value() <span class="kw">as </span>u64,
-            return_data: BASE64_STANDARD.encode(m.return_data.bytes()),
-            gas_used: m.gas_used,
+            exit_code: m.exit_code().value() <span class="kw">as </span>u64,
+            return_data: BASE64_STANDARD.encode(m.return_data().bytes()),
+            gas_used: m.gas_used(),
         }
         .serialize(serializer)
     }
@@ -219,7 +224,7 @@
             return_data,
             gas_used,
         } = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Receipt {
+        <span class="prelude-val">Ok</span>(Receipt_v3 {
             exit_code: ExitCode::from(exit_code <span class="kw">as </span>u32).into(),
             return_data: RawBytes::new(
                 BASE64_STANDARD
@@ -227,7 +232,9 @@
                     .map_err(de::Error::custom)<span class="question-mark">?</span>,
             ),
             gas_used,
-        })
+            events_root: <span class="prelude-val">None</span>,
+        }
+        .into())
     }
     <span class="kw">pub mod </span>vec {
         <span class="kw">use </span>forest_utils::json::GoVecVisitor;
@@ -283,12 +290,15 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>MessageReceiptWrapper {
     <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>message_receipt = Receipt {
+        <span class="kw">let </span>message_receipt = Receipt_v3 {
             exit_code: forest_shim::error::ExitCode::from(u32::arbitrary(g)).into(),
-            return_data: fvm_ipld_encoding::RawBytes::new(Vec::arbitrary(g)),
-            gas_used: i64::arbitrary(g),
+            return_data: fvm_ipld_encoding3::RawBytes::new(Vec::arbitrary(g)),
+            gas_used: u64::arbitrary(g),
+            events_root: <span class="prelude-val">None</span>,
         };
-        MessageReceiptWrapper { message_receipt }
+        MessageReceiptWrapper {
+            message_receipt: message_receipt.into(),
+        }
     }
 }
 

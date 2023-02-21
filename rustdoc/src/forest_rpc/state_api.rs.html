@@ -259,8 +259,8 @@
 
     <span class="prelude-val">Ok</span>(InvocResult {
         msg,
-        msg_rct: <span class="prelude-val">Some</span>(ret.msg_receipt),
-        error: ret.failure_info.map(|e| e.to_string()),
+        msg_rct: <span class="prelude-val">Some</span>(ret.msg_receipt()),
+        error: ret.failure_info(),
     })
 }
 
@@ -383,10 +383,10 @@
     <span class="kw">let </span>(tipset, receipt) = state_manager.wait_for_message(cid, confidence).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">let </span>tipset = tipset.ok_or(<span class="string">&quot;wait for msg returned empty tuple&quot;</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>receipt = receipt.ok_or(<span class="string">&quot;wait for msg returned empty receipt&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>ipld: Ipld = <span class="kw">if </span>receipt.return_data.bytes().is_empty() {
+    <span class="kw">let </span>ipld: Ipld = <span class="kw">if </span>receipt.return_data().bytes().is_empty() {
         Ipld::Null
     } <span class="kw">else </span>{
-        receipt.return_data.deserialize()<span class="question-mark">?
+        receipt.return_data().deserialize()<span class="question-mark">?
     </span>};
     <span class="prelude-val">Ok</span>(MessageLookup {
         receipt: receipt.into(),

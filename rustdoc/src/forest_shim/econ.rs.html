@@ -200,10 +200,29 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::ops::{Add, AddAssign, Deref, DerefMut, Mul, Sub, SubAssign};
+</span><span class="kw">use </span>std::ops::{Add, AddAssign, Deref, DerefMut, Mul, MulAssign, Sub, SubAssign};
 
 <span class="kw">use </span>fvm_shared::econ::TokenAmount <span class="kw">as </span>TokenAmount_v2;
 <span class="kw">use </span>fvm_shared3::econ::TokenAmount <span class="kw">as </span>TokenAmount_v3;
@@ -314,10 +333,22 @@
     }
 }
 
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>TokenAmount&gt; <span class="kw">for </span>TokenAmount_v2 {
+    <span class="kw">fn </span>from(other: <span class="kw-2">&amp;</span>TokenAmount) -&gt; TokenAmount_v2 {
+        TokenAmount_v2::from_atto(other.atto().clone())
+    }
+}
+
 <span class="kw">impl </span>Mul&lt;BigInt&gt; <span class="kw">for </span>TokenAmount {
     <span class="kw">type </span>Output = TokenAmount;
     <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: BigInt) -&gt; <span class="self">Self</span>::Output {
         <span class="self">self</span>.<span class="number">0</span>.mul(rhs).into()
+    }
+}
+
+<span class="kw">impl </span>MulAssign&lt;BigInt&gt; <span class="kw">for </span>TokenAmount {
+    <span class="kw">fn </span>mul_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: BigInt) {
+        <span class="self">self</span>.<span class="number">0</span>.mul_assign(rhs)
     }
 }
 
@@ -399,6 +430,13 @@
 <span class="kw">impl </span>Sub&lt;<span class="kw-2">&amp;</span>TokenAmount&gt; <span class="kw">for </span>TokenAmount {
     <span class="kw">type </span>Output = TokenAmount;
     <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <span class="kw-2">&amp;</span>TokenAmount) -&gt; <span class="self">Self</span>::Output {
+        (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>).sub(<span class="kw-2">&amp;</span>rhs.<span class="number">0</span>).into()
+    }
+}
+
+<span class="kw">impl </span>Sub&lt;TokenAmount&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>TokenAmount {
+    <span class="kw">type </span>Output = TokenAmount;
+    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: TokenAmount) -&gt; <span class="self">Self</span>::Output {
         (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>).sub(<span class="kw-2">&amp;</span>rhs.<span class="number">0</span>).into()
     }
 }

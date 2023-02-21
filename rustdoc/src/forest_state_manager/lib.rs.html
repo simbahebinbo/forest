@@ -1238,6 +1238,22 @@
 <a href="#1238" id="1238">1238</a>
 <a href="#1239" id="1239">1239</a>
 <a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1268,15 +1284,19 @@
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>forest_shim::{
     address::{Address, Payload, Protocol, BLS_PUB_LEN},
+    econ::TokenAmount,
+    executor::{ApplyRet, Receipt},
+    message::Message,
     state_tree::{ActorState, StateTree},
     version::NetworkVersion,
 };
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
 <span class="kw">use </span>futures::{channel::oneshot, select, FutureExt};
-<span class="kw">use </span>fvm::{executor::ApplyRet, externs::Rand};
+<span class="kw">use </span>fvm::externs::Rand;
+<span class="kw">use </span>fvm3::externs::Rand <span class="kw">as </span>Rand_v3;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-<span class="kw">use </span>fvm_shared::{clock::ChainEpoch, econ::TokenAmount, message::Message, receipt::Receipt};
+<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>num_traits::identities::Zero;
@@ -1442,7 +1462,8 @@
     genesis_info: GenesisInfo,
     beacon: Arc&lt;forest_beacon::BeaconSchedule&lt;DrandBeacon&gt;&gt;,
     chain_config: Arc&lt;ChainConfig&gt;,
-    engine: fvm::machine::MultiEngine,
+    engine_v2: fvm::machine::MultiEngine,
+    engine_v3: fvm3::engine::MultiEngine,
     reward_calc: Arc&lt;<span class="kw">dyn </span>RewardCalc&gt;,
 }
 
@@ -1464,7 +1485,12 @@
             genesis_info: GenesisInfo::from_chain_config(<span class="kw-2">&amp;</span>chain_config),
             beacon,
             chain_config,
-            engine: fvm::machine::MultiEngine::new(),
+            engine_v2: fvm::machine::MultiEngine::new(),
+            engine_v3: fvm3::engine::MultiEngine::new(
+                std::thread::available_parallelism()
+                    .map(|x| x.get() <span class="kw">as </span>u32)
+                    .unwrap_or(<span class="number">1</span>),
+            ),
             reward_calc,
         })
     }
@@ -1602,7 +1628,7 @@
         tipset: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;CidPair, anyhow::Error&gt;
     <span class="kw">where
-        </span>R: Rand + Clone + <span class="lifetime">&#39;static</span>,
+        </span>R: Rand + Rand_v3 + Clone + <span class="lifetime">&#39;static</span>,
         CB: FnMut(<span class="kw-2">&amp;</span>Cid, <span class="kw-2">&amp;</span>ChainMessage, <span class="kw-2">&amp;</span>ApplyRet) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;,
     {
         <span class="kw">let </span>_timer = metrics::APPLY_BLOCKS_TIME.start_timer();
@@ -1621,8 +1647,10 @@
                     .get_circulating_supply(epoch, <span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>state_root)<span class="question-mark">?</span>,
                 <span class="self">self</span>.reward_calc.clone(),
                 chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
-                <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v2,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v3,
                 Arc::clone(<span class="self">self</span>.chain_config()),
+                tipset.min_timestamp(),
             )
         };
 
@@ -1710,8 +1738,10 @@
                 .get_circulating_supply(bheight, <span class="self">self</span>.blockstore(), bstate)<span class="question-mark">?</span>,
             <span class="self">self</span>.reward_calc.clone(),
             chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(tipset)),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v2,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v3,
             Arc::clone(<span class="self">self</span>.chain_config()),
+            tipset.min_timestamp(),
         )<span class="question-mark">?</span>;
 
         <span class="kw">if </span>msg.gas_limit == <span class="number">0 </span>{
@@ -1729,14 +1759,14 @@
             msg.gas_premium,
             msg.value
         );
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <span class="kw-2">&amp;</span>apply_ret.failure_info {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(err) = <span class="kw-2">&amp;</span>apply_ret.failure_info() {
             <span class="macro">warn!</span>(<span class="string">&quot;chain call failed: {:?}&quot;</span>, err);
         }
 
         <span class="prelude-val">Ok</span>(InvocResult {
             msg: msg.clone(),
-            msg_rct: <span class="prelude-val">Some</span>(apply_ret.msg_receipt.clone()),
-            error: apply_ret.failure_info.map(|e| e.to_string()),
+            msg_rct: <span class="prelude-val">Some</span>(apply_ret.msg_receipt()),
+            error: apply_ret.failure_info(),
         })
     }
 
@@ -1776,20 +1806,22 @@
             store,
             epoch,
             chain_rand,
-            ts.blocks()[<span class="number">0</span>].parent_base_fee().clone().into(),
+            ts.blocks()[<span class="number">0</span>].parent_base_fee().clone(),
             <span class="self">self</span>.genesis_info
                 .get_circulating_supply(epoch, <span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>st)<span class="question-mark">?</span>,
             <span class="self">self</span>.reward_calc.clone(),
             chain_epoch_root(Arc::clone(<span class="self">self</span>), Arc::clone(<span class="kw-2">&amp;</span>ts)),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v2,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v3,
             Arc::clone(<span class="self">self</span>.chain_config()),
+            ts.min_timestamp(),
         )<span class="question-mark">?</span>;
 
         <span class="kw">for </span>msg <span class="kw">in </span>prior_messages {
             vm.apply_message(msg)<span class="question-mark">?</span>;
         }
         <span class="kw">let </span>from_actor = vm
-            .get_actor(<span class="kw-2">&amp;</span>message.from().into())
+            .get_actor(<span class="kw-2">&amp;</span>message.from())
             .map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Could not get actor from state: {e}&quot;</span>)))<span class="question-mark">?
             </span>.ok_or_else(|| Error::Other(<span class="string">&quot;cant find actor in state tree&quot;</span>.to_string()))<span class="question-mark">?</span>;
         message.set_sequence(from_actor.sequence);
@@ -1798,8 +1830,8 @@
 
         <span class="prelude-val">Ok</span>(InvocResult {
             msg: message.message().clone(),
-            msg_rct: <span class="prelude-val">Some</span>(ret.msg_receipt.clone()),
-            error: ret.failure_info.map(|e| e.to_string()),
+            msg_rct: <span class="prelude-val">Some</span>(ret.msg_receipt()),
+            error: ret.failure_info(),
         })
     }
 
@@ -2011,7 +2043,7 @@
                 <span class="kw-2">&amp;</span>blocks,
                 epoch,
                 chain_rand,
-                base_fee.into(),
+                base_fee,
                 callback,
                 <span class="kw-2">&amp;</span>ts_cloned,
             )<span class="question-mark">?</span>)
@@ -2321,8 +2353,8 @@
     </span><span class="kw">pub fn </span>get_balance(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, cid: Cid) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, Error&gt; {
         <span class="kw">let </span>act = <span class="self">self</span>.get_actor(addr, cid)<span class="question-mark">?</span>;
         <span class="kw">let </span>actor = act.ok_or_else(|| <span class="string">&quot;could not find actor&quot;</span>.to_owned())<span class="question-mark">?</span>;
-        <span class="kw">let </span>balance = forest_shim::econ::TokenAmount::from(<span class="kw-2">&amp;</span>actor.balance);
-        <span class="prelude-val">Ok</span>(balance.into())
+        <span class="kw">let </span>balance = TokenAmount::from(<span class="kw-2">&amp;</span>actor.balance);
+        <span class="prelude-val">Ok</span>(balance)
     }
 
     <span class="doccomment">/// Looks up ID [Address] from the state at the given [Tipset].

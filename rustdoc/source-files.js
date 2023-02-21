@@ -18,7 +18,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_fil_cns":["",[],["composition.rs","lib.rs","metrics.rs","validation.rs","weight.rs"]],\
 "forest_fil_types":["",[["verifier",[],["mod.rs"]]],["lib.rs"]],\
 "forest_genesis":["",[],["lib.rs"]],\
-"forest_interpreter":["",[],["fvm.rs","lib.rs","vm.rs"]],\
+"forest_interpreter":["",[],["fvm.rs","fvm3.rs","lib.rs","vm.rs"]],\
 "forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["error.rs","json.rs","lib.rs","util.rs"]],\
 "forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","message.rs","message_receipt.rs","sector.rs","signature.rs","signed_message.rs","token_amount.rs"]],\
 "forest_key_management":["",[],["errors.rs","keystore.rs","lib.rs","wallet.rs","wallet_helpers.rs"]],\
@@ -33,7 +33,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_rpc":["",[],["auth_api.rs","beacon_api.rs","chain_api.rs","common_api.rs","gas_api.rs","lib.rs","mpool_api.rs","net_api.rs","rpc_http_handler.rs","rpc_util.rs","rpc_ws_handler.rs","state_api.rs","sync_api.rs","wallet_api.rs"]],\
 "forest_rpc_api":["",[],["data_types.rs","lib.rs"]],\
 "forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
-"forest_shim":["",[],["address.rs","bigint.rs","econ.rs","error.rs","lib.rs","message.rs","randomness.rs","sector.rs","state_tree.rs","version.rs"]],\
+"forest_shim":["",[],["address.rs","bigint.rs","econ.rs","error.rs","executor.rs","lib.rs","message.rs","randomness.rs","sector.rs","state_tree.rs","version.rs"]],\
 "forest_state_manager":["",[],["chain_rand.rs","errors.rs","lib.rs","metrics.rs","utils.rs","vm_circ_supply.rs"]],\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\

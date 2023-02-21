@@ -1046,7 +1046,9 @@
 <span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait, SignedMessage};
 <span class="kw">use </span>forest_metrics::metrics;
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, state_tree::StateTree};
+<span class="kw">use </span>forest_shim::{
+    address::Address, econ::TokenAmount, executor::Receipt, message::Message, state_tree::StateTree,
+};
 <span class="kw">use </span>forest_utils::{db::BlockstoreExt, io::Checksum};
 <span class="kw">use </span>futures::Future;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -1055,8 +1057,6 @@
 <span class="kw">use </span>fvm_shared::{
     clock::ChainEpoch,
     crypto::signature::{Signature, SignatureType},
-    message::Message,
-    receipt::Receipt,
 };
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
@@ -1521,7 +1521,7 @@
                 );
 
                 <span class="prelude-val">Ok</span>(BlockMessages {
-                    miner: b.miner_address().into(),
+                    miner: <span class="kw-2">*</span>b.miner_address(),
                     messages,
                     win_count: b
                         .election_proof()

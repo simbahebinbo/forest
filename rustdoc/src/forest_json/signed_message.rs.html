@@ -220,13 +220,18 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">pub mod </span>json {
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_message::SignedMessage;
+    <span class="kw">use </span>forest_shim::message::Message;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
-    <span class="kw">use </span>fvm_shared::{crypto::signature::Signature, message::Message};
+    <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
     <span class="kw">use </span>serde::{ser, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="kw">use crate</span>::{message, signature};
@@ -320,10 +325,12 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>forest_message::{<span class="self">self</span>, SignedMessage};
-    <span class="kw">use </span>fvm_ipld_encoding::RawBytes;
-    <span class="kw">use </span>fvm_shared::{
-        address::Address, crypto::signature::Signature, econ::TokenAmount, message::Message,
+    <span class="kw">use </span>forest_shim::{
+        address::Address,
+        econ::TokenAmount,
+        message::{Message, Message_v3},
     };
+    <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde::{Deserialize, Serialize};
     <span class="kw">use </span>serde_json::{<span class="self">self</span>, from_str, to_string};
@@ -379,18 +386,19 @@
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>message_json_annotations() {
-        <span class="kw">let </span>message = Message {
+        <span class="kw">let </span>message: Message = Message_v3 {
             version: <span class="number">10</span>,
-            from: Address::new_id(<span class="number">34</span>),
-            to: Address::new_id(<span class="number">12</span>),
+            from: Address::new_id(<span class="number">34</span>).into(),
+            to: Address::new_id(<span class="number">12</span>).into(),
             sequence: <span class="number">5</span>,
-            value: TokenAmount::from_atto(<span class="number">6</span>),
+            value: TokenAmount::from_atto(<span class="number">6</span>).into(),
             method_num: <span class="number">7</span>,
-            params: RawBytes::default(),
+            params: Default::default(),
             gas_limit: <span class="number">8</span>,
-            gas_fee_cap: TokenAmount::from_atto(<span class="number">10</span>),
-            gas_premium: TokenAmount::from_atto(<span class="number">9</span>),
-        };
+            gas_fee_cap: TokenAmount::from_atto(<span class="number">10</span>).into(),
+            gas_premium: TokenAmount::from_atto(<span class="number">9</span>).into(),
+        }
+        .into();
 
         <span class="kw">let </span>signed = SignedMessage::new_unchecked(message.clone(), Signature::new_bls(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>]));
 

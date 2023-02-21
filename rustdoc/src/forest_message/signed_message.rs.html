@@ -122,12 +122,14 @@
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, message::Message};
-<span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError, RawBytes};
+<span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError};
+<span class="kw">use </span>fvm_ipld_encoding3::RawBytes;
 <span class="kw">use </span>fvm_shared::{
     crypto::signature::{Signature, SignatureType},
     MethodNum,
@@ -147,7 +149,7 @@
     /// The signature will be verified.
     </span><span class="kw">pub fn </span>new_from_parts(message: Message, signature: Signature) -&gt; anyhow::Result&lt;SignedMessage&gt; {
         signature
-            .verify(<span class="kw-2">&amp;</span>message.cid()<span class="question-mark">?</span>.to_bytes(), <span class="kw-2">&amp;</span>message.from)
+            .verify(<span class="kw-2">&amp;</span>message.cid()<span class="question-mark">?</span>.to_bytes(), <span class="kw-2">&amp;</span>message.from().into())
             .map_err(anyhow::Error::msg)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(SignedMessage { message, signature })
     }
@@ -192,48 +194,48 @@
 
 <span class="kw">impl </span>MessageTrait <span class="kw">for </span>SignedMessage {
     <span class="kw">fn </span>from(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Address {
-        Address::from(<span class="self">self</span>.message.from)
+        <span class="self">self</span>.message.from()
     }
     <span class="kw">fn </span>to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Address {
-        Address::from(<span class="self">self</span>.message.to)
+        <span class="self">self</span>.message.to()
     }
     <span class="kw">fn </span>sequence(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
-        <span class="self">self</span>.message.sequence
+        <span class="self">self</span>.message.sequence()
     }
     <span class="kw">fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
-        TokenAmount::from(<span class="kw-2">&amp;</span><span class="self">self</span>.message.value)
+        <span class="self">self</span>.message.value()
     }
     <span class="kw">fn </span>method_num(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MethodNum {
         <span class="self">self</span>.message.method_num
     }
     <span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBytes {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.message.params
+        <span class="self">self</span>.message.params()
     }
     <span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
-        <span class="self">self</span>.message.gas_limit
+        <span class="self">self</span>.message.gas_limit()
     }
     <span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token_amount: i64) {
-        <span class="self">self</span>.message.gas_limit = token_amount;
+        <span class="self">self</span>.message.set_gas_limit(token_amount);
     }
     <span class="kw">fn </span>set_sequence(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_sequence: u64) {
-        <span class="self">self</span>.message.sequence = new_sequence;
+        <span class="self">self</span>.message.set_sequence(new_sequence);
     }
     <span class="kw">fn </span>required_funds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
-        TokenAmount::from(<span class="kw-2">&amp;</span><span class="self">self</span>.message.gas_fee_cap * <span class="self">self</span>.message.gas_limit + <span class="kw-2">&amp;</span><span class="self">self</span>.message.value)
+        <span class="self">self</span>.message.required_funds()
     }
     <span class="kw">fn </span>gas_fee_cap(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
-        TokenAmount::from(<span class="kw-2">&amp;</span><span class="self">self</span>.message.gas_fee_cap)
+        <span class="self">self</span>.message.gas_fee_cap()
     }
     <span class="kw">fn </span>gas_premium(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount {
-        TokenAmount::from(<span class="kw-2">&amp;</span><span class="self">self</span>.message.gas_premium)
+        <span class="self">self</span>.message.gas_premium()
     }
 
     <span class="kw">fn </span>set_gas_fee_cap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cap: TokenAmount) {
-        <span class="self">self</span>.message.gas_fee_cap = cap.into();
+        <span class="self">self</span>.message.set_gas_fee_cap(cap)
     }
 
     <span class="kw">fn </span>set_gas_premium(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prem: TokenAmount) {
-        <span class="self">self</span>.message.gas_premium = prem.into();
+        <span class="self">self</span>.message.set_gas_premium(prem)
     }
 }
 

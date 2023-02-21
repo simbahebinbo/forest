@@ -121,6 +121,10 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -159,7 +163,7 @@
 </span>];
 
 <span class="doccomment">/// Height epochs.
-</span><span class="kw">pub const </span>HEIGHT_INFOS: [HeightInfo; <span class="number">18</span>] = [
+</span><span class="kw">pub const </span>HEIGHT_INFOS: [HeightInfo; <span class="number">19</span>] = [
     HeightInfo {
         height: Height::Breeze,
         epoch: <span class="number">41_280</span>,
@@ -231,6 +235,10 @@
     HeightInfo {
         height: Height::Shark,
         epoch: <span class="number">2_383_680</span>,
+    },
+    HeightInfo {
+        height: Height::Hygge,
+        epoch: ChainEpoch::MAX,
     },
 ];
 

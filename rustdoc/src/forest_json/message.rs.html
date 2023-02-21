@@ -162,15 +162,26 @@
 <a href="#162" id="162">162</a>
 <a href="#163" id="163">163</a>
 <a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>json {
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
     <span class="kw">use </span>cid::Cid;
-    <span class="kw">use </span>forest_shim::address::Address;
-    <span class="kw">use </span>fvm_ipld_encoding::{Cbor, RawBytes};
-    <span class="kw">use </span>fvm_shared::{econ::TokenAmount, message::Message};
+    <span class="kw">use </span>forest_message::Message <span class="kw">as </span>MessageTrait;
+    <span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, message::Message};
+    <span class="kw">use </span>fvm_ipld_encoding::Cbor;
+    <span class="kw">use </span>fvm_ipld_encoding3::RawBytes;
+    <span class="kw">use </span>fvm_shared3::message::Message <span class="kw">as </span>Message_v3;
     <span class="kw">use </span>serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="kw">use </span><span class="kw">crate</span>::address::json::AddressJson;
@@ -200,7 +211,7 @@
     <span class="attr">#[derive(Serialize, Deserialize)]
     #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
     </span><span class="kw">struct </span>JsonHelper {
-        version: i64,
+        version: u64,
         to: AddressJson,
         from: AddressJson,
         <span class="attr">#[serde(rename = <span class="string">&quot;Nonce&quot;</span>)]
@@ -228,10 +239,10 @@
             to: Address::from(m.to).into(),
             from: Address::from(m.from).into(),
             sequence: m.sequence,
-            value: m.value.clone(),
-            gas_limit: m.gas_limit,
-            gas_fee_cap: m.gas_fee_cap.clone(),
-            gas_premium: m.gas_premium.clone(),
+            value: m.value(),
+            gas_limit: m.gas_limit(),
+            gas_fee_cap: m.gas_fee_cap(),
+            gas_premium: m.gas_premium(),
             method_num: m.method_num,
             params: <span class="prelude-val">Some</span>(BASE64_STANDARD.encode(m.params.bytes())),
             cid: <span class="prelude-val">Some</span>(m.cid().map_err(ser::Error::custom)<span class="question-mark">?</span>),
@@ -244,22 +255,23 @@
         </span>D: Deserializer&lt;<span class="lifetime">&#39;de</span>&gt;,
     {
         <span class="kw">let </span>m: JsonHelper = Deserialize::deserialize(deserializer)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(Message {
+        <span class="prelude-val">Ok</span>(Message_v3 {
             version: m.version,
             to: Address::from(m.to).into(),
             from: Address::from(m.from).into(),
             sequence: m.sequence,
-            value: m.value,
-            gas_limit: m.gas_limit,
-            gas_fee_cap: m.gas_fee_cap,
-            gas_premium: m.gas_premium,
+            value: m.value.into(),
+            gas_limit: m.gas_limit <span class="kw">as </span>u64,
+            gas_fee_cap: m.gas_fee_cap.into(),
+            gas_premium: m.gas_premium.into(),
             method_num: m.method_num,
             params: RawBytes::new(
                 BASE64_STANDARD
                     .decode(m.params.unwrap_or_default())
                     .map_err(de::Error::custom)<span class="question-mark">?</span>,
             ),
-        })
+        }
+        .into())
     }
 
     <span class="kw">pub mod </span>vec {
@@ -290,7 +302,11 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
-    <span class="kw">use </span>fvm_shared::{address::Address, econ::TokenAmount, message::Message};
+    <span class="kw">use </span>forest_shim::{
+        address::Address,
+        econ::TokenAmount,
+        message::{Message, Message_v3},
+    };
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde_json;
 
@@ -303,19 +319,21 @@
 
     <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>MessageWrapper {
         <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>msg = Message {
-                to: Address::new_id(u64::arbitrary(g)),
-                from: Address::new_id(u64::arbitrary(g)),
-                version: i64::arbitrary(g),
+            <span class="kw">let </span>msg = Message_v3 {
+                to: Address::new_id(u64::arbitrary(g)).into(),
+                from: Address::new_id(u64::arbitrary(g)).into(),
+                version: u64::arbitrary(g),
                 sequence: u64::arbitrary(g),
-                value: TokenAmount::from_atto(u64::arbitrary(g)),
+                value: TokenAmount::from_atto(u64::arbitrary(g)).into(),
                 method_num: u64::arbitrary(g),
-                params: fvm_ipld_encoding::RawBytes::new(Vec::arbitrary(g)),
-                gas_limit: i64::arbitrary(g),
-                gas_fee_cap: TokenAmount::from_atto(u64::arbitrary(g)),
-                gas_premium: TokenAmount::from_atto(u64::arbitrary(g)),
+                params: fvm_ipld_encoding3::RawBytes::new(Vec::arbitrary(g)),
+                gas_limit: u64::arbitrary(g),
+                gas_fee_cap: TokenAmount::from_atto(u64::arbitrary(g)).into(),
+                gas_premium: TokenAmount::from_atto(u64::arbitrary(g)).into(),
             };
-            MessageWrapper { message: msg }
+            MessageWrapper {
+                message: msg.into(),
+            }
         }
     }
 

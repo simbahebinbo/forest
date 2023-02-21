@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"type":[["Message",""]]};
+window.SIDEBAR_ITEMS = {"struct":[["Message",""],["Message_v3","Default Unsigned VM message type which includes all data needed for a state transition"]]};

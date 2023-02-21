@@ -332,9 +332,9 @@
     chain_api::<span class="kw-2">*</span>,
     data_types::{BlockMessages, RPCState},
 };
+<span class="kw">use </span>forest_shim::message::Message;
 <span class="kw">use </span>forest_utils::{db::BlockstoreExt, io::AsyncWriterWithChecksum};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::message::Message;
 <span class="kw">use </span>hex::ToHex;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>log::{debug, error};
