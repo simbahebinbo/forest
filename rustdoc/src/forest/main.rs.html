@@ -362,7 +362,7 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(loki_task) = loki_task {
                 rt.spawn(loki_task);
             }
-            <span class="kw">let </span>db: Db = rt.block_on(daemon::start(cfg, opts.detach))<span class="question-mark">?</span>;
+            <span class="kw">let </span>db: Db = rt.block_on(daemon::start(opts, cfg))<span class="question-mark">?</span>;
 
             <span class="macro">info!</span>(<span class="string">&quot;Shutting down tokio...&quot;</span>);
             rt.shutdown_timeout(Duration::from_secs(<span class="number">10</span>));
