@@ -851,6 +851,19 @@
 <a href="#851" id="851">851</a>
 <a href="#852" id="852">852</a>
 <a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -861,6 +874,7 @@
 };
 
 <span class="kw">use </span>ahash::HashMap;
+<span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>forest_blocks::GossipBlock;
@@ -1060,7 +1074,8 @@
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>peer_id = PeerId::from(net_keypair.public());
 
-        <span class="kw">let </span>transport = build_transport(net_keypair.clone());
+        <span class="kw">let </span>transport =
+            build_transport(net_keypair.clone()).expect(<span class="string">&quot;Failed to build libp2p transport&quot;</span>);
 
         <span class="kw">let </span>limits = ConnectionLimits::default()
             .with_max_pending_incoming(<span class="prelude-val">Some</span>(<span class="number">10</span>))
@@ -1106,7 +1121,12 @@
     /// shutdown occurs.
     </span><span class="kw">pub async fn </span>run(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">info!</span>(<span class="string">&quot;Running libp2p service&quot;</span>);
-        Swarm::listen_on(<span class="kw-2">&amp;mut </span><span class="self">self</span>.swarm, <span class="self">self</span>.config.listening_multiaddr)<span class="question-mark">?</span>;
+        <span class="kw">for </span>addr <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.config.listening_multiaddrs {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = Swarm::listen_on(<span class="kw-2">&amp;mut </span><span class="self">self</span>.swarm, addr.clone()) {
+                <span class="macro">error!</span>(<span class="string">&quot;Fail to listen on {addr}: {err}&quot;</span>);
+            }
+        }
+
         <span class="comment">// Bootstrap with Kademlia
         </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">self</span>.swarm.behaviour_mut().bootstrap() {
             <span class="macro">warn!</span>(<span class="string">&quot;Failed to bootstrap with Kademlia: {e}&quot;</span>);
@@ -1662,25 +1682,31 @@
     }
 }
 
-<span class="doccomment">/// Builds the transport stack that libp2p will communicate over.
-</span><span class="kw">pub fn </span>build_transport(local_key: Keypair) -&gt; Boxed&lt;(PeerId, StreamMuxerBox)&gt; {
-    <span class="kw">let </span>tcp_transport =
-        || libp2p::tcp::tokio::Transport::new(libp2p::tcp::Config::new().nodelay(<span class="bool-val">true</span>));
-    <span class="kw">let </span>transport = libp2p::dns::TokioDnsConfig::system(tcp_transport()).unwrap();
+<span class="doccomment">/// Builds the transport stack that libp2p will communicate over. When support
+/// of other protocols like `udp`, `quic`, `http` are added, remember to update
+/// code comment in [Libp2pConfig].
+///
+/// As a reference `lotus` uses the default `go-libp2p` transport builder which
+/// has all above protocols enabled.
+</span><span class="kw">pub fn </span>build_transport(local_key: Keypair) -&gt; anyhow::Result&lt;Boxed&lt;(PeerId, StreamMuxerBox)&gt;&gt; {
+    <span class="kw">let </span>build_tcp = || libp2p::tcp::tokio::Transport::new(libp2p::tcp::Config::new().nodelay(<span class="bool-val">true</span>));
+    <span class="kw">let </span>build_dns_tcp = || libp2p::dns::TokioDnsConfig::system(build_tcp());
+    <span class="kw">let </span>transport =
+        libp2p::websocket::WsConfig::new(build_dns_tcp()<span class="question-mark">?</span>).or_transport(build_dns_tcp()<span class="question-mark">?</span>);
+
     <span class="kw">let </span>auth_config = {
         <span class="kw">let </span>dh_keys = noise::Keypair::&lt;noise::X25519Spec&gt;::new()
             .into_authentic(<span class="kw-2">&amp;</span>local_key)
-            .expect(<span class="string">&quot;Noise key generation failed&quot;</span>);
-
+            .context(<span class="string">&quot;Noise key generation failed&quot;</span>)<span class="question-mark">?</span>;
         noise::NoiseConfig::xx(dh_keys).into_authenticated()
     };
 
-    transport
+    <span class="prelude-val">Ok</span>(transport
         .upgrade(core::upgrade::Version::V1)
         .authenticate(auth_config)
         .multiplex(YamuxConfig::default())
         .timeout(Duration::from_secs(<span class="number">20</span>))
-        .boxed()
+        .boxed())
 }
 
 <span class="doccomment">/// Fetch key-pair from disk, returning none if it cannot be decoded.
