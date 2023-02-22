@@ -19,7 +19,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_fil_types":["",[["verifier",[],["mod.rs"]]],["lib.rs"]],\
 "forest_genesis":["",[],["lib.rs"]],\
 "forest_interpreter":["",[],["fvm.rs","fvm3.rs","lib.rs","vm.rs"]],\
-"forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["error.rs","json.rs","lib.rs","util.rs"]],\
+"forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["cid_hashset.rs","error.rs","json.rs","lib.rs","util.rs"]],\
 "forest_json":["",[],["actor_state.rs","address.rs","bigint.rs","cid.rs","lib.rs","message.rs","message_receipt.rs","sector.rs","signature.rs","signed_message.rs","token_amount.rs"]],\
 "forest_key_management":["",[],["errors.rs","keystore.rs","lib.rs","wallet.rs","wallet_helpers.rs"]],\
 "forest_legacy_ipld_amt":["",[],["amt.rs","error.rs","lib.rs","node.rs","root.rs","value_mut.rs"]],\
