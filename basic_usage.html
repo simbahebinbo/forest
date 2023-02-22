@@ -81,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="basic_usage.html" class="active"><strong aria-hidden="true">2.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">3.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">4.</strong> Trouble Shooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">5.</strong> Glossary</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="basic_usage.html" class="active"><strong aria-hidden="true">2.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">3.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">5.</strong> Trouble Shooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">6.</strong> Glossary</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -174,13 +174,13 @@ sudo pacman -S base-devel clang ocl-icd
 </code></pre>
 <p>If desired, you can check the checksum using the instructions <a href="https://lotus.filecoin.io/docs/set-up/chain-management/#lightweight-snapshot">here</a>.</p>
 <p>Import the snapshot using <code>forest</code>:</p>
-<pre><code class="language-bash">./target/release/forest --target-peer-count 50 --encrypt-keystore false --import-snapshot /path/to/snapshot/file
+<pre><code class="language-bash">forest --target-peer-count 50 --encrypt-keystore false --import-snapshot /path/to/snapshot/file
 </code></pre>
 <h2 id="forest-synchronization-mode"><a class="header" href="#forest-synchronization-mode">Forest Synchronization Mode</a></h2>
 <h3 id="commands-2"><a class="header" href="#commands-2">Commands</a></h3>
 <h4 id="mainnet"><a class="header" href="#mainnet">Mainnet</a></h4>
 <p>Start the <code>forest</code> node:</p>
-<pre><code class="language-bash">./target/release/forest --target-peer-count 50 --encrypt-keystore false
+<pre><code class="language-bash">forest --target-peer-count 50 --encrypt-keystore false
 </code></pre>
 
                     </main>
@@ -191,7 +191,7 @@ sudo pacman -S base-devel clang ocl-icd
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="configuration.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="js_console.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -205,7 +205,7 @@ sudo pacman -S base-devel clang ocl-icd
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="configuration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="js_console.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

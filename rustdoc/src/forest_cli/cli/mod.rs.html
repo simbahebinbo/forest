@@ -222,6 +222,11 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -230,7 +235,8 @@
 // check out the original commit history here:
 // https://github.com/ChainSafe/forest/commits/main/forest/src/cli/mod.rs
 
-</span><span class="kw">mod </span>auth_cmd;
+</span><span class="kw">mod </span>attach_cmd;
+<span class="kw">mod </span>auth_cmd;
 <span class="kw">mod </span>chain_cmd;
 <span class="kw">mod </span>config_cmd;
 <span class="kw">mod </span>db_cmd;
@@ -255,10 +261,11 @@
 <span class="kw">use </span>serde::Serialize;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use </span><span class="self">self</span>::{
-    auth_cmd::AuthCommands, chain_cmd::ChainCommands, config_cmd::ConfigCommands,
-    db_cmd::DBCommands, fetch_params_cmd::FetchCommands, mpool_cmd::MpoolCommands,
-    net_cmd::NetCommands, send_cmd::SendCommand, snapshot_cmd::SnapshotCommands,
-    state_cmd::StateCommands, sync_cmd::SyncCommands, wallet_cmd::WalletCommands,
+    attach_cmd::AttachCommand, auth_cmd::AuthCommands, chain_cmd::ChainCommands,
+    config_cmd::ConfigCommands, db_cmd::DBCommands, fetch_params_cmd::FetchCommands,
+    mpool_cmd::MpoolCommands, net_cmd::NetCommands, send_cmd::SendCommand,
+    snapshot_cmd::SnapshotCommands, state_cmd::StateCommands, sync_cmd::SyncCommands,
+    wallet_cmd::WalletCommands,
 };
 
 <span class="doccomment">/// CLI structure generated when interacting with Forest binary
@@ -321,6 +328,9 @@
     <span class="doccomment">/// Database management
     </span><span class="attr">#[command(subcommand)]
     </span>DB(DBCommands),
+
+    <span class="doccomment">/// Attach to daemon via a JavaScript console
+    </span>Attach(AttachCommand),
 }
 
 <span class="doccomment">/// Pretty-print a JSON-RPC error and exit

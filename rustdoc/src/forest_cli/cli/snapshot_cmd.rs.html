@@ -641,7 +641,7 @@
                 <span class="kw">let </span>month_string = <span class="macro">format!</span>(<span class="string">&quot;{:02}&quot;</span>, now.month() <span class="kw">as </span>u8);
                 <span class="kw">let </span>year = now.year();
                 <span class="kw">let </span>day_string = <span class="macro">format!</span>(<span class="string">&quot;{:02}&quot;</span>, now.day());
-                <span class="kw">let </span>chain_name = chain_get_name(<span class="kw-2">&amp;</span>config.client.rpc_token)
+                <span class="kw">let </span>chain_name = chain_get_name((), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
                     </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
 

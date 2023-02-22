@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">2.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">3.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">4.</strong> Trouble Shooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">5.</strong> Glossary</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">2.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">3.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">5.</strong> Trouble Shooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">6.</strong> Glossary</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -196,14 +196,81 @@ sudo pacman -S base-devel clang ocl-icd
 </code></pre>
 <p>If desired, you can check the checksum using the instructions <a href="https://lotus.filecoin.io/docs/set-up/chain-management/#lightweight-snapshot">here</a>.</p>
 <p>Import the snapshot using <code>forest</code>:</p>
-<pre><code class="language-bash">./target/release/forest --target-peer-count 50 --encrypt-keystore false --import-snapshot /path/to/snapshot/file
+<pre><code class="language-bash">forest --target-peer-count 50 --encrypt-keystore false --import-snapshot /path/to/snapshot/file
 </code></pre>
 <h2 id="forest-synchronization-mode"><a class="header" href="#forest-synchronization-mode">Forest Synchronization Mode</a></h2>
 <h3 id="commands-2"><a class="header" href="#commands-2">Commands</a></h3>
 <h4 id="mainnet"><a class="header" href="#mainnet">Mainnet</a></h4>
 <p>Start the <code>forest</code> node:</p>
-<pre><code class="language-bash">./target/release/forest --target-peer-count 50 --encrypt-keystore false
+<pre><code class="language-bash">forest --target-peer-count 50 --encrypt-keystore false
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="forest-javascript-console"><a class="header" href="#forest-javascript-console">Forest JavaScript Console</a></h1>
+<p>Forest console stands as an alternative to tools like <a href="https://github.com/curl/curl">Curl</a> or other subcommands found in <code>forest-cli</code> for interacting with the Filecoin JSON-RPC API.</p>
+<h2 id="starting-the-console"><a class="header" href="#starting-the-console">Starting the console</a></h2>
+<p><code>forest-cli attach</code> can be used to open a Javascript console connected to your Forest node.</p>
+<p>Like for some other <code>forest-cli</code> subcommands you will need to pass an admin <code>--token</code> given what endpoints you will call.</p>
+<p>For a description of different options please refer to the developer documentation <a href="https://github.com/ChainSafe/forest/blob/main/documentation/developer_documentation/CLI.md#cli">CLI page</a>.</p>
+<h2 id="interactive-use"><a class="header" href="#interactive-use">Interactive Use</a></h2>
+<p>First start Forest node inside another terminal:</p>
+<pre><code class="language-bash">forest --chain calibnet
+</code></pre>
+<p>To attach to your Forest node, run <code>forest-cli</code> with the <code>attach</code> subcommand:</p>
+<pre><code class="language-bash">forest-cli --token &lt;TOKEN&gt; attach 
+</code></pre>
+<p>You should now see a prompt and be able to interact:</p>
+<pre><code>Welcome to the Forest Javascript console!
+
+To exit, press ctrl-d or type :quit
+&gt; console.log(&quot;Forest running on &quot; + chainGetName())
+Forest running on calibnet
+</code></pre>
+<p>You can directly call JSON-RPC API endpoints that are bound to the console.</p>
+<p>For example, <code>Filecoin.ChainGetName</code> is bound to the global <code>chainGetName</code> function.</p>
+<h3 id="tips"><a class="header" href="#tips">Tips</a></h3>
+<ul>
+<li>The console history is saved in your <code>~/.forest_history</code> after exiting.</li>
+<li>Use <code>:clear</code> to erase <em>current</em> session commands.</li>
+<li>Use <code>_BOA_VERSION</code> to get engine version</li>
+</ul>
+<h2 id="non-interactive-use"><a class="header" href="#non-interactive-use">Non-interactive Use</a></h2>
+<h3 id="exec-mode"><a class="header" href="#exec-mode">Exec Mode</a></h3>
+<p>It is also possible to execute commands non-interactively by passing <code>--exec</code> flag and a JavaScript snippet to <code>forest-cli attach</code>. The result is displayed directly in the terminal rather than in the interactive console.</p>
+<p>For example, to display the current epoch:</p>
+<pre><code class="language-bash">forest-cli attach --exec &quot;syncStatus().ActiveSyncs[0].Epoch&quot;
+</code></pre>
+<p>Or print wallet default address:</p>
+<pre><code class="language-bash">forest-cli attach --exec &quot;console.log(walletDefaultAddress())&quot;
+</code></pre>
+<h2 id="builtins"><a class="header" href="#builtins">Builtins</a></h2>
+<h3 id="helpers"><a class="header" href="#helpers">Helpers</a></h3>
+<p>Forest console comes with a number of helper functions that make interacting with Filecoin API easy:</p>
+<ul>
+<li><code>showPeers()</code></li>
+<li><code>getPeer(peerID)</code></li>
+<li><code>disconnectPeers(count)</code></li>
+<li><code>isPeerConnected(peerID)</code></li>
+<li><code>showWallet()</code></li>
+<li><code>showSyncStatus()</code></li>
+<li><code>sendFIL(to, attoAmount)</code></li>
+</ul>
+<h3 id="modules"><a class="header" href="#modules">Modules</a></h3>
+<p>CommonJS modules is the way to package JavaScript code for Forest console. You can import modules using the <code>require</code> function:</p>
+<pre><code class="language-bash">forest-cli attach --exec &quot;const Math = require('calc'); console.log(Math.add(39,3))&quot;
+</code></pre>
+<p>where <code>calc.js</code> is:</p>
+<pre><code class="language-javascript">module.exports = {
+    add: function (a, b) {
+      return a + b;
+    },
+    multiply: function (a, b) {
+      return a * b;
+    },
+};
+</code></pre>
+<p>By default modules will be loaded from the current directory. Use <code>--jspath</code> flag to indicate another path.</p>
+<h2 id="limitations"><a class="header" href="#limitations">Limitations</a></h2>
+<p>Forest's console is built using <a href="https://github.com/boa-dev/boa">Boa Javascript engine</a>. It does support promises or <code>async</code> functions, but keep in mind that Boa is not fully compatible with ECMAScript yet.</p>
+<p>Not every endpoint from the Filecoin API has been bound to the console. Please <a href="https://github.com/ChainSafe/forest/issues">create an issue</a> if you need one that is not available.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
 <p>The <code>forest</code> process has a set of configurable values which determine the behavior of the node. All values can be set through process flags or through a configuration file. If a configuration is provided through the flag and the configuration file, the flag value will be given preference.</p>
 <h2 id="flags"><a class="header" href="#flags">Flags</a></h2>
