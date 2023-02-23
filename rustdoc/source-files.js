@@ -8,7 +8,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_blocks":["",[["header",[],["json.rs","mod.rs"]]],["block.rs","election_proof.rs","errors.rs","gossip_block.rs","lib.rs","ticket.rs","tipset.rs"]],\
 "forest_chain":["",[["store",[],["base_fee.rs","chain_store.rs","errors.rs","index.rs","mod.rs","tipset_tracker.rs"]]],["lib.rs","weight.rs"]],\
 "forest_chain_sync":["",[],["bad_block_cache.rs","chain_muxer.rs","consensus.rs","lib.rs","metrics.rs","network_context.rs","sync_state.rs","tipset_syncer.rs","validation.rs"]],\
-"forest_cli":["",[["cli",[],["attach_cmd.rs","auth_cmd.rs","chain_cmd.rs","config_cmd.rs","db_cmd.rs","fetch_params_cmd.rs","mod.rs","mpool_cmd.rs","net_cmd.rs","send_cmd.rs","snapshot_cmd.rs","state_cmd.rs","sync_cmd.rs","wallet_cmd.rs"]]],["lib.rs"]],\
+"forest_cli":["",[["cli",[],["attach_cmd.rs","auth_cmd.rs","chain_cmd.rs","config_cmd.rs","db_cmd.rs","fetch_params_cmd.rs","mod.rs","mpool_cmd.rs","net_cmd.rs","send_cmd.rs","shutdown_cmd.rs","snapshot_cmd.rs","state_cmd.rs","sync_cmd.rs","wallet_cmd.rs"]]],["lib.rs"]],\
 "forest_cli_shared":["",[["cli",[],["client.rs","config.rs","mod.rs","snapshot_fetch.rs"]],["logger",[],["mod.rs"]]],["lib.rs"]],\
 "forest_crypto":["",[],["lib.rs","signer.rs","vrf.rs"]],\
 "forest_daemon":["",[["cli",[],["mod.rs"]]],["lib.rs"]],\
@@ -32,7 +32,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_paramfetch":["",[],["lib.rs"]],\
 "forest_rpc":["",[],["auth_api.rs","beacon_api.rs","chain_api.rs","common_api.rs","gas_api.rs","lib.rs","mpool_api.rs","net_api.rs","rpc_http_handler.rs","rpc_util.rs","rpc_ws_handler.rs","state_api.rs","sync_api.rs","wallet_api.rs"]],\
 "forest_rpc_api":["",[],["data_types.rs","lib.rs"]],\
-"forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
+"forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","common_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
 "forest_shim":["",[],["address.rs","bigint.rs","econ.rs","error.rs","executor.rs","lib.rs","message.rs","randomness.rs","sector.rs","state_tree.rs","version.rs"]],\
 "forest_state_manager":["",[],["chain_rand.rs","errors.rs","lib.rs","metrics.rs","utils.rs","vm_circ_supply.rs"]],\
 "forest_state_migration":["",[],["lib.rs"]],\

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["VERSION",""]],"type":[["VersionParams",""],["VersionResult",""]]};
+window.SIDEBAR_ITEMS = {"constant":[["SHUTDOWN",""],["VERSION",""]],"type":[["ShutdownParams",""],["ShutdownResult",""],["VersionParams",""],["VersionResult",""]]};

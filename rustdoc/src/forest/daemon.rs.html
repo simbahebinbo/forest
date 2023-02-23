@@ -608,6 +608,21 @@
 <a href="#608" id="608">608</a>
 <a href="#609" id="609">609</a>
 <a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -648,7 +663,11 @@
 <span class="kw">use </span>log::{debug, error, info, warn};
 <span class="kw">use </span>raw_sync::events::{Event, EventInit, EventState};
 <span class="kw">use </span>rpassword::read_password;
-<span class="kw">use </span>tokio::{sync::RwLock, task::JoinSet};
+<span class="kw">use </span>tokio::{
+    signal::unix::{signal, SignalKind},
+    sync::RwLock,
+    task::JoinSet,
+};
 
 <span class="kw">use </span><span class="kw">super</span>::cli::set_sigint_handler;
 
@@ -675,7 +694,9 @@
 
 <span class="doccomment">/// Starts daemon process
 </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>start(opts: CliOpts, config: Config) -&gt; anyhow::Result&lt;Db&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>ctrlc_oneshot = set_sigint_handler();
+    set_sigint_handler();
+    <span class="kw">let </span>(shutdown_send, <span class="kw-2">mut </span>shutdown_recv) = tokio::sync::mpsc::channel(<span class="number">1</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>terminate = signal(SignalKind::terminate())<span class="question-mark">?</span>;
 
     <span class="macro">info!</span>(
         <span class="string">&quot;Starting Forest daemon, version {}&quot;</span>,
@@ -901,6 +922,7 @@
                 }),
                 rpc_listen,
                 FOREST_VERSION_STRING.as_str(),
+                shutdown_send,
             )
             .<span class="kw">await
             </span>.map_err(|err| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{:?}&quot;</span>, serde_json::to_string(<span class="kw-2">&amp;</span>err)))
@@ -924,11 +946,18 @@
 
     <span class="kw">let </span>config = maybe_fetch_snapshot(should_fetch_snapshot, config).<span class="kw">await</span><span class="question-mark">?</span>;
 
-    <span class="macro">select! </span>{
+    <span class="macro">tokio::select! </span>{
         () = sync_from_snapshot(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>state_manager).fuse() =&gt; {},
-        <span class="kw">_ </span>= ctrlc_oneshot =&gt; {
-            <span class="comment">// Cancel all async services
-            </span>services.shutdown().<span class="kw">await</span>;
+        <span class="kw">_ </span>= tokio::signal::ctrl_c() =&gt; {
+            services.shutdown().<span class="kw">await</span>;
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(db);
+        },
+        <span class="kw">_ </span>= terminate.recv() =&gt; {
+            services.shutdown().<span class="kw">await</span>;
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(db);
+        },
+        <span class="kw">_ </span>= shutdown_recv.recv() =&gt; {
+            services.shutdown().<span class="kw">await</span>;
             <span class="kw">return </span><span class="prelude-val">Ok</span>(db);
         },
     }
@@ -944,13 +973,14 @@
 
     <span class="comment">// blocking until any of the services returns an error,
     // or CTRL-C is pressed
-    </span><span class="macro">select! </span>{
+    </span><span class="macro">tokio::select! </span>{
         err = propagate_error(<span class="kw-2">&amp;mut </span>services).fuse() =&gt; <span class="macro">error!</span>(<span class="string">&quot;services failure: {}&quot;</span>, err),
-        <span class="kw">_ </span>= ctrlc_oneshot =&gt; {}
+        <span class="kw">_ </span>= tokio::signal::ctrl_c() =&gt; {},
+        <span class="kw">_ </span>= terminate.recv() =&gt; {},
+        <span class="kw">_ </span>= shutdown_recv.recv() =&gt; {},
     }
 
-    <span class="comment">// Cancel all async services
-    </span>services.shutdown().<span class="kw">await</span>;
+    services.shutdown().<span class="kw">await</span>;
 
     <span class="prelude-val">Ok</span>(db)
 }
@@ -1038,7 +1068,7 @@
     <span class="kw">if </span>should_download {
         <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
     } <span class="kw">else </span>{
-        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Forest cannot sync without a snapshot. Download a snapshot from a trusted source and import with --import-snapshot=[file] or --download-snapshot to download one automatically&quot;</span>);
+        <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Forest cannot sync without a snapshot. Download a snapshot from a trusted source and import with --import-snapshot=[file] or --auto-download-snapshot to download one automatically&quot;</span>);
     }
 }
 

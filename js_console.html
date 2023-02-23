@@ -191,6 +191,8 @@ Forest running on calibnet
 <li><code>showSyncStatus()</code></li>
 <li><code>sendFIL(to, attoAmount)</code></li>
 </ul>
+<h3 id="timers"><a class="header" href="#timers">Timers</a></h3>
+<p>In addition, to support part of the JavaScript language, the console also provides implementation for <code>sleep(seconds)</code> timer and a tipset based timer, <code>sleepTipsets(epochs)</code>, which sleeps till the number of new tipsets added is equal to or greater than <code>epochs</code>.</p>
 <h3 id="modules"><a class="header" href="#modules">Modules</a></h3>
 <p>CommonJS modules is the way to package JavaScript code for Forest console. You can import modules using the <code>require</code> function:</p>
 <pre><code class="language-bash">forest-cli attach --exec &quot;const Math = require('calc'); console.log(Math.add(39,3))&quot;

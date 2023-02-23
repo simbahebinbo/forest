@@ -230,7 +230,7 @@
 }
 
 <span class="doccomment">/// Represents the current version of the API.
-</span><span class="attr">#[derive(Serialize)]
+</span><span class="attr">#[derive(Serialize, Deserialize)]
 #[serde(rename_all = <span class="string">&quot;PascalCase&quot;</span>)]
 </span><span class="kw">pub struct </span>APIVersion {
     <span class="kw">pub </span>version: String,
@@ -240,7 +240,7 @@
 
 <span class="doccomment">/// Integer based value on version information. Highest order bits for Major,
 /// Mid order for Minor and lowest for Patch.
-</span><span class="attr">#[derive(Serialize)]
+</span><span class="attr">#[derive(Serialize, Deserialize)]
 </span><span class="kw">pub struct </span>Version(u32);
 
 <span class="kw">impl </span>Version {

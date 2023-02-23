@@ -20,6 +20,15 @@
 <a href="#20" id="20">20</a>
 <a href="#21" id="21">21</a>
 <a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -30,6 +39,7 @@
 };
 <span class="kw">use </span>jsonrpc_v2::Error <span class="kw">as </span>JsonRpcError;
 <span class="kw">use </span>semver::Version <span class="kw">as </span>SemVer;
+<span class="kw">use </span>tokio::sync::mpsc::Sender;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>version(
     block_delay: u64,
@@ -41,6 +51,14 @@
         api_version: Version::new(v.major, v.minor, v.patch),
         block_delay,
     })
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>shutdown(shutdown_send: Sender&lt;()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;ShutdownResult, JsonRpcError&gt; {
+    <span class="comment">// Trigger graceful shutdown
+    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(err) = shutdown_send.send(()).<span class="kw">await </span>{
+        <span class="kw">return </span><span class="prelude-val">Err</span>(JsonRpcError::from(err));
+    }
+    <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest_rpc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (e972bc808 2023-01-29)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>

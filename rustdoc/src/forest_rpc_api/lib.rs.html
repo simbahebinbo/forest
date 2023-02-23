@@ -395,6 +395,11 @@
 <a href="#395" id="395">395</a>
 <a href="#396" id="396">396</a>
 <a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -478,6 +483,7 @@
 
     <span class="comment">// Common API
     </span>access.insert(common_api::VERSION, Access::Read);
+    access.insert(common_api::SHUTDOWN, Access::Admin);
 
     <span class="comment">// Net API
     </span>access.insert(net_api::NET_ADDRS_LISTEN, Access::Read);
@@ -770,6 +776,10 @@
     <span class="kw">pub const </span>VERSION: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.Version&quot;</span>;
     <span class="kw">pub type </span>VersionParams = ();
     <span class="kw">pub type </span>VersionResult = APIVersion;
+
+    <span class="kw">pub const </span>SHUTDOWN: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Filecoin.Shutdown&quot;</span>;
+    <span class="kw">pub type </span>ShutdownParams = ();
+    <span class="kw">pub type </span>ShutdownResult = ();
 }
 
 <span class="doccomment">/// Net API

@@ -227,6 +227,11 @@
 <a href="#227" id="227">227</a>
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -244,6 +249,7 @@
 <span class="kw">mod </span>mpool_cmd;
 <span class="kw">mod </span>net_cmd;
 <span class="kw">mod </span>send_cmd;
+<span class="kw">mod </span>shutdown_cmd;
 <span class="kw">mod </span>snapshot_cmd;
 <span class="kw">mod </span>state_cmd;
 <span class="kw">mod </span>sync_cmd;
@@ -264,8 +270,8 @@
     attach_cmd::AttachCommand, auth_cmd::AuthCommands, chain_cmd::ChainCommands,
     config_cmd::ConfigCommands, db_cmd::DBCommands, fetch_params_cmd::FetchCommands,
     mpool_cmd::MpoolCommands, net_cmd::NetCommands, send_cmd::SendCommand,
-    snapshot_cmd::SnapshotCommands, state_cmd::StateCommands, sync_cmd::SyncCommands,
-    wallet_cmd::WalletCommands,
+    shutdown_cmd::ShutdownCommand, snapshot_cmd::SnapshotCommands, state_cmd::StateCommands,
+    sync_cmd::SyncCommands, wallet_cmd::WalletCommands,
 };
 
 <span class="doccomment">/// CLI structure generated when interacting with Forest binary
@@ -331,6 +337,9 @@
 
     <span class="doccomment">/// Attach to daemon via a JavaScript console
     </span>Attach(AttachCommand),
+
+    <span class="doccomment">/// Shutdown Forest
+    </span>Shutdown(ShutdownCommand),
 }
 
 <span class="doccomment">/// Pretty-print a JSON-RPC error and exit
@@ -412,7 +421,8 @@
 }
 
 <span class="kw">fn </span>prompt_confirm() -&gt; bool {
-    <span class="macro">println!</span>(<span class="string">&quot;Do you want to continue? [y/n]&quot;</span>);
+    <span class="macro">print!</span>(<span class="string">&quot;Do you want to continue? [y/n] &quot;</span>);
+    std::io::stdout().flush().unwrap();
     <span class="kw">let </span><span class="kw-2">mut </span>line = String::new();
     std::io::stdin().read_line(<span class="kw-2">&amp;mut </span>line).unwrap();
     <span class="kw">let </span>line = line.trim().to_lowercase();
