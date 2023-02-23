@@ -143,6 +143,20 @@
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -200,6 +214,7 @@
     <span class="kw">pub </span>ty: RequestType,
     <span class="kw">pub </span>cid: Cid,
     <span class="kw">pub </span>send_dont_have: bool,
+    <span class="kw">pub </span>cancel: bool,
 }
 
 <span class="kw">impl </span>BitswapRequest {
@@ -208,6 +223,7 @@
             ty: RequestType::Have,
             cid,
             send_dont_have: <span class="bool-val">false</span>,
+            cancel: <span class="bool-val">false</span>,
         }
     }
 
@@ -216,6 +232,7 @@
             ty: RequestType::Block,
             cid,
             send_dont_have: <span class="bool-val">false</span>,
+            cancel: <span class="bool-val">false</span>,
         }
     }
 
@@ -223,6 +240,16 @@
         <span class="self">self</span>.send_dont_have = b;
         <span class="self">self
     </span>}
+
+    <span class="kw">pub fn </span>new_cancel(cid: Cid) -&gt; <span class="self">Self </span>{
+        <span class="comment">// Matches `https://github.com/ipfs/go-libipfs/blob/v0.6.0/bitswap/message/message.go#L309`
+        </span><span class="self">Self </span>{
+            ty: RequestType::Block,
+            cid,
+            send_dont_have: <span class="bool-val">false</span>,
+            cancel: <span class="bool-val">true</span>,
+        }
+    }
 }
 
 <span class="doccomment">/// `Bitswap` response type
@@ -248,6 +275,7 @@
                 ty,
                 cid,
                 send_dont_have,
+                cancel,
             }) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>wantlist = bitswap_pb::message::Wantlist::new();
 
@@ -256,7 +284,7 @@
                     entry.block = cid.to_bytes();
                     entry.wantType = (<span class="kw-2">*</span>ty).into();
                     entry.sendDontHave = <span class="kw-2">*</span>send_dont_have;
-                    entry.cancel = <span class="bool-val">false</span>;
+                    entry.cancel = <span class="kw-2">*</span>cancel;
                     entry.priority = <span class="number">1</span>;
                     entry
                 });
