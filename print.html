@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">2.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">3.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">5.</strong> Trouble Shooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">6.</strong> Glossary</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">2.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="docker.html"><strong aria-hidden="true">3.</strong> Docker</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">4.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">6.</strong> Trouble Shooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">7.</strong> Glossary</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -203,6 +203,102 @@ sudo pacman -S base-devel clang ocl-icd
 <h4 id="mainnet"><a class="header" href="#mainnet">Mainnet</a></h4>
 <p>Start the <code>forest</code> node:</p>
 <pre><code class="language-bash">forest --target-peer-count 50 --encrypt-keystore false
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="forest-in-docker"><a class="header" href="#forest-in-docker">Forest in Docker🌲❤️🐋</a></h1>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<ul>
+<li>Docker engine installed and running. Forest containers are confirmed to run on the following engines:
+<ul>
+<li>Docker Engine (Community) on Linux,</li>
+<li>Docker for macOS</li>
+<li>Podman on WSL</li>
+</ul>
+</li>
+</ul>
+<p>Native images are available for the following platforms:</p>
+<ul>
+<li><code>linux/arm64</code></li>
+<li><code>linux/amd64</code></li>
+</ul>
+<p>The images will work out-of-the box on both Intel processors and macOS with M1/M2.</p>
+<h2 id="tags"><a class="header" href="#tags">Tags</a></h2>
+<p>For the list of all available tags please refer to the <a href="https://github.com/ChainSafe/forest/pkgs/container/forest">Forest packages</a>.</p>
+<p>Currently, the following tags are produced:</p>
+<ul>
+<li><code>latest</code> - latest build of the <code>main</code> branch.</li>
+<li><code>date-digest</code> e.g., <code>2023-02-17-5f27a62</code> - all builds that landed on the <code>main</code> branch.</li>
+<li>release tags, available from <code>v.0.7.0</code> onwards.</li>
+</ul>
+<h2 id="security-recommendations"><a class="header" href="#security-recommendations">Security recommendations</a></h2>
+<ul>
+<li>We strongly recommend running the docker daemon in rootless mode (<a href="https://docs.docker.com/engine/security/rootless/">installation instructions</a>), or running the daemon-less docker alternative <code>podman</code> (<a href="https://podman.io/getting-started/installation">installation instructions</a>) with non-root user and put <code>alias docker = podman</code> (or manually replace the <code>docker</code> commands with <code>podman</code> in below instructions)</li>
+</ul>
+<h2 id="performance-recommendations"><a class="header" href="#performance-recommendations">Performance recommendations</a></h2>
+<ul>
+<li>We recommend lowering the swappiness kernel parameter on linux to 1-10 for long running forest node by doing <code>sudo sysctl -w vm.swappiness=[n]</code>. </li>
+</ul>
+<p>References: <a href="https://en.wikipedia.org/wiki/Memory_paging#Swappiness">[1]</a>  <a href="https://linuxhint.com/understanding_vm_swappiness/">[2]</a></p>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<h3 id="list-available-flags-andor-commands"><a class="header" href="#list-available-flags-andor-commands">List available flags and/or commands</a></h3>
+<pre><code class="language-shell"># daemon
+❯ docker run --init -it --rm ghcr.io/chainsafe/forest:latest --help
+# cli
+❯ docker run --init -it --rm --entrypoint forest-cli ghcr.io/chainsafe/forest:latest --help
+</code></pre>
+<h3 id="create-a-forest-node-running-calibration-network-then-list-all-connected-peers"><a class="header" href="#create-a-forest-node-running-calibration-network-then-list-all-connected-peers">Create a Forest node running calibration network. Then list all connected peers.</a></h3>
+<pre><code class="language-shell">❯ docker run --init -it --rm --name forest ghcr.io/chainsafe/forest:latest --chain calibnet --auto-download-snapshot
+</code></pre>
+<p>then in another terminal (sample output)</p>
+<pre><code class="language-shell">❯ docker exec -it forest forest-cli net peers
+12D3KooWAh4qiT3ZRZgctVJ8AWwRva9AncjMRVBSkFwNjTx3EpEr, [/ip4/10.0.2.215/tcp/1347, /ip4/52.12.185.166/tcp/1347]
+12D3KooWMY4VdMsdbFwkHv9HxX2jZsUdCcWFX5F5VGzBPZkdxyVr, [/ip4/162.219.87.149/tcp/30141, /ip4/162.219.87.149/tcp/30141/p2p/12D3KooWMY4VdMsdbFwkHv9HxX2jZsUdCcWFX5F5VGzBPZkdxyVr]
+12D3KooWFWUqE9jgXvcKHWieYs9nhyp6NF4ftwLGAHm4sCv73jjK, [/dns4/bootstrap-3.calibration.fildev.network/tcp/1347]
+</code></pre>
+<h3 id="use-a-shared-volume-to-utilise-across-different-forest-images"><a class="header" href="#use-a-shared-volume-to-utilise-across-different-forest-images">Use a shared volume to utilise across different Forest images</a></h3>
+<p>Create the volume</p>
+<pre><code class="language-shell">docker volume create forest-data
+</code></pre>
+<p>Now, whenever you create a new Forest container, attach the volume to where the data is stored <code>/home/forest/.local/share/forest</code>.</p>
+<pre><code class="language-shell">❯ docker run --init -it --rm \
+             --ulimit nofile=8192 \
+             --volume forest-data:/home/forest/.local/share/forest \
+             --name forest ghcr.io/chainsafe/forest:latest --chain calibnet 
+                                                           --auto-download-snapshot
+</code></pre>
+<h3 id="export-the-calibnet-snapshot-to-the-host-machine"><a class="header" href="#export-the-calibnet-snapshot-to-the-host-machine">Export the calibnet snapshot to the host machine</a></h3>
+<p>Assuming you have <code>forest</code> container already running, run:</p>
+<pre><code class="language-shell">❯ docker exec -it forest forest-cli --chain calibnet snapshot export
+Export completed. Snapshot located at forest_snapshot_calibnet_2023-02-17_height_308891.car
+</code></pre>
+<p>Copy the snapshot to the host</p>
+<pre><code class="language-shell">❯ docker cp forest:/home/forest/forest_snapshot_calibnet_2023-02-17_height_308891.car .
+</code></pre>
+<h3 id="create-and-fund-a-wallet-then-send-some-fil-on-calibration-network"><a class="header" href="#create-and-fund-a-wallet-then-send-some-fil-on-calibration-network">Create and fund a wallet, then send some FIL on calibration network</a></h3>
+<p>Assuming you have <code>forest</code> container already running, you need to find the JWT token in the logs. </p>
+<pre><code class="language-shell">❯ docker logs forest | grep &quot;Admin token&quot;
+</code></pre>
+<p>export it to an environmental variable for convenience (sample, use the token you obtained in the previous step)</p>
+<pre><code class="language-shell">export JWT_TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXSwiZXhwIjoxNjgxODIxMTc4fQ.3toXEeiGcHT01pUjQeqMyW2kZmQpqpE4Gi4vOHjX4rE
+</code></pre>
+<p>Create the wallet</p>
+<pre><code class="language-shell">❯ docker exec -it forest forest-cli --chain calibnet --token $JWT_TOKEN wallet new
+f1uvqpa2jgic7fhhko3w4wf3kxj36qslvqrk2ln5i
+</code></pre>
+<p>Fund it using the <a href="https://faucet.calibration.fildev.network/funds.html">faucet</a>. You can verify it was funded after a few minutes in <a href="https://calibration.filscan.io/">Filscan</a> by pasting the Message ID obtained from the faucet. Example from <a href="https://calibration.filscan.io/tipset/message-detail?cid=bafy2bzacebdverplts5qs3lwzsenzlh4rdsmvc42r6yg6suu4comr7gkbe76a">this wallet</a>. Please note the first letter of the address is<code>t</code> and not <code>f</code>. This is a known issue.</p>
+<p>Verify that your account has 100 FIL . The result is in <code>attoFIL</code>.</p>
+<pre><code class="language-shell">❯ docker exec -it forest forest-cli --chain calibnet --token $JWT_TOKEN wallet balance t1uvqpa2jgic7fhhko3w4wf3kxj36qslvqrk2ln5i
+100000000000000000000
+</code></pre>
+<p>Create another wallet</p>
+<pre><code class="language-shell">❯ docker exec -it forest forest-cli --chain calibnet --token $JWT_TOKEN wallet new
+f1wa7lgs7b3p5a26abkgpxwjpw67tx4fbsryg6tca
+</code></pre>
+<p>Send 10 FIL from the original wallet to the new one</p>
+<pre><code class="language-shell">❯ docker exec -it forest forest-cli --chain calibnet --token $JWT_TOKEN send --from f1uvqpa2jgic7fhhko3w4wf3kxj36qslvqrk2ln5i f1wa7lgs7b3p5a26abkgpxwjpw67tx4fbsryg6tca 10000000000000000000
+</code></pre>
+<p>Verify the balance of the new address. <a href="https://calibration.filscan.io/tipset/message-detail?cid=bafy2bzacebymw25tedmec4xnwmf7fcrt64qvfbbuacbx6lnhyrcbfv3rgkn2a">Sample transaction</a> for this wallet.</p>
+<pre><code class="language-shell">❯ docker exec -it forest forest-cli --chain calibnet --token $JWT_TOKEN wallet balance f1wa7lgs7b3p5a26abkgpxwjpw67tx4fbsryg6tca
+10000000000000000000
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="forest-javascript-console"><a class="header" href="#forest-javascript-console">Forest JavaScript Console</a></h1>
 <p>Forest console stands as an alternative to tools like <a href="https://github.com/curl/curl">Curl</a> or other subcommands found in <code>forest-cli</code> for interacting with the Filecoin JSON-RPC API.</p>
