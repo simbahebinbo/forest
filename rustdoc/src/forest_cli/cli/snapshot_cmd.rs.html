@@ -501,6 +501,13 @@
 <a href="#501" id="501">501</a>
 <a href="#502" id="502">502</a>
 <a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -517,6 +524,7 @@
 <span class="kw">use </span>forest_db::{db_engine::open_db, Store};
 <span class="kw">use </span>forest_genesis::{forest_load_car, read_genesis_header};
 <span class="kw">use </span>forest_ipld::{recurse_links_hash, CidHashSet};
+<span class="kw">use </span>forest_rpc_api::chain_api::ChainExportParams;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_utils::{io::parser::parse_duration, net::FetchProgress, retry};
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
@@ -557,6 +565,10 @@
         <span class="doccomment">/// Skip creating the checksum file.
         </span><span class="attr">#[arg(long)]
         </span>skip_checksum: bool,
+        <span class="doccomment">/// Skip writing to the snapshot `.car` file specified by
+        /// `--output-path`.
+        </span><span class="attr">#[arg(long)]
+        </span>dry_run: bool,
     },
 
     <span class="doccomment">/// Fetches the most recent snapshot from a trusted, pre-defined location.
@@ -652,6 +664,7 @@
                 recent_stateroots,
                 output_path,
                 skip_checksum,
+                dry_run,
             } =&gt; {
                 <span class="kw">let </span>chain_head = <span class="kw">match </span>chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await </span>{
                     <span class="prelude-val">Ok</span>(head) =&gt; head.<span class="number">0</span>,
@@ -691,13 +704,14 @@
                     }
                 };
 
-                <span class="kw">let </span>params = (
+                <span class="kw">let </span>params = ChainExportParams {
                     epoch,
-                    <span class="kw-2">*</span>recent_stateroots,
+                    recent_roots: <span class="kw-2">*</span>recent_stateroots,
                     output_path,
-                    TipsetKeysJson(chain_head.key().clone()),
-                    <span class="kw-2">*</span>skip_checksum,
-                );
+                    tipset_keys: TipsetKeysJson(chain_head.key().clone()),
+                    skip_checksum: <span class="kw-2">*</span>skip_checksum,
+                    dry_run: <span class="kw-2">*</span>dry_run,
+                };
 
                 <span class="kw">let </span>out = chain_export(params, <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await

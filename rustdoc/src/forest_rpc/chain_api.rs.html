@@ -311,6 +311,26 @@
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -333,7 +353,10 @@
     data_types::{BlockMessages, RPCState},
 };
 <span class="kw">use </span>forest_shim::message::Message;
-<span class="kw">use </span>forest_utils::{db::BlockstoreExt, io::AsyncWriterWithChecksum};
+<span class="kw">use </span>forest_utils::{
+    db::BlockstoreExt,
+    io::{AsyncWriterWithChecksum, VoidAsyncWriterWithNoChecksum},
+};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>hex::ToHex;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
@@ -364,7 +387,14 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>chain_export&lt;DB, B&gt;(
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
-    Params(params): Params&lt;ChainExportParams&gt;,
+    Params(ChainExportParams {
+        epoch,
+        recent_roots,
+        output_path,
+        tipset_keys: TipsetKeysJson(tsk),
+        skip_checksum,
+        dry_run,
+    }): Params&lt;ChainExportParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainExportResult, JsonRpcError&gt;
 <span class="kw">where
     </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -382,8 +412,6 @@
         });
     }
 
-    <span class="kw">let </span>(epoch, recent_roots, out, TipsetKeysJson(tsk), skip_checksum) = params;
-
     <span class="kw">let </span>chain_finality = data.state_manager.chain_config().policy.chain_finality;
     <span class="kw">if </span>recent_roots &lt; chain_finality {
         <span class="prelude-val">Err</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
@@ -391,40 +419,52 @@
         </span>))<span class="question-mark">?</span>;
     }
 
-    <span class="kw">let </span>out_tmp = out.with_extension(<span class="string">&quot;car.tmp&quot;</span>);
-    <span class="kw">let </span>file = File::create(<span class="kw-2">&amp;</span>out_tmp).<span class="kw">await</span>.map_err(JsonRpcError::from)<span class="question-mark">?</span>;
-    <span class="kw">let </span>writer = AsyncWriterWithChecksum::&lt;Sha256, <span class="kw">_</span>&gt;::new(BufWriter::new(file));
-
+    <span class="kw">let </span>out_tmp = output_path.with_extension(<span class="string">&quot;car.tmp&quot;</span>);
     <span class="kw">let </span>head = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
-
     <span class="kw">let </span>start_ts = data.chain_store.tipset_by_height(epoch, head, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">match </span>data
-        .chain_store
-        .export(<span class="kw-2">&amp;</span>start_ts, recent_roots, writer)
-        .<span class="kw">await
-    </span>{
-        <span class="prelude-val">Ok</span>(checksum) =&gt; {
-            std::fs::rename(<span class="kw-2">&amp;</span>out_tmp, <span class="kw-2">&amp;</span>out)<span class="question-mark">?</span>;
+    <span class="kw">match if </span>dry_run {
+        data.chain_store
+            .export(
+                <span class="kw-2">&amp;</span>start_ts,
+                recent_roots,
+                VoidAsyncWriterWithNoChecksum::&lt;Sha256&gt;::default(),
+            )
+            .<span class="kw">await
+    </span>} <span class="kw">else </span>{
+        <span class="kw">let </span>file = File::create(<span class="kw-2">&amp;</span>out_tmp).<span class="kw">await</span>.map_err(JsonRpcError::from)<span class="question-mark">?</span>;
+        data.chain_store
+            .export(
+                <span class="kw-2">&amp;</span>start_ts,
+                recent_roots,
+                AsyncWriterWithChecksum::&lt;Sha256, <span class="kw">_</span>&gt;::new(BufWriter::new(file)),
+            )
+            .<span class="kw">await
+    </span>} {
+        <span class="prelude-val">Ok</span>(checksum) <span class="kw">if </span>!dry_run =&gt; {
+            std::fs::rename(<span class="kw-2">&amp;</span>out_tmp, <span class="kw-2">&amp;</span>output_path)<span class="question-mark">?</span>;
             <span class="kw">if </span>!skip_checksum {
-                save_checksum(<span class="kw-2">&amp;</span>out, checksum).<span class="kw">await</span><span class="question-mark">?</span>;
+                save_checksum(<span class="kw-2">&amp;</span>output_path, checksum).<span class="kw">await</span><span class="question-mark">?</span>;
             }
         }
+        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
         <span class="prelude-val">Err</span>(e) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = std::fs::remove_file(<span class="kw-2">&amp;</span>out_tmp) {
-                <span class="macro">error!</span>(
-                    <span class="string">&quot;failed to remove incomplete export file at {}: {e}&quot;</span>,
-                    out_tmp.display()
-                );
-            } <span class="kw">else </span>{
-                <span class="macro">debug!</span>(<span class="string">&quot;incomplete export file at {} removed&quot;</span>, out_tmp.display());
+            <span class="kw">if </span>out_tmp.exists() {
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = std::fs::remove_file(<span class="kw-2">&amp;</span>out_tmp) {
+                    <span class="macro">error!</span>(
+                        <span class="string">&quot;failed to remove incomplete export file at {}: {e}&quot;</span>,
+                        out_tmp.display()
+                    );
+                } <span class="kw">else </span>{
+                    <span class="macro">debug!</span>(<span class="string">&quot;incomplete export file at {} removed&quot;</span>, out_tmp.display());
+                }
             }
 
             <span class="kw">return </span><span class="prelude-val">Err</span>(JsonRpcError::from(e));
         }
     };
 
-    <span class="prelude-val">Ok</span>(out)
+    <span class="prelude-val">Ok</span>(output_path)
 }
 
 <span class="doccomment">/// Prints hex-encoded representation of SHA-256 checksum and saves it to a file

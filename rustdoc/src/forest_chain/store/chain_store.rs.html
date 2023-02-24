@@ -1034,6 +1034,9 @@
 <a href="#1034" id="1034">1034</a>
 <a href="#1035" id="1035">1035</a>
 <a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1626,10 +1629,13 @@
             .<span class="kw">await
             </span>.map_err(|e| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Failed to write blocks in export: {e}&quot;</span>)))<span class="question-mark">??</span>;
 
-        <span class="kw">let </span>time = SystemTime::now()
-            .duration_since(global_pre_time)
-            .expect(<span class="string">&quot;time cannot go backwards&quot;</span>);
-        <span class="macro">info!</span>(<span class="string">&quot;export finished, took {} seconds&quot;</span>, time.as_secs());
+        <span class="macro">info!</span>(
+            <span class="string">&quot;export finished, took {} seconds&quot;</span>,
+            global_pre_time
+                .elapsed()
+                .expect(<span class="string">&quot;time cannot go backwards&quot;</span>)
+                .as_secs()
+        );
 
         <span class="kw">let </span>digest = writer.lock().<span class="kw">await</span>.get_mut().finalize();
         <span class="prelude-val">Ok</span>(digest)
