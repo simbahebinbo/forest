@@ -1037,8 +1037,6 @@
 <a href="#1037" id="1037">1037</a>
 <a href="#1038" id="1038">1038</a>
 <a href="#1039" id="1039">1039</a>
-<a href="#1040" id="1040">1040</a>
-<a href="#1041" id="1041">1041</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1066,19 +1064,17 @@
 <span class="kw">use </span>forest_metrics::metrics;
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_shim::{
-    address::Address,
-    crypto::{Signature, SignatureType},
-    econ::TokenAmount,
-    executor::Receipt,
-    message::Message,
-    state_tree::StateTree,
+    address::Address, econ::TokenAmount, executor::Receipt, message::Message, state_tree::StateTree,
 };
 <span class="kw">use </span>forest_utils::{db::BlockstoreExt, io::Checksum};
 <span class="kw">use </span>futures::Future;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::CarHeader;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, Cbor};
-<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>fvm_shared::{
+    clock::ChainEpoch,
+    crypto::signature::{Signature, SignatureType},
+};
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::Mutex;

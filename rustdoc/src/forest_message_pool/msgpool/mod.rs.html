@@ -928,6 +928,7 @@
 <a href="#928" id="928">928</a>
 <a href="#929" id="929">929</a>
 <a href="#930" id="930">930</a>
+<a href="#931" id="931">931</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -945,8 +946,9 @@
 <span class="kw">use </span>forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
 <span class="kw">use </span>forest_message::{Message <span class="kw">as </span>MessageTrait, SignedMessage};
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_shim::{address::Address, crypto::Signature};
+<span class="kw">use </span>forest_shim::address::Address;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
+<span class="kw">use </span>fvm_shared::crypto::signature::Signature;
 <span class="kw">use </span>log::error;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::{Mutex, RwLock <span class="kw">as </span>SyncRwLock};
@@ -1266,10 +1268,10 @@
     </span><span class="kw">use </span>forest_networks::ChainConfig;
     <span class="kw">use </span>forest_shim::{
         address::Address,
-        crypto::SignatureType,
         econ::TokenAmount,
         message::{Message, Message_v3},
     };
+    <span class="kw">use </span>fvm_shared::crypto::signature::SignatureType;
     <span class="attr">#[cfg(feature = <span class="string">&quot;slow_tests&quot;</span>)]
     </span><span class="kw">use </span>num_traits::Zero;
     <span class="kw">use </span>test_provider::<span class="kw-2">*</span>;

@@ -50,14 +50,16 @@
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_chain::MINIMUM_BASE_FEE;
 <span class="kw">use </span>forest_message::{Message <span class="kw">as </span>MessageTrait, SignedMessage};
-<span class="kw">use </span>forest_shim::{crypto::Signature, econ::TokenAmount, message::Message};
+<span class="kw">use </span>forest_shim::{econ::TokenAmount, message::Message};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
+<span class="kw">use </span>fvm_shared::crypto::signature::Signature;
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num_rational::BigRational;
 <span class="kw">use </span>num_traits::ToPrimitive;

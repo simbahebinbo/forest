@@ -123,21 +123,17 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
-<span class="kw">use </span>forest_shim::{
-    address::Address,
-    crypto::{Signature, SignatureType},
-    econ::TokenAmount,
-    message::Message,
-};
+<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, message::Message};
 <span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError};
 <span class="kw">use </span>fvm_ipld_encoding3::RawBytes;
-<span class="kw">use </span>fvm_shared::MethodNum;
+<span class="kw">use </span>fvm_shared::{
+    crypto::signature::{Signature, SignatureType},
+    MethodNum,
+};
 
 <span class="kw">use </span><span class="kw">super</span>::Message <span class="kw">as </span>MessageTrait;
 

@@ -9,12 +9,10 @@
 <a href="#9" id="9">9</a>
 <a href="#10" id="10">10</a>
 <a href="#11" id="11">11</a>
-<a href="#12" id="12">12</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_shim::crypto::Signature;
-<span class="kw">use </span>fvm_shared::address::Address;
+</span><span class="kw">use </span>fvm_shared::{address::Address, crypto::signature::Signature};
 
 <span class="doccomment">/// Signer is a trait which allows a key implementation to sign data for an
 /// address

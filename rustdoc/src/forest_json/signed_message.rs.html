@@ -223,13 +223,15 @@
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">pub mod </span>json {
     <span class="kw">use </span>cid::Cid;
     <span class="kw">use </span>forest_message::SignedMessage;
-    <span class="kw">use </span>forest_shim::{crypto::Signature, message::Message};
+    <span class="kw">use </span>forest_shim::message::Message;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
+    <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
     <span class="kw">use </span>serde::{ser, Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="kw">use crate</span>::{message, signature};
@@ -325,10 +327,10 @@
     <span class="kw">use </span>forest_message::{<span class="self">self</span>, SignedMessage};
     <span class="kw">use </span>forest_shim::{
         address::Address,
-        crypto::Signature,
         econ::TokenAmount,
         message::{Message, Message_v3},
     };
+    <span class="kw">use </span>fvm_shared::crypto::signature::Signature;
     <span class="kw">use </span>quickcheck_macros::quickcheck;
     <span class="kw">use </span>serde::{Deserialize, Serialize};
     <span class="kw">use </span>serde_json::{<span class="self">self</span>, from_str, to_string};
