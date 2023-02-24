@@ -312,6 +312,10 @@
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -456,6 +460,8 @@
     <span class="kw">pub </span>stderr: PathBuf,
     <span class="kw">pub </span>work_dir: PathBuf,
     <span class="kw">pub </span>pid_file: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+    <span class="kw">pub </span>default_retry: i32,
+    <span class="kw">pub </span>default_delay: Duration,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>DaemonConfig {
@@ -468,6 +474,8 @@
             stderr: <span class="string">&quot;forest.err&quot;</span>.into(),
             work_dir: <span class="string">&quot;.&quot;</span>.into(),
             pid_file: <span class="prelude-val">None</span>,
+            default_retry: <span class="number">3</span>,
+            default_delay: Duration::from_secs(<span class="number">60</span>),
         }
     }
 }

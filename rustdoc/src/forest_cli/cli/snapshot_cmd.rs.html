@@ -483,10 +483,28 @@
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
 <a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::{fs, path::PathBuf, sync::Arc};
+</span><span class="kw">use </span>std::{fs, path::PathBuf, sync::Arc, time::Duration};
 
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>clap::Subcommand;
@@ -500,11 +518,13 @@
 <span class="kw">use </span>forest_genesis::{forest_load_car, read_genesis_header};
 <span class="kw">use </span>forest_ipld::{recurse_links_hash, CidHashSet};
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
-<span class="kw">use </span>forest_utils::net::FetchProgress;
+<span class="kw">use </span>forest_utils::{io::parser::parse_duration, net::FetchProgress, retry};
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
+<span class="kw">use </span>log::info;
 <span class="kw">use </span>strfmt::strfmt;
 <span class="kw">use </span>tempfile::TempDir;
 <span class="kw">use </span>time::OffsetDateTime;
+<span class="kw">use </span>tokio::time::sleep;
 <span class="kw">use </span>tokio_util::compat::TokioAsyncReadCompatExt;
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -551,6 +571,12 @@
         <span class="doccomment">/// Use [`aria2`](https://aria2.github.io/) for downloading, default is false. Requires `aria2c` in PATH.
         </span><span class="attr">#[arg(long)]
         </span>aria2: bool,
+        <span class="doccomment">/// Maximum number of times to retry the fetch
+        </span><span class="attr">#[arg(short, long, default_value = <span class="string">&quot;3&quot;</span>)]
+        </span>max_retries: i32,
+        <span class="doccomment">/// Duration to wait between the retries in seconds
+        </span><span class="attr">#[arg(short, long, default_value = <span class="string">&quot;60&quot;</span>, value_parser = parse_duration)]
+        </span>delay: Duration,
     },
 
     <span class="doccomment">/// Shows default snapshot dir
@@ -684,11 +710,21 @@
                 snapshot_dir,
                 provider,
                 aria2: use_aria2,
+                max_retries,
+                delay,
             } =&gt; {
                 <span class="kw">let </span>snapshot_dir = snapshot_dir
                     .clone()
                     .unwrap_or_else(|| default_snapshot_dir(<span class="kw-2">&amp;</span>config));
-                <span class="kw">match </span>snapshot_fetch(<span class="kw-2">&amp;</span>snapshot_dir, <span class="kw-2">&amp;</span>config, provider, <span class="kw-2">*</span>use_aria2).<span class="kw">await </span>{
+                <span class="kw">match </span><span class="macro">retry!</span>(
+                    snapshot_fetch,
+                    <span class="kw-2">*</span>max_retries,
+                    <span class="kw-2">*</span>delay,
+                    <span class="kw-2">&amp;</span>snapshot_dir,
+                    <span class="kw-2">&amp;</span>config,
+                    provider,
+                    <span class="kw-2">*</span>use_aria2
+                ) {
                     <span class="prelude-val">Ok</span>(out) =&gt; {
                         <span class="macro">println!</span>(<span class="string">&quot;Snapshot successfully downloaded at {}&quot;</span>, out.display());
                         <span class="prelude-val">Ok</span>(())
