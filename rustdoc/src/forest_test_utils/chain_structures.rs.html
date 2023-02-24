@@ -203,10 +203,10 @@
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_shim::{
     address::Address,
+    crypto::Signature,
     message::{Message, Message_v3},
 };
 <span class="kw">use </span>fvm_ipld_encoding::{to_vec, DAG_CBOR};
-<span class="kw">use </span>fvm_shared::crypto::signature::Signature;
 <span class="kw">use </span>num::BigInt;
 
 <span class="doccomment">/// Defines a `TipsetKey` used in testing

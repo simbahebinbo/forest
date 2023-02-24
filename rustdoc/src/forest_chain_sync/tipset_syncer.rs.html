@@ -3159,7 +3159,7 @@
                 .map(|x| <span class="kw-2">&amp;</span>x[..])
                 .collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>[u8]&gt;&gt;()
                 .as_slice(),
-            sig,
+            <span class="kw-2">&amp;</span>sig.into(),
         ) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::BlsAggregateSignatureInvalid(
                 <span class="macro">format!</span>(<span class="string">&quot;{sig:?}&quot;</span>),
