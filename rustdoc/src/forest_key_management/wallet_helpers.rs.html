@@ -84,13 +84,17 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>bls_signatures::{PrivateKey <span class="kw">as </span>BlsPrivate, Serialize};
 <span class="kw">use </span>forest_encoding::blake2b_256;
-<span class="kw">use </span>forest_shim::address::Address;
-<span class="kw">use </span>fvm_shared::crypto::signature::{Signature, SignatureType};
+<span class="kw">use </span>forest_shim::{
+    address::Address,
+    crypto::{Signature, SignatureType},
+};
 <span class="kw">use </span>libsecp256k1::{Message <span class="kw">as </span>SecpMessage, PublicKey <span class="kw">as </span>SecpPublic, SecretKey <span class="kw">as </span>SecpPrivate};
 <span class="kw">use </span>rand::rngs::OsRng;
 
