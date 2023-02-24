@@ -119,11 +119,11 @@
     <span class="doccomment">/// Returns the encoded parameters for the method call.
     </span><span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBytes;
     <span class="doccomment">/// sets the gas limit for the message.
-    </span><span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amount: i64);
+    </span><span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, amount: u64);
     <span class="doccomment">/// sets a new sequence to the message.
     </span><span class="kw">fn </span>set_sequence(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sequence: u64);
     <span class="doccomment">/// Returns the gas limit for the message.
-    </span><span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64;
+    </span><span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64;
     <span class="doccomment">/// Returns the required funds for the message.
     </span><span class="kw">fn </span>required_funds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; TokenAmount;
     <span class="doccomment">/// gets gas fee cap for the message.
@@ -155,11 +155,11 @@
     <span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBytes {
         <span class="kw-2">&amp;</span><span class="self">self</span>.params
     }
-    <span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
-        <span class="self">self</span>.gas_limit <span class="kw">as </span>i64
+    <span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.gas_limit
     }
-    <span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token_amount: i64) {
-        <span class="self">self</span>.gas_limit = token_amount <span class="kw">as </span>u64;
+    <span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token_amount: u64) {
+        <span class="self">self</span>.gas_limit = token_amount;
     }
     <span class="kw">fn </span>set_sequence(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_sequence: u64) {
         <span class="self">self</span>.sequence = new_sequence;

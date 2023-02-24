@@ -274,7 +274,7 @@
 };
 <span class="kw">use </span>forest_shim::{econ::TokenAmount, message::Message};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::BLOCK_GAS_LIMIT;
+<span class="kw">use </span>fvm_shared3::BLOCK_GAS_LIMIT;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>num_traits::{FromPrimitive, Zero};
@@ -349,7 +349,7 @@
 
     <span class="kw">struct </span>GasMeta {
         <span class="kw">pub </span>price: TokenAmount,
-        <span class="kw">pub </span>limit: i64,
+        <span class="kw">pub </span>limit: u64,
     }
 
     <span class="kw">let </span><span class="kw-2">mut </span>prices: Vec&lt;GasMeta&gt; = Vec::new();
@@ -382,7 +382,7 @@
 
     prices.sort_by(|a, b| b.price.cmp(<span class="kw-2">&amp;</span>a.price));
     <span class="comment">// TODO: From lotus, account for how full blocks are
-    </span><span class="kw">let </span><span class="kw-2">mut </span>at = BLOCK_GAS_TARGET * blocks <span class="kw">as </span>i64 / <span class="number">2</span>;
+    </span><span class="kw">let </span><span class="kw-2">mut </span>at = BLOCK_GAS_TARGET * blocks <span class="kw">as </span>u64 / <span class="number">2</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>prev = TokenAmount::zero();
     <span class="kw">let </span><span class="kw-2">mut </span>premium = TokenAmount::zero();
 
@@ -505,7 +505,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>msg = msg;
     <span class="kw">if </span>msg.gas_limit == <span class="number">0 </span>{
         <span class="kw">let </span>gl = estimate_gas_limit::&lt;DB, B&gt;(data, msg.clone(), tsk.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
-        msg.set_gas_limit(gl);
+        msg.set_gas_limit(gl <span class="kw">as </span>u64);
     }
     <span class="kw">if </span>msg.gas_premium.is_zero() {
         <span class="kw">let </span>gp = estimate_gas_premium(data, <span class="number">10</span>).<span class="kw">await</span><span class="question-mark">?</span>;

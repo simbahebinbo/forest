@@ -651,7 +651,7 @@
     </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_mut_with_prev_eff(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         k: NodeKey,
-    ) -&gt; (<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>MsgChainNode&gt;, <span class="prelude-ty">Option</span>&lt;(f64, i64)&gt;) {
+    ) -&gt; (<span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>MsgChainNode&gt;, <span class="prelude-ty">Option</span>&lt;(f64, u64)&gt;) {
         <span class="kw">let </span>node = <span class="self">self</span>.map.get(k);
         <span class="kw">let </span>prev = <span class="kw">if let </span><span class="prelude-val">Some</span>(node) = node {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(prev_key) = node.prev {
@@ -711,7 +711,7 @@
     }
 
     <span class="doccomment">/// Removes messages from the given index and resets effective `perfs`
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trim_msgs_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: usize, gas_limit: i64, base_fee: <span class="kw-2">&amp;</span>TokenAmount) {
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>trim_msgs_at(<span class="kw-2">&amp;mut </span><span class="self">self</span>, idx: usize, gas_limit: u64, base_fee: <span class="kw-2">&amp;</span>TokenAmount) {
         <span class="kw">let </span>prev = <span class="kw">match </span>idx {
             <span class="number">0 </span>=&gt; <span class="prelude-val">None</span>,
             <span class="kw">_ </span>=&gt; <span class="self">self
@@ -801,7 +801,7 @@
 </span><span class="kw">pub struct </span>MsgChainNode {
     <span class="kw">pub </span>msgs: Vec&lt;SignedMessage&gt;,
     <span class="kw">pub </span>gas_reward: TokenAmount,
-    <span class="kw">pub </span>gas_limit: i64,
+    <span class="kw">pub </span>gas_limit: u64,
     <span class="kw">pub </span>gas_perf: f64,
     <span class="kw">pub </span>eff_perf: f64,
     <span class="kw">pub </span>bp: f64,
@@ -848,7 +848,7 @@
         }
     }
 
-    <span class="kw">pub fn </span>set_eff_perf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prev: <span class="prelude-ty">Option</span>&lt;(f64, i64)&gt;) {
+    <span class="kw">pub fn </span>set_eff_perf(<span class="kw-2">&amp;mut </span><span class="self">self</span>, prev: <span class="prelude-ty">Option</span>&lt;(f64, u64)&gt;) {
         <span class="kw">let </span><span class="kw-2">mut </span>eff_perf = <span class="self">self</span>.gas_perf * <span class="self">self</span>.bp;
         <span class="kw">if let </span><span class="prelude-val">Some</span>(prev) = prev {
             <span class="kw">if </span>eff_perf &gt; <span class="number">0.0 </span>{
@@ -941,11 +941,11 @@
             .on_chain_message(m.marshal_cbor()<span class="question-mark">?</span>.len())
             .total();
 
-        <span class="kw">if </span>Gas::new(m.gas_limit()) &lt; min_gas {
+        <span class="kw">if </span>Gas::new(m.gas_limit() <span class="kw">as </span>i64) &lt; min_gas {
             <span class="kw">break</span>;
         }
         gas_limit += m.gas_limit();
-        <span class="kw">if </span>gas_limit &gt; fvm_shared::BLOCK_GAS_LIMIT {
+        <span class="kw">if </span>gas_limit &gt; fvm_shared3::BLOCK_GAS_LIMIT {
             <span class="kw">break</span>;
         }
 

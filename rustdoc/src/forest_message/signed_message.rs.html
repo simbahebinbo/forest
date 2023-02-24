@@ -211,10 +211,10 @@
     <span class="kw">fn </span>params(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>RawBytes {
         <span class="self">self</span>.message.params()
     }
-    <span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+    <span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
         <span class="self">self</span>.message.gas_limit()
     }
-    <span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token_amount: i64) {
+    <span class="kw">fn </span>set_gas_limit(<span class="kw-2">&amp;mut </span><span class="self">self</span>, token_amount: u64) {
         <span class="self">self</span>.message.set_gas_limit(token_amount);
     }
     <span class="kw">fn </span>set_sequence(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_sequence: u64) {

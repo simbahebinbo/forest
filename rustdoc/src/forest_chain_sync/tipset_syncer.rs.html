@@ -1724,8 +1724,8 @@
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::{
     clock::ChainEpoch, crypto::signature::ops::verify_bls_aggregate, ALLOWABLE_CLOCK_DRIFT,
-    BLOCK_GAS_LIMIT,
 };
+<span class="kw">use </span>fvm_shared3::BLOCK_GAS_LIMIT;
 <span class="kw">use </span>log::{debug, error, info, trace, warn};
 <span class="kw">use </span>nonempty::NonEmpty;
 <span class="kw">use </span>num::BigInt;
@@ -3183,7 +3183,7 @@
         valid_for_block_inclusion(msg, min_gas.total(), network_version)
             .map_err(|e| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;{}&quot;</span>, e))<span class="question-mark">?</span>;
         sum_gas_limit += msg.gas_limit;
-        <span class="kw">if </span>sum_gas_limit &gt; BLOCK_GAS_LIMIT <span class="kw">as </span>u64 {
+        <span class="kw">if </span>sum_gas_limit &gt; BLOCK_GAS_LIMIT {
             <span class="macro">anyhow::bail!</span>(<span class="string">&quot;block gas limit exceeded&quot;</span>);
         }
 
