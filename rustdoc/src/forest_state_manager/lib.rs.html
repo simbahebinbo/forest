@@ -1274,7 +1274,6 @@
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_interpreter::{resolve_to_key_addr, BlockMessages, RewardCalc, VM};
 <span class="kw">use </span>forest_json::message_receipt;
-<span class="kw">use </span>forest_legacy_ipld_amt::Amt;
 <span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>forest_shim::{
@@ -1289,6 +1288,7 @@
 <span class="kw">use </span>futures::{channel::oneshot, select, FutureExt};
 <span class="kw">use </span>fvm::externs::Rand;
 <span class="kw">use </span>fvm3::externs::Rand <span class="kw">as </span>Rand_v3;
+<span class="kw">use </span>fvm_ipld_amt::Amtv0 <span class="kw">as </span>Amt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;

@@ -159,10 +159,10 @@
 <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>forest_blocks::{Block, FullTipset, Tipset, TxMeta};
 <span class="kw">use </span>forest_chain::ChainStore;
-<span class="kw">use </span>forest_legacy_ipld_amt::{Amt, Error <span class="kw">as </span>IpldAmtError};
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_shim::message::Message;
 <span class="kw">use </span>forest_utils::db::BlockstoreExt;
+<span class="kw">use </span>fvm_ipld_amt::{Amtv0 <span class="kw">as </span>Amt, Error <span class="kw">as </span>IpldAmtError};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::{Cbor, Error <span class="kw">as </span>EncodingError};
 <span class="kw">use </span>thiserror::Error;
