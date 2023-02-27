@@ -671,6 +671,7 @@
 <a href="#671" id="671">671</a>
 <a href="#672" id="672">672</a>
 <a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -694,10 +695,11 @@
     address::Address,
     crypto::{Signature, SignatureType},
     econ::TokenAmount,
+    gas::price_list_by_network_version,
 };
 <span class="kw">use </span>forest_utils::const_option;
 <span class="kw">use </span>futures::StreamExt;
-<span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
+<span class="kw">use </span>fvm3::gas::Gas;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>lru::LruCache;
@@ -995,7 +997,7 @@
         <span class="kw">if </span>msg.marshal_cbor()<span class="question-mark">?</span>.len() &gt; <span class="number">32 </span>* <span class="number">1024 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MessageTooBig);
         }
-        valid_for_block_inclusion(msg.message(), Gas::new(<span class="number">0</span>), NEWEST_NETWORK_VERSION)<span class="question-mark">?</span>;
+        valid_for_block_inclusion(msg.message(), Gas::new(<span class="number">0</span>).into(), NEWEST_NETWORK_VERSION)<span class="question-mark">?</span>;
         <span class="kw">if </span>msg.value() &gt; TokenAmount::from(<span class="kw-2">&amp;*</span>fvm_shared::TOTAL_FILECOIN) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::MessageValueTooHigh);
         }
@@ -1303,7 +1305,7 @@
     chain_config: <span class="kw-2">&amp;</span>ChainConfig,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
     <span class="kw">let </span>epoch = cur_ts.epoch();
-    <span class="kw">let </span>min_gas = price_list_by_network_version(chain_config.network_version(epoch).into())
+    <span class="kw">let </span>min_gas = price_list_by_network_version(chain_config.network_version(epoch))
         .on_chain_message(m.marshal_cbor()<span class="question-mark">?</span>.len());
     valid_for_block_inclusion(m.message(), min_gas.total(), NEWEST_NETWORK_VERSION)<span class="question-mark">?</span>;
     <span class="kw">if </span>!cur_ts.blocks().is_empty() {

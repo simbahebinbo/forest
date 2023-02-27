@@ -542,6 +542,9 @@
 <a href="#542" id="542">542</a>
 <a href="#543" id="543">543</a>
 <a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -555,8 +558,11 @@
 <span class="kw">use </span>forest_blocks::Tipset;
 <span class="kw">use </span>forest_message::{Message, SignedMessage};
 <span class="kw">use </span>forest_networks::ChainConfig;
-<span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount};
-<span class="kw">use </span>fvm::gas::{price_list_by_network_version, Gas};
+<span class="kw">use </span>forest_shim::{
+    address::Address,
+    econ::TokenAmount,
+    gas::{price_list_by_network_version, Gas},
+};
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>log::warn;
 <span class="kw">use </span>num_traits::Zero;
@@ -937,11 +943,11 @@
 
         <span class="kw">let </span>network_version = chain_config.network_version(ts.epoch());
 
-        <span class="kw">let </span>min_gas = price_list_by_network_version(network_version.into())
+        <span class="kw">let </span>min_gas = price_list_by_network_version(network_version)
             .on_chain_message(m.marshal_cbor()<span class="question-mark">?</span>.len())
             .total();
 
-        <span class="kw">if </span>Gas::new(m.gas_limit() <span class="kw">as </span>i64) &lt; min_gas {
+        <span class="kw">if </span>Gas::new(m.gas_limit()) &lt; min_gas {
             <span class="kw">break</span>;
         }
         gas_limit += m.gas_limit();

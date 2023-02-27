@@ -141,6 +141,9 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::ops::{Deref, DerefMut};
@@ -240,6 +243,8 @@
     <span class="kw">pub const </span>BLS: <span class="self">Self </span>= <span class="self">Self</span>(SignatureType_v3::BLS);
     <span class="attr">#[allow(non_upper_case_globals)]
     </span><span class="kw">pub const </span>Secp256k1: <span class="self">Self </span>= <span class="self">Self</span>(SignatureType_v3::Secp256k1);
+    <span class="attr">#[allow(non_upper_case_globals)]
+    </span><span class="kw">pub const </span>Delegated: <span class="self">Self </span>= <span class="self">Self</span>(SignatureType_v3::Delegated);
 }
 
 <span class="kw">impl </span>Deref <span class="kw">for </span>SignatureType {
@@ -281,6 +286,7 @@
         <span class="kw">match </span>other.<span class="number">0 </span>{
             SignatureType_v3::Secp256k1 =&gt; SignatureType_v2::Secp256k1,
             SignatureType_v3::BLS =&gt; SignatureType_v2::BLS,
+            SignatureType_v3::Delegated =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Delegated signature type not possible in fvm2&quot;</span>),
         }
     }
 }

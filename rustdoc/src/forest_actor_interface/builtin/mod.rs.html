@@ -75,6 +75,8 @@
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -145,7 +147,9 @@
 
 <span class="doccomment">/// Returns true if the code belongs to an account actor.
 </span><span class="kw">pub fn </span>is_account_actor(code: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
-    account::is_v8_account_cid(code) || account::is_v9_account_cid(code)
+    account::is_v8_account_cid(code)
+        || account::is_v9_account_cid(code)
+        || account::is_v10_account_cid(code)
 }
 
 <span class="doccomment">/// Returns true if the code belongs to a miner actor.

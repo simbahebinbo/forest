@@ -1691,6 +1691,11 @@
 <a href="#1691" id="1691">1691</a>
 <a href="#1692" id="1692">1692</a>
 <a href="#1693" id="1693">1693</a>
+<a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1715,11 +1720,12 @@
 <span class="kw">use </span>forest_libp2p::chain_exchange::TipsetBundle;
 <span class="kw">use </span>forest_message::{message::valid_for_block_inclusion, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::Height;
-<span class="kw">use </span>forest_shim::{address::Address, message::Message, state_tree::StateTree};
+<span class="kw">use </span>forest_shim::{
+    address::Address, gas::price_list_by_network_version, message::Message, state_tree::StateTree,
+};
 <span class="kw">use </span>forest_state_manager::{Error <span class="kw">as </span>StateManagerError, StateManager};
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>futures::{stream::FuturesUnordered, Stream, StreamExt, TryFutureExt};
-<span class="kw">use </span>fvm::gas::price_list_by_network_version;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
 <span class="kw">use </span>fvm_shared::{
@@ -3170,7 +3176,7 @@
         <span class="kw">return </span><span class="prelude-val">Err</span>(TipsetRangeSyncerError::BlockWithoutBlsAggregate);
     }
 
-    <span class="kw">let </span>price_list = price_list_by_network_version(network_version.into());
+    <span class="kw">let </span>price_list = price_list_by_network_version(network_version);
     <span class="kw">let </span><span class="kw-2">mut </span>sum_gas_limit = <span class="number">0</span>;
 
     <span class="comment">// Check messages for validity
@@ -3239,6 +3245,10 @@
 
     <span class="comment">// Check validity for SECP messages
     </span><span class="kw">for </span>(i, msg) <span class="kw">in </span>block.secp_msgs().iter().enumerate() {
+        <span class="comment">// https://github.com/ChainSafe/forest/issues/2601
+        </span><span class="kw">if </span>msg.is_delegated() {
+            <span class="kw">continue</span>;
+        }
         check_msg(msg.message(), <span class="kw-2">&amp;mut </span>account_sequences, <span class="kw-2">&amp;</span>tree).map_err(|e| {
             TipsetRangeSyncerError::&lt;C&gt;::Validation(<span class="macro">format!</span>(
                 <span class="string">&quot;block had an invalid secp message at index {i}: {e}&quot;

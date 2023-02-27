@@ -159,6 +159,9 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -239,6 +242,7 @@
         </span><span class="kw">enum </span>JsonHelperEnum {
             Bls,
             Secp256k1,
+            Delegated,
         }
 
         <span class="attr">#[derive(Debug, Serialize, Deserialize)]
@@ -252,6 +256,7 @@
             <span class="kw">let </span>json = <span class="kw">match </span><span class="kw-2">*</span>m {
                 SignatureType::BLS =&gt; JsonHelperEnum::Bls,
                 SignatureType::Secp256k1 =&gt; JsonHelperEnum::Secp256k1,
+                SignatureType::Delegated =&gt; JsonHelperEnum::Delegated,
             };
             json.serialize(serializer)
         }
@@ -265,6 +270,7 @@
             <span class="kw">let </span>signature_type = <span class="kw">match </span>json_enum {
                 JsonHelperEnum::Bls =&gt; SignatureType::BLS,
                 JsonHelperEnum::Secp256k1 =&gt; SignatureType::Secp256k1,
+                JsonHelperEnum::Delegated =&gt; SignatureType::Delegated,
             };
             <span class="prelude-val">Ok</span>(signature_type)
         }
