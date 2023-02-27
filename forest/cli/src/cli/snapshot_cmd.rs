@@ -1,7 +1,7 @@
 // Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-use std::{fs, path::PathBuf, sync::Arc};
+use std::{fs, path::PathBuf, sync::Arc, time::Duration};
 
 use anyhow::bail;
 use clap::Subcommand;
@@ -14,13 +14,15 @@ use forest_cli_shared::cli::{
 use forest_db::{db_engine::open_proxy_db, Store};
 use forest_genesis::{forest_load_car, read_genesis_header};
 use forest_ipld::{recurse_links_hash, CidHashSet};
+use forest_rpc_api::chain_api::ChainExportParams;
 use forest_rpc_client::chain_ops::*;
-use forest_utils::net::FetchProgress;
+use forest_utils::{io::parser::parse_duration, net::FetchProgress, retry};
 use fvm_shared::clock::ChainEpoch;
 use log::info;
 use strfmt::strfmt;
 use tempfile::TempDir;
 use time::OffsetDateTime;
+use tokio::time::sleep;
 use tokio_util::compat::TokioAsyncReadCompatExt;
 
 use super::*;
@@ -53,7 +55,8 @@ pub enum SnapshotCommands {
         /// Skip creating the checksum file.
         #[arg(long)]
         skip_checksum: bool,
-        /// Skip writing to `.car` file.
+        /// Skip writing to the snapshot `.car` file specified by
+        /// `--output-path`.
         #[arg(long)]
         dry_run: bool,
         /// Prune database.
@@ -73,6 +76,12 @@ pub enum SnapshotCommands {
         /// Use [`aria2`](https://aria2.github.io/) for downloading, default is false. Requires `aria2c` in PATH.
         #[arg(long)]
         aria2: bool,
+        /// Maximum number of times to retry the fetch
+        #[arg(short, long, default_value = "3")]
+        max_retries: i32,
+        /// Duration to wait between the retries in seconds
+        #[arg(short, long, default_value = "60", value_parser = parse_duration)]
+        delay: Duration,
     },
 
     /// Shows default snapshot dir
@@ -189,15 +198,15 @@ impl SnapshotCommands {
                     }
                 };
 
-                let params = (
+                let params = ChainExportParams {
                     epoch,
-                    *recent_stateroots,
+                    recent_roots: *recent_stateroots,
                     output_path,
-                    TipsetKeysJson(chain_head.key().clone()),
-                    *skip_checksum,
-                    *dry_run,
-                    *prune_db,
-                );
+                    tipset_keys: TipsetKeysJson(chain_head.key().clone()),
+                    skip_checksum: *skip_checksum,
+                    dry_run: *dry_run,
+                    prune_db: *prune_db,
+                };
 
                 let out = chain_export(params, &config.client.rpc_token)
                     .await
@@ -210,11 +219,21 @@ impl SnapshotCommands {
                 snapshot_dir,
                 provider,
                 aria2: use_aria2,
+                max_retries,
+                delay,
             } => {
                 let snapshot_dir = snapshot_dir
                     .clone()
                     .unwrap_or_else(|| default_snapshot_dir(&config));
-                match snapshot_fetch(&snapshot_dir, &config, provider, *use_aria2).await {
+                match retry!(
+                    snapshot_fetch,
+                    *max_retries,
+                    *delay,
+                    &snapshot_dir,
+                    &config,
+                    provider,
+                    *use_aria2
+                ) {
                     Ok(out) => {
                         println!("Snapshot successfully downloaded at {}", out.display());
                         Ok(())

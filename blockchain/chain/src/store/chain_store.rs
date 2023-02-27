@@ -33,17 +33,19 @@ use forest_message::{ChainMessage, Message as MessageTrait, SignedMessage};
 use forest_metrics::metrics;
 use forest_networks::ChainConfig;
 use forest_shim::{
-    address::Address, econ::TokenAmount, executor::Receipt, message::Message, state_tree::StateTree,
+    address::Address,
+    crypto::{Signature, SignatureType},
+    econ::TokenAmount,
+    executor::Receipt,
+    message::Message,
+    state_tree::StateTree,
 };
 use forest_utils::{db::BlockstoreExt, io::Checksum};
 use futures::Future;
 use fvm_ipld_blockstore::Blockstore;
 use fvm_ipld_car::CarHeader;
 use fvm_ipld_encoding::{from_slice, Cbor};
-use fvm_shared::{
-    clock::ChainEpoch,
-    crypto::signature::{Signature, SignatureType},
-};
+use fvm_shared::clock::ChainEpoch;
 use log::{debug, info, trace, warn};
 use lru::LruCache;
 use parking_lot::Mutex;
@@ -508,14 +510,13 @@ where
         &self,
         tipset: &Tipset,
         recent_roots: ChainEpoch,
-        writer: Option<W>,
+        writer: W,
         prune_db: bool,
-    ) -> Result<Option<digest::Output<D>>, Error>
+    ) -> Result<digest::Output<D>, Error>
     where
         D: Digest,
         W: AsyncWrite + Checksum<D> + Send + Unpin + 'static,
     {
-        let dry_run = writer.is_none();
         let start = Utc::now();
 
         // Channel cap is equal to buffered write size
@@ -523,32 +524,27 @@ where
         let (tx, rx) = flume::bounded(CHANNEL_CAP);
         let header = CarHeader::from(tipset.key().cids().to_vec());
 
-        let writer = writer.map(|w| Arc::new(TokioMutex::new(w.compat_write())));
+        let writer = Arc::new(TokioMutex::new(writer.compat_write()));
         let writer_clone = writer.clone();
 
         // Spawns task which receives blocks to write to the car writer.
         let write_task = tokio::task::spawn(async move {
-            if let Some(writer) = writer_clone {
-                let mut writer = writer.lock().await;
-                header
-                    .write_stream_async(
-                        &mut *writer,
-                        &mut Box::pin(stream! {
-                            while let Ok(val) = rx.recv_async().await {
-                                yield val;
-                            }
-                        }),
-                    )
-                    .await
-                    .map_err(|e| Error::Other(format!("Failed to write blocks in export: {e}")))
-            } else {
-                while rx.recv_async().await.is_ok() {}
-                Ok(())
-            }
+            let mut writer = writer_clone.lock().await;
+            header
+                .write_stream_async(
+                    &mut *writer,
+                    &mut Box::pin(stream! {
+                        while let Ok(val) = rx.recv_async().await {
+                            yield val;
+                        }
+                    }),
+                )
+                .await
+                .map_err(|e| Error::Other(format!("Failed to write blocks in export: {e}")))
         });
 
         let global_pre_time = SystemTime::now();
-        info!("chain export started, dry_run: {dry_run}, prune_db: {prune_db}");
+        info!("chain export started, prune_db: {prune_db}");
 
         let from_persistent = Arc::new(AtomicU64::new(0));
         let from_latest_rolling = Arc::new(AtomicU64::new(0));
@@ -584,16 +580,14 @@ where
                     }
                 };
 
-                if !dry_run {
-                    // Don't include identity CIDs.
-                    // We only include raw and dagcbor, for now.
-                    // Raw for "code" CIDs.
-                    if u64::from(Code::Identity) != cid.hash().code()
-                        && (cid.codec() == fvm_shared::IPLD_RAW
-                            || cid.codec() == fvm_ipld_encoding::DAG_CBOR)
-                    {
-                        tx_clone.send_async((cid, block.clone())).await?;
-                    }
+                // Don't include identity CIDs.
+                // We only include raw and dagcbor, for now.
+                // Raw for "code" CIDs.
+                if u64::from(Code::Identity) != cid.hash().code()
+                    && (cid.codec() == fvm_shared::IPLD_RAW
+                        || cid.codec() == fvm_ipld_encoding::DAG_CBOR)
+                {
+                    tx_clone.send_async((cid, block.clone())).await?;
                 }
 
                 Ok(block)
@@ -610,14 +604,13 @@ where
             .await
             .map_err(|e| Error::Other(format!("Failed to write blocks in export: {e}")))??;
 
-        let time = SystemTime::now()
-            .duration_since(global_pre_time)
-            .expect("time cannot go backwards");
         info!(
-            "export finished, dry_run: {dry_run}, prune_db: {prune_db}, took {} seconds",
-            time.as_secs()
+            "export finished, prune_db: {prune_db}, took {} seconds",
+            global_pre_time
+                .elapsed()
+                .expect("time cannot go backwards")
+                .as_secs()
         );
-
         info!(
             "chain export started at {start}, rolling store stats: {}, from_persistent: {}, from_latest_rolling: {}, from_old_rolling: {}",
             self.blockstore().rolling_stats(),from_persistent.load(Ordering::Relaxed) ,from_latest_rolling.load(Ordering::Relaxed),from_old_rolling.load(Ordering::Relaxed)
@@ -632,12 +625,8 @@ where
             info!("Finish pruning DB");
         }
 
-        if let Some(writer) = writer {
-            let digest = writer.lock().await.get_mut().finalize();
-            Ok(Some(digest))
-        } else {
-            Ok(None)
-        }
+        let digest = writer.lock().await.get_mut().finalize();
+        Ok(digest)
     }
 
     /// Walks over tipset and state data and loads all blocks not yet seen.
