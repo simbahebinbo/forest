@@ -12,7 +12,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_cli_shared":["",[["cli",[],["client.rs","config.rs","mod.rs","snapshot_fetch.rs"]],["logger",[],["mod.rs"]]],["lib.rs"]],\
 "forest_crypto":["",[],["lib.rs","signer.rs","vrf.rs"]],\
 "forest_daemon":["",[["cli",[],["mod.rs"]]],["lib.rs"]],\
-"forest_db":["",[],["errors.rs","lib.rs","memory.rs","metrics.rs","parity_db_config.rs","rocks.rs","rocks_config.rs"]],\
+"forest_db":["",[],["errors.rs","lib.rs","memory.rs","metrics.rs","parity_db.rs","parity_db_config.rs","rocks_config.rs"]],\
 "forest_deleg_cns":["",[],["composition.rs","consensus.rs","lib.rs","proposer.rs","validation.rs"]],\
 "forest_encoding":["",[],["checked_serde_bytes.rs","hash.rs","lib.rs"]],\
 "forest_fil_cns":["",[],["composition.rs","lib.rs","metrics.rs","validation.rs","weight.rs"]],\
