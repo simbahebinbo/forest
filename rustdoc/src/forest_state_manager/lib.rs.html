@@ -1252,8 +1252,6 @@
 <a href="#1252" id="1252">1252</a>
 <a href="#1253" id="1253">1253</a>
 <a href="#1254" id="1254">1254</a>
-<a href="#1255" id="1255">1255</a>
-<a href="#1256" id="1256">1256</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1263,10 +1261,7 @@
 <span class="kw">mod </span>utils;
 <span class="kw">mod </span>vm_circ_supply;
 
-<span class="kw">use </span>std::{
-    num::NonZeroUsize,
-    sync::{Arc, Mutex <span class="kw">as </span>StdMutex},
-};
+<span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc};
 
 <span class="kw">use </span>ahash::{HashMap, HashMapExt};
 <span class="kw">use </span>chain_rand::ChainRand;
@@ -1300,6 +1295,7 @@
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>num_traits::identities::Zero;
+<span class="kw">use </span>parking_lot::Mutex <span class="kw">as </span>SyncMutex;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>tokio::sync::{broadcast::error::RecvError, Mutex <span class="kw">as </span>TokioMutex, RwLock};
 <span class="kw">use </span>tracing::{debug, error, info, instrument, trace, warn};
@@ -1330,7 +1326,7 @@
 }
 
 <span class="kw">struct </span>TipsetStateCache {
-    cache: Arc&lt;StdMutex&lt;TipsetStateCacheInner&gt;&gt;,
+    cache: Arc&lt;SyncMutex&lt;TipsetStateCacheInner&gt;&gt;,
 }
 
 <span class="kw">enum </span>Status {
@@ -1341,7 +1337,7 @@
 <span class="kw">impl </span>TipsetStateCache {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            cache: Arc::new(StdMutex::new(TipsetStateCacheInner::default())),
+            cache: Arc::new(SyncMutex::new(TipsetStateCacheInner::default())),
         }
     }
 
@@ -1349,7 +1345,7 @@
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>TipsetStateCacheInner) -&gt; T,
     {
-        <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.cache.lock().unwrap();
+        <span class="kw">let </span><span class="kw-2">mut </span>lock = <span class="self">self</span>.cache.lock();
         func(<span class="kw-2">&amp;mut </span>lock)
     }
 
