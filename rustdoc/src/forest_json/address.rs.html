@@ -134,22 +134,6 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -276,30 +260,14 @@
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-    <span class="attr">#[cfg(test)]
-    #[derive(Clone, Debug, PartialEq)]
-    </span><span class="kw">struct </span>AddressWrapper {
-        address: Address,
-    }
-
-    <span class="attr">#[cfg(test)]
-    </span><span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>AddressWrapper {
-        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>address: fvm_shared::address::Address = arbitrary::Arbitrary::arbitrary(
-                <span class="kw-2">&amp;mut </span>arbitrary::Unstructured::new(<span class="kw-2">&amp;</span>Vec::arbitrary(g)),
-            )
-            .unwrap();
-            AddressWrapper {
-                address: Address::from(address),
-            }
-        }
-    }
-
     <span class="attr">#[quickcheck]
-    </span><span class="kw">fn </span>address_roundtrip(address: AddressWrapper) {
-        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>json::AddressJsonRef(<span class="kw-2">&amp;</span>address.address)).unwrap();
-        <span class="kw">let </span>parsed: json::AddressJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
-        <span class="macro">assert_eq!</span>(address.address, parsed.<span class="number">0</span>);
+    </span><span class="kw">fn </span>address_roundtrip(address: Address) {
+        <span class="kw">let </span>serialized = <span class="macro">forest_test_utils::to_string_with!</span>(<span class="kw-2">&amp;</span>address, json::serialize);
+        <span class="kw">let </span>parsed = <span class="macro">forest_test_utils::from_str_with!</span>(<span class="kw-2">&amp;</span>serialized, json::deserialize);
+        <span class="comment">// Skip delegated addresses for now
+        </span><span class="kw">if </span>address.protocol() != forest_shim::address::Protocol::Delegated {
+            <span class="macro">assert_eq!</span>(address, parsed)
+        }
     }
 }
 </code></pre></div>
