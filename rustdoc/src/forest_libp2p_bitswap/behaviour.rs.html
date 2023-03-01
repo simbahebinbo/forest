@@ -154,34 +154,72 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>libp2p::{
-    request_response::{
-        ProtocolSupport, RequestId, RequestResponse, RequestResponseConfig, RequestResponseEvent,
-    },
-    swarm::NetworkBehaviour,
+    request_response::{<span class="self">self</span>, ProtocolSupport, RequestId},
+    swarm::{derive_prelude::<span class="kw-2">*</span>, NetworkBehaviour, THandlerOutEvent},
     PeerId,
 };
 
 <span class="kw">use crate</span>::{codec::<span class="kw-2">*</span>, protocol::<span class="kw-2">*</span>, request_manager::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 
 <span class="doccomment">/// `libp2p` swarm network behaviour event of `bitswap`
-</span><span class="kw">pub type </span>BitswapBehaviourEvent = RequestResponseEvent&lt;Vec&lt;BitswapMessage&gt;, ()&gt;;
+</span><span class="kw">pub type </span>BitswapBehaviourEvent = request_response::Event&lt;Vec&lt;BitswapMessage&gt;, ()&gt;;
 
 <span class="doccomment">/// A `go-bitswap` compatible protocol that is built on top of
-/// [RequestResponse].
+/// [request_response::Behaviour].
 </span><span class="kw">pub struct </span>BitswapBehaviour {
-    inner: RequestResponse&lt;BitswapRequestResponseCodec&gt;,
+    inner: request_response::Behaviour&lt;BitswapRequestResponseCodec&gt;,
     request_manager: Arc&lt;BitswapRequestManager&gt;,
 }
 
 <span class="kw">impl </span>BitswapBehaviour {
     <span class="doccomment">/// Creates a [BitswapBehaviour] instance
-    </span><span class="kw">pub fn </span>new(protocols: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]], cfg: RequestResponseConfig) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(protocols: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]], cfg: request_response::Config) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!protocols.is_empty(), <span class="string">&quot;protocols cannot be empty&quot;</span>);
 
         <span class="kw">let </span>protocols: Vec&lt;<span class="kw">_</span>&gt; = protocols
@@ -189,13 +227,13 @@
             .map(|<span class="kw-2">&amp;</span>n| (BitswapProtocol(n), ProtocolSupport::Full))
             .collect();
         BitswapBehaviour {
-            inner: RequestResponse::new(BitswapRequestResponseCodec, protocols, cfg),
+            inner: request_response::Behaviour::new(BitswapRequestResponseCodec, protocols, cfg),
             request_manager: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Gets mutable borrow of the inner [RequestResponse]
-    </span><span class="kw">pub fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>RequestResponse&lt;BitswapRequestResponseCodec&gt; {
+    <span class="doccomment">/// Gets mutable borrow of the inner [request_response::Behaviour]
+    </span><span class="kw">pub fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>request_response::Behaviour&lt;BitswapRequestResponseCodec&gt; {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 
@@ -260,38 +298,82 @@
 
 <span class="kw">impl </span>NetworkBehaviour <span class="kw">for </span>BitswapBehaviour {
     <span class="kw">type </span>ConnectionHandler =
-        &lt;RequestResponse&lt;BitswapRequestResponseCodec&gt; <span class="kw">as </span>NetworkBehaviour&gt;::ConnectionHandler;
+        &lt;request_response::Behaviour&lt;BitswapRequestResponseCodec&gt; <span class="kw">as </span>NetworkBehaviour&gt;::ConnectionHandler;
 
-    <span class="kw">type </span>OutEvent = &lt;RequestResponse&lt;BitswapRequestResponseCodec&gt; <span class="kw">as </span>NetworkBehaviour&gt;::OutEvent;
+    <span class="kw">type </span>OutEvent =
+        &lt;request_response::Behaviour&lt;BitswapRequestResponseCodec&gt; <span class="kw">as </span>NetworkBehaviour&gt;::OutEvent;
 
-    <span class="kw">fn </span>new_handler(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::ConnectionHandler {
-        <span class="self">self</span>.inner_mut().new_handler()
+    <span class="kw">fn </span>handle_established_inbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        local_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+        remote_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;THandler&lt;<span class="self">Self</span>&gt;, ConnectionDenied&gt; {
+        <span class="self">self</span>.inner_mut().handle_established_inbound_connection(
+            connection_id,
+            peer,
+            local_addr,
+            remote_addr,
+        )
     }
 
-    <span class="kw">fn </span>addresses_of_peer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, peer: <span class="kw-2">&amp;</span>PeerId) -&gt; Vec&lt;libp2p::Multiaddr&gt; {
-        <span class="self">self</span>.inner_mut().addresses_of_peer(peer)
+    <span class="kw">fn </span>handle_established_outbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+        role_override: libp2p::core::Endpoint,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;THandler&lt;<span class="self">Self</span>&gt;, ConnectionDenied&gt; {
+        <span class="self">self</span>.inner_mut().handle_established_outbound_connection(
+            connection_id,
+            peer,
+            addr,
+            role_override,
+        )
+    }
+
+    <span class="kw">fn </span>handle_pending_inbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        local_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+        remote_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ConnectionDenied&gt; {
+        <span class="self">self</span>.inner_mut()
+            .handle_pending_inbound_connection(connection_id, local_addr, remote_addr)
+    }
+
+    <span class="kw">fn </span>handle_pending_outbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        maybe_peer: <span class="prelude-ty">Option</span>&lt;PeerId&gt;,
+        addresses: <span class="kw-2">&amp;</span>[libp2p::Multiaddr],
+        effective_role: libp2p::core::Endpoint,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;libp2p::Multiaddr&gt;, ConnectionDenied&gt; {
+        <span class="self">self</span>.inner_mut().handle_pending_outbound_connection(
+            connection_id,
+            maybe_peer,
+            addresses,
+            effective_role,
+        )
     }
 
     <span class="kw">fn </span>on_connection_handler_event(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         peer_id: PeerId,
-        connection_id: libp2p::swarm::derive_prelude::ConnectionId,
-        event: &lt;&lt;<span class="self">Self</span>::ConnectionHandler <span class="kw">as </span>libp2p::swarm::IntoConnectionHandler&gt;::Handler <span class="kw">as
-            </span>libp2p::swarm::ConnectionHandler&gt;::OutEvent,
+        connection_id: ConnectionId,
+        event: THandlerOutEvent&lt;<span class="self">Self</span>&gt;,
     ) {
         <span class="self">self</span>.inner_mut()
             .on_connection_handler_event(peer_id, connection_id, event)
     }
 
-    <span class="kw">fn </span>on_swarm_event(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        event: libp2p::swarm::derive_prelude::FromSwarm&lt;<span class="self">Self</span>::ConnectionHandler&gt;,
-    ) {
+    <span class="kw">fn </span>on_swarm_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: FromSwarm&lt;<span class="self">Self</span>::ConnectionHandler&gt;) {
         <span class="kw">match </span><span class="kw-2">&amp;</span>event {
-            libp2p::swarm::derive_prelude::FromSwarm::ConnectionEstablished(e) =&gt; {
+            FromSwarm::ConnectionEstablished(e) =&gt; {
                 <span class="self">self</span>.request_manager.on_peer_connected(e.peer_id);
             }
-            libp2p::swarm::derive_prelude::FromSwarm::ConnectionClosed(e) =&gt; {
+            FromSwarm::ConnectionClosed(e) =&gt; {
                 <span class="self">self</span>.request_manager.on_peer_disconnected(<span class="kw-2">&amp;</span>e.peer_id);
             }
             <span class="kw">_ </span>=&gt; {}
@@ -303,10 +385,8 @@
     <span class="kw">fn </span>poll(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>std::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        params: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>libp2p::swarm::PollParameters,
-    ) -&gt; std::task::Poll&lt;
-        libp2p::swarm::NetworkBehaviourAction&lt;<span class="self">Self</span>::OutEvent, <span class="self">Self</span>::ConnectionHandler&gt;,
-    &gt; {
+        params: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PollParameters,
+    ) -&gt; std::task::Poll&lt;NetworkBehaviourAction&lt;<span class="self">Self</span>::OutEvent, THandlerInEvent&lt;<span class="self">Self</span>&gt;&gt;&gt; {
         <span class="self">self</span>.inner_mut().poll(cx, params)
     }
 }

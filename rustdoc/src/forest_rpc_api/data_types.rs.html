@@ -123,11 +123,13 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>std::sync::Arc;
 
+<span class="kw">use </span>ahash::HashSet;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_actor_interface::market::{DealProposal, DealState};
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconSchedule};
@@ -221,7 +223,7 @@
 </span><span class="kw">pub struct </span>AddrInfo {
     <span class="attr">#[serde(rename = <span class="string">&quot;ID&quot;</span>)]
     </span><span class="kw">pub </span>id: String,
-    <span class="kw">pub </span>addrs: Vec&lt;Multiaddr&gt;,
+    <span class="kw">pub </span>addrs: HashSet&lt;Multiaddr&gt;,
 }
 
 <span class="attr">#[derive(Serialize, Deserialize)]

@@ -88,6 +88,8 @@
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -147,9 +149,11 @@
         .expect(<span class="string">&quot;Encoding Prometheus metrics must succeed.&quot;</span>);
 
     <span class="kw">for </span>(_name, registry) <span class="kw">in </span>REGISTRIES_EXT.read().<span class="kw">await</span>.iter() {
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = prometheus_client::encoding::text::encode(<span class="kw-2">&amp;mut </span>metrics, registry) {
+        <span class="kw">let </span><span class="kw-2">mut </span>part = String::new();
+        <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = prometheus_client::encoding::text::encode(<span class="kw-2">&amp;mut </span>part, registry) {
             <span class="macro">warn!</span>(<span class="string">&quot;{e}&quot;</span>);
         }
+        metrics.extend_from_slice(part.as_bytes());
     }
 
     (

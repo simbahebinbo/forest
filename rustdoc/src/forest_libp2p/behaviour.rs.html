@@ -138,8 +138,6 @@
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -149,9 +147,8 @@
 <span class="kw">use </span>libp2p::{
     core::{identity::Keypair, PeerId},
     gossipsub::{
-        error::{PublishError, SubscriptionError},
-        Gossipsub, GossipsubConfigBuilder, GossipsubMessage, IdentTopic <span class="kw">as </span>Topic,
-        MessageAuthenticity, MessageId, ValidationMode,
+        <span class="self">self</span>, IdentTopic <span class="kw">as </span>Topic, MessageAuthenticity, MessageId, PublishError, SubscriptionError,
+        ValidationMode,
     },
     identify,
     kad::QueryId,
@@ -174,7 +171,7 @@
 /// for a Filecoin node.
 </span><span class="attr">#[derive(NetworkBehaviour)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>ForestBehaviour {
-    gossipsub: Gossipsub,
+    gossipsub: gossipsub::Behaviour,
     discovery: DiscoveryBehaviour,
     ping: ping::Behaviour,
     identify: identify::Behaviour,
@@ -196,16 +193,16 @@
 
 <span class="kw">impl </span>ForestBehaviour {
     <span class="kw">pub fn </span>new(local_key: <span class="kw-2">&amp;</span>Keypair, config: <span class="kw-2">&amp;</span>Libp2pConfig, network_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>gs_config_builder = GossipsubConfigBuilder::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>gs_config_builder = gossipsub::ConfigBuilder::default();
         gs_config_builder.max_transmit_size(<span class="number">1 </span>&lt;&lt; <span class="number">20</span>);
         gs_config_builder.validation_mode(ValidationMode::Strict);
-        gs_config_builder.message_id_fn(|msg: <span class="kw-2">&amp;</span>GossipsubMessage| {
+        gs_config_builder.message_id_fn(|msg: <span class="kw-2">&amp;</span>gossipsub::Message| {
             <span class="kw">let </span>s = blake2b_256(<span class="kw-2">&amp;</span>msg.data);
             MessageId::from(s)
         });
 
         <span class="kw">let </span>gossipsub_config = gs_config_builder.build().unwrap();
-        <span class="kw">let </span><span class="kw-2">mut </span>gossipsub = Gossipsub::new(
+        <span class="kw">let </span><span class="kw-2">mut </span>gossipsub = gossipsub::Behaviour::new(
             MessageAuthenticity::Signed(local_key.clone()),
             gossipsub_config,
         )
@@ -236,8 +233,7 @@
             .with_mdns(config.mdns)
             .with_kademlia(config.kademlia)
             .with_user_defined(config.bootstrap_peers.clone())
-            <span class="comment">// TODO allow configuring this through config.
-            </span>.discovery_limit(config.target_peer_count <span class="kw">as </span>u64);
+            .target_peer_count(config.target_peer_count <span class="kw">as </span>u64);
 
         ForestBehaviour {
             gossipsub,
@@ -278,7 +274,7 @@
     }
 
     <span class="doccomment">/// Returns a map of peer ids and their multi-addresses
-    </span><span class="kw">pub fn </span>peer_addresses(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashMap&lt;PeerId, Vec&lt;Multiaddr&gt;&gt; {
+    </span><span class="kw">pub fn </span>peer_addresses(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>HashMap&lt;PeerId, HashSet&lt;Multiaddr&gt;&gt; {
         <span class="self">self</span>.discovery.peer_addresses()
     }
 }

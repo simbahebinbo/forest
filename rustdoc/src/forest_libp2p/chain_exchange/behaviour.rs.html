@@ -130,15 +130,48 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>ahash::HashMap;
 <span class="kw">use </span>libp2p::{
-    request_response::{
-        OutboundFailure, ProtocolSupport, RequestId, RequestResponse, ResponseChannel,
-    },
-    swarm::NetworkBehaviour,
+    request_response::{<span class="self">self</span>, OutboundFailure, ProtocolSupport, RequestId, ResponseChannel},
+    swarm::{derive_prelude::<span class="kw-2">*</span>, NetworkBehaviour, THandlerOutEvent},
     PeerId,
 };
 <span class="kw">use </span>log::warn;
@@ -146,7 +179,7 @@
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{rpc::RequestResponseError, service::metrics};
 
-<span class="kw">type </span>InnerBehaviour = RequestResponse&lt;ChainExchangeCodec&gt;;
+<span class="kw">type </span>InnerBehaviour = request_response::Behaviour&lt;ChainExchangeCodec&gt;;
 
 <span class="kw">pub struct </span>ChainExchangeBehaviour {
     inner: InnerBehaviour,
@@ -211,7 +244,7 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>ChainExchangeBehaviour {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            inner: RequestResponse::new(
+            inner: InnerBehaviour::new(
                 ChainExchangeCodec::default(),
                 [(ChainExchangeProtocolName, ProtocolSupport::Full)],
                 Default::default(),
@@ -226,39 +259,76 @@
 
     <span class="kw">type </span>OutEvent = &lt;InnerBehaviour <span class="kw">as </span>NetworkBehaviour&gt;::OutEvent;
 
-    <span class="kw">fn </span>new_handler(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::ConnectionHandler {
-        <span class="self">self</span>.inner.new_handler()
+    <span class="kw">fn </span>handle_established_inbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        local_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+        remote_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;THandler&lt;<span class="self">Self</span>&gt;, ConnectionDenied&gt; {
+        <span class="self">self</span>.inner.handle_established_inbound_connection(
+            connection_id,
+            peer,
+            local_addr,
+            remote_addr,
+        )
     }
 
-    <span class="kw">fn </span>addresses_of_peer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, peer: <span class="kw-2">&amp;</span>PeerId) -&gt; Vec&lt;libp2p::Multiaddr&gt; {
-        <span class="self">self</span>.inner.addresses_of_peer(peer)
+    <span class="kw">fn </span>handle_established_outbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        peer: PeerId,
+        addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+        role_override: libp2p::core::Endpoint,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;THandler&lt;<span class="self">Self</span>&gt;, ConnectionDenied&gt; {
+        <span class="self">self</span>.inner
+            .handle_established_outbound_connection(connection_id, peer, addr, role_override)
+    }
+
+    <span class="kw">fn </span>handle_pending_inbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        local_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+        remote_addr: <span class="kw-2">&amp;</span>libp2p::Multiaddr,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ConnectionDenied&gt; {
+        <span class="self">self</span>.inner
+            .handle_pending_inbound_connection(connection_id, local_addr, remote_addr)
+    }
+
+    <span class="kw">fn </span>handle_pending_outbound_connection(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        connection_id: ConnectionId,
+        maybe_peer: <span class="prelude-ty">Option</span>&lt;PeerId&gt;,
+        addresses: <span class="kw-2">&amp;</span>[libp2p::Multiaddr],
+        effective_role: libp2p::core::Endpoint,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;libp2p::Multiaddr&gt;, ConnectionDenied&gt; {
+        <span class="self">self</span>.inner.handle_pending_outbound_connection(
+            connection_id,
+            maybe_peer,
+            addresses,
+            effective_role,
+        )
     }
 
     <span class="kw">fn </span>on_connection_handler_event(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         peer_id: PeerId,
-        connection_id: libp2p::swarm::derive_prelude::ConnectionId,
-        event: &lt;&lt;<span class="self">Self</span>::ConnectionHandler <span class="kw">as </span>libp2p::swarm::IntoConnectionHandler&gt;::Handler <span class="kw">as
-            </span>libp2p::swarm::ConnectionHandler&gt;::OutEvent,
+        connection_id: ConnectionId,
+        event: THandlerOutEvent&lt;<span class="self">Self</span>&gt;,
     ) {
         <span class="self">self</span>.inner
             .on_connection_handler_event(peer_id, connection_id, event)
     }
 
-    <span class="kw">fn </span>on_swarm_event(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        event: libp2p::swarm::derive_prelude::FromSwarm&lt;<span class="self">Self</span>::ConnectionHandler&gt;,
-    ) {
+    <span class="kw">fn </span>on_swarm_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: FromSwarm&lt;<span class="self">Self</span>::ConnectionHandler&gt;) {
         <span class="self">self</span>.inner.on_swarm_event(event)
     }
 
     <span class="kw">fn </span>poll(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>std::task::Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        params: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>libp2p::swarm::PollParameters,
-    ) -&gt; std::task::Poll&lt;
-        libp2p::swarm::NetworkBehaviourAction&lt;<span class="self">Self</span>::OutEvent, <span class="self">Self</span>::ConnectionHandler&gt;,
-    &gt; {
+        params: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PollParameters,
+    ) -&gt; std::task::Poll&lt;NetworkBehaviourAction&lt;<span class="self">Self</span>::OutEvent, THandlerInEvent&lt;<span class="self">Self</span>&gt;&gt;&gt; {
         <span class="self">self</span>.inner.poll(cx, params)
     }
 }

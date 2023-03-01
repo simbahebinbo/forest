@@ -208,7 +208,7 @@
                     cli_error_and_die(<span class="string">&quot;Needs a /p2p/ protocol present in multiaddr&quot;</span>, <span class="number">1</span>)
                 }
 
-                <span class="kw">let </span>addrs = <span class="macro">vec!</span>[addr];
+                <span class="kw">let </span>addrs = HashSet::from_iter([addr]);
                 <span class="kw">let </span>addr_info = AddrInfo {
                     id: id.clone(),
                     addrs,

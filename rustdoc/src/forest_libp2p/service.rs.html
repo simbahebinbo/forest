@@ -859,11 +859,6 @@
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
 <a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
-<a href="#866" id="866">866</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -873,7 +868,7 @@
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-<span class="kw">use </span>ahash::HashMap;
+<span class="kw">use </span>ahash::{HashMap, HashSet};
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>flume::Sender;
@@ -893,13 +888,12 @@
 <span class="kw">use </span>libp2p::{
     core,
     core::{muxing::StreamMuxerBox, transport::Boxed, Multiaddr},
-    gossipsub::GossipsubEvent,
+    gossipsub,
     identity::{ed25519, Keypair},
     metrics::{Metrics, Recorder},
     multiaddr::Protocol,
-    multihash::Multihash,
     noise, ping,
-    request_response::{RequestId, RequestResponseEvent, RequestResponseMessage, ResponseChannel},
+    request_response::{<span class="self">self</span>, RequestId, ResponseChannel},
     swarm::{ConnectionLimits, SwarmBuilder, SwarmEvent},
     yamux::YamuxConfig,
     PeerId, Swarm, Transport,
@@ -913,7 +907,7 @@
 };
 <span class="kw">use crate</span>::{
     chain_exchange::ChainExchangeBehaviour,
-    discovery::DiscoveryOut,
+    discovery::DiscoveryEvent,
     hello::{HelloBehaviour, HelloRequest, HelloResponse},
     rpc::RequestResponseError,
     PeerManager, PeerOperation,
@@ -1040,9 +1034,9 @@
 <span class="doccomment">/// Network RPC API methods used to gather data from libp2p node.
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>NetRPCMethods {
-    NetAddrsListen(OneShotSender&lt;(PeerId, Vec&lt;Multiaddr&gt;)&gt;),
-    NetPeers(OneShotSender&lt;HashMap&lt;PeerId, Vec&lt;Multiaddr&gt;&gt;&gt;),
-    NetConnect(OneShotSender&lt;bool&gt;, PeerId, Vec&lt;Multiaddr&gt;),
+    NetAddrsListen(OneShotSender&lt;(PeerId, HashSet&lt;Multiaddr&gt;)&gt;),
+    NetPeers(OneShotSender&lt;HashMap&lt;PeerId, HashSet&lt;Multiaddr&gt;&gt;&gt;),
+    NetConnect(OneShotSender&lt;bool&gt;, PeerId, HashSet&lt;Multiaddr&gt;),
     NetDisconnect(OneShotSender&lt;()&gt;, PeerId),
 }
 
@@ -1091,7 +1085,7 @@
         )
         .connection_limits(limits)
         .notify_handler_buffer_size(std::num::NonZeroUsize::new(<span class="number">20</span>).expect(<span class="string">&quot;Not zero&quot;</span>))
-        .connection_event_buffer_size(<span class="number">64</span>)
+        .per_connection_event_buffer_size(<span class="number">64</span>)
         .build();
 
         <span class="comment">// Subscribe to gossipsub topics with the network name suffix
@@ -1291,7 +1285,7 @@
         }
         NetworkMessage::JSONRPCRequest { method } =&gt; <span class="kw">match </span>method {
             NetRPCMethods::NetAddrsListen(response_channel) =&gt; {
-                <span class="kw">let </span>listeners: Vec&lt;<span class="kw">_</span>&gt; = Swarm::listeners(swarm).cloned().collect();
+                <span class="kw">let </span>listeners = Swarm::listeners(swarm).cloned().collect();
                 <span class="kw">let </span>peer_id = Swarm::local_peer_id(swarm);
 
                 <span class="kw">if </span>response_channel.send((<span class="kw-2">*</span>peer_id, listeners)).is_err() {
@@ -1299,20 +1293,16 @@
                 }
             }
             NetRPCMethods::NetPeers(response_channel) =&gt; {
-                <span class="kw">let </span>peer_addresses: <span class="kw-2">&amp;</span>HashMap&lt;PeerId, Vec&lt;Multiaddr&gt;&gt; =
-                    swarm.behaviour_mut().peer_addresses();
-
-                <span class="kw">if </span>response_channel.send(peer_addresses.to_owned()).is_err() {
+                <span class="kw">let </span>peer_addresses = swarm.behaviour_mut().peer_addresses();
+                <span class="kw">if </span>response_channel.send(peer_addresses.clone()).is_err() {
                     <span class="macro">warn!</span>(<span class="string">&quot;Failed to get Libp2p peers&quot;</span>);
                 }
             }
-            NetRPCMethods::NetConnect(response_channel, peer_id, <span class="kw-2">mut </span>addresses) =&gt; {
+            NetRPCMethods::NetConnect(response_channel, peer_id, addresses) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>success = <span class="bool-val">false</span>;
 
-                <span class="kw">for </span>multiaddr <span class="kw">in </span>addresses.iter_mut() {
-                    multiaddr.push(Protocol::P2p(
-                        Multihash::from_bytes(<span class="kw-2">&amp;</span>peer_id.to_bytes()).unwrap(),
-                    ));
+                <span class="kw">for </span><span class="kw-2">mut </span>multiaddr <span class="kw">in </span>addresses {
+                    multiaddr.push(Protocol::P2p(peer_id.into()));
 
                     <span class="kw">if </span>Swarm::dial(swarm, multiaddr.clone()).is_ok() {
                         success = <span class="bool-val">true</span>;
@@ -1335,15 +1325,15 @@
 }
 
 <span class="kw">async fn </span>handle_discovery_event(
-    discovery_out: DiscoveryOut,
+    discovery_out: DiscoveryEvent,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
 ) {
     <span class="kw">match </span>discovery_out {
-        DiscoveryOut::Connected(peer_id, <span class="kw">_</span>) =&gt; {
+        DiscoveryEvent::PeerConnected(peer_id) =&gt; {
             <span class="macro">debug!</span>(<span class="string">&quot;Peer connected, {:?}&quot;</span>, peer_id);
             emit_event(network_sender_out, NetworkEvent::PeerConnected(peer_id)).<span class="kw">await</span>;
         }
-        DiscoveryOut::Disconnected(peer_id, <span class="kw">_</span>) =&gt; {
+        DiscoveryEvent::PeerDisconnected(peer_id) =&gt; {
             <span class="macro">debug!</span>(<span class="string">&quot;Peer disconnected, {:?}&quot;</span>, peer_id);
             emit_event(network_sender_out, NetworkEvent::PeerDisconnected(peer_id)).<span class="kw">await</span>;
         }
@@ -1351,12 +1341,12 @@
 }
 
 <span class="kw">async fn </span>handle_gossip_event(
-    e: GossipsubEvent,
+    e: gossipsub::Event,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
     pubsub_block_str: <span class="kw-2">&amp;</span>str,
     pubsub_msg_str: <span class="kw-2">&amp;</span>str,
 ) {
-    <span class="kw">if let </span>GossipsubEvent::Message {
+    <span class="kw">if let </span>gossipsub::Event::Message {
         propagation_source: source,
         message,
         message_id: <span class="kw">_</span>,
@@ -1405,14 +1395,14 @@
 
 <span class="kw">async fn </span>handle_hello_event(
     hello: <span class="kw-2">&amp;mut </span>HelloBehaviour,
-    event: RequestResponseEvent&lt;HelloRequest, HelloResponse, HelloResponse&gt;,
+    event: request_response::Event&lt;HelloRequest, HelloResponse, HelloResponse&gt;,
     peer_manager: <span class="kw-2">&amp;</span>Arc&lt;PeerManager&gt;,
     genesis_cid: <span class="kw-2">&amp;</span>Cid,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
 ) {
     <span class="kw">match </span>event {
-        RequestResponseEvent::Message { peer, message } =&gt; <span class="kw">match </span>message {
-            RequestResponseMessage::Request {
+        request_response::Event::Message { peer, message } =&gt; <span class="kw">match </span>message {
+            request_response::Message::Request {
                 request,
                 channel,
                 request_id: <span class="kw">_</span>,
@@ -1469,7 +1459,7 @@
                     }
                 }
             }
-            RequestResponseMessage::Response {
+            request_response::Message::Response {
                 request_id,
                 response,
             } =&gt; {
@@ -1481,7 +1471,7 @@
                 hello.handle_response(<span class="kw-2">&amp;</span>request_id, response).<span class="kw">await</span>;
             }
         },
-        RequestResponseEvent::OutboundFailure {
+        request_response::Event::OutboundFailure {
             request_id,
             peer,
             error: <span class="kw">_</span>,
@@ -1489,14 +1479,14 @@
             hello.on_error(<span class="kw-2">&amp;</span>request_id);
             peer_manager.mark_peer_bad(peer).<span class="kw">await</span>;
         }
-        RequestResponseEvent::InboundFailure {
+        request_response::Event::InboundFailure {
             request_id,
             peer: <span class="kw">_</span>,
             error: <span class="kw">_</span>,
         } =&gt; {
             hello.on_error(<span class="kw-2">&amp;</span>request_id);
         }
-        RequestResponseEvent::ResponseSent { .. } =&gt; (),
+        request_response::Event::ResponseSent { .. } =&gt; (),
     }
 }
 
@@ -1538,7 +1528,7 @@
 
 <span class="kw">async fn </span>handle_chain_exchange_event&lt;DB&gt;(
     chain_exchange: <span class="kw-2">&amp;mut </span>ChainExchangeBehaviour,
-    ce_event: RequestResponseEvent&lt;ChainExchangeRequest, ChainExchangeResponse&gt;,
+    ce_event: request_response::Event&lt;ChainExchangeRequest, ChainExchangeResponse&gt;,
     db: <span class="kw-2">&amp;</span>Arc&lt;ChainStore&lt;DB&gt;&gt;,
     network_sender_out: <span class="kw-2">&amp;</span>Sender&lt;NetworkEvent&gt;,
     cx_response_tx: Sender&lt;(
@@ -1550,9 +1540,9 @@
     </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">match </span>ce_event {
-        RequestResponseEvent::Message { peer, message } =&gt; {
+        request_response::Event::Message { peer, message } =&gt; {
             <span class="kw">match </span>message {
-                RequestResponseMessage::Request {
+                request_response::Message::Request {
                     request,
                     channel,
                     request_id,
@@ -1574,7 +1564,7 @@
                         }
                     });
                 }
-                RequestResponseMessage::Response {
+                request_response::Message::Response {
                     request_id,
                     response,
                 } =&gt; {
@@ -1589,14 +1579,14 @@
                 }
             }
         }
-        RequestResponseEvent::OutboundFailure {
+        request_response::Event::OutboundFailure {
             peer: <span class="kw">_</span>,
             request_id,
             error,
         } =&gt; {
             chain_exchange.on_outbound_error(<span class="kw-2">&amp;</span>request_id, error);
         }
-        RequestResponseEvent::InboundFailure {
+        request_response::Event::InboundFailure {
             peer,
             error,
             request_id: <span class="kw">_</span>,
@@ -1606,7 +1596,7 @@
                 peer, error
             );
         }
-        RequestResponseEvent::ResponseSent { request_id, .. } =&gt; {
+        request_response::Event::ResponseSent { request_id, .. } =&gt; {
             emit_event(
                 network_sender_out,
                 NetworkEvent::ChainExchangeResponseOutbound { request_id },

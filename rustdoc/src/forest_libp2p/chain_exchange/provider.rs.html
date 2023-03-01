@@ -278,7 +278,7 @@
                 <span class="kw">return </span>ChainExchangeResponse {
                     chain: <span class="macro">vec!</span>[],
                     status: ChainExchangeResponseStatus::InternalError,
-                    message: <span class="string">&quot;Tipset was not found in the database&quot;</span>.to_owned(),
+                    message: <span class="string">&quot;Tipset was not found in the database&quot;</span>.into(),
                 };
             }
         };
@@ -292,7 +292,7 @@
                     <span class="kw">return </span>ChainExchangeResponse {
                         chain: <span class="macro">vec!</span>[],
                         status: ChainExchangeResponseStatus::InternalError,
-                        message: <span class="string">&quot;Can not fulfil the request&quot;</span>.to_owned(),
+                        message: <span class="string">&quot;Can not fulfil the request&quot;</span>.into(),
                     };
                 }
             }
@@ -324,7 +324,7 @@
         } <span class="kw">else </span>{
             ChainExchangeResponseStatus::Success
         },
-        message: <span class="string">&quot;Success&quot;</span>.to_owned(),
+        message: <span class="string">&quot;Success&quot;</span>.into(),
     }
 }
 
