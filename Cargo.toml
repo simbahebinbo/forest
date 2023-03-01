@@ -46,6 +46,7 @@ members = [
   "utils/json",
   "utils/forest_utils",
   "utils/forest_shim",
+  "tools/*",
 ]
 resolver = "2"
 
@@ -64,7 +65,7 @@ bls-signatures = { version = "0.12", default-features = false, features = ["blst
 byteorder = "1.4.3"
 bytes = "1.2"
 cfg-if = "1"
-chrono = { version = "0.4", default-features = false, features = [] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
 cid = { version = "0.8", default-features = false, features = ["std"] }
 clap = { version = "4.0", features = ["derive"] }
 console-subscriber = { version = "0.1", features = ["parking_lot"] }
@@ -105,6 +106,7 @@ libp2p = { version = "0.50", default-features = false }
 libsecp256k1 = "0.7"
 log = "0.4"
 lru = "0.9"
+mimalloc = { version = "0.1.34", default-features = false }
 multibase = "0.9"
 multihash = { version = "0.16", default-features = false }
 nonempty = "0.8.0"
