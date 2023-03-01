@@ -261,7 +261,7 @@
     <span class="kw">fn </span>from(value: GasChargeV2) -&gt; <span class="self">Self </span>{
         GasChargeV3 {
             name: value.name,
-            compute_gas: GasV3::from_milligas(value.storage_gas.as_milligas() <span class="kw">as </span>u64),
+            compute_gas: GasV3::from_milligas(value.compute_gas.as_milligas() <span class="kw">as </span>u64),
             other_gas: GasV3::from_milligas(value.storage_gas.as_milligas() <span class="kw">as </span>u64),
             elapsed: Default::default(),
         }
