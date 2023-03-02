@@ -13,6 +13,11 @@ impl CidHashSet {
         self.0.insert(hash)
     }
 
+    pub fn contains(&self, cid: &Cid) -> bool {
+        let hash = self.0.hasher().hash_one(cid);
+        self.0.contains(&hash)
+    }
+
     pub fn inner(&self) -> &HashSet<u64> {
         &self.0
     }
