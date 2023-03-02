@@ -16,6 +16,7 @@ Notable updates:
 * [libp2p] Use in house bitswap implementation. [#2445](https://github.com/ChainSafe/forest/pull/2445)
 * [libp2p] Ban peers with duration. Banned peers are automatically unbanned after a period of 1h. [#2396](https://github.com/ChainSafe/forest/pull/2396)
 * [libp2p] Support multiple listen addr. [#2570](https://github.com/ChainSafe/forest/pull/2570)
+* [libp2p] Upgrade to v0.51. [#2598](https://github.com/ChainSafe/forest/pull/2598)
 * [config] `stats` and `compression` keys in `parity_db` section were renamed to `enable_statistics` and `compression_type` respectively. [#2444](https://github.com/ChainSafe/forest/pull/2444)
 * [forest cli] changed how balances are displayed, defaulting to
   - adding metric prefix when it's appropriate to do so, consequently CLI flag `--fixed-unit` added to force to show in original `FIL` unit
@@ -27,6 +28,7 @@ Notable updates:
 * [keystore] Allow specifying the encryption passphrase via environmental variable. [#2514](https://github.com/ChainSafe/forest/pull/2514)
 * [forest daemon] The `--skip-load` flag must be now called with a boolean indicating its value. [#2577](https://github.com/ChainSafe/forest/pull/2577)
 * [cli] Calibnet network needs to be specified for most commands, including `sync wait` and `snapshot export`. [#2579](https://github.com/ChainSafe/forest/pull/2579)
+* [daemon] Switch to ParityDb as the default backend for the Forest daemon. All clients must re-import the snapshot. The old database must be deleted manually - it is located in `$(forest-cli config dump | grep data_dir | cut -d' ' -f3)/<NETWORK>/rocksdb`. [#2606](https://github.com/ChainSafe/forest/pull/2606)
 
 ### Removed
 * [forest daemon] Removed `--halt-after-import` and `--auto-download-snapshot` from configuration. They are now strictly a CLI option. [#2577](https://github.com/ChainSafe/forest/pull/2577)
