@@ -472,7 +472,7 @@
 
 <span class="kw">use </span>ahash::HashSet;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_actor_interface::{cron, reward, system, AwardBlockRewardParams};
+<span class="kw">use </span>forest_actor_interface::{cron, reward, AwardBlockRewardParams};
 <span class="kw">use </span>forest_message::ChainMessage;
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_shim::{
@@ -657,8 +657,8 @@
         &gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
         <span class="kw">let </span>cron_msg: Message = Message_v3 {
-            from: system::ADDRESS.into(),
-            to: cron::ADDRESS.into(),
+            from: Address::SYSTEM_ACTOR.into(),
+            to: Address::CRON_ACTOR.into(),
             <span class="comment">// Epoch as sequence is intentional
             </span>sequence: epoch <span class="kw">as </span>u64,
             <span class="comment">// Arbitrarily large gas limit for cron (matching Lotus value)
@@ -866,8 +866,8 @@
         })<span class="question-mark">?</span>;
 
         <span class="kw">let </span>rew_msg = Message_v3 {
-            from: system::ADDRESS.into(),
-            to: reward::ADDRESS.into(),
+            from: Address::SYSTEM_ACTOR.into(),
+            to: Address::REWARD_ACTOR.into(),
             method_num: reward::Method::AwardBlockReward <span class="kw">as </span>u64,
             params,
             <span class="comment">// Epoch as sequence is intentional
@@ -916,7 +916,7 @@
         gas_reward: TokenAmount,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Message&gt;, anyhow::Error&gt; {
         <span class="kw">let </span>msg = Message_v3 {
-            from: reward::ADDRESS.into(),
+            from: Address::REWARD_ACTOR.into(),
             to: miner.into(),
             method_num: METHOD_SEND,
             params: Default::default(),

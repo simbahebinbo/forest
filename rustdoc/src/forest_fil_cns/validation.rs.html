@@ -611,15 +611,15 @@
         .start_timer();
 
     <span class="kw">let </span>actor = state_manager
-        .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS, <span class="kw-2">*</span>tipset_state)
+        .get_actor(<span class="kw-2">&amp;</span>Address::POWER_ACTOR, <span class="kw-2">*</span>tipset_state)
         .map_err(|<span class="kw">_</span>| FilecoinConsensusError::PowerActorUnavailable)<span class="question-mark">?
         </span>.ok_or(FilecoinConsensusError::PowerActorUnavailable)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>state = power::State::load(state_manager.blockstore(), <span class="kw-2">&amp;</span>actor)
+    <span class="kw">let </span>state = power::State::load(state_manager.blockstore(), <span class="kw-2">&amp;</span>actor.into())
         .map_err(|err| FilecoinConsensusError::MinerPowerUnavailable(err.to_string()))<span class="question-mark">?</span>;
 
     state
-        .miner_power(state_manager.blockstore(), miner_addr)
+        .miner_power(state_manager.blockstore(), <span class="kw-2">&amp;</span>miner_addr.into())
         .map_err(|err| FilecoinConsensusError::MinerPowerUnavailable(err.to_string()))<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())

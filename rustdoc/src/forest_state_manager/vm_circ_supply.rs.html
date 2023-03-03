@@ -263,24 +263,22 @@
 <a href="#263" id="263">263</a>
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_actor_interface::{
-    market, power, reward, BURNT_FUNDS_ACTOR_ADDR, EPOCHS_IN_DAY, RESERVE_ADDRESS,
-};
+<span class="kw">use </span>forest_actor_interface::{market, power, reward, EPOCHS_IN_DAY};
 <span class="kw">use </span>forest_chain::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>forest_shim::{
+    address::Address,
     econ::TokenAmount,
     state_tree::{ActorState, StateTree},
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-<span class="kw">use </span>fvm_shared::{address::Address, clock::ChainEpoch};
+<span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>num_traits::Zero;
 
 <span class="kw">const </span>EPOCHS_IN_YEAR: ChainEpoch = <span class="number">365 </span>* EPOCHS_IN_DAY;
@@ -380,7 +378,7 @@
     addr: <span class="kw-2">&amp;</span>Address,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ActorState, anyhow::Error&gt; {
     state_tree
-        .get_actor(<span class="kw-2">&amp;</span>addr.into())<span class="question-mark">?
+        .get_actor(addr)<span class="question-mark">?
         </span>.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Failed to get Actor for address {addr}&quot;</span>))
 }
 
@@ -419,40 +417,40 @@
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
     <span class="kw">let </span>actor = state_tree
-        .get_actor(<span class="kw-2">&amp;</span>reward::ADDRESS)<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>Address::REWARD_ACTOR)<span class="question-mark">?
         </span>.context(<span class="string">&quot;Reward actor address could not be resolved&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>state = reward::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+    <span class="kw">let </span>state = reward::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(state.into_total_storage_power_reward())
+    <span class="prelude-val">Ok</span>(state.into_total_storage_power_reward().into())
 }
 
 <span class="kw">fn </span>get_fil_market_locked&lt;DB: Blockstore + Store + Clone&gt;(
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
     <span class="kw">let </span>actor = state_tree
-        .get_actor(<span class="kw-2">&amp;</span>market::ADDRESS)<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>Address::MARKET_ACTOR)<span class="question-mark">?
         </span>.ok_or_else(|| Error::State(<span class="string">&quot;Market actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
-    <span class="kw">let </span>state = market::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+    <span class="kw">let </span>state = market::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(state.total_locked())
+    <span class="prelude-val">Ok</span>(state.total_locked().into())
 }
 
 <span class="kw">fn </span>get_fil_power_locked&lt;DB: Blockstore + Store + Clone&gt;(
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
     <span class="kw">let </span>actor = state_tree
-        .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS)<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>Address::POWER_ACTOR)<span class="question-mark">?
         </span>.ok_or_else(|| Error::State(<span class="string">&quot;Power actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
-    <span class="kw">let </span>state = power::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+    <span class="kw">let </span>state = power::State::load(state_tree.store(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
-    <span class="prelude-val">Ok</span>(state.into_total_locked())
+    <span class="prelude-val">Ok</span>(state.into_total_locked().into())
 }
 
 <span class="kw">fn </span>get_fil_reserve_disbursed&lt;DB: Blockstore + Store + Clone&gt;(
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
     <span class="kw">let </span>fil_reserved: TokenAmount = TokenAmount::from_whole(<span class="number">300_000_000</span>);
-    <span class="kw">let </span>reserve_actor = get_actor_state(state_tree, <span class="kw-2">&amp;</span>RESERVE_ADDRESS)<span class="question-mark">?</span>;
+    <span class="kw">let </span>reserve_actor = get_actor_state(state_tree, <span class="kw-2">&amp;</span>Address::RESERVE_ACTOR)<span class="question-mark">?</span>;
 
     <span class="comment">// If money enters the reserve actor, this could lead to a negative term
     </span><span class="prelude-val">Ok</span>(TokenAmount::from(<span class="kw-2">&amp;*</span>fil_reserved - <span class="kw-2">&amp;</span>reserve_actor.balance))
@@ -469,7 +467,7 @@
 <span class="kw">fn </span>get_fil_burnt&lt;DB: Blockstore + Store + Clone&gt;(
     state_tree: <span class="kw-2">&amp;</span>StateTree&lt;DB&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;TokenAmount, anyhow::Error&gt; {
-    <span class="kw">let </span>burnt_actor = get_actor_state(state_tree, <span class="kw-2">&amp;</span>BURNT_FUNDS_ACTOR_ADDR)<span class="question-mark">?</span>;
+    <span class="kw">let </span>burnt_actor = get_actor_state(state_tree, <span class="kw-2">&amp;</span>Address::BURNT_FUNDS_ACTOR)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(TokenAmount::from(<span class="kw-2">&amp;</span>burnt_actor.balance))
 }

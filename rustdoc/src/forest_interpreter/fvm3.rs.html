@@ -420,13 +420,13 @@
 
         <span class="kw">let </span>tbs = TrackingBlockstore::new(<span class="kw-2">&amp;</span><span class="self">self</span>.db);
 
-        <span class="kw">let </span>ms = forest_actor_interface::miner::State::load(<span class="kw-2">&amp;</span>tbs, <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>ms = forest_actor_interface::miner::State::load(<span class="kw-2">&amp;</span>tbs, <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>worker = ms.info(<span class="kw-2">&amp;</span>tbs)<span class="question-mark">?</span>.worker;
 
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="kw-2">&amp;</span><span class="self">self</span>.db, <span class="kw-2">&amp;</span><span class="self">self</span>.root)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>addr = resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>tbs, <span class="kw-2">&amp;</span>worker)<span class="question-mark">?</span>;
+        <span class="kw">let </span>addr = resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="kw-2">&amp;</span>tbs, <span class="kw-2">&amp;</span>worker.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>network_version = <span class="self">self</span>.chain_config.network_version(<span class="self">self</span>.epoch);
         <span class="kw">let </span>gas_used = cal_gas_used_from_stats(tbs.stats.borrow(), network_version)<span class="question-mark">?</span>;

@@ -1251,7 +1251,6 @@
 <a href="#1251" id="1251">1251</a>
 <a href="#1252" id="1252">1252</a>
 <a href="#1253" id="1253">1253</a>
-<a href="#1254" id="1254">1254</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1545,12 +1544,12 @@
     <span class="doccomment">/// Returns true if miner has been slashed or is considered invalid.
     </span><span class="kw">pub fn </span>is_miner_slashed(<span class="kw-2">&amp;</span><span class="self">self</span>, addr: <span class="kw-2">&amp;</span>Address, state_cid: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;bool, Error&gt; {
         <span class="kw">let </span>actor = <span class="self">self
-            </span>.get_actor(<span class="kw-2">&amp;</span>forest_actor_interface::power::ADDRESS, <span class="kw-2">*</span>state_cid)<span class="question-mark">?
+            </span>.get_actor(<span class="kw-2">&amp;</span>Address::POWER_ACTOR, <span class="kw-2">*</span>state_cid)<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Power actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>spas = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>spas = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(spas.miner_power(<span class="self">self</span>.blockstore(), addr)<span class="question-mark">?</span>.is_none())
+        <span class="prelude-val">Ok</span>(spas.miner_power(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>addr.into())<span class="question-mark">?</span>.is_none())
     }
 
     <span class="doccomment">/// Returns raw work address of a miner given the state root.
@@ -1567,11 +1566,11 @@
             .map_err(|e| Error::State(e.to_string()))<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Miner actor not found&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>ms = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>act)<span class="question-mark">?</span>;
+        <span class="kw">let </span>ms = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>act.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>info = ms.info(<span class="self">self</span>.blockstore()).map_err(|e| e.to_string())<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>addr = resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>info.worker())<span class="question-mark">?</span>;
+        <span class="kw">let </span>addr = resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>info.worker().into())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(addr)
     }
 
@@ -1583,22 +1582,22 @@
         addr: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Address&gt;,
     ) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;(power::Claim, power::Claim)&gt;, Error&gt; {
         <span class="kw">let </span>actor = <span class="self">self
-            </span>.get_actor(<span class="kw-2">&amp;</span>forest_actor_interface::power::ADDRESS, <span class="kw-2">*</span>state_cid)<span class="question-mark">?
+            </span>.get_actor(<span class="kw-2">&amp;</span>Address::POWER_ACTOR, <span class="kw-2">*</span>state_cid)<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Power actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>spas = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>spas = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>t_pow = spas.total_power();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(maddr) = addr {
             <span class="kw">let </span>m_pow = spas
-                .miner_power(<span class="self">self</span>.blockstore(), maddr)<span class="question-mark">?
+                .miner_power(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>maddr.into())<span class="question-mark">?
                 </span>.ok_or_else(|| Error::State(<span class="macro">format!</span>(<span class="string">&quot;Miner for address {maddr} not found&quot;</span>)))<span class="question-mark">?</span>;
 
             <span class="kw">let </span>min_pow = spas.miner_nominal_power_meets_consensus_minimum(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.chain_config.policy,
                 <span class="self">self</span>.blockstore(),
-                maddr,
+                <span class="kw-2">&amp;</span>maddr.into(),
             )<span class="question-mark">?</span>;
             <span class="kw">if </span>min_pow {
                 <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((m_pow, t_pow)));
@@ -1940,23 +1939,20 @@
         }
 
         <span class="kw">let </span>actor = <span class="self">self
-            </span>.get_actor(
-                <span class="kw-2">&amp;</span>forest_actor_interface::power::ADDRESS,
-                <span class="kw-2">*</span>base_tipset.parent_state(),
-            )<span class="question-mark">?
+            </span>.get_actor(<span class="kw-2">&amp;</span>Address::POWER_ACTOR, <span class="kw-2">*</span>base_tipset.parent_state())<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Power actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>power_state = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>power_state = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>actor = <span class="self">self
             </span>.get_actor(address, <span class="kw-2">*</span>base_tipset.parent_state())<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Miner actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>miner_state = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>miner_state = miner::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
         <span class="comment">// Non-empty power claim.
         </span><span class="kw">let </span>claim = power_state
-            .miner_power(<span class="self">self</span>.blockstore(), address)<span class="question-mark">?
+            .miner_power(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>address.into())<span class="question-mark">?
             </span>.ok_or_else(|| Error::Other(<span class="string">&quot;Could not get claim&quot;</span>.to_string()))<span class="question-mark">?</span>;
         <span class="kw">if </span>claim.quality_adj_power &lt;= BigInt::zero() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
@@ -2370,12 +2366,12 @@
         ts: <span class="kw-2">&amp;</span>Tipset,
     ) -&gt; anyhow::Result&lt;MarketBalance, Error&gt; {
         <span class="kw">let </span>actor = <span class="self">self
-            </span>.get_actor(<span class="kw-2">&amp;</span>forest_actor_interface::market::ADDRESS, <span class="kw-2">*</span>ts.parent_state())<span class="question-mark">?
+            </span>.get_actor(<span class="kw-2">&amp;</span>Address::MARKET_ACTOR, <span class="kw-2">*</span>ts.parent_state())<span class="question-mark">?
             </span>.ok_or_else(|| {
                 Error::State(<span class="string">&quot;Market actor address could not be resolved&quot;</span>.to_string())
             })<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>market_state = market::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>market_state = market::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>new_addr = <span class="self">self
             </span>.lookup_id(addr, ts)<span class="question-mark">?
@@ -2385,13 +2381,15 @@
             escrow: {
                 market_state
                     .escrow_table(<span class="self">self</span>.blockstore())<span class="question-mark">?
-                    </span>.get(<span class="kw-2">&amp;</span>new_addr)<span class="question-mark">?
-            </span>},
+                    </span>.get(<span class="kw-2">&amp;</span>new_addr.into())<span class="question-mark">?
+                    </span>.into()
+            },
             locked: {
                 market_state
                     .locked_table(<span class="self">self</span>.blockstore())<span class="question-mark">?
-                    </span>.get(<span class="kw-2">&amp;</span>new_addr)<span class="question-mark">?
-            </span>},
+                    </span>.get(<span class="kw-2">&amp;</span>new_addr.into())<span class="question-mark">?
+                    </span>.into()
+            },
         };
 
         <span class="prelude-val">Ok</span>(out)
@@ -2428,11 +2426,11 @@
         ts: <span class="kw-2">&amp;</span>Tipset,
     ) -&gt; anyhow::Result&lt;bool&gt; {
         <span class="kw">let </span>actor = <span class="self">self
-            </span>.get_actor(<span class="kw-2">&amp;</span>forest_actor_interface::power::ADDRESS, <span class="kw-2">*</span>ts.parent_state())<span class="question-mark">?
+            </span>.get_actor(<span class="kw-2">&amp;</span>Address::POWER_ACTOR, <span class="kw-2">*</span>ts.parent_state())<span class="question-mark">?
             </span>.ok_or_else(|| Error::State(<span class="string">&quot;Power actor address could not be resolved&quot;</span>.to_string()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>ps = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+        <span class="kw">let </span>ps = power::State::load(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
-        ps.miner_nominal_power_meets_consensus_minimum(policy, <span class="self">self</span>.blockstore(), addr)
+        ps.miner_nominal_power_meets_consensus_minimum(policy, <span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>addr.into())
     }
 
     <span class="kw">pub async fn </span>validate_chain(

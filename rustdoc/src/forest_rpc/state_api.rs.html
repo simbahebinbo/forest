@@ -197,6 +197,7 @@
 <a href="#197" id="197">197</a>
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -213,6 +214,7 @@
     data_types::{MarketDeal, MessageLookup, RPCState},
     state_api::<span class="kw-2">*</span>,
 };
+<span class="kw">use </span>forest_shim::address::Address;
 <span class="kw">use </span>forest_state_manager::InvocResult;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
@@ -322,9 +324,9 @@
     <span class="kw">let </span>ts = data.chain_store.tipset_from_keys(<span class="kw-2">&amp;</span>tsk)<span class="question-mark">?</span>;
     <span class="kw">let </span>actor = data
         .state_manager
-        .get_actor(<span class="kw-2">&amp;</span>market::ADDRESS, <span class="kw-2">*</span>ts.parent_state())<span class="question-mark">?
+        .get_actor(<span class="kw-2">&amp;</span>Address::MARKET_ACTOR, <span class="kw-2">*</span>ts.parent_state())<span class="question-mark">?
         </span>.ok_or(<span class="string">&quot;Market actor address could not be resolved&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>market_state = market::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>actor)<span class="question-mark">?</span>;
+    <span class="kw">let </span>market_state = market::State::load(data.state_manager.blockstore(), <span class="kw-2">&amp;</span>actor.into())<span class="question-mark">?</span>;
 
     <span class="kw">let </span>da = market_state.proposals(data.state_manager.blockstore())<span class="question-mark">?</span>;
     <span class="kw">let </span>sa = market_state.states(data.state_manager.blockstore())<span class="question-mark">?</span>;

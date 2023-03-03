@@ -64,7 +64,7 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>forest_actor_interface::power;
 <span class="kw">use </span>forest_blocks::Tipset;
-<span class="kw">use </span>forest_shim::state_tree::StateTree;
+<span class="kw">use </span>forest_shim::{address::Address, state_tree::StateTree};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>num::{BigInt, Integer};
 <span class="kw">use </span>num_traits::Zero;
@@ -87,11 +87,11 @@
     <span class="kw">let </span>state = StateTree::new_from_root(db, ts.parent_state()).map_err(|e| e.to_string())<span class="question-mark">?</span>;
 
     <span class="kw">let </span>act = state
-        .get_actor(<span class="kw-2">&amp;</span>power::ADDRESS)
+        .get_actor(<span class="kw-2">&amp;</span>Address::POWER_ACTOR)
         .map_err(|e| e.to_string())<span class="question-mark">?
         </span>.ok_or(<span class="string">&quot;Failed to load power actor for calculating weight&quot;</span>)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>state = power::State::load(db, <span class="kw-2">&amp;</span>act).map_err(|e| e.to_string())<span class="question-mark">?</span>;
+    <span class="kw">let </span>state = power::State::load(db, <span class="kw-2">&amp;</span>act.into()).map_err(|e| e.to_string())<span class="question-mark">?</span>;
 
     <span class="kw">let </span>tpow = state.into_total_quality_adj_power();
 

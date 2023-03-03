@@ -134,6 +134,18 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -156,6 +168,18 @@
 </span><span class="kw">pub struct </span>Address(Address_v3);
 
 <span class="kw">impl </span>Address {
+    <span class="kw">pub const </span>SYSTEM_ACTOR: Address = Address::new_id(<span class="number">0</span>);
+    <span class="kw">pub const </span>INIT_ACTOR: Address = Address::new_id(<span class="number">1</span>);
+    <span class="kw">pub const </span>REWARD_ACTOR: Address = Address::new_id(<span class="number">2</span>);
+    <span class="kw">pub const </span>CRON_ACTOR: Address = Address::new_id(<span class="number">3</span>);
+    <span class="kw">pub const </span>POWER_ACTOR: Address = Address::new_id(<span class="number">4</span>);
+    <span class="kw">pub const </span>MARKET_ACTOR: Address = Address::new_id(<span class="number">5</span>);
+    <span class="kw">pub const </span>VERIFIED_REGISTRY_ACTOR: Address = Address::new_id(<span class="number">6</span>);
+    <span class="kw">pub const </span>DATACAP_TOKEN_ACTOR: Address = Address::new_id(<span class="number">7</span>);
+    <span class="kw">pub const </span>RESERVE_ACTOR: Address = Address::new_id(<span class="number">90</span>);
+    <span class="kw">pub const </span>CHAOS_ACTOR: Address = Address::new_id(<span class="number">98</span>);
+    <span class="kw">pub const </span>BURNT_FUNDS_ACTOR: Address = Address::new_id(<span class="number">99</span>);
+
     <span class="kw">pub const fn </span>new_id(id: u64) -&gt; <span class="self">Self </span>{
         Address(Address_v3::new_id(id))
     }
