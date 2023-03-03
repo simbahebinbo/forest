@@ -1,0 +1,249 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Memory analysis</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_usage.html"><strong aria-hidden="true">1.1.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="../cli.html"><strong aria-hidden="true">1.2.</strong> Command-line interface</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">1.3.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../docker.html"><strong aria-hidden="true">1.4.</strong> Docker</a></li><li class="chapter-item expanded "><a href="../js_console.html"><strong aria-hidden="true">1.5.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="../trouble_shooting.html"><strong aria-hidden="true">1.6.</strong> Troubleshooting</a></li><li class="chapter-item expanded "><a href="../glossary.html"><strong aria-hidden="true">1.7.</strong> Glossary</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Developer documentation</li><li class="chapter-item expanded "><a href="../developer_documentation/introduction.html"><strong aria-hidden="true">2.</strong> Developer documentation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../developer_documentation/contributing.html"><strong aria-hidden="true">2.1.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../developer_documentation/mainnet_compatibility.html"><strong aria-hidden="true">2.2.</strong> Mainnet compatibility</a></li><li class="chapter-item expanded "><a href="../developer_documentation/memory-analysis.html" class="active"><strong aria-hidden="true">2.3.</strong> Memory analysis</a></li><li class="chapter-item expanded "><a href="../developer_documentation/release_checklist.html"><strong aria-hidden="true">2.4.</strong> Release checklist</a></li><li class="chapter-item expanded "><a href="../developer_documentation/smoke_testing.html"><strong aria-hidden="true">2.5.</strong> Smoke testing</a></li><li class="chapter-item expanded "><a href="../developer_documentation/state_migration.html"><strong aria-hidden="true">2.6.</strong> State migration</a></li><li class="chapter-item expanded "><a href="../developer_documentation/test_plan.html"><strong aria-hidden="true">2.7.</strong> Test plan</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <p>In case of memory leaks, either coming from <em>unsafe</em> libraries or just Forest pushing shamelessly into some collection, it is useful to not guess where the leak happened but to use proper tooling.</p>
+<h1 id="heaptrack"><a class="header" href="#heaptrack"><a href="https://github.com/KDE/heaptrack">HeapTrack</a></a></h1>
+<h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
+<p>Either build it with the instructions provided in the repository or download a ready AppImage, e.g. from <a href="https://invent.kde.org/sdk/heaptrack/-/releases">here</a>. You may not want to use the <code>heaptrack</code> available in your OS packages as it may be a bit outdated.</p>
+<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
+<p>To get the most out of the tool, you may want to add debug information to the binary, regardless if you are running it in release or debug mode.</p>
+<pre><code class="language-toml">[profile.dev]
+debug = 2
+
+[profile.release]
+debug = 2
+</code></pre>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<p>You can grab the trace on your host machine or in a VPS (e.g. Digital Ocean Droplet). </p>
+<p>Start tracing with <code>heaptrack &lt;normal forest command&gt;</code>, e.g. </p>
+<pre><code>heaptrack target/release/forest --encrypt-keystore=false --target-peer-count 50 --chain calibnet --import-snapshot forest_snapshot.car
+</code></pre>
+<p>This will push traces to a file, e.g. <code>heaptrack.forest.12345.gz</code>. The longer your process will be running, the bigger it will get, so double check your free space before leaving it overnight.</p>
+<p>Now analyze the trace. You can do it after Forest has e.g. crashed due to OOM or even during its execution. If you were capturing traces in a Droplet, copy the file to your host, e.g. <code>scp chainsafe@123.45.66.77:/home/chainsafe/heaptrack.forest.12345.gz .</code>.</p>
+<p>Depending on the size of the trace, it may take a while (but there is a nice progress bar so you will know if you can grab a coffee in the meantime).</p>
+<pre><code>heaptrack --analyze heaptrack.forest.12345.gz
+</code></pre>
+<h3 id="summary"><a class="header" href="#summary">Summary</a></h3>
+<p>Here we can see memory usage overview. Keep in mind that <em>leaks</em> here are not necessarily leaks - it's just memory that hasn't been yet freed. A global cache would always show as a leak.</p>
+<p>While most of the potential <em>culprits</em> are not necessarily interesting (e.g. <code>alloc::*</code>) because even a <code>String</code> constructor calls them, we immediately see that among specific ones, it's the <code>rocksdb</code> that gets into the spotlight.</p>
+<p><img src="heaptrack/summary.png" alt="summary" /></p>
+<h3 id="bottom-up"><a class="header" href="#bottom-up">Bottom-up</a></h3>
+<p>View in which you see <em>low-level</em> methods first. In such view, the first methods would almost always be allocator methods, finally unwinding into <code>main</code>.</p>
+<p><img src="heaptrack/bottom_up.png" alt="bottom-up" /></p>
+<h3 id="callercallee"><a class="header" href="#callercallee">Caller/callee</a></h3>
+<p>All the methods called along with their allocations, where one can easily navigate between their callers and callees, also showing you the location in code (you can configure <code>heaptrack</code> to take you to that code with <code>Settings/Code Navigation</code>). Most useful tab when you delve into the details.</p>
+<p><img src="heaptrack/caller_callee.png" alt="caller-callee" /></p>
+<h3 id="top-down"><a class="header" href="#top-down">Top-down</a></h3>
+<p>Basically an inverse of <em>Bottom-up</em> view. High-level methods first, then you can drill down.</p>
+<h3 id="flamegraph"><a class="header" href="#flamegraph">Flamegraph</a></h3>
+<p>A graphical form of Bottom-up and Top-Down (you can switch). Helps with visualizing the heavy allocators.</p>
+<p><img src="heaptrack/flamegraph.png" alt="flamegraph-up" /></p>
+<h3 id="consumed"><a class="header" href="#consumed">Consumed</a></h3>
+<p>Shows the heap memory consumption over time. Here we can notice some patterns, e.g. what happens with memory during snapshot import, then downloading headers and syncing.</p>
+<p><img src="heaptrack/consumed.png" alt="consumed" /></p>
+<h3 id="allocations"><a class="header" href="#allocations">Allocations</a></h3>
+<p>Shows total number of allocations over time.</p>
+<h3 id="temporary-allocations"><a class="header" href="#temporary-allocations">Temporary allocations</a></h3>
+<p>Shows the number of temporary allocations over time. Temporary allocation is an allocation followed by its deallocation, i.e. there are no other allocations in-between.</p>
+<h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
+<p>This tab will show you the allocation sizes during runtime and their frequency. If you hover over a bar you will see that e.g. <code>LZ4_createStream</code> (most likely used by <code>rocksdb</code>) made 5,624,180 allocations, total 92.3G, on average 14.4kB per allocation.</p>
+<p><img src="heaptrack/sizes.png" alt="sizes" /></p>
+<h3 id="miscellaneous"><a class="header" href="#miscellaneous">Miscellaneous</a></h3>
+<ul>
+<li>Keep in mind that running Forest <em>with</em> heaptrack gives a non-negligible memory and CPU overhead. You may not be able to run mainnet node on a 16G machine even if normally it would be fine.</li>
+<li>Optimizations may play tricks on the developer, e.g. inlining functions so they won't even appear in your trace. If you think a particular method should have been called but for mysterious reasons it does not appear in the analysis, you may want to put <code>#[inline(never)]</code> on top of it. Analyzing a debug build may also be useful, but depending on where the leak happens, it may be too slow.</li>
+<li>There is a lot of noise coming from dependencies and standard library. It's useful to mentally filter them out a bit and focus on the biggest culprits in Forest methods. Flamegraph and caller/callee view are the most useful for this.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../developer_documentation/mainnet_compatibility.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../developer_documentation/release_checklist.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../developer_documentation/mainnet_compatibility.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../developer_documentation/release_checklist.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -82,7 +82,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">2.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="docker.html"><strong aria-hidden="true">3.</strong> Docker</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">4.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">5.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">6.</strong> Trouble Shooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">7.</strong> Glossary</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">1.1.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="cli.html"><strong aria-hidden="true">1.2.</strong> Command-line interface</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">1.3.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="docker.html"><strong aria-hidden="true">1.4.</strong> Docker</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">1.5.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">1.6.</strong> Troubleshooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">1.7.</strong> Glossary</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Developer documentation</li><li class="chapter-item expanded "><a href="developer_documentation/introduction.html"><strong aria-hidden="true">2.</strong> Developer documentation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developer_documentation/contributing.html"><strong aria-hidden="true">2.1.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="developer_documentation/mainnet_compatibility.html"><strong aria-hidden="true">2.2.</strong> Mainnet compatibility</a></li><li class="chapter-item expanded "><a href="developer_documentation/memory-analysis.html"><strong aria-hidden="true">2.3.</strong> Memory analysis</a></li><li class="chapter-item expanded "><a href="developer_documentation/release_checklist.html"><strong aria-hidden="true">2.4.</strong> Release checklist</a></li><li class="chapter-item expanded "><a href="developer_documentation/smoke_testing.html"><strong aria-hidden="true">2.5.</strong> Smoke testing</a></li><li class="chapter-item expanded "><a href="developer_documentation/state_migration.html"><strong aria-hidden="true">2.6.</strong> State migration</a></li><li class="chapter-item expanded "><a href="developer_documentation/test_plan.html"><strong aria-hidden="true">2.7.</strong> Test plan</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -204,6 +204,122 @@ sudo pacman -S base-devel clang ocl-icd
 <p>Start the <code>forest</code> node:</p>
 <pre><code class="language-bash">forest --target-peer-count 50 --encrypt-keystore false
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cli"><a class="header" href="#cli">CLI</a></h1>
+<p>The Forest CLI allows for operations to interact with a Filecoin node and the blockchain.</p>
+<h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
+<p>For nodes not running on a non-default port, or when interacting with a node remotely, you will need
+to provide the multiaddress information for the node. You will need to either set the environment variable
+<code>FULLNODE_API_INFO</code>, or prepend it to the command, like so:</p>
+<p><code>FULLNODE_API_INFO=&quot;...&quot; forest wallet new -s bls</code></p>
+<p>On Linux, you can set the environment variable with the following syntax</p>
+<p><code>export FULLNOPDE_API_INFO=&quot;...&quot;</code></p>
+<p>Setting your API info this way will limit the value to your current session. Look online for ways to persist
+this variable if desired.</p>
+<p>The syntax for the <code>FULLNODE_API_INFO</code> variable is as follows:</p>
+<p><code>&lt;admin_token&gt;:/ip4/&lt;ip of host&gt;/tcp/&lt;port&gt;/http</code></p>
+<p>This will use IPv4, TCP, and HTTP when communicating with the RPC API. The admin token can be found when starting
+the Forest daemon. This will be needed to create tokens with certain permissions such as read, write, sign, or admin.</p>
+<h2 id="token-flag"><a class="header" href="#token-flag">Token flag</a></h2>
+<p>For nodes running on default port and when you are interacting locally, the admin token can also be set using <code>--token</code> flag:</p>
+<pre><code>forest-cli --token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXSwiZXhwIjoxNjczMjEwMTkzfQ.xxhmqtG9O3XNTIrOEB2_TWnVkq0JkqzRdw63BdosV0c &lt;subcommand&gt;
+</code></pre>
+<p>When the Forest daemon is started, an admin token will be displayed (alternatively, use <code>--save-token &lt;token&gt;</code> flag to save it on disk).</p>
+<h2 id="wallet"><a class="header" href="#wallet">Wallet</a></h2>
+<p>All wallet commands require write permissions to interact with the keystore</p>
+<p>Balance
+Retrieve the FIL balance of a given address
+Usage: <code>forest-cli wallet balance &lt;address&gt;</code></p>
+<p>Default
+Get the default, persisted address from the keystore
+Usage: <code>forest-cli wallet default</code></p>
+<p>Has
+Check if an address exists in the keystore
+shows true/false if exists or doesn't
+Usage: <code>forest-cli wallet has &lt;address&gt;</code></p>
+<p>List
+Display the keys in the keystore
+Usage: <code>forest-cli wallet list</code></p>
+<p>New
+Create a new wallet
+The signature type can either be secp256k1 or bls. Defaults to use bls
+Usage: <code>forest-cli wallet new &lt;bls/secp256k1&gt;</code></p>
+<p>Set-default
+Set an address to be the default address of the keystore
+Usage: <code>forest-cli wallet set-default &lt;address&gt;</code></p>
+<p>Import
+Import a private key to the keystore and create a new address.
+The default format for importing keys is hex encoded JSON. Use the <code>export</code>
+command to get formatted keys for importing.
+Usage: <code>forest-cli wallet import &lt;hex encoded json key&gt;</code></p>
+<p>Export
+Export a key by address. Use a wallet address to export a key. Returns a formatted key
+to be used to import on another node, or into a new keystore.
+Usage: <code>forest-cli wallet export &lt;address&gt;</code></p>
+<p>Sign
+Use an address to sign a vector of bytes
+Usage: <code>forest-cli wallet sign -m &lt;hex message&gt; -a &lt;address&gt;</code></p>
+<p>Verify
+Verify the message's integrity with an address and signature
+Usage: <code>forest-cli wallet verify -m &lt;hex message&gt; -a &lt;address&gt; -s &lt;signature&gt;</code></p>
+<h2 id="chain-sync"><a class="header" href="#chain-sync">Chain-Sync</a></h2>
+<p>The chain-sync CLI can mark blocks to never be synced, provide information about the state
+of the syncing process, and check blocks that will never be synced (and for what reason).</p>
+<p>Wait
+Wait for the sync process to be complete
+Usage: <code>forest-cli sync wait</code>
+Permissions: Read</p>
+<p>Status
+Check the current state of the syncing process, displaying some information
+Usage: <code>forest-cli sync status</code>
+Permissions: Read</p>
+<p>Check Bad
+Check if a block has been marked by, identifying the block by CID
+Usage: <code>forest-cli sync check-bad -c &lt;block cid&gt;</code>
+Permissions: Read</p>
+<p>Mark Bad
+Mark a block as bad, the syncer will never sync this block
+Usage: <code>forest-cli sync mark-bad -c &lt;block cid&gt;</code>
+Permissions: Admin</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
+<p>The <code>forest</code> process has a set of configurable values which determine the behavior of the node. All values can be set through process flags or through a configuration file. If a configuration is provided through the flag and the configuration file, the flag value will be given preference.</p>
+<h2 id="flags"><a class="header" href="#flags">Flags</a></h2>
+<p>When starting <code>forest</code> you can configure the behavior of the process through the use of the following flags:</p>
+<div class="table-wrapper"><table><thead><tr><th>Flag</th><th>Value</th><th>Description</th></tr></thead><tbody>
+<tr><td>--config</td><td>OS File Path</td><td>Path to TOML file containing configuration</td></tr>
+<tr><td>--genesis</td><td>OS File Path</td><td>CAR file with genesis state</td></tr>
+<tr><td>--rpc</td><td>Boolean</td><td>Toggles the RPC API on</td></tr>
+<tr><td>--port</td><td>Integer</td><td>Port for JSON-RPC communication</td></tr>
+<tr><td>--token</td><td>String</td><td>Client JWT token to use for JSON-RPC authentication</td></tr>
+<tr><td>--metrics-port</td><td>Integer</td><td>Port used for metrics collection server</td></tr>
+<tr><td>--kademlia</td><td>Boolean</td><td>Determines whether Kademilia is allowed</td></tr>
+<tr><td>--mdns</td><td>Boolean</td><td>Determines whether MDNS is allowed</td></tr>
+<tr><td>--import-snapshot</td><td>OS File Path</td><td>Path to snapshot CAR file</td></tr>
+<tr><td>--import-chain</td><td>OS File Path</td><td>Path to chain CAR file</td></tr>
+<tr><td>--skip-load</td><td>Boolean</td><td>Skips loading CAR File and uses header to index chain</td></tr>
+<tr><td>--req-window</td><td>Integer</td><td>Sets the number of tipsets requested over chain exchange</td></tr>
+<tr><td>--tipset-sample-size</td><td>Integer</td><td>Number of tipsets to include in the sample which determines the network head during synchronization</td></tr>
+<tr><td>--target-peer-count</td><td>Integer</td><td>Amount of peers the node should maintain a connection with</td></tr>
+<tr><td>--encrypt-keystore</td><td>Boolean</td><td>Controls whether the keystore is encrypted</td></tr>
+</tbody></table>
+</div>
+<h2 id="configuration-file"><a class="header" href="#configuration-file">Configuration File</a></h2>
+<p>Alternatively, when starting <code>forest</code> you can define a TOML configuration file and provide it to the process with the <code>--config</code> flag or through the <code>FOREST_CONFIG_PATH</code> environment variable.</p>
+<p>The following is an sample configuration file: </p>
+<pre><code class="language-toml">genesis = &quot;/path/to/genesis/file&quot;
+rpc = true
+port = 1234
+token = &quot;0394j3094jg0394jg34g&quot;
+metrics-port = 2345
+kademlia = true
+mdns = true
+import-snapshot = /path/to/snapshot/file
+import-chain = /path/to/chain/file
+skip-load = false
+req-window = 100
+tipset-sample-size = 10
+target-peer-count = 100
+encrypt-keystore = false
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="forest-in-docker"><a class="header" href="#forest-in-docker">Forest in Docker🌲❤️🐋</a></h1>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
 <ul>
@@ -237,7 +353,7 @@ sudo pacman -S base-devel clang ocl-icd
 <ul>
 <li>We recommend lowering the swappiness kernel parameter on linux to 1-10 for long running forest node by doing <code>sudo sysctl -w vm.swappiness=[n]</code>. </li>
 </ul>
-<p>References: <a href="https://en.wikipedia.org/wiki/Memory_paging#Swappiness">[1]</a>  <a href="https://linuxhint.com/understanding_vm_swappiness/">[2]</a></p>
+<p>References: <a href="https://en.wikipedia.org/wiki/Memory_paging#Swappiness">1</a>  <a href="https://linuxhint.com/understanding_vm_swappiness/">2</a></p>
 <h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
 <h3 id="list-available-flags-andor-commands"><a class="header" href="#list-available-flags-andor-commands">List available flags and/or commands</a></h3>
 <pre><code class="language-shell"># daemon
@@ -369,46 +485,6 @@ Forest running on calibnet
 <h2 id="limitations"><a class="header" href="#limitations">Limitations</a></h2>
 <p>Forest's console is built using <a href="https://github.com/boa-dev/boa">Boa Javascript engine</a>. It does support promises or <code>async</code> functions, but keep in mind that Boa is not fully compatible with ECMAScript yet.</p>
 <p>Not every endpoint from the Filecoin API has been bound to the console. Please <a href="https://github.com/ChainSafe/forest/issues">create an issue</a> if you need one that is not available.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="configuration"><a class="header" href="#configuration">Configuration</a></h1>
-<p>The <code>forest</code> process has a set of configurable values which determine the behavior of the node. All values can be set through process flags or through a configuration file. If a configuration is provided through the flag and the configuration file, the flag value will be given preference.</p>
-<h2 id="flags"><a class="header" href="#flags">Flags</a></h2>
-<p>When starting <code>forest</code> you can configure the behavior of the process through the use of the following flags:</p>
-<div class="table-wrapper"><table><thead><tr><th>Flag</th><th>Value</th><th>Description</th></tr></thead><tbody>
-<tr><td>--config</td><td>OS File Path</td><td>Path to TOML file containing configuration</td></tr>
-<tr><td>--genesis</td><td>OS File Path</td><td>CAR file with genesis state</td></tr>
-<tr><td>--rpc</td><td>Boolean</td><td>Toggles the RPC API on</td></tr>
-<tr><td>--port</td><td>Integer</td><td>Port for JSON-RPC communication</td></tr>
-<tr><td>--token</td><td>String</td><td>Client JWT token to use for JSON-RPC authentication</td></tr>
-<tr><td>--metrics-port</td><td>Integer</td><td>Port used for metrics collection server</td></tr>
-<tr><td>--kademlia</td><td>Boolean</td><td>Determines whether Kademilia is allowed</td></tr>
-<tr><td>--mdns</td><td>Boolean</td><td>Determines whether MDNS is allowed</td></tr>
-<tr><td>--import-snapshot</td><td>OS File Path</td><td>Path to snapshot CAR file</td></tr>
-<tr><td>--import-chain</td><td>OS File Path</td><td>Path to chain CAR file</td></tr>
-<tr><td>--skip-load</td><td>Boolean</td><td>Skips loading CAR File and uses header to index chain</td></tr>
-<tr><td>--req-window</td><td>Integer</td><td>Sets the number of tipsets requested over chain exchange</td></tr>
-<tr><td>--tipset-sample-size</td><td>Integer</td><td>Number of tipsets to include in the sample which determines the network head during synchronization</td></tr>
-<tr><td>--target-peer-count</td><td>Integer</td><td>Amount of peers the node should maintain a connection with</td></tr>
-<tr><td>--encrypt-keystore</td><td>Boolean</td><td>Controls whether the keystore is encrypted</td></tr>
-</tbody></table>
-</div>
-<h2 id="configuration-file"><a class="header" href="#configuration-file">Configuration File</a></h2>
-<p>Alternatively, when starting <code>forest</code> you can define a TOML configuration file and provide it to the process with the <code>--config</code> flag or through the <code>FOREST_CONFIG_PATH</code> environment variable.</p>
-<p>The following is an sample configuration file: </p>
-<pre><code class="language-toml">genesis = &quot;/path/to/genesis/file&quot;
-rpc = true
-port = 1234
-token = &quot;0394j3094jg0394jg34g&quot;
-metrics-port = 2345
-kademlia = true
-mdns = true
-import-snapshot = /path/to/snapshot/file
-import-chain = /path/to/chain/file
-skip-load = false
-req-window = 100
-tipset-sample-size = 10
-target-peer-count = 100
-encrypt-keystore = false
-</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="trouble-shooting"><a class="header" href="#trouble-shooting">Trouble Shooting</a></h1>
 <h2 id="common-issues"><a class="header" href="#common-issues">Common Issues</a></h2>
 <h4 id="file-descriptor-limits"><a class="header" href="#file-descriptor-limits">File Descriptor Limits</a></h4>
@@ -456,6 +532,334 @@ size or use <code>ulimit</code> to increase the open-files limit.</p>
 <p><a href="https://en.wikipedia.org/wiki/Kademlia">Kademlia</a> is a distributed hash table for decentralized peer-to-peer computer networks.</p>
 <h2 id="libp2p"><a class="header" href="#libp2p">LibP2P</a></h2>
 <p><a href="https://libp2p.io/">LibP2P</a> is a modular system of protocols, specifications and libraries that enable the development of peer-to-peer network applications.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="developer-documentation"><a class="header" href="#developer-documentation">Developer documentation</a></h1>
+<p>In this section you will find resources targeted for Forest developers.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contribuiting-to-forest"><a class="header" href="#contribuiting-to-forest">Contribuiting to Forest</a></h1>
+<h2 id="submitting-code"><a class="header" href="#submitting-code">Submitting Code</a></h2>
+<p>Please use <code>make lint</code> to ensure code is properly formatted, license headers are present, and to run the linter. </p>
+<h2 id="documentation"><a class="header" href="#documentation">Documentation</a></h2>
+<p>Please use the following guidelines while documenting code. Except for inline comments, these should all be doc comments (<code>///</code>).</p>
+<h3 id="methodsfunctions"><a class="header" href="#methodsfunctions">Methods/Functions</a></h3>
+<ul>
+<li>At least a brief description</li>
+</ul>
+<h3 id="structs"><a class="header" href="#structs">Structs</a></h3>
+<ul>
+<li>At least a brief description</li>
+</ul>
+<h3 id="traits"><a class="header" href="#traits">Traits</a></h3>
+<ul>
+<li>At least a brief description</li>
+</ul>
+<h3 id="enums"><a class="header" href="#enums">Enums</a></h3>
+<ul>
+<li>At least a brief overall description.</li>
+<li>All variants should have a brief description.</li>
+</ul>
+<h3 id="inline-comments"><a class="header" href="#inline-comments">Inline Comments</a></h3>
+<ul>
+<li>Any complicated logic should include in-line comments (<code>//</code>)</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="testing-for-mainnet-compatibility"><a class="header" href="#testing-for-mainnet-compatibility">Testing for Mainnet Compatibility</a></h1>
+<p>Forest development can be like hitting a moving target and sometimes Forest falls behind the
+network. This document should serve as a way to easily identify if Forest can sync all the way
+up to the network head using a simple step-by-step process.</p>
+<h2 id="prerequisites-1"><a class="header" href="#prerequisites-1">Prerequisites</a></h2>
+<p>Some command-line tools and software is required to follow this guide. </p>
+<ul>
+<li>A fresh copy of the Forest repository that has been built</li>
+<li>Lotus installed</li>
+<li>curl (to download snapshots)</li>
+<li>sha256sum (optional, used to verify snapshot integrity)</li>
+</ul>
+<h2 id="grab-a-snapshot-and-run-forest"><a class="header" href="#grab-a-snapshot-and-run-forest">Grab a snapshot and run Forest</a></h2>
+<p>Refer to the mdbook documentation on how to download a snapshot and run forest</p>
+<p>Warning: FileCoin snapshots as of this writing are over 75GB. Verify you have enough
+space on your system to accommodate these large files.</p>
+<ul>
+<li>Use <code>make mdbook</code> in Forest's root directory</li>
+<li>Open <code>http://localhost:3000</code></li>
+<li>Navigate to <code>2. Basic Usage</code> in the menu on the right</li>
+<li>Scroll down to <code>Forest Import Snapshot Mode</code></li>
+</ul>
+<h2 id="let-forest-sync"><a class="header" href="#let-forest-sync">Let Forest sync</a></h2>
+<p>This step may take a while. We want Forest to get as far along in the syncing process
+as it can get. If it syncs up all the way to the network head, CONGRATS! Forest is up to date
+and on mainnet. Otherwise, Forest is not on mainnet.</p>
+<p>If Forest starts to error and can't get past a block while syncing. Make note of which block it is.
+We can use that block to help debug any potential state mismatches.</p>
+<h2 id="is-forest-on-the-latest-network-version"><a class="header" href="#is-forest-on-the-latest-network-version">Is Forest on the latest network version?</a></h2>
+<p>Something easy to check is if Forest is on the latest Filecoin network version. A repository exists
+where we can see all of the released network versions <a href="https://github.com/filecoin-project/tpm/tree/master/Network%20Upgrades">here</a>.
+Navigate the codebase to see mention of the latest network upgrade. If a snapshot fails to sync at a certain epoch, it's entirely
+possible that the snapshot was behind an epoch when a version upgrade started. Grab a new snapshot by referring to the mdbook
+documentation.</p>
+<h2 id="debugging-state-mismatches"><a class="header" href="#debugging-state-mismatches">Debugging State Mismatches</a></h2>
+<p>Statediffs can only be printed if we import a snapshot containing the stateroot data from Lotus.
+This means there will not be a pretty statediff if Forest is already synced to the network when the stateroot mismatch happens.
+By default, snapshots only contain stateroot data for the previous 2000 epochs. So, if you have a statediff at epoch X,
+download a snapshot for epoch X+100 and tell Forest to re-validate the snapshot from epoch X.</p>
+<p>For more detailed instructions, follow <a href="https://www.notion.so/chainsafe/Interop-debugging-6adabf9222d7449bbfeaacb1ec997cf8">this document</a></p>
+<h2 id="fvm-traces"><a class="header" href="#fvm-traces">FVM Traces</a></h2>
+<p>Within FVM, we can enable tracing to produce execution traces. Given an offending epoch, we can produce them both for Forest
+and for Lotus to find mismatches.</p>
+<p>To confirm: the execution traces format is not uniform across implementations, so it takes a certain amount of elbow grease to
+find the differences.
+Lotus is capable of spitting this out in JSON for nice UX</p>
+<div style="break-before: page; page-break-before: always;"></div><p>In case of memory leaks, either coming from <em>unsafe</em> libraries or just Forest pushing shamelessly into some collection, it is useful to not guess where the leak happened but to use proper tooling.</p>
+<h1 id="heaptrack"><a class="header" href="#heaptrack"><a href="https://github.com/KDE/heaptrack">HeapTrack</a></a></h1>
+<h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
+<p>Either build it with the instructions provided in the repository or download a ready AppImage, e.g. from <a href="https://invent.kde.org/sdk/heaptrack/-/releases">here</a>. You may not want to use the <code>heaptrack</code> available in your OS packages as it may be a bit outdated.</p>
+<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
+<p>To get the most out of the tool, you may want to add debug information to the binary, regardless if you are running it in release or debug mode.</p>
+<pre><code class="language-toml">[profile.dev]
+debug = 2
+
+[profile.release]
+debug = 2
+</code></pre>
+<h2 id="usage-1"><a class="header" href="#usage-1">Usage</a></h2>
+<p>You can grab the trace on your host machine or in a VPS (e.g. Digital Ocean Droplet). </p>
+<p>Start tracing with <code>heaptrack &lt;normal forest command&gt;</code>, e.g. </p>
+<pre><code>heaptrack target/release/forest --encrypt-keystore=false --target-peer-count 50 --chain calibnet --import-snapshot forest_snapshot.car
+</code></pre>
+<p>This will push traces to a file, e.g. <code>heaptrack.forest.12345.gz</code>. The longer your process will be running, the bigger it will get, so double check your free space before leaving it overnight.</p>
+<p>Now analyze the trace. You can do it after Forest has e.g. crashed due to OOM or even during its execution. If you were capturing traces in a Droplet, copy the file to your host, e.g. <code>scp chainsafe@123.45.66.77:/home/chainsafe/heaptrack.forest.12345.gz .</code>.</p>
+<p>Depending on the size of the trace, it may take a while (but there is a nice progress bar so you will know if you can grab a coffee in the meantime).</p>
+<pre><code>heaptrack --analyze heaptrack.forest.12345.gz
+</code></pre>
+<h3 id="summary"><a class="header" href="#summary">Summary</a></h3>
+<p>Here we can see memory usage overview. Keep in mind that <em>leaks</em> here are not necessarily leaks - it's just memory that hasn't been yet freed. A global cache would always show as a leak.</p>
+<p>While most of the potential <em>culprits</em> are not necessarily interesting (e.g. <code>alloc::*</code>) because even a <code>String</code> constructor calls them, we immediately see that among specific ones, it's the <code>rocksdb</code> that gets into the spotlight.</p>
+<p><img src="developer_documentation/heaptrack/summary.png" alt="summary" /></p>
+<h3 id="bottom-up"><a class="header" href="#bottom-up">Bottom-up</a></h3>
+<p>View in which you see <em>low-level</em> methods first. In such view, the first methods would almost always be allocator methods, finally unwinding into <code>main</code>.</p>
+<p><img src="developer_documentation/heaptrack/bottom_up.png" alt="bottom-up" /></p>
+<h3 id="callercallee"><a class="header" href="#callercallee">Caller/callee</a></h3>
+<p>All the methods called along with their allocations, where one can easily navigate between their callers and callees, also showing you the location in code (you can configure <code>heaptrack</code> to take you to that code with <code>Settings/Code Navigation</code>). Most useful tab when you delve into the details.</p>
+<p><img src="developer_documentation/heaptrack/caller_callee.png" alt="caller-callee" /></p>
+<h3 id="top-down"><a class="header" href="#top-down">Top-down</a></h3>
+<p>Basically an inverse of <em>Bottom-up</em> view. High-level methods first, then you can drill down.</p>
+<h3 id="flamegraph"><a class="header" href="#flamegraph">Flamegraph</a></h3>
+<p>A graphical form of Bottom-up and Top-Down (you can switch). Helps with visualizing the heavy allocators.</p>
+<p><img src="developer_documentation/heaptrack/flamegraph.png" alt="flamegraph-up" /></p>
+<h3 id="consumed"><a class="header" href="#consumed">Consumed</a></h3>
+<p>Shows the heap memory consumption over time. Here we can notice some patterns, e.g. what happens with memory during snapshot import, then downloading headers and syncing.</p>
+<p><img src="developer_documentation/heaptrack/consumed.png" alt="consumed" /></p>
+<h3 id="allocations"><a class="header" href="#allocations">Allocations</a></h3>
+<p>Shows total number of allocations over time.</p>
+<h3 id="temporary-allocations"><a class="header" href="#temporary-allocations">Temporary allocations</a></h3>
+<p>Shows the number of temporary allocations over time. Temporary allocation is an allocation followed by its deallocation, i.e. there are no other allocations in-between.</p>
+<h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
+<p>This tab will show you the allocation sizes during runtime and their frequency. If you hover over a bar you will see that e.g. <code>LZ4_createStream</code> (most likely used by <code>rocksdb</code>) made 5,624,180 allocations, total 92.3G, on average 14.4kB per allocation.</p>
+<p><img src="developer_documentation/heaptrack/sizes.png" alt="sizes" /></p>
+<h3 id="miscellaneous"><a class="header" href="#miscellaneous">Miscellaneous</a></h3>
+<ul>
+<li>Keep in mind that running Forest <em>with</em> heaptrack gives a non-negligible memory and CPU overhead. You may not be able to run mainnet node on a 16G machine even if normally it would be fine.</li>
+<li>Optimizations may play tricks on the developer, e.g. inlining functions so they won't even appear in your trace. If you think a particular method should have been called but for mysterious reasons it does not appear in the analysis, you may want to put <code>#[inline(never)]</code> on top of it. Analyzing a debug build may also be useful, but depending on where the leak happens, it may be too slow.</li>
+<li>There is a lot of noise coming from dependencies and standard library. It's useful to mentally filter them out a bit and focus on the biggest culprits in Forest methods. Flamegraph and caller/callee view are the most useful for this.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><p>Forest follows a fixed, quarterly release schedule. On the last week of each
+quarter, a new version is always released. This is supplemented with additional
+releases for bug fixes and special features. A &quot;release officer&quot; is appointed
+for each release and they are responsible for either following the checklist or,
+in case of absence, passing the task to a different team member.</p>
+<ol>
+<li>Update the CHANGELOG.md file to reflect all changes and preferably write a
+small summary about the most notable updates. The changelog should follow the
+design philosophy outlined here: https://keepachangelog.com/en/1.0.0/. Go
+through the output of <code>git log</code> and remember that the audience of the
+CHANGELOG does not have intimate knowledge of the Forest code-base. All the
+changed/updated/removed features should be reasonably understandable to an
+end-user.</li>
+<li>Update that version of the crates that are to be released. Forest contains
+many crates so you may need to update many Cargo.toml files. If you're
+working on a patch release, make sure that there are no breaking changes.
+Cherry-picking of patches may be necessary.</li>
+<li>Run the manual tests steps outlined in the TEST_PLAN.md. Caveat: Right now
+there are no manual test steps so this step can be skipped.</li>
+<li>Once the changes in step 1 and step 2 have been merged, tag the commit with
+the new version number. The version tag should start with a lowercase 'v'.
+Example: v0.4.1</li>
+<li>(NOT YET APPLICABLE) Publish new crates on crates.io.</li>
+<li>Go to https://github.com/ChainSafe/forest/releases/new and create a new
+release. Use the tag created in step 4, follow the title convention of the
+previous releases, and write a small summary of the release (similar or
+identical to the summary in the CHANGELOG.md file).</li>
+<li>Verify that the new release contains assets for both Linux and MacOS (the
+assets are automatically generated and should show up after 30 minutes to an
+hour).</li>
+<li>Update the <a href="https://github.com/ChainSafe/forest/wiki/Forest-Progress">Forest Progress</a> wiki with the changes in the new release. If in
+doubt about what has been accomplished, is in progress, or what's included in
+the future plans, ask in the #fil-devs slack channel and tag authors of
+related PRs.</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="running-smoke-tests-for-forests-rpc-api"><a class="header" href="#running-smoke-tests-for-forests-rpc-api">Running Smoke Tests for Forest's RPC API</a></h1>
+<h2 id="prerequisites-2"><a class="header" href="#prerequisites-2">Prerequisites</a></h2>
+<p>The only requirement for running these smoke tests is that Forest is installed and on your system PATH.</p>
+<h2 id="running-the-tests"><a class="header" href="#running-the-tests">Running the Tests</a></h2>
+<ul>
+<li>Use <code>make install</code> to create a binary on your path</li>
+<li>Run <code>make smoke-test</code></li>
+</ul>
+<p>This will execute a blank request to all endpoints listed defined and check the HTTP
+status code of the response. If a response is received, this should be considered a good
+test, even if an error has occurred. No parameters are passed to the API endpoints.
+An <code>OK</code> will be displayed if a test passes, and a <code>FAIL</code> will be displayed with an HTTP/curl code
+if a test fails.</p>
+<h2 id="adding-future-endpoints"><a class="header" href="#adding-future-endpoints">Adding Future Endpoints</a></h2>
+<p>Endpoints in the script <code>./scripts/smoke_test.sh</code> are stored in an array identified as <code>RPC_ENDPOINTS</code>.</p>
+<p>Add the endpoint identifier minus the prefix <code>Forest</code> to the module that it belongs to (ie gas, net, state, etc)
+or add a new section if a new API is added.</p>
+<p>This should be checked during the review process if new API methods are added to keep this script and test suite up to date.</p>
+<div style="break-before: page; page-break-before: always;"></div><p>It's unclear how we can support migrations without adding a lot of code complexity. This document is meant to shed light on the matter and illuminate a sustainable path forward.
+As a start we will consider a migration going from nv15 to nv16.</p>
+<h1 id="migration-path-investigation-from-nv15-to-nv16"><a class="header" href="#migration-path-investigation-from-nv15-to-nv16">Migration path investigation from nv15 to nv16</a></h1>
+<h2 id="findings"><a class="header" href="#findings">Findings</a></h2>
+<ol>
+<li>Actor IDs definitely changed</li>
+</ol>
+<p>For following actors only their CID have changed:</p>
+<ul>
+<li>init</li>
+<li>cron</li>
+<li>account</li>
+<li>power</li>
+<li>miner</li>
+<li>paymentchannel</li>
+<li>multisig</li>
+<li>reward</li>
+<li>verifiedregistry</li>
+</ul>
+<p>Those are just simple code migration.</p>
+<p>For system and market actors there's both code and state changes. That's why there is dedicated logic for their migration.</p>
+<p>The system actor need to update the state tree with its new state that holds now the <code>ManifestData</code> CID.</p>
+<p>For the market actor more work is involved to upgrade actor state due to support for UTF-8 string label encoding in deal proposals and pending proposals (see <a href="https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0027.md">FIP-0027</a>).</p>
+<ol start="2">
+<li>Some gas calculations changed?</li>
+</ol>
+<p>I don't think we are concerned by this. Gas metering can change at a given protocol upgrade for one or many actors but the impact is irrelevant as it doesn't modify blockchain data structures. Gas calculations should only impact code and in our case the nv16 ref-fvm is already supporting the new gas changes.</p>
+<ol start="3">
+<li>drand calculation changed?</li>
+</ol>
+<p>Ditto.</p>
+<ol start="4">
+<li>What else changed?</li>
+</ol>
+<p>Nothing else as far I can see.</p>
+<h2 id="open-questions"><a class="header" href="#open-questions">Open questions</a></h2>
+<ul>
+<li>
+<p>pre-migration framework + caching: how much do we need a similar approach in Forest?
+Are there other alternatives? We can definitely skip this part at first.
+For information the old nv12 state migration in forest took around 13-15 secs.</p>
+</li>
+<li>
+<p>Seen in Lotus: <code>UpgradeRefuelHeight</code>. What's Refuel for?</p>
+</li>
+<li>
+<p>Migration logic is in spec-actors (go actors), what the future of this given clients moved to builtin-actors (rust actors) and ref-fvm? In an ideal world we might want a shared migration logic.</p>
+</li>
+<li>
+<p>Implement Lite migration?</p>
+<blockquote>
+<p>should allow for easy upgrades if actors code needs to change but state does not. Example provided above the function to perform all the migration duties. Check actors_version_checklist.md for the rest of the steps.</p>
+</blockquote>
+</li>
+<li>
+<p>What are non-deferred actors in the context of a migration?</p>
+</li>
+<li>
+<p>The <code>migrationJobResult</code> struct is using a <code>states7</code> actor instead of a <code>states8</code> one (in go spec-actors).
+Typo or are there some good reasons?</p>
+</li>
+</ul>
+<h2 id="changes-rough-proposal"><a class="header" href="#changes-rough-proposal">Changes rough proposal</a></h2>
+<p>To support nv15 to nv16 migration we need to:</p>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Make forest sync again on nv15 and be able to support multiple network versions.</li>
+<li><input disabled="" type="checkbox"/>
+Understand existing forest migration framework (used in the past for nv12 migration). Can we reuse most of the code as is?</li>
+<li><input disabled="" type="checkbox"/>
+Implementation of the nv16 migration logic (replicating same logic as in spec-actors).</li>
+<li><input disabled="" type="checkbox"/>
+Implementation of unit tests covering this migration.</li>
+<li><input disabled="" type="checkbox"/>
+Implementation of a migration schedule that will select the right migration path.</li>
+<li><input disabled="" type="checkbox"/>
+Test migration using the exported calibnet and mainnet snapshots and respectively measure the elapsed time and memory usage.</li>
+</ul>
+<h2 id="test-snapshots"><a class="header" href="#test-snapshots">Test snapshots</a></h2>
+<p>For testing a calibnet migration two snapshots have been exported with Lotus:</p>
+<ul>
+<li>lotus_snapshot_2022-Aug-5_height_1044460.car</li>
+<li>lotus_snapshot_2022-Aug-5_height_1044659.car</li>
+</ul>
+<p>They are respectively exported 200 and 1 epochs before the Skyr upgrade (the 200 version could be useful if we decide to implement a pre-migration like in Lotus).</p>
+<p>For testing a mainnet migration, one snapshot has been retrieved from Protocol Labs s3 bucket using the <a href="https://github.com/kasteph/lily-shed/">lily-shed</a> util:</p>
+<ul>
+<li>minimal_finality_stateroots_1955760_2022-07-05_00-00-00.car</li>
+</ul>
+<p>This one is 4560 epochs before. If needed we can extract closer snapshots later.</p>
+<p>Those snapshots have been uploaded to our Digital Ocean Spaces.</p>
+<h2 id="additional-resources"><a class="header" href="#additional-resources">Additional resources</a></h2>
+<p><code>what changed</code> between versions is maintained in the <a href="https://github.com/filecoin-project/tpm/tree/master/Network%20Upgrades">tpm repo</a>, e.g. all the changes in <a href="https://github.com/filecoin-project/tpm/blob/master/Network%20Upgrades/v16.md">NV15 -&gt; NV16</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="forest-test-plan"><a class="header" href="#forest-test-plan">Forest Test Plan</a></h1>
+<pre><code>Version: 1.0
+Author: David Himmelstrup
+Date updated: 2022-11-14
+</code></pre>
+<h2 id="test-objective"><a class="header" href="#test-objective">Test objective:</a></h2>
+<p>The Filecoin specification is complex and changes rapidly over time. To manage this complexity, Forest uses a rigorous testing framework, starting with individual functions and ending with complete end-to-end validation. The goals, in descending order of priority, are:</p>
+<ul>
+<li><strong>Regression detection.</strong> If Forest can no longer connect to mainnet or if any of its features break, the development team should be automatically notified.</li>
+<li><strong>No institutional/expert knowledge required.</strong> Developers can work on a Forest subsystem without worrying about accidentally breaking a different subsystem.</li>
+<li><strong>Bug identification.</strong> If something break, the test data should narrow down the location of the issue.</li>
+</ul>
+<h2 id="scope-of-testing-definition"><a class="header" href="#scope-of-testing-definition">Scope of testing definition:</a></h2>
+<p>Forest testing is multifaceted and layered. The testing pipeline looks like this:</p>
+<ul>
+<li><strong>Unit tests for library functions.</strong> Example: parsing a network version fails for garbled input.</li>
+<li><strong>Unit tests for CLI programs.</strong> Example: <code>forest-cli dump</code> produces a valid configuration.</li>
+<li><strong>Property tests.</strong> Example: <code>deserialize ∘ serialize = id</code> for all custom formats.</li>
+<li><strong>Network synchronization.</strong> PRs are checked against the calibration network, the main branch is checked against the main network.</li>
+<li><strong>End-to-end feature tests.</strong> Example: Network snapshots are generated daily and hosted publicly.</li>
+<li><strong>Link checking.</strong> API documentation and markdown files are checked for dead links.</li>
+<li><strong>Spell checking.</strong> API documentation is checked for spelling errors and typos.</li>
+</ul>
+<p>All testing is automated and there are no additional manual checks required for releases.</p>
+<h2 id="resources--roles--responsibilities"><a class="header" href="#resources--roles--responsibilities">Resources / Roles &amp; Responsibilities:</a></h2>
+<p>Testing is a team effort and everyone is expected to add unit tests, property tests, or integration tests as part of their PR contributions.</p>
+<h2 id="tools-description"><a class="header" href="#tools-description">Tools description:</a></h2>
+<ul>
+<li>Bug tracker: https://github.com/ChainSafe/forest/issues</li>
+<li>Test Automation tools: <a href="https://nexte.st/">nextest</a>, <a href="https://docs.rs/quickcheck/latest/quickcheck/">quickcheck</a></li>
+<li>Languages: <a href="https://www.rust-lang.org/">Rust</a></li>
+<li>CI/CD: <a href="https://github.com/ChainSafe/forest/actions">GitHub Actions</a></li>
+<li>Version control: <a href="https://git-scm.com/">Git</a></li>
+</ul>
+<h2 id="deliverables"><a class="header" href="#deliverables">Deliverables:</a></h2>
+<p>The only deliverable is a green checkmark. Either all tests pass and a PR may be merged into the main branch or something is not up to spec and the PR is blocked.</p>
+<h2 id="test-environment--ci"><a class="header" href="#test-environment--ci">Test Environment &amp; CI</a></h2>
+<p>Short-running tests are executed via GitHub Actions on Linux and MacOS. Long-running tests are run on dedicated testing servers.</p>
+<p>The services on the dedicated servers are described here: https://github.com/ChainSafe/forest-iac</p>
+<p>In short, the long-running tests are executed in dockerized environments with
+some running one per day and some running on every commit to the main Forest
+branch. At the moment, the tests are run on DigitalOcean but they can be run
+from anywhere. Feedback is reported to ChainSafe's Slack server and artifacts
+are uploaded to DigitalOcean Spaces.</p>
+<h2 id="test-data"><a class="header" href="#test-data">Test Data:</a></h2>
+<p>No private or confidential data is involved in testing. Everything is public.</p>
+<h2 id="bug-template"><a class="header" href="#bug-template">Bug template:</a></h2>
+<p>Bug report template is available on GitHub: https://github.com/ChainSafe/forest/blob/main/.github/ISSUE_TEMPLATE/bug_report.md</p>
+<p>The template is applied automatically when bugs are reported through GitHub.</p>
+<h2 id="risk--issues"><a class="header" href="#risk--issues">Risk &amp; Issues:</a></h2>
+<ul>
+<li>We depend on the calibration network for testing. If this network is down, our testing capabilities are degraded.</li>
+<li>We depend on GitHub Actions for testing. If GitHub Action is unavailable, testing will be degraded.</li>
+<li>Testing against mainnet is effective for discovering issues, but not great for identifying root causes. Finding bugs <em>before</em> syncing to mainnet is always to be preferred.</li>
+</ul>
 
                     </main>
 
