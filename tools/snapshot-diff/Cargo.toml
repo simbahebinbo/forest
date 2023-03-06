@@ -1,0 +1,20 @@
+[package]
+name = "snapshot-diff"
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+forest_ipld.workspace = true
+fvm_ipld_car.workspace = true
+mimalloc.workspace = true
+tokio = { workspace = true, features = ["full"] }
+tokio-util = { workspace = true, features = ["compat"] }
+tracing-subscriber.workspace = true
+tracing.workspace = true

@@ -1,3 +1,6 @@
+// Copyright 2019-2023 ChainSafe Systems
+// SPDX-License-Identifier: Apache-2.0, MIT
+
 use std::{
     collections::VecDeque,
     env,
@@ -39,11 +42,11 @@ struct Opts {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let opts = Opts::parse();
-
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
+
+    let opts = Opts::parse();
 
     let db_path_raw = format!(
         "{}/.local/share/forest/{}/paritydb",
@@ -172,20 +175,17 @@ async fn semi_space_gc(db_path: TempDir) -> anyhow::Result<()> {
             const BUFFER_CAPCITY_BYTES: usize = 1024 * 1024 * 1024;
             let mut estimated_size = 0;
             let mut buffer = vec![];
-            loop {
-                if let Ok((cid, data)) = rx.recv_async().await {
-                    estimated_size += 64 + data.len();
-                    buffer.push((cid.to_bytes(), data));
-                    if estimated_size >= BUFFER_CAPCITY_BYTES {
-                        if let Err(err) = new_db.bulk_write(std::mem::take(&mut buffer)) {
-                            warn!("{err}");
-                        }
-                        estimated_size = 0;
+            while let Ok((cid, data)) = rx.recv_async().await {
+                estimated_size += 64 + data.len();
+                buffer.push((cid.to_bytes(), data));
+                if estimated_size >= BUFFER_CAPCITY_BYTES {
+                    if let Err(err) = new_db.bulk_write(std::mem::take(&mut buffer)) {
+                        warn!("{err}");
                     }
-                } else {
-                    break;
+                    estimated_size = 0;
                 }
             }
+
             if let Err(err) = new_db.bulk_write(std::mem::take(&mut buffer)) {
                 warn!("{err}");
             }

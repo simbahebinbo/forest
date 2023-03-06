@@ -4,7 +4,7 @@
 use ahash::HashSet;
 use cid::Cid;
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct CidHashSet(HashSet<u64>);
 
 impl CidHashSet {
@@ -22,7 +22,7 @@ impl CidHashSet {
         &self.0
     }
 
-    pub fn inner_mut(&mut self) -> &HashSet<u64> {
+    pub fn inner_mut(&mut self) -> &mut HashSet<u64> {
         &mut self.0
     }
 }
