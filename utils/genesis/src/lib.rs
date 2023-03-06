@@ -1,16 +1,26 @@
 // Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-use std::{sync::Arc, time};
+use std::{
+    collections::VecDeque,
+    sync::{
+        atomic::{self, AtomicUsize},
+        Arc,
+    },
+    time,
+};
 
 use anyhow::bail;
-use cid::Cid;
+use cid::{multihash::Code, Cid};
 use forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 use forest_db::{ReadWriteStore, Store};
+use forest_ipld::{recurse_links_hash, CidHashSet};
 use forest_state_manager::StateManager;
 use forest_utils::{db::BlockstoreExt, net::FetchProgress};
+use futures::Future;
 use fvm_ipld_blockstore::Blockstore;
 use fvm_ipld_car::{load_car, CarReader};
+use fvm_ipld_encoding::Cbor;
 use log::{debug, info};
 use tokio::{
     fs::File,
@@ -128,8 +138,39 @@ where
         load_and_retrieve_header(sm.blockstore(), reader, skip_load).await?
     };
 
-    info!("Loaded .car file in {}s", stopwatch.elapsed().as_secs());
     let ts = sm.chain_store().tipset_from_keys(&TipsetKeys::new(cids))?;
+
+    let n_cids = Arc::new(AtomicUsize::new(0));
+    walk_snapshot(&ts, |cid| {
+        let db0 = sm.blockstore().rolling_by_epoch_raw(0).store;
+        let db_base = sm.blockstore().persistent();
+        let n_cids = n_cids.clone();
+        async move {
+            let block = Blockstore::get(&db0, &cid)?
+                .ok_or_else(|| anyhow::anyhow!("Cid {cid} not found in blockstore"))?;
+
+            // Don't include identity CIDs.
+            // We only include raw and dagcbor, for now.
+            // Raw for "code" CIDs.
+            if u64::from(Code::Identity) != cid.hash().code()
+                && (cid.codec() == fvm_shared::IPLD_RAW
+                    || cid.codec() == fvm_ipld_encoding::DAG_CBOR)
+            {
+                n_cids.fetch_add(1, atomic::Ordering::Relaxed);
+                db_base.put_keyed(&cid, block.as_slice())?;
+                db0.delete(cid.to_bytes())?;
+            }
+
+            Ok(block)
+        }
+    })
+    .await?;
+
+    info!(
+        "{} CIDs written to persistent DB",
+        n_cids.load(atomic::Ordering::Relaxed)
+    );
+    info!("Loaded .car file in {}s", stopwatch.elapsed().as_secs());
 
     if !skip_load {
         let gb = sm.chain_store().tipset_by_height(0, ts.clone(), true)?;
@@ -178,7 +219,7 @@ where
     let result = if skip_load {
         CarReader::new(&mut compat).await?.header.roots
     } else {
-        forest_load_car(store.persistent(), &mut compat).await?
+        forest_load_car(store.rolling_by_epoch_raw(0).store, &mut compat).await?
     };
     compat.into_inner().finish();
 
@@ -197,10 +238,12 @@ where
     // 1GB
     const BUFFER_CAPCITY_BYTES: usize = 1024 * 1024 * 1024;
 
+    let mut n_cids = 0;
     let mut car_reader = CarReader::new(reader).await?;
     let mut estimated_size = 0;
     let mut buffer = vec![];
     while let Some(block) = car_reader.next_block().await? {
+        n_cids += 1;
         estimated_size += 64 + block.data.len();
         buffer.push((block.cid.to_bytes(), block.data));
         if estimated_size >= BUFFER_CAPCITY_BYTES {
@@ -209,5 +252,46 @@ where
         }
     }
     store.bulk_write(buffer)?;
+    info!("{n_cids} CIDs loaded from snapshot");
     Ok(car_reader.header.roots)
+}
+
+pub async fn walk_snapshot<F, T>(tipset: &Tipset, mut load_block: F) -> anyhow::Result<()>
+where
+    F: FnMut(Cid) -> T + Send,
+    T: Future<Output = anyhow::Result<Vec<u8>>> + Send,
+{
+    let mut seen = CidHashSet::default();
+    let mut blocks_to_walk: VecDeque<Cid> = tipset.cids().to_vec().into();
+    let mut current_min_height = tipset.epoch();
+
+    while let Some(next) = blocks_to_walk.pop_front() {
+        if !seen.insert(&next) {
+            continue;
+        }
+
+        let data = load_block(next).await?;
+
+        let h = BlockHeader::unmarshal_cbor(&data)?;
+
+        if current_min_height > h.epoch() {
+            current_min_height = h.epoch();
+        }
+
+        if h.epoch() > 0 {
+            for p in h.parents().cids() {
+                blocks_to_walk.push_back(*p);
+            }
+        } else {
+            for p in h.parents().cids() {
+                load_block(*p).await?;
+            }
+        }
+
+        if h.epoch() == 0 {
+            recurse_links_hash(&mut seen, *h.state_root(), &mut load_block).await?;
+        }
+    }
+
+    Ok(())
 }
