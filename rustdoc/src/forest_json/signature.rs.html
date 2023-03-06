@@ -135,33 +135,6 @@
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
 <a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -285,45 +258,18 @@
 
     <span class="kw">use </span><span class="kw">super</span>::json::{signature_type::SignatureTypeJson, SignatureJson, SignatureJsonRef};
 
-    <span class="attr">#[derive(Clone, Debug, PartialEq)]
-    </span><span class="kw">struct </span>SignatureWrapper {
-        signature: Signature,
-    }
-
-    <span class="attr">#[derive(Clone, Debug, PartialEq)]
-    </span><span class="kw">struct </span>SignatureTypeWrapper {
-        sigtype: SignatureType,
-    }
-
-    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>SignatureWrapper {
-        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>sigtype = SignatureTypeWrapper::arbitrary(g);
-            <span class="kw">let </span>signature = Signature::new(sigtype.sigtype, Vec::arbitrary(g));
-            SignatureWrapper { signature }
-        }
-    }
-
-    <span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>SignatureTypeWrapper {
-        <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>sigtype = g
-                .choose(<span class="kw-2">&amp;</span>[SignatureType::Secp256k1, SignatureType::BLS])
-                .unwrap();
-            SignatureTypeWrapper { sigtype: <span class="kw-2">*</span>sigtype }
-        }
-    }
-
     <span class="attr">#[quickcheck]
-    </span><span class="kw">fn </span>signature_roundtrip(signature: SignatureWrapper) {
-        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>SignatureJsonRef(<span class="kw-2">&amp;</span>signature.signature)).unwrap();
+    </span><span class="kw">fn </span>signature_roundtrip(signature: Signature) {
+        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>SignatureJsonRef(<span class="kw-2">&amp;</span>signature)).unwrap();
         <span class="kw">let </span>parsed: SignatureJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
-        <span class="macro">assert_eq!</span>(signature.signature, parsed.<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(signature, parsed.<span class="number">0</span>);
     }
 
     <span class="attr">#[quickcheck]
-    </span><span class="kw">fn </span>signaturetype_roundtrip(sigtype: SignatureTypeWrapper) {
-        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>SignatureTypeJson(sigtype.sigtype)).unwrap();
+    </span><span class="kw">fn </span>signaturetype_roundtrip(sigtype: SignatureType) {
+        <span class="kw">let </span>serialized = serde_json::to_string(<span class="kw-2">&amp;</span>SignatureTypeJson(sigtype)).unwrap();
         <span class="kw">let </span>parsed: SignatureTypeJson = serde_json::from_str(<span class="kw-2">&amp;</span>serialized).unwrap();
-        <span class="macro">assert_eq!</span>(sigtype.sigtype, parsed.<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(sigtype, parsed.<span class="number">0</span>);
     }
 }
 </code></pre></div>
