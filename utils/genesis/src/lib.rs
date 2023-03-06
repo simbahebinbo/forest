@@ -142,7 +142,7 @@ where
 
     let n_cids = Arc::new(AtomicUsize::new(0));
     walk_snapshot(&ts, |cid| {
-        let db0 = sm.blockstore().rolling_by_epoch_raw(0).store;
+        let db0 = sm.blockstore().rolling_by_epoch(0);
         let db_base = sm.blockstore().persistent();
         let n_cids = n_cids.clone();
         async move {
