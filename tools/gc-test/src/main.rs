@@ -10,8 +10,10 @@ use std::{
     time::Duration,
 };
 
+use ahash::HashSet;
 use chrono::prelude::*;
-use cid::Cid;
+use cid::{multihash::Code, Cid};
+use clap::Parser;
 use forest_actor_interface::EPOCHS_IN_DAY;
 use forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 use forest_db::{db_engine::open_db, parity_db::ParityDb, Store};
@@ -22,13 +24,23 @@ use fvm_ipld_encoding::Cbor;
 use human_repr::HumanCount;
 use memory_stats::memory_stats;
 use tempfile::TempDir;
+use tokio::sync::Mutex;
 use tracing::*;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+#[derive(Parser)]
+struct Opts {
+    /// Chain name, defaults to calibnet
+    #[arg(long, default_value = "calibnet")]
+    pub chain: String,
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let opts = Opts::parse();
+
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
@@ -36,10 +48,15 @@ async fn main() -> anyhow::Result<()> {
     let mem_stats_tracker = MemStatsTracker::default();
     mem_stats_tracker.run_async();
 
-    let db_path_raw = format!("{}/.local/share/forest/calibnet/paritydb", env!("HOME"));
+    let db_path_raw = format!(
+        "{}/.local/share/forest/{}/paritydb",
+        env!("HOME"),
+        opts.chain
+    );
     let db_path_raw = Path::new(&db_path_raw);
 
     let db_path = TempDir::new()?;
+    info!("Cloning DB from {}", db_path_raw.display());
     fs_extra::dir::copy(db_path_raw, db_path.path(), &Default::default())?;
 
     mark_and_sweep(db_path).await?;
@@ -60,40 +77,55 @@ async fn mark_and_sweep(db_path: TempDir) -> anyhow::Result<()> {
 
     let start = Utc::now();
     info!("Walking snapshot...");
+    let keep = Arc::new(Mutex::new(HashSet::default()));
     let seen = walk_snapshot(&tipset, |cid| {
-        let db_cloned = db.clone();
+        let db = db.clone();
+        let keep = keep.clone();
         async move {
-            let block = db_cloned
+            let block = db
                 .get(&cid)?
                 .ok_or_else(|| anyhow::anyhow!("Cid {cid} not found"))?;
+            if u64::from(Code::Identity) != cid.hash().code()
+                && (cid.codec() == fvm_shared::IPLD_RAW
+                    || cid.codec() == fvm_ipld_encoding::DAG_CBOR)
+            {
+                let mut keep = keep.lock().await;
+                let hasher = keep.hasher();
+                let hash = hasher.hash_one(&block);
+                keep.insert(hash);
+            }
             Ok(block)
         }
     })
     .await?;
     info!(
-        "Done Walking snapshot, seen: {}, took {}s",
+        "Done Walking snapshot, seen: {}, keep: {}, took {}s",
         seen.inner().len(),
+        keep.lock().await.len(),
         (Utc::now() - start).num_seconds()
     );
 
     let start = Utc::now();
     info!("Cleaning DB...");
+    let mut all = 0;
     let mut deleted = 0;
+    let keep = keep.lock().await;
     db.db.iter_column_while(0, |is| {
-        if let Ok(cid) = Cid::read_bytes(is.key.as_slice()) {
-            if !seen.contains(&cid) {
-                if db.delete(is.key).is_ok() {
-                    deleted += 1;
-                } else {
-                    warn!("Error deleting cid {cid}");
-                }
+        all += 1;
+        let value_hash = keep.hasher().hash_one(is.value);
+        if !keep.contains(&value_hash) {
+            // This won't work cuz it's not the raw key
+            if db.delete(is.key).is_ok() {
+                deleted += 1;
+            } else {
+                warn!("Error deleting key {:?}", is.key);
             }
         }
 
         true
     })?;
     info!(
-        "Done Cleaning DB, deleted: {deleted}, took {}s",
+        "Done Cleaning DB, all: {all}, deleted: {deleted}, took {}s",
         (Utc::now() - start).num_seconds()
     );
 

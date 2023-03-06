@@ -4843,9 +4843,11 @@ dependencies = [
 name = "gc-test"
 version = "0.6.0"
 dependencies = [
+ "ahash 0.8.3",
  "anyhow",
  "chrono",
  "cid",
+ "clap",
  "flume",
  "forest_actor_interface",
  "forest_blocks",
@@ -4856,6 +4858,7 @@ dependencies = [
  "fs_extra",
  "fvm_ipld_blockstore",
  "fvm_ipld_encoding 0.2.3",
+ "fvm_shared 2.0.0",
  "human-repr",
  "memory-stats",
  "mimalloc",
@@ -7131,9 +7134,9 @@ dependencies = [
 
 [[package]]
 name = "parity-db"
-version = "0.4.3"
+version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd684a725651d9588ef21f140a328b6b4f64e646b2e931f3e6f14f75eedf9980"
+checksum = "df89dd8311063c54ae4e03d9aeb597b04212a57e82c339344130a9cad9b3e2d9"
 dependencies = [
  "blake2",
  "crc32fast",
@@ -7145,6 +7148,7 @@ dependencies = [
  "memmap2",
  "parking_lot 0.12.1",
  "rand 0.8.5",
+ "siphasher",
  "snap",
 ]
 
