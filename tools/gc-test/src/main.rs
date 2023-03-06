@@ -45,9 +45,6 @@ async fn main() -> anyhow::Result<()> {
         .with_max_level(tracing::Level::INFO)
         .init();
 
-    let mem_stats_tracker = MemStatsTracker::default();
-    mem_stats_tracker.run_async();
-
     let db_path_raw = format!(
         "{}/.local/share/forest/{}/paritydb",
         env!("HOME"),
@@ -55,16 +52,28 @@ async fn main() -> anyhow::Result<()> {
     );
     let db_path_raw = Path::new(&db_path_raw);
 
-    let db_path = TempDir::new()?;
-    info!("Cloning DB from {}", db_path_raw.display());
-    fs_extra::dir::copy(db_path_raw, db_path.path(), &Default::default())?;
+    info!("=============");
+    info!("Running semi space GC");
+    semi_space_gc(clone_to_temp_db(db_path_raw)?).await?;
 
-    mark_and_sweep(db_path).await?;
+    info!("=============");
+    info!("Running mark and sweep GC");
+    mark_and_sweep(clone_to_temp_db(db_path_raw)?).await?;
 
     Ok(())
 }
 
+fn clone_to_temp_db(db_path_raw: &Path) -> anyhow::Result<TempDir> {
+    let db_path = TempDir::new()?;
+    info!("Cloning DB from {}", db_path_raw.display());
+    fs_extra::dir::copy(db_path_raw, db_path.path(), &Default::default())?;
+    Ok(db_path)
+}
+
 async fn mark_and_sweep(db_path: TempDir) -> anyhow::Result<()> {
+    let mem_stats_tracker = MemStatsTracker::default();
+    mem_stats_tracker.run_async();
+
     print_db_stats(db_path.path());
 
     let db = open_db(
@@ -130,6 +139,89 @@ async fn mark_and_sweep(db_path: TempDir) -> anyhow::Result<()> {
     );
 
     print_db_stats(db_path.path());
+
+    Ok(())
+}
+
+async fn semi_space_gc(db_path: TempDir) -> anyhow::Result<()> {
+    let mem_stats_tracker = MemStatsTracker::default();
+    mem_stats_tracker.run_async();
+
+    print_db_stats(db_path.path());
+    let db = open_db(
+        db_path.path().join("paritydb").as_path(),
+        &Default::default(),
+    )?;
+    let new_db_path = TempDir::new()?;
+    let new_db = open_db(
+        new_db_path.path().join("paritydb").as_path(),
+        &Default::default(),
+    )?;
+    let tipset = load_heaviest_tipset(&db)?;
+
+    info!("tipset epoch: {}", tipset.epoch());
+
+    let start = Utc::now();
+    info!("Walking snapshot and writing to new db...");
+    let keep = Arc::new(AtomicUsize::new(0));
+    let (tx, rx) = flume::unbounded::<(Cid, Vec<u8>)>();
+    let write_db_handle = {
+        let new_db = new_db.clone();
+        tokio::spawn(async move {
+            // 1GB
+            const BUFFER_CAPCITY_BYTES: usize = 1024 * 1024 * 1024;
+            let mut estimated_size = 0;
+            let mut buffer = vec![];
+            loop {
+                if let Ok((cid, data)) = rx.recv_async().await {
+                    estimated_size += 64 + data.len();
+                    buffer.push((cid.to_bytes(), data));
+                    if estimated_size >= BUFFER_CAPCITY_BYTES {
+                        if let Err(err) = new_db.bulk_write(std::mem::take(&mut buffer)) {
+                            warn!("{err}");
+                        }
+                        estimated_size = 0;
+                    }
+                } else {
+                    break;
+                }
+            }
+            if let Err(err) = new_db.bulk_write(std::mem::take(&mut buffer)) {
+                warn!("{err}");
+            }
+        })
+    };
+    let seen = walk_snapshot(&tipset, |cid| {
+        let db = db.clone();
+        let keep = keep.clone();
+        let tx = tx.clone();
+        async move {
+            let block = db
+                .get(&cid)?
+                .ok_or_else(|| anyhow::anyhow!("Cid {cid} not found"))?;
+            if u64::from(Code::Identity) != cid.hash().code()
+                && (cid.codec() == fvm_shared::IPLD_RAW
+                    || cid.codec() == fvm_ipld_encoding::DAG_CBOR)
+            {
+                keep.fetch_add(1, atomic::Ordering::Relaxed);
+                if let Err(err) = tx.send_async((cid, block.clone())).await {
+                    warn!("{err}");
+                }
+            }
+            Ok(block)
+        }
+    })
+    .await?;
+    drop(tx);
+    write_db_handle.await?;
+    info!(
+        "Done Walking snapshot and writing to new db, seen: {}, keep: {}, took {}s",
+        seen.inner().len(),
+        keep.load(atomic::Ordering::Relaxed),
+        (Utc::now() - start).num_seconds()
+    );
+
+    print_db_stats(new_db_path.path());
 
     Ok(())
 }
