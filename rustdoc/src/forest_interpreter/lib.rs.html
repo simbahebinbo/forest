@@ -41,6 +41,9 @@
 <a href="#41" id="41">41</a>
 <a href="#42" id="42">42</a>
 <a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -72,7 +75,10 @@
     </span>BS: Blockstore,
     S: Blockstore + Clone,
 {
-    <span class="kw">if </span>addr.protocol() == Protocol::BLS || addr.protocol() == Protocol::Secp256k1 {
+    <span class="kw">if </span>addr.protocol() == Protocol::BLS
+        || addr.protocol() == Protocol::Secp256k1
+        || addr.protocol() == Protocol::Delegated
+    {
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>addr);
     }
 

@@ -2,7 +2,7 @@ var sourcesIndex = JSON.parse('{\
 "bitswap_in_browser":["",[],["main.rs"]],\
 "bitswap_in_browser_lib":["",[],["behaviour.rs","lib.rs","transport.rs"]],\
 "forest":["",[["cli",[],["mod.rs"]]],["daemon.rs","main.rs"]],\
-"forest_actor_interface":["",[["builtin",[["account",[],["mod.rs"]],["cron",[],["mod.rs"]],["init",[],["mod.rs"]],["market",[],["mod.rs"]],["miner",[],["mod.rs"]],["multisig",[],["mod.rs"]],["power",[],["mod.rs"]],["reward",[],["mod.rs"]],["system",[],["mod.rs"]]],["mod.rs"]]],["io.rs","lib.rs"]],\
+"forest_actor_interface":["",[["builtin",[["account",[],["mod.rs"]],["cron",[],["mod.rs"]],["ethaccount",[],["mod.rs"]],["init",[],["mod.rs"]],["market",[],["mod.rs"]],["miner",[],["mod.rs"]],["multisig",[],["mod.rs"]],["placeholder",[],["mod.rs"]],["power",[],["mod.rs"]],["reward",[],["mod.rs"]],["system",[],["mod.rs"]]],["mod.rs"]]],["io.rs","lib.rs"]],\
 "forest_auth":["",[],["lib.rs"]],\
 "forest_beacon":["",[],["beacon_entries.rs","drand.rs","lib.rs","mock_beacon.rs"]],\
 "forest_blocks":["",[["header",[],["json.rs","mod.rs"]]],["block.rs","election_proof.rs","errors.rs","gossip_block.rs","lib.rs","ticket.rs","tipset.rs"]],\

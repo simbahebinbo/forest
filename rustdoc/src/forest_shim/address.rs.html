@@ -146,6 +146,11 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -176,6 +181,7 @@
     <span class="kw">pub const </span>MARKET_ACTOR: Address = Address::new_id(<span class="number">5</span>);
     <span class="kw">pub const </span>VERIFIED_REGISTRY_ACTOR: Address = Address::new_id(<span class="number">6</span>);
     <span class="kw">pub const </span>DATACAP_TOKEN_ACTOR: Address = Address::new_id(<span class="number">7</span>);
+    <span class="kw">pub const </span>ETHEREUM_ACCOUNT_MANAGER_ACTOR: Address = Address::new_id(<span class="number">10</span>);
     <span class="kw">pub const </span>RESERVE_ACTOR: Address = Address::new_id(<span class="number">90</span>);
     <span class="kw">pub const </span>CHAOS_ACTOR: Address = Address::new_id(<span class="number">98</span>);
     <span class="kw">pub const </span>BURNT_FUNDS_ACTOR: Address = Address::new_id(<span class="number">99</span>);
@@ -194,6 +200,10 @@
 
     <span class="kw">pub fn </span>new_secp256k1(pubkey: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         Address_v3::new_secp256k1(pubkey).map(Address::from)
+    }
+
+    <span class="kw">pub fn </span>new_delegated(ns: u64, subaddress: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>(Address_v3::new_delegated(ns, subaddress)<span class="question-mark">?</span>))
     }
 
     <span class="kw">pub fn </span>protocol(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Protocol {

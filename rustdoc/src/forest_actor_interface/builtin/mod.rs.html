@@ -77,15 +77,29 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>account;
 <span class="kw">pub mod </span>cron;
+<span class="kw">pub mod </span>ethaccount;
 <span class="kw">pub mod </span>init;
 <span class="kw">pub mod </span>market;
 <span class="kw">pub mod </span>miner;
 <span class="kw">pub mod </span>multisig;
+<span class="kw">pub mod </span>placeholder;
 <span class="kw">pub mod </span>power;
 <span class="kw">pub mod </span>reward;
 <span class="kw">pub mod </span>system;
@@ -150,6 +164,16 @@
     account::is_v8_account_cid(code)
         || account::is_v9_account_cid(code)
         || account::is_v10_account_cid(code)
+}
+
+<span class="doccomment">/// Returns true if the code belongs to a placeholder actor.
+</span><span class="kw">pub fn </span>is_placeholder_actor(code: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
+    placeholder::is_v10_placeholder_cid(code)
+}
+
+<span class="doccomment">/// Returns true if the code belongs to a ethereum account actor.
+</span><span class="kw">pub fn </span>is_eth_account_actor(code: <span class="kw-2">&amp;</span>Cid) -&gt; bool {
+    ethaccount::is_v10_ethaccount_cid(code)
 }
 
 <span class="doccomment">/// Returns true if the code belongs to a miner actor.
