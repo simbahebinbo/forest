@@ -9,8 +9,9 @@
 use std::{num::NonZeroUsize, sync::Arc, time::Duration};
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
-use anyhow::Context;
+use anyhow::{bail, Context};
 use cid::Cid;
+use forest_actor_interface::{is_account_actor, is_eth_account_actor, is_placeholder_actor};
 use forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 use forest_chain::{HeadChange, MINIMUM_BASE_FEE};
 use forest_db::Store;
@@ -18,10 +19,12 @@ use forest_libp2p::{NetworkMessage, Topic, PUBSUB_MSG_STR};
 use forest_message::{message::valid_for_block_inclusion, ChainMessage, Message, SignedMessage};
 use forest_networks::{ChainConfig, NEWEST_NETWORK_VERSION};
 use forest_shim::{
-    address::Address,
+    address::{Address, Payload},
     crypto::{Signature, SignatureType},
     econ::TokenAmount,
     gas::price_list_by_network_version,
+    state_tree::ActorState,
+    version::NetworkVersion,
 };
 use forest_utils::const_option;
 use futures::StreamExt;
@@ -371,6 +374,13 @@ where
             return Err(Error::SequenceTooLow);
         }
 
+        let sender_actor = self.api.get_actor_after(&msg.message().from(), cur_ts)?;
+        // get network version
+        // epoch = cur_ts.epoch() + 1;
+        if !is_valid_for_sending(NetworkVersion::V18, &sender_actor) {
+            return Err(Error::Other("fiasco".to_owned()));
+        }
+
         let publish = verify_msg_before_add(&msg, cur_ts, local, &self.chain_config)?;
 
         let balance = self.get_state_balance(&msg.from(), cur_ts)?;
@@ -671,4 +681,49 @@ pub fn remove(
     }
 
     Ok(())
+}
+
+fn is_valid_for_sending(network_version: NetworkVersion, actor: &ActorState) -> bool {
+    // Comments from Lotus:
+    // Before nv18 (Hygge), we only supported built-in account actors as senders.
+    //
+    // Note: this gate is probably superfluous, since:
+    // 1. Placeholder actors cannot be created before nv18.
+    // 2. EthAccount actors cannot be created before nv18.
+    // 3. Delegated addresses cannot be created before nv18.
+    //
+    // But it's a safeguard.
+    //
+    // Note 2: ad-hoc checks for network versions like this across the codebase
+    // will be problematic with networks with diverging version lineages
+    // (e.g. Hyperspace). We need to revisit this strategy entirely.
+    if network_version < NetworkVersion::V18 {
+        return is_account_actor(&actor.code);
+    }
+
+    if is_account_actor(&actor.code) || is_eth_account_actor(&actor.code) {
+        return true;
+    }
+
+    // Allow placeholder actors with a delegated address and nonce 0 to send a
+    // message. These will be converted to an EthAccount actor on first send.
+    if !is_placeholder_actor(&actor.code)
+        || actor.sequence != 0
+        || actor.delegated_address.is_none()
+    {
+        return false;
+    }
+
+    // Only allow such actors to send if their delegated address is in the EAM's
+    // namespace.
+    return if let Payload::Delegated(address) = actor
+        .delegated_address
+        .as_ref()
+        .expect("unfallible")
+        .payload()
+    {
+        address.namespace() == Address::ETHEREUM_ACCOUNT_MANAGER_ACTOR.id().unwrap()
+    } else {
+        false
+    };
 }

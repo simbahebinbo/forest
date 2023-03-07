@@ -3914,6 +3914,7 @@ dependencies = [
  "async-trait",
  "cid",
  "flume",
+ "forest_actor_interface",
  "forest_blocks",
  "forest_chain",
  "forest_crypto",
