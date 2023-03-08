@@ -130,6 +130,15 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -203,6 +212,15 @@
     </span><span class="kw">pub fn </span>verify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
         <span class="self">self</span>.signature
             .verify(<span class="kw-2">&amp;</span><span class="self">self</span>.message.cid().unwrap().to_bytes(), <span class="kw-2">&amp;</span><span class="self">self</span>.from().into())
+    }
+}
+
+<span class="kw">impl </span>quickcheck::Arbitrary <span class="kw">for </span>SignedMessage {
+    <span class="kw">fn </span>arbitrary(g: <span class="kw-2">&amp;mut </span>quickcheck::Gen) -&gt; <span class="self">Self </span>{
+        SignedMessage {
+            message: Message::arbitrary(g),
+            signature: Signature::arbitrary(g),
+        }
     }
 }
 
