@@ -1251,6 +1251,14 @@
 <a href="#1251" id="1251">1251</a>
 <a href="#1252" id="1252">1252</a>
 <a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1294,6 +1302,7 @@
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>num::BigInt;
 <span class="kw">use </span>num_traits::identities::Zero;
+<span class="kw">use </span>once_cell::unsync::Lazy;
 <span class="kw">use </span>parking_lot::Mutex <span class="kw">as </span>SyncMutex;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>tokio::sync::{broadcast::error::RecvError, Mutex <span class="kw">as </span>TokioMutex, RwLock};
@@ -1631,7 +1640,7 @@
         <span class="kw">let </span>db = <span class="self">self</span>.blockstore().clone();
 
         <span class="kw">let </span>turbo_height = <span class="self">self</span>.chain_config.epoch(Height::Turbo);
-        <span class="kw">let </span>create_vm = |state_root, epoch| {
+        <span class="kw">let </span>create_vm = |state_root, epoch, timestamp| {
             VM::new(
                 state_root,
                 <span class="self">self</span>.blockstore().clone(),
@@ -1645,15 +1654,22 @@
                 <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v2,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.engine_v3,
                 Arc::clone(<span class="self">self</span>.chain_config()),
-                tipset.min_timestamp(),
+                timestamp,
             )
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>parent_state = <span class="kw-2">*</span>p_state;
+        <span class="kw">let </span>genesis_timestamp = Lazy::new(|| {
+            <span class="self">self</span>.chain_store()
+                .genesis()
+                .expect(<span class="string">&quot;could not find genesis block!&quot;</span>)
+                .timestamp()
+        });
 
         <span class="kw">for </span>epoch_i <span class="kw">in </span>parent_epoch..epoch {
             <span class="kw">if </span>epoch_i &gt; parent_epoch {
-                <span class="kw">let </span><span class="kw-2">mut </span>vm = create_vm(parent_state, epoch_i)<span class="question-mark">?</span>;
+                <span class="kw">let </span>timestamp = <span class="kw-2">*</span>genesis_timestamp + ((EPOCH_DURATION_SECONDS * epoch_i) <span class="kw">as </span>u64);
+                <span class="kw">let </span><span class="kw-2">mut </span>vm = create_vm(parent_state, epoch_i, timestamp)<span class="question-mark">?</span>;
                 <span class="comment">// run cron for null rounds if any
                 </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = vm.run_cron(epoch_i, callback.as_mut()) {
                     <span class="macro">error!</span>(<span class="string">&quot;Beginning of epoch cron failed to run: {}&quot;</span>, e);
@@ -1667,7 +1683,7 @@
             }
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>vm = create_vm(parent_state, epoch)<span class="question-mark">?</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>vm = create_vm(parent_state, epoch, tipset.min_timestamp())<span class="question-mark">?</span>;
 
         <span class="comment">// Apply tipset messages
         </span><span class="kw">let </span>receipts = vm.apply_block_messages(messages, epoch, callback)<span class="question-mark">?</span>;
