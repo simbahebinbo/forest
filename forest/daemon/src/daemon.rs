@@ -113,7 +113,8 @@ pub(super) async fn start(opts: CliOpts, config: Config) -> anyhow::Result<Rolli
 
     let keystore = Arc::new(RwLock::new(keystore));
 
-    let db = open_proxy_db(db_root(&chain_path(&config)), config.db_config().clone())?;
+    let chain_data_path = chain_path(&config);
+    let db = open_proxy_db(db_root(&chain_data_path), config.db_config().clone())?;
 
     let mut services = JoinSet::new();
 
@@ -150,6 +151,7 @@ pub(super) async fn start(opts: CliOpts, config: Config) -> anyhow::Result<Rolli
         db.clone(),
         config.chain.clone(),
         &genesis_header,
+        chain_data_path.as_path(),
     )?);
 
     chain_store.set_genesis(&genesis_header)?;
@@ -574,6 +576,7 @@ mod test {
     use forest_db::MemoryDB;
     use forest_networks::ChainConfig;
     use forest_shim::address::Address;
+    use tempfile::TempDir;
 
     use super::*;
 
@@ -615,7 +618,13 @@ mod test {
             .timestamp(7777)
             .build()?;
 
-        let cs = Arc::new(ChainStore::new(db, chain_config.clone(), &genesis_header)?);
+        let chain_data_root = TempDir::new().unwrap();
+        let cs = Arc::new(ChainStore::new(
+            db,
+            chain_config.clone(),
+            &genesis_header,
+            chain_data_root.path(),
+        )?);
         let sm = Arc::new(StateManager::new(
             cs,
             chain_config,
@@ -634,7 +643,13 @@ mod test {
             .timestamp(7777)
             .build()?;
 
-        let cs = Arc::new(ChainStore::new(db, chain_config.clone(), &genesis_header)?);
+        let chain_data_root = TempDir::new()?;
+        let cs = Arc::new(ChainStore::new(
+            db,
+            chain_config.clone(),
+            &genesis_header,
+            chain_data_root.path(),
+        )?);
         let sm = Arc::new(StateManager::new(
             cs,
             chain_config,

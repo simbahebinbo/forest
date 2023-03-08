@@ -31,7 +31,7 @@ impl<F: Fn() -> Tipset> DbGarbageCollector<F> {
         loop {
             if let Ok(total_size) = self.db.total_size_in_bytes() {
                 if let Ok(current_size) = self.db.current_size_in_bytes() {
-                    if total_size > 0 && current_size * 2 > total_size {
+                    if total_size > 0 && self.db.db_count() > 1 && current_size * 3 > total_size {
                         if let Err(err) = self.collect_once().await {
                             warn!("Garbage collection failed: {err}");
                         }
