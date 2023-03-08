@@ -282,6 +282,9 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -431,12 +434,15 @@
             sequence += <span class="number">1</span>;
         }
         <span class="kw">let </span>actor = &lt;ActorState <span class="kw">as </span>forest_shim::Inner&gt;::FVM::new(
-            Cid::default(),
+            <span class="comment">// Account Actor code (v10, calibnet)
+            </span>Cid::try_from(<span class="string">&quot;bafk2bzacebhfuz3sv7duvk653544xsxhdn4lsmy7ol7k6gdgancyctvmd7lnq&quot;</span>)
+                .unwrap(),
             Cid::default(),
             balance.into(),
             sequence,
             <span class="prelude-val">None</span>,
         );
+
         <span class="prelude-val">Ok</span>(actor.into())
     }
 

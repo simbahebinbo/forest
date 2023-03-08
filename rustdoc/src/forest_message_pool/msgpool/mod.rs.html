@@ -1209,7 +1209,7 @@
         <span class="kw">for </span>(<span class="kw">_</span>, msg) <span class="kw">in </span>hm {
             <span class="kw">let </span>sequence = get_state_sequence(api, <span class="kw-2">&amp;</span>msg.from(), <span class="kw-2">&amp;</span>cur_tipset.lock().clone())<span class="question-mark">?</span>;
             <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = add_helper(api, bls_sig_cache, pending, msg, sequence) {
-                <span class="macro">error!</span>(<span class="string">&quot;Failed to readd message from reorg to mpool: {}&quot;</span>, e);
+                <span class="macro">error!</span>(<span class="string">&quot;Failed to read message from reorg to mpool: {}&quot;</span>, e);
             }
         }
     }

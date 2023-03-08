@@ -1259,6 +1259,17 @@
 <a href="#1259" id="1259">1259</a>
 <a href="#1260" id="1260">1260</a>
 <a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1266,6 +1277,8 @@
 <span class="kw">mod </span>errors;
 <span class="kw">mod </span>metrics;
 <span class="kw">mod </span>utils;
+<span class="kw">pub use </span>utils::is_valid_for_sending;
+
 <span class="kw">mod </span>vm_circ_supply;
 
 <span class="kw">use </span>std::{num::NonZeroUsize, sync::Arc};
@@ -2419,7 +2432,7 @@
         ts: <span class="kw-2">&amp;</span>Arc&lt;Tipset&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;Address, anyhow::Error&gt; {
         <span class="kw">match </span>addr.protocol() {
-            Protocol::BLS | Protocol::Secp256k1 =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>addr),
+            Protocol::BLS | Protocol::Secp256k1 | Protocol::Delegated =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="kw-2">*</span>addr),
             Protocol::Actor =&gt; {
                 <span class="kw">return </span><span class="prelude-val">Err</span>(
                     Error::Other(<span class="string">&quot;cannot resolve actor address to key address&quot;</span>.to_string()).into(),
@@ -2427,7 +2440,16 @@
             }
             <span class="kw">_ </span>=&gt; {}
         };
-        <span class="kw">let </span>(st, <span class="kw">_</span>) = <span class="self">self</span>.tipset_state(ts).<span class="kw">await</span><span class="question-mark">?</span>;
+
+        <span class="comment">// First try to resolve the actor in the parent state, so we don&#39;t have to
+        // compute anything.
+        </span><span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore(), ts.parent_state())<span class="question-mark">?</span>;
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="self">self</span>.blockstore(), addr) {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(addr);
+        }
+
+        <span class="comment">// If that fails, compute the tip-set and try again.
+        </span><span class="kw">let </span>(st, <span class="kw">_</span>) = <span class="self">self</span>.tipset_state(ts).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span>state = StateTree::new_from_root(<span class="self">self</span>.blockstore(), <span class="kw-2">&amp;</span>st)<span class="question-mark">?</span>;
 
         resolve_to_key_addr(<span class="kw-2">&amp;</span>state, <span class="self">self</span>.blockstore(), addr)
