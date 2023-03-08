@@ -165,6 +165,13 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -174,7 +181,7 @@
     swarm::{derive_prelude::<span class="kw-2">*</span>, NetworkBehaviour, THandlerOutEvent},
     PeerId,
 };
-<span class="kw">use </span>log::warn;
+<span class="kw">use </span>log::debug;
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 <span class="kw">use crate</span>::{rpc::RequestResponseError, service::metrics};
@@ -220,7 +227,10 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(channel) = <span class="self">self</span>.response_channels.remove(request_id) {
             <span class="self">self</span>.track_metrics();
             <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = channel.send_async(<span class="prelude-val">Ok</span>(response)).<span class="kw">await </span>{
-                <span class="macro">warn!</span>(<span class="string">&quot;{err}&quot;</span>);
+                <span class="comment">// Demoting log level here because the same request might be sent to multiple
+                // remote peers simultaneously, it&#39;s expected that responses that arrive late
+                // might be sent to a closed channel
+                </span><span class="macro">debug!</span>(<span class="string">&quot;{err}&quot;</span>);
             }
         }
     }
@@ -229,7 +239,11 @@
         <span class="self">self</span>.track_metrics();
         <span class="kw">if let </span><span class="prelude-val">Some</span>(tx) = <span class="self">self</span>.response_channels.remove(request_id) {
             <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = tx.send(<span class="prelude-val">Err</span>(error.into())) {
-                <span class="macro">warn!</span>(<span class="string">&quot;{err}&quot;</span>);
+                <span class="comment">// Demoting log level here because the same request might be sent to multiple
+                // remote peers simultaneously, it&#39;s expected that outbound failures that happen
+                // after receiving the first successful response could be sent to a closed
+                // channel.
+                </span><span class="macro">debug!</span>(<span class="string">&quot;{err}&quot;</span>);
             }
         }
     }
