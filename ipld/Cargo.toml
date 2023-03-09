@@ -27,6 +27,7 @@ thiserror.workspace = true
 forest_db.workspace = true
 forest_json.workspace = true
 forest_utils.workspace = true
+libipld-core_v16 = {package = "libipld-core", version = "0.16", features = ["arb"]}
 multihash = { workspace = true, default-features = false, features = ["identity"] }
 quickcheck.workspace = true
 quickcheck_macros.workspace = true
