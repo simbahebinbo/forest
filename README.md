@@ -1,4 +1,3 @@
-<p align="center">
   <img width="380" height="269" src="documentation/src/img/forest_logo.png">
 </p>
 
