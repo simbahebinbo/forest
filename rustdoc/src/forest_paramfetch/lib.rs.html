@@ -224,10 +224,6 @@
 <a href="#224" id="224">224</a>
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -235,6 +231,7 @@
     fs::File <span class="kw">as </span>SyncFile,
     io::{<span class="self">self</span>, copy <span class="kw">as </span>sync_copy, BufReader <span class="kw">as </span>SyncBufReader, ErrorKind},
     path::{Path, PathBuf},
+    str::FromStr,
     sync::Arc,
 };
 
@@ -245,12 +242,13 @@
 <span class="kw">use </span>forest_utils::net::{https_client, hyper};
 <span class="kw">use </span>futures::TryStreamExt;
 <span class="kw">use </span>log::{debug, error, info, warn};
+<span class="kw">use </span>rs_car_ipfs::{single_file::read_single_file_seek, Cid};
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>tokio::{
     fs::{<span class="self">self</span>, File},
     io::BufWriter,
 };
-<span class="kw">use </span>tokio_util::compat::FuturesAsyncReadCompatExt;
+<span class="kw">use </span>tokio_util::compat::TokioAsyncWriteCompatExt;
 
 <span class="kw">const </span>GATEWAY: <span class="kw-2">&amp;</span>str = <span class="string">&quot;https://proofs.filecoin.io/ipfs/&quot;</span>;
 <span class="kw">const </span>PARAM_DIR: <span class="kw-2">&amp;</span>str = <span class="string">&quot;filecoin-proof-parameters&quot;</span>;
@@ -392,38 +390,32 @@
 <span class="kw">async fn </span>fetch_params(path: <span class="kw-2">&amp;</span>Path, info: <span class="kw-2">&amp;</span>ParameterData) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
     <span class="kw">let </span>gw = std::env::var(GATEWAY_ENV).unwrap_or_else(|<span class="kw">_</span>| GATEWAY.to_owned());
     <span class="macro">info!</span>(<span class="string">&quot;Fetching param file {:?} from {}&quot;</span>, path, gw);
-    <span class="kw">let </span>url = <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, gw, info.cid);
+
+    <span class="kw">let </span>cid = Cid::from_str(<span class="kw-2">&amp;</span>info.cid)<span class="question-mark">?</span>;
     <span class="kw">let </span>result = retry(ExponentialBackoff::default(), || <span class="kw">async </span>{
-        <span class="prelude-val">Ok</span>(fetch_params_inner(<span class="kw-2">&amp;</span>url, path).<span class="kw">await</span><span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(fetch_params_inner(<span class="kw-2">&amp;</span>gw, path, <span class="kw-2">&amp;</span>cid).<span class="kw">await</span><span class="question-mark">?</span>)
     })
     .<span class="kw">await</span>;
     <span class="macro">debug!</span>(<span class="string">&quot;Done fetching param file {:?} from {}&quot;</span>, path, gw);
     result
 }
 
-<span class="kw">async fn </span>fetch_params_inner(url: <span class="kw">impl </span>AsRef&lt;str&gt;, path: <span class="kw-2">&amp;</span>Path) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
+<span class="kw">async fn </span>fetch_params_inner(gw: <span class="kw-2">&amp;</span>str, path: <span class="kw-2">&amp;</span>Path, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt; {
+    <span class="kw">let </span>url = <span class="macro">format!</span>(<span class="string">&quot;{gw}{cid}?format=car&quot;</span>);
+
     <span class="kw">let </span>client = https_client();
-    <span class="kw">let </span>req = client.get(url.as_ref().try_into()<span class="question-mark">?</span>);
+    <span class="kw">let </span>req = client.get(url.try_into()<span class="question-mark">?</span>);
     <span class="kw">let </span>response = req.<span class="kw">await</span>.map_err(|e| <span class="macro">anyhow::anyhow!</span>(e))<span class="question-mark">?</span>;
     <span class="macro">anyhow::ensure!</span>(response.status().is_success());
-    <span class="kw">let </span>content_len = response
-        .headers()
-        .get(<span class="string">&quot;content-length&quot;</span>)
-        .and_then(|ct_len| ct_len.to_str().ok())
-        .and_then(|ct_len| ct_len.parse::&lt;u64&gt;().ok())
-        .ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;Couldn&#39;t retrieve content length&quot;</span>))<span class="question-mark">?</span>;
+
     <span class="kw">let </span>map_err: <span class="kw">fn</span>(hyper::Error) -&gt; futures::io::Error =
         |e| futures::io::Error::new(futures::io::ErrorKind::Other, e);
-    <span class="kw">let </span><span class="kw-2">mut </span>source = response
-        .into_body()
-        .map_err(map_err)
-        .into_async_read()
-        .compat();
+    <span class="kw">let </span><span class="kw-2">mut </span>source = response.into_body().map_err(map_err).into_async_read();
     <span class="kw">let </span>file = File::create(path).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>writer = BufWriter::new(file);
-    tokio::io::copy(<span class="kw-2">&amp;mut </span>source, <span class="kw-2">&amp;mut </span>writer).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span>file_metadata = std::fs::metadata(path)<span class="question-mark">?</span>;
-    <span class="macro">anyhow::ensure!</span>(file_metadata.len() == content_len);
+    <span class="kw">let </span><span class="kw-2">mut </span>writer = BufWriter::new(file).compat_write();
+
+    read_single_file_seek(<span class="kw-2">&amp;mut </span>source, <span class="kw-2">&amp;mut </span>writer, <span class="prelude-val">Some</span>(cid)).<span class="kw">await</span><span class="question-mark">?</span>;
+
     <span class="prelude-val">Ok</span>(())
 }
 
