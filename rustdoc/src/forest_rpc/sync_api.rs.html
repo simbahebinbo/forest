@@ -202,6 +202,16 @@
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -278,6 +288,7 @@
     <span class="kw">use </span>forest_state_manager::StateManager;
     <span class="kw">use </span>fvm_ipld_encoding::Cbor;
     <span class="kw">use </span>serde_json::from_str;
+    <span class="kw">use </span>tempfile::TempDir;
     <span class="kw">use </span>tokio::{sync::RwLock, task::JoinSet};
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
@@ -304,7 +315,16 @@
             .build()
             .unwrap();
 
-        <span class="kw">let </span>cs_arc = Arc::new(ChainStore::new(db, chain_config.clone(), <span class="kw-2">&amp;</span>genesis_header).unwrap());
+        <span class="kw">let </span>chain_data_root = TempDir::new().unwrap();
+        <span class="kw">let </span>cs_arc = Arc::new(
+            ChainStore::new(
+                db,
+                chain_config.clone(),
+                <span class="kw-2">&amp;</span>genesis_header,
+                chain_data_root.path(),
+            )
+            .unwrap(),
+        );
 
         cs_arc.set_genesis(<span class="kw-2">&amp;</span>genesis_header).unwrap();
         <span class="kw">let </span>state_manager = Arc::new(

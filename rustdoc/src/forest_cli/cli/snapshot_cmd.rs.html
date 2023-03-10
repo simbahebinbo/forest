@@ -508,6 +508,11 @@
 <a href="#508" id="508">508</a>
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -902,8 +907,8 @@
                 .unwrap_or_default();
 
     <span class="kw">if </span>confirm {
-        <span class="kw">let </span>tmp_db_path = TempDir::new()<span class="question-mark">?</span>;
-        <span class="kw">let </span>db_path = tmp_db_path.path().join(<span class="kw-2">&amp;</span>config.chain.name);
+        <span class="kw">let </span>tmp_chain_data_path = TempDir::new()<span class="question-mark">?</span>;
+        <span class="kw">let </span>db_path = tmp_chain_data_path.path().join(<span class="kw-2">&amp;</span>config.chain.name);
         <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path, config.db_config())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>genesis = read_genesis_header(
@@ -913,7 +918,12 @@
         )
         .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">let </span>chain_store = Arc::new(ChainStore::new(db, config.chain.clone(), <span class="kw-2">&amp;</span>genesis)<span class="question-mark">?</span>);
+        <span class="kw">let </span>chain_store = Arc::new(ChainStore::new(
+            db,
+            config.chain.clone(),
+            <span class="kw-2">&amp;</span>genesis,
+            tmp_chain_data_path.path(),
+        )<span class="question-mark">?</span>);
 
         <span class="kw">let </span>cids = {
             <span class="kw">let </span>file = tokio::fs::File::open(<span class="kw-2">&amp;</span>snapshot).<span class="kw">await</span><span class="question-mark">?</span>;

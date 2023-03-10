@@ -5,7 +5,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_actor_interface":["",[["builtin",[["account",[],["mod.rs"]],["cron",[],["mod.rs"]],["ethaccount",[],["mod.rs"]],["init",[],["mod.rs"]],["market",[],["mod.rs"]],["miner",[],["mod.rs"]],["multisig",[],["mod.rs"]],["placeholder",[],["mod.rs"]],["power",[],["mod.rs"]],["reward",[],["mod.rs"]],["system",[],["mod.rs"]]],["mod.rs"]]],["io.rs","lib.rs"]],\
 "forest_auth":["",[],["lib.rs"]],\
 "forest_beacon":["",[],["beacon_entries.rs","drand.rs","lib.rs","mock_beacon.rs"]],\
-"forest_blocks":["",[["header",[],["json.rs","mod.rs"]]],["block.rs","election_proof.rs","errors.rs","gossip_block.rs","lib.rs","ticket.rs","tipset.rs"]],\
+"forest_blocks":["",[["header",[],["json.rs","mod.rs"]]],["block.rs","election_proof.rs","errors.rs","gossip_block.rs","lib.rs","persistence.rs","ticket.rs","tipset.rs"]],\
 "forest_chain":["",[["store",[],["base_fee.rs","chain_store.rs","errors.rs","index.rs","mod.rs","tipset_tracker.rs"]]],["lib.rs","weight.rs"]],\
 "forest_chain_sync":["",[],["bad_block_cache.rs","chain_muxer.rs","consensus.rs","lib.rs","metrics.rs","network_context.rs","sync_state.rs","tipset_syncer.rs","validation.rs"]],\
 "forest_cli":["",[["cli",[],["attach_cmd.rs","auth_cmd.rs","chain_cmd.rs","config_cmd.rs","db_cmd.rs","fetch_params_cmd.rs","mod.rs","mpool_cmd.rs","net_cmd.rs","send_cmd.rs","shutdown_cmd.rs","snapshot_cmd.rs","state_cmd.rs","sync_cmd.rs","wallet_cmd.rs"]]],["lib.rs"]],\
@@ -37,7 +37,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\
 "forest_test_utils":["",[],["chain_structures.rs","lib.rs"]],\
-"forest_utils":["",[["db",[],["mod.rs"]],["io",[],["mod.rs","parser.rs","progress_bar.rs","tempfile.rs","writer_checksum.rs"]],["json",[],["mod.rs"]],["macros",[],["mod.rs"]],["net",[],["download.rs","http.rs","mod.rs"]]],["lib.rs"]],\
+"forest_utils":["",[["db",[],["file_backed_obj.rs","mod.rs"]],["io",[],["mod.rs","parser.rs","progress_bar.rs","tempfile.rs","writer_checksum.rs"]],["json",[],["mod.rs"]],["macros",[],["mod.rs"]],["net",[],["download.rs","http.rs","mod.rs"]]],["lib.rs"]],\
 "serialization_tests":["",[],["lib.rs"]]\
 }');
 createSourceSidebar();

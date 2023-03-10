@@ -636,6 +636,23 @@
 <a href="#636" id="636">636</a>
 <a href="#637" id="637">637</a>
 <a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -750,7 +767,9 @@
 
     <span class="kw">let </span>keystore = Arc::new(RwLock::new(keystore));
 
-    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path(<span class="kw-2">&amp;</span>chain_path(<span class="kw-2">&amp;</span>config)), config.db_config())<span class="question-mark">?</span>;
+    <span class="kw">let </span>chain_data_path = chain_path(<span class="kw-2">&amp;</span>config);
+
+    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path(<span class="kw-2">&amp;</span>chain_data_path), config.db_config())<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
 
@@ -763,7 +782,8 @@
             <span class="string">&quot;Prometheus server started at {}&quot;</span>,
             config.client.metrics_address
         );
-        <span class="kw">let </span>db_directory = forest_db::db_engine::db_path(<span class="kw-2">&amp;</span>chain_path(<span class="kw-2">&amp;</span>config));
+
+        <span class="kw">let </span>db_directory = forest_db::db_engine::db_path(<span class="kw-2">&amp;</span>chain_data_path);
         <span class="kw">let </span>db = db.clone();
         services.spawn(<span class="kw">async </span>{
             forest_metrics::init_prometheus(prometheus_listener, db_directory, db)
@@ -787,6 +807,7 @@
         db.clone(),
         config.chain.clone(),
         <span class="kw-2">&amp;</span>genesis_header,
+        chain_data_path.as_path(),
     )<span class="question-mark">?</span>);
 
     chain_store.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
@@ -1201,6 +1222,7 @@
     <span class="kw">use </span>forest_db::MemoryDB;
     <span class="kw">use </span>forest_networks::ChainConfig;
     <span class="kw">use </span>forest_shim::address::Address;
+    <span class="kw">use </span>tempfile::TempDir;
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
@@ -1242,7 +1264,13 @@
             .timestamp(<span class="number">7777</span>)
             .build()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone(), <span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>);
+        <span class="kw">let </span>chain_data_root = TempDir::new().unwrap();
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(
+            db,
+            chain_config.clone(),
+            <span class="kw-2">&amp;</span>genesis_header,
+            chain_data_root.path(),
+        )<span class="question-mark">?</span>);
         <span class="kw">let </span>sm = Arc::new(StateManager::new(
             cs,
             chain_config,
@@ -1261,7 +1289,13 @@
             .timestamp(<span class="number">7777</span>)
             .build()<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>cs = Arc::new(ChainStore::new(db, chain_config.clone(), <span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>);
+        <span class="kw">let </span>chain_data_root = TempDir::new()<span class="question-mark">?</span>;
+        <span class="kw">let </span>cs = Arc::new(ChainStore::new(
+            db,
+            chain_config.clone(),
+            <span class="kw-2">&amp;</span>genesis_header,
+            chain_data_root.path(),
+        )<span class="question-mark">?</span>);
         <span class="kw">let </span>sm = Arc::new(StateManager::new(
             cs,
             chain_config,

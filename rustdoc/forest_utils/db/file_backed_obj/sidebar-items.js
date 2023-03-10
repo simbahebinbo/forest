@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["FileBacked",""]],"trait":[["FileBackedObject","An object that is backed by a single file on disk"]]};
