@@ -2,7 +2,6 @@ var sourcesIndex = JSON.parse('{\
 "bitswap_in_browser":["",[],["main.rs"]],\
 "bitswap_in_browser_lib":["",[],["behaviour.rs","lib.rs","transport.rs"]],\
 "forest":["",[["cli",[],["mod.rs"]]],["daemon.rs","main.rs"]],\
-"forest_actor_interface":["",[["builtin",[["account",[],["mod.rs"]],["cron",[],["mod.rs"]],["ethaccount",[],["mod.rs"]],["init",[],["mod.rs"]],["market",[],["mod.rs"]],["miner",[],["mod.rs"]],["multisig",[],["mod.rs"]],["placeholder",[],["mod.rs"]],["power",[],["mod.rs"]],["reward",[],["mod.rs"]],["system",[],["mod.rs"]]],["mod.rs"]]],["io.rs","lib.rs"]],\
 "forest_auth":["",[],["lib.rs"]],\
 "forest_beacon":["",[],["beacon_entries.rs","drand.rs","lib.rs","mock_beacon.rs"]],\
 "forest_blocks":["",[["header",[],["json.rs","mod.rs"]]],["block.rs","election_proof.rs","errors.rs","gossip_block.rs","lib.rs","persistence.rs","ticket.rs","tipset.rs"]],\
@@ -32,7 +31,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_rpc":["",[],["auth_api.rs","beacon_api.rs","chain_api.rs","common_api.rs","gas_api.rs","lib.rs","mpool_api.rs","net_api.rs","rpc_http_handler.rs","rpc_util.rs","rpc_ws_handler.rs","state_api.rs","sync_api.rs","wallet_api.rs"]],\
 "forest_rpc_api":["",[],["data_types.rs","lib.rs"]],\
 "forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","common_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
-"forest_shim":["",[],["address.rs","bigint.rs","crypto.rs","econ.rs","error.rs","executor.rs","gas.rs","lib.rs","message.rs","randomness.rs","sector.rs","state_tree.rs","version.rs"]],\
+"forest_shim":["",[],["address.rs","bigint.rs","clock.rs","crypto.rs","econ.rs","error.rs","executor.rs","gas.rs","lib.rs","message.rs","randomness.rs","sector.rs","state_tree.rs","version.rs"]],\
 "forest_state_manager":["",[],["chain_rand.rs","errors.rs","lib.rs","metrics.rs","utils.rs","vm_circ_supply.rs"]],\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\

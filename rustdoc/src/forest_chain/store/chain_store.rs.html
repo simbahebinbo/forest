@@ -1034,7 +1034,6 @@
     Cid,
 };
 <span class="kw">use </span>digest::Digest;
-<span class="kw">use </span>forest_actor_interface::EPOCHS_IN_DAY;
 <span class="kw">use </span>forest_beacon::{BeaconEntry, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, TipsetKeys, TxMeta};
 <span class="kw">use </span>forest_db::Store;
@@ -1047,6 +1046,7 @@
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_shim::{
     address::Address,
+    clock::EPOCHS_IN_DAY,
     crypto::{Signature, SignatureType},
     econ::TokenAmount,
     executor::Receipt,

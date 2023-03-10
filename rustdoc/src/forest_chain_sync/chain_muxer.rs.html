@@ -981,7 +981,6 @@
 <a href="#981" id="981">981</a>
 <a href="#982" id="982">982</a>
 <a href="#983" id="983">983</a>
-<a href="#984" id="984">984</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -993,7 +992,6 @@
 };
 
 <span class="kw">use </span>cid::Cid;
-<span class="kw">use </span>forest_actor_interface::EPOCHS_IN_DAY;
 <span class="kw">use </span>forest_blocks::{
     Block, Error <span class="kw">as </span>ForestBlockError, FullTipset, GossipBlock, Tipset, TipsetKeys,
 };
@@ -1004,7 +1002,7 @@
 };
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_message_pool::{MessagePool, Provider};
-<span class="kw">use </span>forest_shim::message::Message;
+<span class="kw">use </span>forest_shim::{clock::EPOCHS_IN_DAY, message::Message};
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>futures::{
     future::{try_join_all, Future},
