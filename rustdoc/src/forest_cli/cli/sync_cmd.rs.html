@@ -231,8 +231,8 @@
                     <span class="macro">println!</span>(
                         <span class="string">&quot;State: {}; Current Epoch: {}; Todo: {}&quot;</span>,
                         state.stage(),
-                        base_height,
-                        state.epoch()
+                        state.epoch(),
+                        target_height - state.epoch()
                     );
 
                     <span class="kw">for _ in </span><span class="number">0</span>..<span class="number">2 </span>{
@@ -240,7 +240,7 @@
                     }
 
                     <span class="kw">if </span>state.stage() == SyncStage::Complete &amp;&amp; !watch {
-                        <span class="macro">println!</span>(<span class="string">&quot;Done!&quot;</span>);
+                        <span class="macro">println!</span>(<span class="string">&quot;\nDone!&quot;</span>);
                         <span class="kw">break</span>;
                     };
                 }
