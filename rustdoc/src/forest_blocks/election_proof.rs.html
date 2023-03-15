@@ -279,8 +279,8 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_crypto::VRFProof;
-<span class="kw">use </span>forest_encoding::{blake2b_256, tuple::<span class="kw-2">*</span>};
+</span><span class="kw">use </span>forest_encoding::{blake2b_256, tuple::<span class="kw-2">*</span>};
+<span class="kw">use </span>forest_json::vrf::VRFProof;
 <span class="kw">use </span>fvm_shared::BLOCKS_PER_EPOCH;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>num::{
@@ -462,7 +462,7 @@
 }
 
 <span class="kw">pub mod </span>json {
-    <span class="kw">use </span>forest_crypto::vrf;
+    <span class="kw">use </span>forest_json::vrf;
     <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;

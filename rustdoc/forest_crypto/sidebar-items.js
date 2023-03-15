@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["vrf",""]],"trait":[["Signer","Signer is a trait which allows a key implementation to sign data for an address"]]};

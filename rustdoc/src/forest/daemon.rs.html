@@ -653,6 +653,12 @@
 <a href="#653" id="653">653</a>
 <a href="#654" id="654">654</a>
 <a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -679,9 +685,7 @@
 <span class="kw">use </span>forest_key_management::{
     KeyStore, KeyStoreConfig, ENCRYPTED_KEYSTORE_NAME, FOREST_KEYSTORE_PHRASE_ENV,
 };
-<span class="kw">use </span>forest_libp2p::{
-    ed25519, get_keypair, Keypair, Libp2pConfig, Libp2pService, PeerId, PeerManager,
-};
+<span class="kw">use </span>forest_libp2p::{get_keypair, Libp2pConfig, Libp2pService, PeerId, PeerManager};
 <span class="kw">use </span>forest_message_pool::{MessagePool, MpoolConfig, MpoolRpcProvider};
 <span class="kw">use </span>forest_rpc::start_rpc;
 <span class="kw">use </span>forest_rpc_api::data_types::RPCState;
@@ -742,13 +746,21 @@
     <span class="kw">let </span>net_keypair = <span class="kw">match </span>get_keypair(<span class="kw-2">&amp;</span>path.join(<span class="string">&quot;keypair&quot;</span>)) {
         <span class="prelude-val">Some</span>(keypair) =&gt; <span class="prelude-val">Ok</span>::&lt;forest_libp2p::Keypair, std::io::Error&gt;(keypair),
         <span class="prelude-val">None </span>=&gt; {
-            <span class="kw">let </span>gen_keypair = ed25519::Keypair::generate();
+            <span class="kw">let </span>gen_keypair = forest_libp2p::Keypair::generate_ed25519();
             <span class="comment">// Save Ed25519 keypair to file
             // TODO rename old file to keypair.old(?)
-            </span><span class="kw">let </span>file = write_to_file(<span class="kw-2">&amp;</span>gen_keypair.encode(), <span class="kw-2">&amp;</span>path, <span class="string">&quot;keypair&quot;</span>)<span class="question-mark">?</span>;
+            </span><span class="kw">let </span>file = write_to_file(
+                <span class="kw-2">&amp;</span>gen_keypair
+                    .clone()
+                    .into_ed25519()
+                    .ok_or(<span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;couldn&#39;t convert keypair to ed25519&quot;</span>))<span class="question-mark">?
+                    </span>.encode(),
+                <span class="kw-2">&amp;</span>path,
+                <span class="string">&quot;keypair&quot;</span>,
+            )<span class="question-mark">?</span>;
             <span class="comment">// Restrict permissions on files containing private keys
             </span>forest_utils::io::set_user_perm(<span class="kw-2">&amp;</span>file)<span class="question-mark">?</span>;
-            <span class="prelude-val">Ok</span>(Keypair::Ed25519(gen_keypair))
+            <span class="prelude-val">Ok</span>(gen_keypair)
         }
     }<span class="question-mark">?</span>;
 

@@ -442,6 +442,7 @@
 <a href="#442" id="442">442</a>
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -455,7 +456,8 @@
 
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 <span class="kw">use </span>libp2p::{
-    core::{Multiaddr, PeerId, PublicKey},
+    core::Multiaddr,
+    identity::{PeerId, PublicKey},
     kad::{record::store::MemoryStore, Kademlia, KademliaConfig, KademliaEvent, QueryId},
     mdns::{tokio::Behaviour <span class="kw">as </span>Mdns, Event <span class="kw">as </span>MdnsEvent},
     multiaddr::Protocol,

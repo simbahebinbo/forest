@@ -138,6 +138,7 @@
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -145,12 +146,13 @@
 <span class="kw">use </span>forest_encoding::blake2b_256;
 <span class="kw">use </span>forest_libp2p_bitswap::BitswapBehaviour;
 <span class="kw">use </span>libp2p::{
-    core::{identity::Keypair, PeerId},
+    core::identity::Keypair,
     gossipsub::{
         <span class="self">self</span>, IdentTopic <span class="kw">as </span>Topic, MessageAuthenticity, MessageId, PublishError, SubscriptionError,
         ValidationMode,
     },
     identify,
+    identity::PeerId,
     kad::QueryId,
     metrics::{Metrics, Recorder},
     ping,
