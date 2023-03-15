@@ -145,81 +145,66 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="cli"><a class="header" href="#cli">CLI</a></h1>
-<p>The Forest CLI allows for operations to interact with a Filecoin node and the blockchain.</p>
+<p>The Forest CLI allows for operations to interact with a Filecoin node and the
+blockchain.</p>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
-<p>For nodes not running on a non-default port, or when interacting with a node remotely, you will need
-to provide the multiaddress information for the node. You will need to either set the environment variable
-<code>FULLNODE_API_INFO</code>, or prepend it to the command, like so:</p>
+<p>For nodes not running on a non-default port, or when interacting with a node
+remotely, you will need to provide the multiaddress information for the node.
+You will need to either set the environment variable <code>FULLNODE_API_INFO</code>, or
+prepend it to the command, like so:</p>
 <p><code>FULLNODE_API_INFO=&quot;...&quot; forest wallet new -s bls</code></p>
 <p>On Linux, you can set the environment variable with the following syntax</p>
 <p><code>export FULLNOPDE_API_INFO=&quot;...&quot;</code></p>
-<p>Setting your API info this way will limit the value to your current session. Look online for ways to persist
-this variable if desired.</p>
+<p>Setting your API info this way will limit the value to your current session.
+Look online for ways to persist this variable if desired.</p>
 <p>The syntax for the <code>FULLNODE_API_INFO</code> variable is as follows:</p>
 <p><code>&lt;admin_token&gt;:/ip4/&lt;ip of host&gt;/tcp/&lt;port&gt;/http</code></p>
-<p>This will use IPv4, TCP, and HTTP when communicating with the RPC API. The admin token can be found when starting
-the Forest daemon. This will be needed to create tokens with certain permissions such as read, write, sign, or admin.</p>
+<p>This will use IPv4, TCP, and HTTP when communicating with the RPC API. The admin
+token can be found when starting the Forest daemon. This will be needed to
+create tokens with certain permissions such as read, write, sign, or admin.</p>
 <h2 id="token-flag"><a class="header" href="#token-flag">Token flag</a></h2>
-<p>For nodes running on default port and when you are interacting locally, the admin token can also be set using <code>--token</code> flag:</p>
+<p>For nodes running on default port and when you are interacting locally, the
+admin token can also be set using <code>--token</code> flag:</p>
 <pre><code>forest-cli --token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXSwiZXhwIjoxNjczMjEwMTkzfQ.xxhmqtG9O3XNTIrOEB2_TWnVkq0JkqzRdw63BdosV0c &lt;subcommand&gt;
 </code></pre>
-<p>When the Forest daemon is started, an admin token will be displayed (alternatively, use <code>--save-token &lt;token&gt;</code> flag to save it on disk).</p>
+<p>When the Forest daemon is started, an admin token will be displayed
+(alternatively, use <code>--save-token &lt;token&gt;</code> flag to save it on disk).</p>
 <h2 id="wallet"><a class="header" href="#wallet">Wallet</a></h2>
 <p>All wallet commands require write permissions to interact with the keystore</p>
-<p>Balance
-Retrieve the FIL balance of a given address
-Usage: <code>forest-cli wallet balance &lt;address&gt;</code></p>
-<p>Default
-Get the default, persisted address from the keystore
-Usage: <code>forest-cli wallet default</code></p>
-<p>Has
-Check if an address exists in the keystore
-shows true/false if exists or doesn't
-Usage: <code>forest-cli wallet has &lt;address&gt;</code></p>
-<p>List
-Display the keys in the keystore
-Usage: <code>forest-cli wallet list</code></p>
-<p>New
-Create a new wallet
-The signature type can either be secp256k1 or bls. Defaults to use bls
-Usage: <code>forest-cli wallet new &lt;bls/secp256k1&gt;</code></p>
-<p>Set-default
-Set an address to be the default address of the keystore
-Usage: <code>forest-cli wallet set-default &lt;address&gt;</code></p>
-<p>Import
-Import a private key to the keystore and create a new address.
-The default format for importing keys is hex encoded JSON. Use the <code>export</code>
-command to get formatted keys for importing.
-Usage: <code>forest-cli wallet import &lt;hex encoded json key&gt;</code></p>
-<p>Export
-Export a key by address. Use a wallet address to export a key. Returns a formatted key
-to be used to import on another node, or into a new keystore.
+<p>Balance Retrieve the FIL balance of a given address Usage:
+<code>forest-cli wallet balance &lt;address&gt;</code></p>
+<p>Default Get the default, persisted address from the keystore Usage:
+<code>forest-cli wallet default</code></p>
+<p>Has Check if an address exists in the keystore shows true/false if exists or
+doesn't Usage: <code>forest-cli wallet has &lt;address&gt;</code></p>
+<p>List Display the keys in the keystore Usage: <code>forest-cli wallet list</code></p>
+<p>New Create a new wallet The signature type can either be secp256k1 or bls.
+Defaults to use bls Usage: <code>forest-cli wallet new &lt;bls/secp256k1&gt;</code></p>
+<p>Set-default Set an address to be the default address of the keystore Usage:
+<code>forest-cli wallet set-default &lt;address&gt;</code></p>
+<p>Import Import a private key to the keystore and create a new address. The
+default format for importing keys is hex encoded JSON. Use the <code>export</code> command
+to get formatted keys for importing. Usage:
+<code>forest-cli wallet import &lt;hex encoded json key&gt;</code></p>
+<p>Export Export a key by address. Use a wallet address to export a key. Returns a
+formatted key to be used to import on another node, or into a new keystore.
 Usage: <code>forest-cli wallet export &lt;address&gt;</code></p>
-<p>Sign
-Use an address to sign a vector of bytes
-Usage: <code>forest-cli wallet sign -m &lt;hex message&gt; -a &lt;address&gt;</code></p>
-<p>Verify
-Verify the message's integrity with an address and signature
-Usage: <code>forest-cli wallet verify -m &lt;hex message&gt; -a &lt;address&gt; -s &lt;signature&gt;</code></p>
+<p>Sign Use an address to sign a vector of bytes Usage:
+<code>forest-cli wallet sign -m &lt;hex message&gt; -a &lt;address&gt;</code></p>
+<p>Verify Verify the message's integrity with an address and signature Usage:
+<code>forest-cli wallet verify -m &lt;hex message&gt; -a &lt;address&gt; -s &lt;signature&gt;</code></p>
 <h2 id="chain-sync"><a class="header" href="#chain-sync">Chain-Sync</a></h2>
-<p>The chain-sync CLI can mark blocks to never be synced, provide information about the state
-of the syncing process, and check blocks that will never be synced (and for what reason).</p>
-<p>Wait
-Wait for the sync process to be complete
-Usage: <code>forest-cli sync wait</code>
+<p>The chain-sync CLI can mark blocks to never be synced, provide information about
+the state of the syncing process, and check blocks that will never be synced
+(and for what reason).</p>
+<p>Wait Wait for the sync process to be complete Usage: <code>forest-cli sync wait</code>
 Permissions: Read</p>
-<p>Status
-Check the current state of the syncing process, displaying some information
-Usage: <code>forest-cli sync status</code>
-Permissions: Read</p>
-<p>Check Bad
-Check if a block has been marked by, identifying the block by CID
-Usage: <code>forest-cli sync check-bad -c &lt;block cid&gt;</code>
-Permissions: Read</p>
-<p>Mark Bad
-Mark a block as bad, the syncer will never sync this block
-Usage: <code>forest-cli sync mark-bad -c &lt;block cid&gt;</code>
-Permissions: Admin</p>
+<p>Status Check the current state of the syncing process, displaying some
+information Usage: <code>forest-cli sync status</code> Permissions: Read</p>
+<p>Check Bad Check if a block has been marked by, identifying the block by CID
+Usage: <code>forest-cli sync check-bad -c &lt;block cid&gt;</code> Permissions: Read</p>
+<p>Mark Bad Mark a block as bad, the syncer will never sync this block Usage:
+<code>forest-cli sync mark-bad -c &lt;block cid&gt;</code> Permissions: Admin</p>
 
                     </main>
 

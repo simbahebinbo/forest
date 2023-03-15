@@ -145,17 +145,23 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="forest-javascript-console"><a class="header" href="#forest-javascript-console">Forest JavaScript Console</a></h1>
-<p>Forest console stands as an alternative to tools like <a href="https://github.com/curl/curl">Curl</a> or other subcommands found in <code>forest-cli</code> for interacting with the Filecoin JSON-RPC API.</p>
+<p>Forest console stands as an alternative to tools like
+<a href="https://github.com/curl/curl">Curl</a> or other subcommands found in <code>forest-cli</code>
+for interacting with the Filecoin JSON-RPC API.</p>
 <h2 id="starting-the-console"><a class="header" href="#starting-the-console">Starting the console</a></h2>
-<p><code>forest-cli attach</code> can be used to open a Javascript console connected to your Forest node.</p>
-<p>Like for some other <code>forest-cli</code> subcommands you will need to pass an admin <code>--token</code> given what endpoints you will call.</p>
-<p>For a description of different options please refer to the developer documentation <a href="https://github.com/ChainSafe/forest/blob/main/documentation/developer_documentation/CLI.md#cli">CLI page</a>.</p>
+<p><code>forest-cli attach</code> can be used to open a Javascript console connected to your
+Forest node.</p>
+<p>Like for some other <code>forest-cli</code> subcommands you will need to pass an admin
+<code>--token</code> given what endpoints you will call.</p>
+<p>For a description of different options please refer to the developer
+documentation
+<a href="https://github.com/ChainSafe/forest/blob/main/documentation/developer_documentation/CLI.md#cli">CLI page</a>.</p>
 <h2 id="interactive-use"><a class="header" href="#interactive-use">Interactive Use</a></h2>
 <p>First start Forest node inside another terminal:</p>
 <pre><code class="language-bash">forest --chain calibnet
 </code></pre>
 <p>To attach to your Forest node, run <code>forest-cli</code> with the <code>attach</code> subcommand:</p>
-<pre><code class="language-bash">forest-cli --token &lt;TOKEN&gt; attach 
+<pre><code class="language-bash">forest-cli --token &lt;TOKEN&gt; attach
 </code></pre>
 <p>You should now see a prompt and be able to interact:</p>
 <pre><code>Welcome to the Forest Javascript console!
@@ -165,7 +171,8 @@ To exit, press ctrl-d or type :quit
 Forest running on calibnet
 </code></pre>
 <p>You can directly call JSON-RPC API endpoints that are bound to the console.</p>
-<p>For example, <code>Filecoin.ChainGetName</code> is bound to the global <code>chainGetName</code> function.</p>
+<p>For example, <code>Filecoin.ChainGetName</code> is bound to the global <code>chainGetName</code>
+function.</p>
 <h3 id="tips"><a class="header" href="#tips">Tips</a></h3>
 <ul>
 <li>The console history is saved in your <code>~/.forest_history</code> after exiting.</li>
@@ -174,7 +181,9 @@ Forest running on calibnet
 </ul>
 <h2 id="non-interactive-use"><a class="header" href="#non-interactive-use">Non-interactive Use</a></h2>
 <h3 id="exec-mode"><a class="header" href="#exec-mode">Exec Mode</a></h3>
-<p>It is also possible to execute commands non-interactively by passing <code>--exec</code> flag and a JavaScript snippet to <code>forest-cli attach</code>. The result is displayed directly in the terminal rather than in the interactive console.</p>
+<p>It is also possible to execute commands non-interactively by passing <code>--exec</code>
+flag and a JavaScript snippet to <code>forest-cli attach</code>. The result is displayed
+directly in the terminal rather than in the interactive console.</p>
 <p>For example, to display the current epoch:</p>
 <pre><code class="language-bash">forest-cli attach --exec &quot;syncStatus().ActiveSyncs[0].Epoch&quot;
 </code></pre>
@@ -183,7 +192,8 @@ Forest running on calibnet
 </code></pre>
 <h2 id="builtins"><a class="header" href="#builtins">Builtins</a></h2>
 <h3 id="helpers"><a class="header" href="#helpers">Helpers</a></h3>
-<p>Forest console comes with a number of helper functions that make interacting with Filecoin API easy:</p>
+<p>Forest console comes with a number of helper functions that make interacting
+with Filecoin API easy:</p>
 <ul>
 <li><code>showPeers()</code></li>
 <li><code>getPeer(peerID)</code></li>
@@ -194,25 +204,35 @@ Forest running on calibnet
 <li><code>sendFIL(to, attoAmount)</code></li>
 </ul>
 <h3 id="timers"><a class="header" href="#timers">Timers</a></h3>
-<p>In addition, to support part of the JavaScript language, the console also provides implementation for <code>sleep(seconds)</code> timer and a tipset based timer, <code>sleepTipsets(epochs)</code>, which sleeps till the number of new tipsets added is equal to or greater than <code>epochs</code>.</p>
+<p>In addition, to support part of the JavaScript language, the console also
+provides implementation for <code>sleep(seconds)</code> timer and a tipset based timer,
+<code>sleepTipsets(epochs)</code>, which sleeps till the number of new tipsets added is
+equal to or greater than <code>epochs</code>.</p>
 <h3 id="modules"><a class="header" href="#modules">Modules</a></h3>
-<p>CommonJS modules is the way to package JavaScript code for Forest console. You can import modules using the <code>require</code> function:</p>
+<p>CommonJS modules is the way to package JavaScript code for Forest console. You
+can import modules using the <code>require</code> function:</p>
 <pre><code class="language-bash">forest-cli attach --exec &quot;const Math = require('calc'); console.log(Math.add(39,3))&quot;
 </code></pre>
 <p>where <code>calc.js</code> is:</p>
 <pre><code class="language-javascript">module.exports = {
-    add: function (a, b) {
-      return a + b;
-    },
-    multiply: function (a, b) {
-      return a * b;
-    },
+  add: function (a, b) {
+    return a + b;
+  },
+  multiply: function (a, b) {
+    return a * b;
+  },
 };
 </code></pre>
-<p>By default modules will be loaded from the current directory. Use <code>--jspath</code> flag to indicate another path.</p>
+<p>By default modules will be loaded from the current directory. Use <code>--jspath</code>
+flag to indicate another path.</p>
 <h2 id="limitations"><a class="header" href="#limitations">Limitations</a></h2>
-<p>Forest's console is built using <a href="https://github.com/boa-dev/boa">Boa Javascript engine</a>. It does support promises or <code>async</code> functions, but keep in mind that Boa is not fully compatible with ECMAScript yet.</p>
-<p>Not every endpoint from the Filecoin API has been bound to the console. Please <a href="https://github.com/ChainSafe/forest/issues">create an issue</a> if you need one that is not available.</p>
+<p>Forest's console is built using
+<a href="https://github.com/boa-dev/boa">Boa Javascript engine</a>. It does support
+promises or <code>async</code> functions, but keep in mind that Boa is not fully compatible
+with ECMAScript yet.</p>
+<p>Not every endpoint from the Filecoin API has been bound to the console. Please
+<a href="https://github.com/ChainSafe/forest/issues">create an issue</a> if you need one
+that is not available.</p>
 
                     </main>
 

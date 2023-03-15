@@ -144,12 +144,18 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p>In case of memory leaks, either coming from <em>unsafe</em> libraries or just Forest pushing shamelessly into some collection, it is useful to not guess where the leak happened but to use proper tooling.</p>
+                        <p>In case of memory leaks, either coming from <em>unsafe</em> libraries or just Forest
+pushing shamelessly into some collection, it is useful to not guess where the
+leak happened but to use proper tooling.</p>
 <h1 id="heaptrack"><a class="header" href="#heaptrack"><a href="https://github.com/KDE/heaptrack">HeapTrack</a></a></h1>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
-<p>Either build it with the instructions provided in the repository or download a ready AppImage, e.g. from <a href="https://invent.kde.org/sdk/heaptrack/-/releases">here</a>. You may not want to use the <code>heaptrack</code> available in your OS packages as it may be a bit outdated.</p>
+<p>Either build it with the instructions provided in the repository or download a
+ready AppImage, e.g. from
+<a href="https://invent.kde.org/sdk/heaptrack/-/releases">here</a>. You may not want to use
+the <code>heaptrack</code> available in your OS packages as it may be a bit outdated.</p>
 <h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
-<p>To get the most out of the tool, you may want to add debug information to the binary, regardless if you are running it in release or debug mode.</p>
+<p>To get the most out of the tool, you may want to add debug information to the
+binary, regardless if you are running it in release or debug mode.</p>
 <pre><code class="language-toml">[profile.dev]
 debug = 2
 
@@ -157,45 +163,79 @@ debug = 2
 debug = 2
 </code></pre>
 <h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
-<p>You can grab the trace on your host machine or in a VPS (e.g. Digital Ocean Droplet). </p>
-<p>Start tracing with <code>heaptrack &lt;normal forest command&gt;</code>, e.g. </p>
+<p>You can grab the trace on your host machine or in a VPS (e.g. Digital Ocean
+Droplet).</p>
+<p>Start tracing with <code>heaptrack &lt;normal forest command&gt;</code>, e.g.</p>
 <pre><code>heaptrack target/release/forest --encrypt-keystore=false --target-peer-count 50 --chain calibnet --import-snapshot forest_snapshot.car
 </code></pre>
-<p>This will push traces to a file, e.g. <code>heaptrack.forest.12345.gz</code>. The longer your process will be running, the bigger it will get, so double check your free space before leaving it overnight.</p>
-<p>Now analyze the trace. You can do it after Forest has e.g. crashed due to OOM or even during its execution. If you were capturing traces in a Droplet, copy the file to your host, e.g. <code>scp chainsafe@123.45.66.77:/home/chainsafe/heaptrack.forest.12345.gz .</code>.</p>
-<p>Depending on the size of the trace, it may take a while (but there is a nice progress bar so you will know if you can grab a coffee in the meantime).</p>
+<p>This will push traces to a file, e.g. <code>heaptrack.forest.12345.gz</code>. The longer
+your process will be running, the bigger it will get, so double check your free
+space before leaving it overnight.</p>
+<p>Now analyze the trace. You can do it after Forest has e.g. crashed due to OOM or
+even during its execution. If you were capturing traces in a Droplet, copy the
+file to your host, e.g.
+<code>scp chainsafe@123.45.66.77:/home/chainsafe/heaptrack.forest.12345.gz .</code>.</p>
+<p>Depending on the size of the trace, it may take a while (but there is a nice
+progress bar so you will know if you can grab a coffee in the meantime).</p>
 <pre><code>heaptrack --analyze heaptrack.forest.12345.gz
 </code></pre>
 <h3 id="summary"><a class="header" href="#summary">Summary</a></h3>
-<p>Here we can see memory usage overview. Keep in mind that <em>leaks</em> here are not necessarily leaks - it's just memory that hasn't been yet freed. A global cache would always show as a leak.</p>
-<p>While most of the potential <em>culprits</em> are not necessarily interesting (e.g. <code>alloc::*</code>) because even a <code>String</code> constructor calls them, we immediately see that among specific ones, it's the <code>rocksdb</code> that gets into the spotlight.</p>
+<p>Here we can see memory usage overview. Keep in mind that <em>leaks</em> here are not
+necessarily leaks - it's just memory that hasn't been yet freed. A global cache
+would always show as a leak.</p>
+<p>While most of the potential <em>culprits</em> are not necessarily interesting (e.g.
+<code>alloc::*</code>) because even a <code>String</code> constructor calls them, we immediately see
+that among specific ones, it's the <code>rocksdb</code> that gets into the spotlight.</p>
 <p><img src="heaptrack/summary.png" alt="summary" /></p>
 <h3 id="bottom-up"><a class="header" href="#bottom-up">Bottom-up</a></h3>
-<p>View in which you see <em>low-level</em> methods first. In such view, the first methods would almost always be allocator methods, finally unwinding into <code>main</code>.</p>
+<p>View in which you see <em>low-level</em> methods first. In such view, the first methods
+would almost always be allocator methods, finally unwinding into <code>main</code>.</p>
 <p><img src="heaptrack/bottom_up.png" alt="bottom-up" /></p>
 <h3 id="callercallee"><a class="header" href="#callercallee">Caller/callee</a></h3>
-<p>All the methods called along with their allocations, where one can easily navigate between their callers and callees, also showing you the location in code (you can configure <code>heaptrack</code> to take you to that code with <code>Settings/Code Navigation</code>). Most useful tab when you delve into the details.</p>
+<p>All the methods called along with their allocations, where one can easily
+navigate between their callers and callees, also showing you the location in
+code (you can configure <code>heaptrack</code> to take you to that code with
+<code>Settings/Code Navigation</code>). Most useful tab when you delve into the details.</p>
 <p><img src="heaptrack/caller_callee.png" alt="caller-callee" /></p>
 <h3 id="top-down"><a class="header" href="#top-down">Top-down</a></h3>
-<p>Basically an inverse of <em>Bottom-up</em> view. High-level methods first, then you can drill down.</p>
+<p>Basically an inverse of <em>Bottom-up</em> view. High-level methods first, then you can
+drill down.</p>
 <h3 id="flamegraph"><a class="header" href="#flamegraph">Flamegraph</a></h3>
-<p>A graphical form of Bottom-up and Top-Down (you can switch). Helps with visualizing the heavy allocators.</p>
+<p>A graphical form of Bottom-up and Top-Down (you can switch). Helps with
+visualizing the heavy allocators.</p>
 <p><img src="heaptrack/flamegraph.png" alt="flamegraph-up" /></p>
 <h3 id="consumed"><a class="header" href="#consumed">Consumed</a></h3>
-<p>Shows the heap memory consumption over time. Here we can notice some patterns, e.g. what happens with memory during snapshot import, then downloading headers and syncing.</p>
+<p>Shows the heap memory consumption over time. Here we can notice some patterns,
+e.g. what happens with memory during snapshot import, then downloading headers
+and syncing.</p>
 <p><img src="heaptrack/consumed.png" alt="consumed" /></p>
 <h3 id="allocations"><a class="header" href="#allocations">Allocations</a></h3>
 <p>Shows total number of allocations over time.</p>
 <h3 id="temporary-allocations"><a class="header" href="#temporary-allocations">Temporary allocations</a></h3>
-<p>Shows the number of temporary allocations over time. Temporary allocation is an allocation followed by its deallocation, i.e. there are no other allocations in-between.</p>
+<p>Shows the number of temporary allocations over time. Temporary allocation is an
+allocation followed by its deallocation, i.e. there are no other allocations
+in-between.</p>
 <h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
-<p>This tab will show you the allocation sizes during runtime and their frequency. If you hover over a bar you will see that e.g. <code>LZ4_createStream</code> (most likely used by <code>rocksdb</code>) made 5,624,180 allocations, total 92.3G, on average 14.4kB per allocation.</p>
+<p>This tab will show you the allocation sizes during runtime and their frequency.
+If you hover over a bar you will see that e.g. <code>LZ4_createStream</code> (most likely
+used by <code>rocksdb</code>) made 5,624,180 allocations, total 92.3G, on average 14.4kB
+per allocation.</p>
 <p><img src="heaptrack/sizes.png" alt="sizes" /></p>
 <h3 id="miscellaneous"><a class="header" href="#miscellaneous">Miscellaneous</a></h3>
 <ul>
-<li>Keep in mind that running Forest <em>with</em> heaptrack gives a non-negligible memory and CPU overhead. You may not be able to run mainnet node on a 16G machine even if normally it would be fine.</li>
-<li>Optimizations may play tricks on the developer, e.g. inlining functions so they won't even appear in your trace. If you think a particular method should have been called but for mysterious reasons it does not appear in the analysis, you may want to put <code>#[inline(never)]</code> on top of it. Analyzing a debug build may also be useful, but depending on where the leak happens, it may be too slow.</li>
-<li>There is a lot of noise coming from dependencies and standard library. It's useful to mentally filter them out a bit and focus on the biggest culprits in Forest methods. Flamegraph and caller/callee view are the most useful for this.</li>
+<li>Keep in mind that running Forest <em>with</em> heaptrack gives a non-negligible
+memory and CPU overhead. You may not be able to run mainnet node on a 16G
+machine even if normally it would be fine.</li>
+<li>Optimizations may play tricks on the developer, e.g. inlining functions so
+they won't even appear in your trace. If you think a particular method should
+have been called but for mysterious reasons it does not appear in the
+analysis, you may want to put <code>#[inline(never)]</code> on top of it. Analyzing a
+debug build may also be useful, but depending on where the leak happens, it
+may be too slow.</li>
+<li>There is a lot of noise coming from dependencies and standard library. It's
+useful to mentally filter them out a bit and focus on the biggest culprits in
+Forest methods. Flamegraph and caller/callee view are the most useful for
+this.</li>
 </ul>
 
                     </main>

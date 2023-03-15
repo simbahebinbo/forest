@@ -145,11 +145,12 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="testing-for-mainnet-compatibility"><a class="header" href="#testing-for-mainnet-compatibility">Testing for Mainnet Compatibility</a></h1>
-<p>Forest development can be like hitting a moving target and sometimes Forest falls behind the
-network. This document should serve as a way to easily identify if Forest can sync all the way
-up to the network head using a simple step-by-step process.</p>
+<p>Forest development can be like hitting a moving target and sometimes Forest
+falls behind the network. This document should serve as a way to easily identify
+if Forest can sync all the way up to the network head using a simple
+step-by-step process.</p>
 <h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
-<p>Some command-line tools and software is required to follow this guide. </p>
+<p>Some command-line tools and software is required to follow this guide.</p>
 <ul>
 <li>A fresh copy of the Forest repository that has been built</li>
 <li>Lotus installed</li>
@@ -158,8 +159,8 @@ up to the network head using a simple step-by-step process.</p>
 </ul>
 <h2 id="grab-a-snapshot-and-run-forest"><a class="header" href="#grab-a-snapshot-and-run-forest">Grab a snapshot and run Forest</a></h2>
 <p>Refer to the mdbook documentation on how to download a snapshot and run forest</p>
-<p>Warning: FileCoin snapshots as of this writing are over 75GB. Verify you have enough
-space on your system to accommodate these large files.</p>
+<p>Warning: FileCoin snapshots as of this writing are over 75GB. Verify you have
+enough space on your system to accommodate these large files.</p>
 <ul>
 <li>Use <code>make mdbook</code> in Forest's root directory</li>
 <li>Open <code>http://localhost:3000</code></li>
@@ -167,29 +168,36 @@ space on your system to accommodate these large files.</p>
 <li>Scroll down to <code>Forest Import Snapshot Mode</code></li>
 </ul>
 <h2 id="let-forest-sync"><a class="header" href="#let-forest-sync">Let Forest sync</a></h2>
-<p>This step may take a while. We want Forest to get as far along in the syncing process
-as it can get. If it syncs up all the way to the network head, CONGRATS! Forest is up to date
-and on mainnet. Otherwise, Forest is not on mainnet.</p>
-<p>If Forest starts to error and can't get past a block while syncing. Make note of which block it is.
-We can use that block to help debug any potential state mismatches.</p>
+<p>This step may take a while. We want Forest to get as far along in the syncing
+process as it can get. If it syncs up all the way to the network head, CONGRATS!
+Forest is up to date and on mainnet. Otherwise, Forest is not on mainnet.</p>
+<p>If Forest starts to error and can't get past a block while syncing. Make note of
+which block it is. We can use that block to help debug any potential state
+mismatches.</p>
 <h2 id="is-forest-on-the-latest-network-version"><a class="header" href="#is-forest-on-the-latest-network-version">Is Forest on the latest network version?</a></h2>
-<p>Something easy to check is if Forest is on the latest Filecoin network version. A repository exists
-where we can see all of the released network versions <a href="https://github.com/filecoin-project/tpm/tree/master/Network%20Upgrades">here</a>.
-Navigate the codebase to see mention of the latest network upgrade. If a snapshot fails to sync at a certain epoch, it's entirely
-possible that the snapshot was behind an epoch when a version upgrade started. Grab a new snapshot by referring to the mdbook
-documentation.</p>
+<p>Something easy to check is if Forest is on the latest Filecoin network version.
+A repository exists where we can see all of the released network versions
+<a href="https://github.com/filecoin-project/tpm/tree/master/Network%20Upgrades">here</a>.
+Navigate the codebase to see mention of the latest network upgrade. If a
+snapshot fails to sync at a certain epoch, it's entirely possible that the
+snapshot was behind an epoch when a version upgrade started. Grab a new snapshot
+by referring to the mdbook documentation.</p>
 <h2 id="debugging-state-mismatches"><a class="header" href="#debugging-state-mismatches">Debugging State Mismatches</a></h2>
-<p>Statediffs can only be printed if we import a snapshot containing the stateroot data from Lotus.
-This means there will not be a pretty statediff if Forest is already synced to the network when the stateroot mismatch happens.
-By default, snapshots only contain stateroot data for the previous 2000 epochs. So, if you have a statediff at epoch X,
-download a snapshot for epoch X+100 and tell Forest to re-validate the snapshot from epoch X.</p>
-<p>For more detailed instructions, follow <a href="https://www.notion.so/chainsafe/Interop-debugging-6adabf9222d7449bbfeaacb1ec997cf8">this document</a></p>
+<p>Statediffs can only be printed if we import a snapshot containing the stateroot
+data from Lotus. This means there will not be a pretty statediff if Forest is
+already synced to the network when the stateroot mismatch happens. By default,
+snapshots only contain stateroot data for the previous 2000 epochs. So, if you
+have a statediff at epoch X, download a snapshot for epoch X+100 and tell Forest
+to re-validate the snapshot from epoch X.</p>
+<p>For more detailed instructions, follow
+<a href="https://www.notion.so/chainsafe/Interop-debugging-6adabf9222d7449bbfeaacb1ec997cf8">this document</a></p>
 <h2 id="fvm-traces"><a class="header" href="#fvm-traces">FVM Traces</a></h2>
-<p>Within FVM, we can enable tracing to produce execution traces. Given an offending epoch, we can produce them both for Forest
-and for Lotus to find mismatches.</p>
-<p>To confirm: the execution traces format is not uniform across implementations, so it takes a certain amount of elbow grease to
-find the differences.
-Lotus is capable of spitting this out in JSON for nice UX</p>
+<p>Within FVM, we can enable tracing to produce execution traces. Given an
+offending epoch, we can produce them both for Forest and for Lotus to find
+mismatches.</p>
+<p>To confirm: the execution traces format is not uniform across implementations,
+so it takes a certain amount of elbow grease to find the differences. Lotus is
+capable of spitting this out in JSON for nice UX</p>
 
                     </main>
 

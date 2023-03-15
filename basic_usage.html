@@ -169,12 +169,17 @@ sudo pacman -S base-devel clang ocl-icd
 <pre><code class="language-bash">make release
 </code></pre>
 <h2 id="forest-import-snapshot-mode"><a class="header" href="#forest-import-snapshot-mode">Forest Import Snapshot Mode</a></h2>
-<p>Before running <code>forest</code> in the normal mode you must seed the database with the Filecoin state tree from the latest snapshot. To do that, we will download the latest snapshot provided by Protocol Labs and start <code>forest</code> using the <code>--import-snapshot</code> flag. After the snapshot has been successfully imported, you can start <code>forest</code> without the <code>--import-snapshot</code> flag.</p>
+<p>Before running <code>forest</code> in the normal mode you must seed the database with the
+Filecoin state tree from the latest snapshot. To do that, we will download the
+latest snapshot provided by Protocol Labs and start <code>forest</code> using the
+<code>--import-snapshot</code> flag. After the snapshot has been successfully imported, you
+can start <code>forest</code> without the <code>--import-snapshot</code> flag.</p>
 <h3 id="commands-1"><a class="header" href="#commands-1">Commands</a></h3>
 <p>Download the latest snapshot provided by Protocol Labs:</p>
 <pre><code class="language-bash">curl -sI https://fil-chain-snapshots-fallback.s3.amazonaws.com/mainnet/minimal_finality_stateroots_latest.car | perl -ne '/x-amz-website-redirect-location:\s(.+)\.car/ &amp;&amp; print &quot;$1.sha256sum\n$1.car&quot;' | xargs wget
 </code></pre>
-<p>If desired, you can check the checksum using the instructions <a href="https://lotus.filecoin.io/docs/set-up/chain-management/#lightweight-snapshot">here</a>.</p>
+<p>If desired, you can check the checksum using the instructions
+<a href="https://lotus.filecoin.io/docs/set-up/chain-management/#lightweight-snapshot">here</a>.</p>
 <p>Import the snapshot using <code>forest</code>:</p>
 <pre><code class="language-bash">forest --target-peer-count 50 --encrypt-keystore false --import-snapshot /path/to/snapshot/file
 </code></pre>
