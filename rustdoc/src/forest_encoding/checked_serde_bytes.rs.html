@@ -120,10 +120,31 @@
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>cs_serde_bytes::{Deserialize, Serialize};
+</span><span class="kw">use </span>fvm_ipld_encoding3::strict_bytes::{Deserialize, Serialize};
 <span class="kw">use </span>serde::{de, ser, Deserializer, Serializer};
 
 <span class="kw">use </span><span class="kw">crate</span>::BYTE_ARRAY_MAX_LEN;
@@ -169,10 +190,10 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>anyhow::{ensure, <span class="prelude-ty">Result</span>};
+    <span class="kw">use </span>rand::Rng;
     <span class="kw">use </span>serde::{Deserialize, Serialize};
 
-    <span class="kw">use </span><span class="kw">super</span>::serde_byte_array;
-    <span class="kw">use </span><span class="kw">crate</span>::BYTE_ARRAY_MAX_LEN;
+    <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
     <span class="attr">#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     </span><span class="kw">struct </span>ByteArray {
@@ -239,6 +260,27 @@
                 .unwrap()
         )
         .contains(<span class="string">&quot;Array exceed max length&quot;</span>));
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attr">#[test]
+    </span><span class="kw">fn </span>parity_tests() -&gt; anyhow::Result&lt;()&gt; {
+        <span class="kw">use </span>cs_serde_bytes;
+
+        <span class="attr">#[derive(Deserialize, Serialize)]
+        </span><span class="kw">struct </span>A(<span class="attr">#[serde(with = <span class="string">&quot;fvm_ipld_encoding3::strict_bytes&quot;</span>)] </span>Vec&lt;u8&gt;);
+
+        <span class="attr">#[derive(Deserialize, Serialize)]
+        </span><span class="kw">struct </span>B(<span class="attr">#[serde(with = <span class="string">&quot;cs_serde_bytes&quot;</span>)] </span>Vec&lt;u8&gt;);
+
+        <span class="kw">let </span><span class="kw-2">mut </span>array = [<span class="number">0</span>; <span class="number">1024</span>];
+        rand::rngs::OsRng.fill(<span class="kw-2">&amp;mut </span>array);
+
+        <span class="kw">let </span>a = A(array.to_vec());
+        <span class="kw">let </span>b = B(array.to_vec());
+
+        <span class="macro">ensure!</span>(serde_json::to_string_pretty(<span class="kw-2">&amp;</span>a)<span class="question-mark">? </span>== serde_json::to_string_pretty(<span class="kw-2">&amp;</span>b)<span class="question-mark">?</span>);
+
         <span class="prelude-val">Ok</span>(())
     }
 }
