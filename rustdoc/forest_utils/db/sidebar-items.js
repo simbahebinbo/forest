@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["file_backed_obj",""]],"trait":[["BlockstoreExt","Extension methods for inserting and retrieving IPLD data with CIDs"]]};
+window.SIDEBAR_ITEMS = {"mod":["file_backed_obj"],"trait":["BlockstoreExt"]};

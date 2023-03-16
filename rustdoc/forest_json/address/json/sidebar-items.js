@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["deserialize",""],["serialize",""]],"mod":[["opt",""],["vec",""]],"struct":[["AddressJson","Wrapper for serializing and de-serializing a `SignedMessage` from JSON."],["AddressJsonRef","Wrapper for serializing a `SignedMessage` reference to JSON."]]};
+window.SIDEBAR_ITEMS = {"fn":["deserialize","serialize"],"mod":["opt","vec"],"struct":["AddressJson","AddressJsonRef"]};

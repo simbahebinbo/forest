@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ParityDb",""]]};
+window.SIDEBAR_ITEMS = {"struct":["ParityDb"]};

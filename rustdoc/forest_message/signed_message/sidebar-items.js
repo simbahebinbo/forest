@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["SignedMessage","Represents a wrapped message with signature bytes."]]};
+window.SIDEBAR_ITEMS = {"struct":["SignedMessage"]};

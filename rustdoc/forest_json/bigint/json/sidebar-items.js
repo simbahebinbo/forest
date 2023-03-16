@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["deserialize","De-serializes String into `BigInt`."],["serialize","Serializes `BigInt` as String"]],"mod":[["option",""]]};
+window.SIDEBAR_ITEMS = {"fn":["deserialize","serialize"],"mod":["option"]};

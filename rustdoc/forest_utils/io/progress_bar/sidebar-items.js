@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ProgressBarVisibility",""],["Units",""]],"struct":[["ProgressBar","Progress bar wrapper, allows suppressing progress bars."]]};
+window.SIDEBAR_ITEMS = {"enum":["ProgressBarVisibility","Units"],"struct":["ProgressBar"]};

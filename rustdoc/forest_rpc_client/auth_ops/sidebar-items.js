@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["auth_new","Creates a new JWT Token"],["auth_verify",""]]};
+window.SIDEBAR_ITEMS = {"fn":["auth_new","auth_verify"]};

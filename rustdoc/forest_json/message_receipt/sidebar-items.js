@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["json",""]]};
+window.SIDEBAR_ITEMS = {"mod":["json"]};

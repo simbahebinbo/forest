@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["set_sigint_handler",""]],"struct":[["Cli","CLI structure generated when interacting with Forest binary"]]};
+window.SIDEBAR_ITEMS = {"fn":["set_sigint_handler"],"struct":["Cli"]};

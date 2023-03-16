@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["parse_duration",""]]};
+window.SIDEBAR_ITEMS = {"fn":["parse_duration"]};

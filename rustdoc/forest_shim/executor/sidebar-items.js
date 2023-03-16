@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["ApplyRet",""],["Receipt",""]],"struct":[["Receipt_v3","Result of a state transition from a message"]]};
+window.SIDEBAR_ITEMS = {"enum":["ApplyRet","Receipt"],"struct":["Receipt_v3"]};

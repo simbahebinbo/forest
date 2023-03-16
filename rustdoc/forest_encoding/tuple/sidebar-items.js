@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"derive":[["Deserialize_tuple",""],["Serialize_tuple",""]]};
+window.SIDEBAR_ITEMS = {"derive":["Deserialize_tuple","Serialize_tuple"]};

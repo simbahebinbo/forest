@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["draw_randomness","Computes a pseudo random 32 byte `Vec`."]],"struct":[["ChainRand","Allows for deriving the randomness from a particular tipset."]]};
+window.SIDEBAR_ITEMS = {"fn":["draw_randomness"],"struct":["ChainRand"]};

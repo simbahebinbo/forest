@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["json",""]],"struct":[["VRFProof","The output from running a VRF proof."]]};
+window.SIDEBAR_ITEMS = {"mod":["json"],"struct":["VRFProof"]};

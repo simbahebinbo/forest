@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BitswapRequestManager","Request manager implementation that is optimized for `filecoin` network usage"]]};
+window.SIDEBAR_ITEMS = {"struct":["BitswapRequestManager"]};

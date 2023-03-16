@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["print_state_diff","Prints a diff of the resolved state tree. If the actor’s HAMT cannot be loaded, base IPLD resolution is given."]]};
+window.SIDEBAR_ITEMS = {"fn":["print_state_diff"]};

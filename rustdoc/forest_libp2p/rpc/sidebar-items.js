@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["RequestResponseError","Libp2p request response outbound error type. This indicates a failure sending a request to a peer. This is different from a failure response from a node, as this is an error that prevented a response."]],"struct":[["CborRequestResponse","Generic `Cbor` `RequestResponse` type. This is just needed to satisfy [`request_response::Codec`] for Hello and `ChainExchange` protocols without duplication."]]};
+window.SIDEBAR_ITEMS = {"enum":["RequestResponseError"],"struct":["CborRequestResponse"]};

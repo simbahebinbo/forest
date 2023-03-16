@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["HelloBehaviour",""],["HelloRequest","Hello message https://filecoin-project.github.io/specs/#hello-spec"],["HelloResponse","Response to a Hello message. This just handles latency of the peer."]]};
+window.SIDEBAR_ITEMS = {"struct":["HelloBehaviour","HelloRequest","HelloResponse"]};

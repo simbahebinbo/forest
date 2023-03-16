@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["KIND",""]]};
+window.SIDEBAR_ITEMS = {"constant":["KIND"]};

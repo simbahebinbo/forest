@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/rpc/src/rpc_ws_handler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>rpc_ws_handler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f2fc7b5fd698d27d.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-5f7299aa2b503fb1.css"><link rel="stylesheet" disabled href="../../static.files/dark-dfb18ef8114bb428.css"><link rel="stylesheet" disabled href="../../static.files/ayu-4047a6aaddd3789d.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../../static.files/source-script-ea63cb6500f71309.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-02cbe07fc548e88c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../forest_rpc/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/rpc/src/rpc_ws_handler.rs`."><title>rpc_ws_handler.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c4dbdcde0fbd8430.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest_rpc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.70.0-nightly (171693274 2023-03-14)" data-search-js="search-d1bc581867fd0849.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" data-theme-light-css="light-db279b6232be9c13.css" data-theme-dark-css="dark-cf923f49f397b216.css" data-theme-ayu-css="ayu-be46fdc453a55015.css" ></div><script src="../../static.files/storage-9184409068f70b79.js"></script><script defer src="../../static.files/source-script-1b95b7cca98b26e5.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f5a2577c5297a973.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-db279b6232be9c13.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-cf923f49f397b216.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../forest_rpc/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -123,18 +123,6 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -148,31 +136,25 @@
     response::IntoResponse,
 };
 <span class="kw">use </span>crossbeam::atomic::AtomicCell;
-<span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_rpc_api::data_types::JsonRpcServerState;
 <span class="kw">use </span>futures::{stream::SplitSink, SinkExt, StreamExt};
-<span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>http::{HeaderMap, HeaderValue};
 <span class="kw">use </span>log::{debug, error, info, warn};
 <span class="kw">use </span>tokio::sync::RwLock;
 
 <span class="kw">use </span><span class="kw">crate</span>::rpc_util::{call_rpc_str, check_permissions, get_auth_header, get_error_str};
 
-<span class="kw">async fn </span>rpc_ws_task&lt;DB, B&gt;(
+<span class="kw">async fn </span>rpc_ws_task(
     authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
     rpc_call: jsonrpc_v2::RequestObject,
     rpc_server: JsonRpcServerState,
     _is_socket_active: Arc&lt;AtomicCell&lt;bool&gt;&gt;,
     ws_sender: Arc&lt;RwLock&lt;SplitSink&lt;WebSocket, Message&gt;&gt;&gt;,
-) -&gt; anyhow::Result&lt;()&gt;
-<span class="kw">where
-    </span>DB: Blockstore,
-    B: Beacon,
-{
+) -&gt; anyhow::Result&lt;()&gt; {
     <span class="kw">let </span>call_method = rpc_call.method_ref();
     <span class="kw">let </span>_call_id = rpc_call.id_ref();
 
-    check_permissions::&lt;DB, B&gt;(rpc_server.clone(), call_method, authorization_header)
+    check_permissions(rpc_server.clone(), call_method, authorization_header)
         .<span class="kw">await
         </span>.map_err(|(<span class="kw">_</span>, e)| anyhow::Error::msg(e))<span class="question-mark">?</span>;
 
@@ -187,29 +169,23 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">pub async fn </span>rpc_ws_handler&lt;DB, B&gt;(
+<span class="kw">pub async fn </span>rpc_ws_handler(
     headers: HeaderMap,
     axum::extract::State(rpc_server): axum::extract::State&lt;JsonRpcServerState&gt;,
     ws: WebSocketUpgrade,
-) -&gt; <span class="kw">impl </span>IntoResponse
-<span class="kw">where
-    </span>DB: Blockstore,
-    B: Beacon,
-{
+) -&gt; <span class="kw">impl </span>IntoResponse {
     <span class="kw">let </span>authorization_header = get_auth_header(headers);
-    ws.on_upgrade(<span class="kw">move </span>|socket| <span class="kw">async </span>{
-        rpc_ws_handler_inner::&lt;DB, B&gt;(socket, authorization_header, rpc_server).<span class="kw">await
+    <span class="attr">#[allow(clippy::redundant_async_block)]
+    </span>ws.on_upgrade(<span class="kw">move </span>|socket| <span class="kw">async </span>{
+        rpc_ws_handler_inner(socket, authorization_header, rpc_server).<span class="kw">await
     </span>})
 }
 
-<span class="kw">async fn </span>rpc_ws_handler_inner&lt;DB, B&gt;(
+<span class="kw">async fn </span>rpc_ws_handler_inner(
     socket: WebSocket,
     authorization_header: <span class="prelude-ty">Option</span>&lt;HeaderValue&gt;,
     rpc_server: JsonRpcServerState,
-) <span class="kw">where
-    </span>DB: Blockstore,
-    B: Beacon,
-{
+) {
     <span class="macro">info!</span>(<span class="string">&quot;Accepted WS connection!&quot;</span>);
     <span class="kw">let </span>(sender, <span class="kw-2">mut </span>receiver) = socket.split();
     <span class="kw">let </span>ws_sender = Arc::new(RwLock::new(sender));
@@ -229,7 +205,7 @@
                 {
                     <span class="prelude-val">Ok</span>(rpc_call) =&gt; {
                         tokio::task::spawn(<span class="kw">async move </span>{
-                            <span class="kw">match </span>rpc_ws_task::&lt;DB, B&gt;(
+                            <span class="kw">match </span>rpc_ws_task(
                                 authorization_header,
                                 rpc_call,
                                 task_rpc_server,
@@ -273,4 +249,4 @@
     socket_active.store(<span class="bool-val">false</span>);
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="forest_rpc" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (e972bc808 2023-01-29)" data-search-js="search-98d53477a794af0b.js" data-settings-js="settings-a43118d2dfb2799d.js" data-settings-css="settings-7c23ac01f615ce90.css" ></div></body></html>
+</section></main></body></html>

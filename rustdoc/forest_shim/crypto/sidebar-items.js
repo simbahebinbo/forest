@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["SignatureType_v2","Signature variants for Filecoin signatures."],["SignatureType_v3","Signature variants for Filecoin signatures."]],"struct":[["Signature",""],["SignatureType",""],["Signature_v2","A cryptographic signature, represented in bytes, of any key protocol."],["Signature_v3","A cryptographic signature, represented in bytes, of any key protocol."]]};
+window.SIDEBAR_ITEMS = {"enum":["SignatureType_v2","SignatureType_v3"],"struct":["Signature","SignatureType","Signature_v2","Signature_v3"]};

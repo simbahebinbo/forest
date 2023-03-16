@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ExitCode","Newtype wrapper for FVM `ExitCode`."]]};
+window.SIDEBAR_ITEMS = {"struct":["ExitCode"]};

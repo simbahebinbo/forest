@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":[["SKIP","Cache of look-back entries to speed up lookup in `ChainIndex`."],["STATE_MANAGER_TIPSET","tipset cache in state manager"],["TIPSET","`TipsetCache`."]]};
+window.SIDEBAR_ITEMS = {"constant":["SKIP","STATE_MANAGER_TIPSET","TIPSET"]};

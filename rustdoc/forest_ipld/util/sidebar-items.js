@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["recurse_links_hash","Load and hash cids and resolve recursively."]]};
+window.SIDEBAR_ITEMS = {"fn":["recurse_links_hash"]};
