@@ -659,6 +659,12 @@
 <a href="#659" id="659">659</a>
 <a href="#660" id="660">660</a>
 <a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1012,6 +1018,12 @@
             <span class="kw">return </span><span class="prelude-val">Ok</span>(db);
         },
     }
+
+    <span class="comment">// For convenience, flush the database after we&#39;ve potentially loaded a new
+    // snapshot. This ensures the snapshot won&#39;t have to be re-imported if
+    // Forest is interrupted. As of writing, flushing only affects RocksDB and
+    // is a no-op with ParityDB.
+    </span>state_manager.blockstore().flush()<span class="question-mark">?</span>;
 
     <span class="comment">// Halt
     </span><span class="kw">if </span>opts.halt_after_import {
