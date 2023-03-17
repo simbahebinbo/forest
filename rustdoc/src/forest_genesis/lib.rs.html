@@ -242,7 +242,7 @@
     db: <span class="kw-2">&amp;</span>DB,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BlockHeader, anyhow::Error&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Send + Sync,
+    </span>DB: Blockstore + Send + Sync,
 {
     <span class="kw">let </span>genesis = <span class="kw">match </span>genesis_fp {
         <span class="prelude-val">Some</span>(path) =&gt; {
@@ -268,7 +268,7 @@
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;BS&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="comment">// Get network name from genesis state.
     </span><span class="kw">let </span>network_name = state_manager
@@ -282,7 +282,7 @@
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;BS&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Tipset, String), anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>genesis_bytes = state_manager.chain_config().genesis_bytes();
     <span class="kw">let </span>genesis =
@@ -295,7 +295,7 @@
 <span class="kw">async fn </span>process_car&lt;R, BS&gt;(reader: R, db: <span class="kw-2">&amp;</span>BS) -&gt; <span class="prelude-ty">Result</span>&lt;BlockHeader, anyhow::Error&gt;
 <span class="kw">where
     </span>R: AsyncRead + Send + Unpin,
-    BS: Blockstore + Store + Send + Sync,
+    BS: Blockstore + Send + Sync,
 {
     <span class="comment">// Load genesis state into the database and get the Cid
     </span><span class="kw">let </span>genesis_cids: Vec&lt;Cid&gt; = load_car(db, reader.compat()).<span class="kw">await</span><span class="question-mark">?</span>;

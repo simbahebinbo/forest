@@ -231,7 +231,6 @@
 <a href="#231" id="231">231</a>
 <a href="#232" id="232">232</a>
 <a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -239,7 +238,6 @@
 
 <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
 <span class="kw">use </span>forest_beacon::Beacon;
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::{address::json::AddressJson, signature::json::SignatureJson};
 <span class="kw">use </span>forest_key_management::{json::KeyInfoJson, Error, Key};
 <span class="kw">use </span>forest_rpc_api::{data_types::RPCState, wallet_api::<span class="kw-2">*</span>};
@@ -254,7 +252,7 @@
     Params(params): Params&lt;WalletBalanceParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletBalanceResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(addr_str,) = params;
@@ -423,7 +421,7 @@
     Params(params): Params&lt;WalletSignParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;WalletSignResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>state_manager = <span class="kw-2">&amp;</span>data.state_manager;

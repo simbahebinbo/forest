@@ -1685,16 +1685,6 @@
 <a href="#1685" id="1685">1685</a>
 <a href="#1686" id="1686">1686</a>
 <a href="#1687" id="1687">1687</a>
-<a href="#1688" id="1688">1688</a>
-<a href="#1689" id="1689">1689</a>
-<a href="#1690" id="1690">1690</a>
-<a href="#1691" id="1691">1691</a>
-<a href="#1692" id="1692">1692</a>
-<a href="#1693" id="1693">1693</a>
-<a href="#1694" id="1694">1694</a>
-<a href="#1695" id="1695">1695</a>
-<a href="#1696" id="1696">1696</a>
-<a href="#1697" id="1697">1697</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1714,7 +1704,6 @@
     Block, BlockHeader, Error <span class="kw">as </span>ForestBlockError, FullTipset, Tipset, TipsetKeys,
 };
 <span class="kw">use </span>forest_chain::{persist_objects, ChainStore, Error <span class="kw">as </span>ChainStoreError};
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p::chain_exchange::TipsetBundle;
 <span class="kw">use </span>forest_message::{message::valid_for_block_inclusion, Message <span class="kw">as </span>MessageTrait};
 <span class="kw">use </span>forest_networks::Height;
@@ -1959,7 +1948,7 @@
 
 <span class="kw">impl</span>&lt;DB, C&gt; TipsetProcessor&lt;DB, C&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     C: Consensus,
 {
     <span class="attr">#[allow(clippy::too_many_arguments)]
@@ -2047,7 +2036,7 @@
 
 <span class="kw">impl</span>&lt;DB, C&gt; Future <span class="kw">for </span>TipsetProcessor&lt;DB, C&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     C: Consensus,
 {
     <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;(), TipsetProcessorError&lt;C&gt;&gt;;
@@ -2335,7 +2324,7 @@
 
 <span class="kw">impl</span>&lt;DB, C&gt; TipsetRangeSyncer&lt;DB, C&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     C: Consensus,
 {
     <span class="attr">#[allow(clippy::too_many_arguments)]
@@ -2459,7 +2448,7 @@
 /// messages going forward on the chain and validate each extension. Finally set
 /// the proposed head as the heaviest tipset.
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">fn </span>sync_tipset_range&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
+</span><span class="kw">fn </span>sync_tipset_range&lt;DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     proposed_head: Arc&lt;Tipset&gt;,
     current_head: Arc&lt;Tipset&gt;,
     tracker: <span class="kw">crate</span>::chain_muxer::WorkerState,
@@ -2547,10 +2536,7 @@
 <span class="doccomment">/// Download headers between the proposed head and the current one available
 /// locally. If they turn out to be on different forks, download more headers up
 /// to a certain limit to try to find a common ancestor.
-</span><span class="kw">async fn </span>sync_headers_in_reverse&lt;
-    DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
-    C: Consensus,
-&gt;(
+</span><span class="kw">async fn </span>sync_headers_in_reverse&lt;DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     tracker: <span class="kw">crate</span>::chain_muxer::WorkerState,
     tipset_range_length: u64,
     proposed_head: Arc&lt;Tipset&gt;,
@@ -2668,7 +2654,7 @@
 }
 
 <span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">fn </span>sync_tipset&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
+</span><span class="kw">fn </span>sync_tipset&lt;DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     proposed_head: Arc&lt;Tipset&gt;,
     consensus: Arc&lt;C&gt;,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
@@ -2717,7 +2703,7 @@
     })
 }
 
-<span class="kw">async fn </span>fetch_batch&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
+<span class="kw">async fn </span>fetch_batch&lt;DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     batch: <span class="kw-2">&amp;</span>[Arc&lt;Tipset&gt;],
     network: <span class="kw-2">&amp;</span>SyncNetworkContext&lt;DB&gt;,
     chainstore: <span class="kw-2">&amp;</span>ChainStore&lt;DB&gt;,
@@ -2765,10 +2751,7 @@
 /// `BlockStore`, or download them from the network, then validate the full
 /// tipset on each epoch.
 </span><span class="attr">#[allow(clippy::too_many_arguments)]
-</span><span class="kw">async fn </span>sync_messages_check_state&lt;
-    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    C: Consensus,
-&gt;(
+</span><span class="kw">async fn </span>sync_messages_check_state&lt;DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     tracker: <span class="kw">crate</span>::chain_muxer::WorkerState,
     consensus: Arc&lt;C&gt;,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
@@ -2842,7 +2825,7 @@
 /// executed), adding the successful ones to the tipset tracker, and the failed
 /// ones to the bad block cache, depending on strategy. Any bad block fails
 /// validation.
-</span><span class="kw">async fn </span>validate_tipset&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
+</span><span class="kw">async fn </span>validate_tipset&lt;DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     consensus: Arc&lt;C&gt;,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     chainstore: <span class="kw-2">&amp;</span>ChainStore&lt;DB&gt;,
@@ -2932,7 +2915,7 @@
 /// * Checking that the messages in the block correspond to the agreed upon
 ///   total ordering
 /// * That the block is a deterministic derivative of the underlying consensus
-</span><span class="kw">async fn </span>validate_block&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
+</span><span class="kw">async fn </span>validate_block&lt;DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     consensus: Arc&lt;C&gt;,
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     block: Arc&lt;Block&gt;,
@@ -3127,10 +3110,7 @@
 ///
 /// NB: This loads/computes the state resulting from the execution of the parent
 /// tipset.
-</span><span class="kw">async fn </span>check_block_messages&lt;
-    DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
-    C: Consensus,
-&gt;(
+</span><span class="kw">async fn </span>check_block_messages&lt;DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>, C: Consensus&gt;(
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     block: Arc&lt;Block&gt;,
     base_tipset: Arc&lt;Tipset&gt;,
