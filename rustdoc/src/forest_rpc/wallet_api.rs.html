@@ -286,7 +286,7 @@
     <span class="kw">let </span>keystore = data.keystore.read().<span class="kw">await</span>;
 
     <span class="kw">let </span>addr = forest_key_management::get_default(<span class="kw-2">&amp;</span>keystore)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(addr.to_string())
+    <span class="prelude-val">Ok</span>(addr.map(|s| s.to_string()))
 }
 
 <span class="doccomment">/// Export `KeyInfo` from the Wallet given its address
