@@ -74,8 +74,8 @@ flume = "0.10"
 fs_extra = "1.2"
 futures = "0.3"
 futures-util = "0.3"
-fvm = "~2.3"
-fvm3 = { package = "fvm", git = "https://github.com/ChainSafe/ref-fvm", branch = "lemmih-wibbles" }
+fvm = { version = "~2.3", default-features = false }
+fvm3 = { package = "fvm", default-features = false, git = "https://github.com/ChainSafe/ref-fvm", branch = "lemmih-wibbles" }
 fvm_ipld_amt = "0.5"
 fvm_ipld_bitfield = "0.5"
 fvm_ipld_blockstore = "0.1"
@@ -143,8 +143,8 @@ unsigned-varint = { version = "0.7", default-features = false }
 url = { version = "2.3", features = ["serde"] }
 which = "4.3"
 
-fil_actor_interface = { git = "https://github.com/ChainSafe/fil-actor-states", branch = "hm/relax-fvm2" }
-fil_actors_runtime_v9 = { git = "https://github.com/ChainSafe/fil-actor-states", branch = "hm/relax-fvm2" }
+fil_actor_interface = { git = "https://github.com/ChainSafe/fil-actor-states" }
+fil_actors_runtime_v9 = { git = "https://github.com/ChainSafe/fil-actor-states" }
 forest_auth = { path = "./utils/auth" }
 forest_beacon = { path = "./blockchain/beacon" }
 forest_blocks = { path = "./blockchain/blocks" }
