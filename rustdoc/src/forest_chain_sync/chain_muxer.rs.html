@@ -980,6 +980,9 @@
 <a href="#980" id="980">980</a>
 <a href="#981" id="981">981</a>
 <a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1868,6 +1871,9 @@
                         );
                         metrics::NETWORK_HEAD_EVALUATION_ERRORS.inc();
                         <span class="self">self</span>.state = ChainMuxerState::Idle;
+
+                        <span class="comment">// By default bail on errors
+                        </span><span class="kw">return </span>Poll::Ready(why);
                     }
                     Poll::Pending =&gt; <span class="kw">return </span>Poll::Pending,
                 },
