@@ -319,6 +319,10 @@
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -429,7 +433,11 @@
             .<span class="kw">await
     </span>} {
         <span class="prelude-val">Ok</span>(checksum) <span class="kw">if </span>!dry_run =&gt; {
-            tmp_file.persist(<span class="kw-2">&amp;</span>output_path)<span class="question-mark">?</span>;
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = tmp_file.persist(<span class="kw-2">&amp;</span>output_path) {
+                <span class="comment">// Temporary files cannot be persisted across filesystems, so we fallback to a
+                // copy in case it happens.
+                </span>tokio::fs::copy(e.file, <span class="kw-2">&amp;</span>output_path).<span class="kw">await</span><span class="question-mark">?</span>;
+            }
             <span class="kw">if </span>!skip_checksum {
                 save_checksum(<span class="kw-2">&amp;</span>output_path, checksum).<span class="kw">await</span><span class="question-mark">?</span>;
             }
