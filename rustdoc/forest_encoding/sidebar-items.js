@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["BYTE_ARRAY_MAX_LEN"],"fn":["blake2b_256"],"mod":["de","error","repr","ser","serde_byte_array","tuple"]};

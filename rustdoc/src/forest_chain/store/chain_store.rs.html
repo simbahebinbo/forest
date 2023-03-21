@@ -1026,7 +1026,6 @@
 <a href="#1026" id="1026">1026</a>
 <a href="#1027" id="1027">1027</a>
 <a href="#1028" id="1028">1028</a>
-<a href="#1029" id="1029">1029</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1043,7 +1042,6 @@
 <span class="kw">use </span>digest::Digest;
 <span class="kw">use </span>forest_beacon::{BeaconEntry, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, TipsetKeys, TxMeta};
-<span class="kw">use </span>forest_encoding::de::DeserializeOwned;
 <span class="kw">use </span>forest_interpreter::BlockMessages;
 <span class="kw">use </span>forest_ipld::{recurse_links_hash, CidHashSet};
 <span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
@@ -1075,7 +1073,7 @@
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::Mutex;
-<span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>tokio::{
     io::AsyncWrite,
     sync::{
