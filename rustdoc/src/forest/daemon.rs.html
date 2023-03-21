@@ -665,6 +665,15 @@
 <a href="#665" id="665">665</a>
 <a href="#666" id="666">666</a>
 <a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1004,7 +1013,12 @@
     <span class="kw">let </span>config = maybe_fetch_snapshot(should_fetch_snapshot, config).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="macro">tokio::select! </span>{
-        () = sync_from_snapshot(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>state_manager).fuse() =&gt; {},
+        ret = sync_from_snapshot(<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>state_manager).fuse() =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Err</span>(err) = ret {
+                services.shutdown().<span class="kw">await</span>;
+                <span class="kw">return </span><span class="prelude-val">Err</span>(err);
+            }
+        },
         <span class="kw">_ </span>= tokio::signal::ctrl_c() =&gt; {
             services.shutdown().<span class="kw">await</span>;
             <span class="kw">return </span><span class="prelude-val">Ok</span>(db);
@@ -1143,7 +1157,10 @@
     }
 }
 
-<span class="kw">async fn </span>sync_from_snapshot&lt;DB&gt;(config: <span class="kw-2">&amp;</span>Config, state_manager: <span class="kw-2">&amp;</span>Arc&lt;StateManager&lt;DB&gt;&gt;)
+<span class="kw">async fn </span>sync_from_snapshot&lt;DB&gt;(
+    config: <span class="kw-2">&amp;</span>Config,
+    state_manager: <span class="kw-2">&amp;</span>Arc&lt;StateManager&lt;DB&gt;&gt;,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
     </span>DB: Store + Send + Clone + Sync + Blockstore + <span class="lifetime">&#39;static</span>,
 {
@@ -1167,13 +1184,14 @@
                 <span class="macro">info!</span>(<span class="string">&quot;Imported snapshot in: {}s&quot;</span>, stopwatch.elapsed().as_secs());
             }
             <span class="prelude-val">Err</span>(err) =&gt; {
-                <span class="macro">error!</span>(
+                <span class="macro">anyhow::bail!</span>(
                     <span class="string">&quot;Failed miserably while importing chain from snapshot {}: {err}&quot;</span>,
                     path.display()
-                )
+                );
             }
         }
     }
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">fn </span>get_actual_chain_name(internal_network_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
