@@ -63,11 +63,6 @@
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -108,12 +103,7 @@
             Address::from_str(
                 <span class="kw-2">&amp;</span>wallet_default_address((), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
-                    </span>.map_err(handle_rpc_err)<span class="question-mark">?
-                    </span>.ok_or_else(|| {
-                        <span class="macro">anyhow::anyhow!</span>(
-                            <span class="string">&quot;No default wallet address selected. Please set a default address.&quot;
-                        </span>)
-                    })<span class="question-mark">?</span>,
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>,
             )<span class="question-mark">?
         </span>};
 

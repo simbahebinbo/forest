@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["blake2b_256"],"mod":["de","ser","serde_byte_array"],"trait":["Deserializer","Serializer"]};

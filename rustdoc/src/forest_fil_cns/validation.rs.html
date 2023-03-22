@@ -395,6 +395,10 @@
 <a href="#395" id="395">395</a>
 <a href="#396" id="396">396</a>
 <a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -406,6 +410,7 @@
 <span class="kw">use </span>forest_beacon::{Beacon, BeaconEntry, BeaconSchedule, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, Tipset};
 <span class="kw">use </span>forest_chain_sync::collect_errs;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_fil_types::verifier::verify_winning_post;
 <span class="kw">use </span>forest_networks::{ChainConfig, Height};
 <span class="kw">use </span>forest_shim::{address::Address, randomness::Randomness, version::NetworkVersion};
@@ -430,7 +435,10 @@
 /// * Sanity checks
 /// * Timestamps
 /// * Elections and Proof-of-SpaceTime, Beacon values
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>validate_block&lt;DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>, B: Beacon&gt;(
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">async fn </span>validate_block&lt;
+    DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    B: Beacon,
+&gt;(
     state_manager: Arc&lt;StateManager&lt;DB&gt;&gt;,
     beacon_schedule: Arc&lt;BeaconSchedule&lt;B&gt;&gt;,
     block: Arc&lt;Block&gt;,
@@ -593,7 +601,7 @@
 
 <span class="comment">// Check that the miner power can be loaded.
 // Doesn&#39;t check that the miner actually has any power.
-</span><span class="kw">fn </span>validate_miner&lt;DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+</span><span class="kw">fn </span>validate_miner&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;DB&gt;,
     miner_addr: <span class="kw-2">&amp;</span>Address,
     tipset_state: <span class="kw-2">&amp;</span>Cid,
@@ -617,7 +625,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn </span>validate_winner_election&lt;DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>&gt;(
+<span class="kw">fn </span>validate_winner_election&lt;DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>&gt;(
     header: <span class="kw-2">&amp;</span>BlockHeader,
     base_tipset: <span class="kw-2">&amp;</span>Tipset,
     lookback_tipset: <span class="kw-2">&amp;</span>Tipset,
@@ -727,7 +735,7 @@
     verify_bls_sig(evrf, rand, <span class="kw-2">&amp;</span>worker.into()).map_err(FilecoinConsensusError::VrfValidation)
 }
 
-<span class="kw">fn </span>verify_winning_post_proof&lt;DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
+<span class="kw">fn </span>verify_winning_post_proof&lt;DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>&gt;(
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;DB&gt;,
     network_version: NetworkVersion,
     header: <span class="kw-2">&amp;</span>BlockHeader,

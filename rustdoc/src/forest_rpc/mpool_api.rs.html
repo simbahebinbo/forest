@@ -148,6 +148,7 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -157,6 +158,7 @@
 <span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_blocks::TipsetKeys;
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::{
     cid::{vec::CidJsonVec, CidJson},
     message::json::MessageJson,
@@ -177,7 +179,7 @@
     Params(params): Params&lt;MpoolPendingParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolPendingResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(CidJsonVec(cid_vec),) = params;
@@ -237,7 +239,7 @@
     Params(params): Params&lt;MpoolPushParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolPushResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(SignedMessageJson(smsg),) = params;
@@ -253,7 +255,7 @@
     Params(params): Params&lt;MpoolPushMessageParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;MpoolPushMessageResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(MessageJson(umsg), spec) = params;

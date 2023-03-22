@@ -276,19 +276,17 @@
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
 <a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_json::vrf::VRFProof;
-<span class="kw">use </span>forest_utils::encoding::blake2b_256;
+</span><span class="kw">use </span>forest_encoding::{blake2b_256, tuple::<span class="kw-2">*</span>};
+<span class="kw">use </span>forest_json::vrf::VRFProof;
 <span class="kw">use </span>fvm_shared::BLOCKS_PER_EPOCH;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>num::{
     bigint::{ParseBigIntError, Sign},
     BigInt, Integer,
 };
-<span class="kw">use </span>serde_tuple::{<span class="self">self</span>, Deserialize_tuple, Serialize_tuple};
 
 <span class="kw">const </span>PRECISION: u64 = <span class="number">256</span>;
 <span class="kw">const </span>MAX_WIN_COUNT: i64 = <span class="number">3 </span>* BLOCKS_PER_EPOCH <span class="kw">as </span>i64;

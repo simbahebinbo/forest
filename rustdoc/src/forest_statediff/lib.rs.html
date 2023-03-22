@@ -215,91 +215,6 @@
 <a href="#215" id="215">215</a>
 <a href="#216" id="216">216</a>
 <a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -313,12 +228,15 @@
 <span class="kw">use </span>ahash::HashMap;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>colored::<span class="kw-2">*</span>;
-<span class="kw">use </span>fil_actor_interface::{
-    account::State <span class="kw">as </span>AccountState, cron::State <span class="kw">as </span>CronState, datacap::State <span class="kw">as </span>DatacapState,
-    evm::State <span class="kw">as </span>EvmState, init::State <span class="kw">as </span>InitState, market::State <span class="kw">as </span>MarketState,
-    miner::State <span class="kw">as </span>MinerState, multisig::State <span class="kw">as </span>MultiSigState, power::State <span class="kw">as </span>PowerState,
-    reward::State <span class="kw">as </span>RewardState, system::State <span class="kw">as </span>SystemState,
-};
+<span class="kw">use </span>fil_actor_account_v9::State <span class="kw">as </span>AccountState;
+<span class="kw">use </span>fil_actor_cron_v9::State <span class="kw">as </span>CronState;
+<span class="kw">use </span>fil_actor_init_v9::State <span class="kw">as </span>InitState;
+<span class="kw">use </span>fil_actor_market_v9::State <span class="kw">as </span>MarketState;
+<span class="kw">use </span>fil_actor_miner_v9::State <span class="kw">as </span>MinerState;
+<span class="kw">use </span>fil_actor_multisig_v9::State <span class="kw">as </span>MultiSigState;
+<span class="kw">use </span>fil_actor_power_v9::State <span class="kw">as </span>PowerState;
+<span class="kw">use </span>fil_actor_reward_v9::State <span class="kw">as </span>RewardState;
+<span class="kw">use </span>fil_actor_system_v9::State <span class="kw">as </span>SystemState;
 <span class="kw">use </span>forest_ipld::json::{IpldJson, IpldJsonRef};
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_shim::{
@@ -422,55 +340,51 @@
     state: <span class="kw-2">&amp;</span>ActorState,
     depth: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, anyhow::Error&gt; {
+    <span class="kw">let </span>resolved = actor_to_resolved(bs, state, depth);
+    <span class="kw">let </span>ipld = <span class="kw-2">&amp;</span>resolved.state.<span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>buffer = String::new();
+
     <span class="macro">writeln!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{state:?}&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(miner_state) = MinerState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+
+    <span class="comment">// FIXME: Use the actor interface to load and pretty print the actor states.
+    //        Tracker: https://github.com/ChainSafe/forest/issues/1561
+    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(miner_state) = forest_ipld::from_ipld::&lt;MinerState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{miner_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(cron_state) = CronState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(cron_state) = forest_ipld::from_ipld::&lt;CronState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{cron_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(account_state) = AccountState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(account_state) = forest_ipld::from_ipld::&lt;AccountState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{account_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(power_state) = PowerState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(power_state) = forest_ipld::from_ipld::&lt;PowerState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{power_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(init_state) = InitState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(init_state) = forest_ipld::from_ipld::&lt;InitState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{init_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(reward_state) = RewardState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(reward_state) = forest_ipld::from_ipld::&lt;RewardState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{reward_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(system_state) = SystemState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(system_state) = forest_ipld::from_ipld::&lt;SystemState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{system_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(multi_sig_state) = MultiSigState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(multi_sig_state) = forest_ipld::from_ipld::&lt;MultiSigState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{multi_sig_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(market_state) = MarketState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(market_state) = forest_ipld::from_ipld::&lt;MarketState&gt;(ipld.clone()) {
         <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{market_state:?}&quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
     }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(datacap_state) = DatacapState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
-        <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{datacap_state:?}&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
-    }
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(evm_state) = EvmState::load(bs, <span class="kw-2">&amp;</span>state.into()) {
-        <span class="macro">write!</span>(<span class="kw-2">&amp;mut </span>buffer, <span class="string">&quot;{evm_state:?}&quot;</span>)<span class="question-mark">?</span>;
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(buffer);
-    }
-
-    <span class="kw">let </span>resolved = actor_to_resolved(bs, state, depth);
-    buffer = serde_json::to_string_pretty(<span class="kw-2">&amp;</span>resolved)<span class="question-mark">?</span>;
+    buffer += <span class="kw-2">&amp;</span>serde_json::to_string_pretty(<span class="kw-2">&amp;</span>resolved)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(buffer)
 }
 
@@ -517,90 +431,6 @@
     </span>}
 
     <span class="prelude-val">Ok</span>(())
-}
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests {
-    <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
-    <span class="kw">use </span>fil_actor_account_v10::State <span class="kw">as </span>AccountState;
-    <span class="kw">use </span>forest_db::MemoryDB;
-    <span class="kw">use </span>forest_shim::{econ::TokenAmount, state_tree::ActorState};
-    <span class="kw">use </span>forest_utils::db::BlockstoreExt;
-    <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-    <span class="kw">use </span>fvm_shared::address::Address;
-
-    <span class="kw">use </span><span class="kw">super</span>::pp_actor_state;
-
-    <span class="kw">fn </span>mk_account_v10(db: <span class="kw-2">&amp;</span><span class="kw">impl </span>Blockstore, account: <span class="kw-2">&amp;</span>AccountState) -&gt; ActorState {
-        <span class="comment">// mainnet v10 account actor cid
-        </span><span class="kw">let </span>account_cid =
-            Cid::try_from(<span class="string">&quot;bafk2bzaceampw4romta75hyz5p4cqriypmpbgnkxncgxgqn6zptv5lsp2w2bo&quot;</span>)
-                .unwrap();
-        <span class="kw">let </span>actor_state_cid = db.put_obj(<span class="kw-2">&amp;</span>account, Blake2b256).unwrap();
-        ActorState::new(
-            account_cid,
-            actor_state_cid,
-            TokenAmount::from_atto(<span class="number">0</span>),
-            <span class="number">0</span>,
-            <span class="prelude-val">None</span>,
-        )
-    }
-
-    <span class="comment">// Account states should be parsed and pretty-printed.
-    </span><span class="attr">#[test]
-    </span><span class="kw">fn </span>correctly_pretty_print_account_actor_state() {
-        <span class="kw">let </span>db = MemoryDB::default();
-
-        <span class="kw">let </span>account_state = AccountState {
-            address: Address::new_id(<span class="number">0xdeadbeef</span>),
-        };
-        <span class="kw">let </span>state = mk_account_v10(<span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>account_state);
-
-        <span class="kw">let </span>pretty = pp_actor_state(<span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>state, <span class="prelude-val">None</span>).unwrap();
-
-        <span class="macro">assert_eq!</span>(
-            pretty,
-            <span class="string">&quot;ActorState(\
-                ActorState { \
-                    code: Cid(bafk2bzaceampw4romta75hyz5p4cqriypmpbgnkxncgxgqn6zptv5lsp2w2bo), \
-                    state: Cid(bafy2bzaceaiws3hdhmfyxyfjzmbaxv5aw6eywwbipeae4n5jjg5smmfxsaeic), \
-                    sequence: 0, balance: TokenAmount(0.0), delegated_address: None })\n\
-            V10(State { address: Address { network: Mainnet, payload: ID(3735928559) } })&quot;
-        </span>);
-    }
-
-    <span class="comment">// When we cannot identify (or parse) an actor state, we should print the IPLD
-    // as JSON
-    </span><span class="attr">#[test]
-    </span><span class="kw">fn </span>check_json_fallback_if_unknown_actor() {
-        <span class="kw">let </span>db = MemoryDB::default();
-
-        <span class="kw">let </span>account_state = AccountState {
-            address: Address::new_id(<span class="number">0xdeadbeef</span>),
-        };
-        <span class="kw">let </span><span class="kw-2">mut </span>state = mk_account_v10(<span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>account_state);
-        state.code = Cid::default(); <span class="comment">// Use an unknown actor CID to force parsing to fail.
-
-        </span><span class="kw">let </span>pretty = pp_actor_state(<span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>state, <span class="prelude-val">None</span>).unwrap();
-
-        <span class="macro">assert_eq!</span>(
-            pretty,
-            <span class="string">&quot;{
-  \&quot;code\&quot;: {
-    \&quot;/\&quot;: \&quot;baeaaaaa\&quot;
-  },
-  \&quot;sequence\&quot;: 0,
-  \&quot;balance\&quot;: \&quot;0.0\&quot;,
-  \&quot;state\&quot;: [
-    {
-      \&quot;/\&quot;: {
-        \&quot;bytes\&quot;: \&quot;mAO/9tvUN\&quot;
-      }
-    }
-  ]
-}&quot;
-        </span>);
-    }
 }
 </code></pre></div>
 </section></main></body></html>

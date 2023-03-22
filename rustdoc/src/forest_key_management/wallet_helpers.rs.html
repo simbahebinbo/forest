@@ -102,11 +102,11 @@
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>bls_signatures::{PrivateKey <span class="kw">as </span>BlsPrivate, Serialize};
+<span class="kw">use </span>forest_encoding::blake2b_256;
 <span class="kw">use </span>forest_shim::{
     address::Address,
     crypto::{Signature, SignatureType},
 };
-<span class="kw">use </span>forest_utils::encoding::blake2b_256;
 <span class="kw">use </span>libsecp256k1::{Message <span class="kw">as </span>SecpMessage, PublicKey <span class="kw">as </span>SecpPublic, SecretKey <span class="kw">as </span>SecpPrivate};
 <span class="kw">use </span>rand::rngs::OsRng;
 

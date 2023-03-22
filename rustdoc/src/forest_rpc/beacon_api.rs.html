@@ -24,10 +24,12 @@
 <a href="#24" id="24">24</a>
 <a href="#25" id="25">25</a>
 <a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>forest_beacon::{json::BeaconEntryJson, Beacon};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_rpc_api::{beacon_api::<span class="kw-2">*</span>, data_types::RPCState};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JsonRpcError, Params};
@@ -40,7 +42,7 @@
     Params(params): Params&lt;BeaconGetEntryParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BeaconGetEntryResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(first,) = params;

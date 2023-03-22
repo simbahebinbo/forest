@@ -77,9 +77,9 @@
     multihash::{Code, MultihashDigest},
     Cid,
 };
+<span class="kw">use </span>forest_encoding::{de::DeserializeOwned, ser::Serialize};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_encoding::{from_slice, to_vec, DAG_CBOR};
-<span class="kw">use </span>serde::{de::DeserializeOwned, ser::Serialize};
 
 <span class="doccomment">/// Extension methods for inserting and retrieving IPLD data with CIDs
 </span><span class="kw">pub trait </span>BlockstoreExt: Blockstore {

@@ -134,13 +134,15 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">pub mod </span>json {
     <span class="kw">use </span>base64::{prelude::BASE64_STANDARD, Engine};
+    <span class="kw">use </span>forest_encoding::de;
     <span class="kw">use </span>forest_shim::crypto::{Signature, SignatureType};
-    <span class="kw">use </span>serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+    <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     <span class="comment">// Wrapper for serializing and deserializing a Signature from JSON.
     </span><span class="attr">#[derive(Deserialize, Serialize)]

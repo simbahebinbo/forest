@@ -203,6 +203,13 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -211,6 +218,7 @@
 <span class="kw">use </span>anyhow::bail;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>forest_utils::{db::BlockstoreExt, net::FetchProgress};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -234,7 +242,7 @@
     db: <span class="kw-2">&amp;</span>DB,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;BlockHeader, anyhow::Error&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Send + Sync,
+    </span>DB: Blockstore + Store + Send + Sync,
 {
     <span class="kw">let </span>genesis = <span class="kw">match </span>genesis_fp {
         <span class="prelude-val">Some</span>(path) =&gt; {
@@ -260,7 +268,7 @@
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;BS&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;String, anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="comment">// Get network name from genesis state.
     </span><span class="kw">let </span>network_name = state_manager
@@ -274,7 +282,7 @@
     state_manager: <span class="kw-2">&amp;</span>StateManager&lt;BS&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(Tipset, String), anyhow::Error&gt;
 <span class="kw">where
-    </span>BS: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>BS: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>genesis_bytes = state_manager.chain_config().genesis_bytes();
     <span class="kw">let </span>genesis =
@@ -287,7 +295,7 @@
 <span class="kw">async fn </span>process_car&lt;R, BS&gt;(reader: R, db: <span class="kw-2">&amp;</span>BS) -&gt; <span class="prelude-ty">Result</span>&lt;BlockHeader, anyhow::Error&gt;
 <span class="kw">where
     </span>R: AsyncRead + Send + Unpin,
-    BS: Blockstore + Send + Sync,
+    BS: Blockstore + Store + Send + Sync,
 {
     <span class="comment">// Load genesis state into the database and get the Cid
     </span><span class="kw">let </span>genesis_cids: Vec&lt;Cid&gt; = load_car(db, reader.compat()).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -311,7 +319,7 @@
     skip_load: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), anyhow::Error&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>is_remote_file: bool = path.starts_with(<span class="string">&quot;http://&quot;</span>) || path.starts_with(<span class="string">&quot;https://&quot;</span>);
 
@@ -349,6 +357,8 @@
     <span class="comment">// Update head with snapshot header tipset
     </span>sm.chain_store().set_heaviest_tipset(ts.clone())<span class="question-mark">?</span>;
 
+    sm.blockstore().flush()<span class="question-mark">?</span>;
+
     <span class="kw">if let </span><span class="prelude-val">Some</span>(height) = validate_height {
         <span class="kw">let </span>height = <span class="kw">if </span>height &gt; <span class="number">0 </span>{
             height
@@ -372,7 +382,7 @@
     skip_load: bool,
 ) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
 <span class="kw">where
-    </span>DB: Blockstore,
+    </span>DB: Store,
     R: AsyncRead + Send + Unpin,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>compat = reader.compat();
@@ -386,10 +396,14 @@
     <span class="prelude-val">Ok</span>(result)
 }
 
-<span class="kw">pub async fn </span>forest_load_car&lt;DB, R&gt;(store: DB, reader: R) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
+<span class="doccomment">/// Optimizations:
+/// 1. ParityDB could benefit from a larger buffer. It&#39;s hard coded as 1000
+/// blocks in [fvm_ipld_car::load_car] 2. Use [Store::bulk_write] instead of
+/// [Blockstore] to avoid tons of unneccesary allocations
+</span><span class="kw">pub async fn </span>forest_load_car&lt;DB, R&gt;(store: DB, reader: R) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
 <span class="kw">where
     </span>R: futures::AsyncRead + Send + Unpin,
-    DB: Blockstore,
+    DB: Store,
 {
     <span class="comment">// 1GB
     </span><span class="kw">const </span>BUFFER_CAPCITY_BYTES: usize = <span class="number">1024 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
@@ -399,13 +413,13 @@
     <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="macro">vec!</span>[];
     <span class="kw">while let </span><span class="prelude-val">Some</span>(block) = car_reader.next_block().<span class="kw">await</span><span class="question-mark">? </span>{
         estimated_size += <span class="number">64 </span>+ block.data.len();
-        buffer.push((block.cid, block.data));
+        buffer.push((block.cid.to_bytes(), block.data));
         <span class="kw">if </span>estimated_size &gt;= BUFFER_CAPCITY_BYTES {
-            store.put_many_keyed(std::mem::take(<span class="kw-2">&amp;mut </span>buffer))<span class="question-mark">?</span>;
+            store.bulk_write(std::mem::take(<span class="kw-2">&amp;mut </span>buffer))<span class="question-mark">?</span>;
             estimated_size = <span class="number">0</span>;
         }
     }
-    store.put_many_keyed(buffer)<span class="question-mark">?</span>;
+    store.bulk_write(buffer)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(car_reader.header.roots)
 }
 </code></pre></div>

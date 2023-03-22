@@ -320,9 +320,6 @@
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="attr">#![allow(clippy::unused_async)]
@@ -338,6 +335,7 @@
     header::json::BlockHeaderJson, tipset_json::TipsetJson, tipset_keys_json::TipsetKeysJson,
     BlockHeader, Tipset,
 };
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_json::{cid::CidJson, message::json::MessageJson};
 <span class="kw">use </span>forest_rpc_api::{
     chain_api::<span class="kw-2">*</span>,
@@ -364,7 +362,7 @@
     Params(params): Params&lt;ChainGetMessageParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetMessageResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(CidJson(msg_cid),) = params;
@@ -388,7 +386,7 @@
     }): Params&lt;ChainExportParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainExportResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="macro">lazy_static::lazy_static! </span>{
@@ -433,11 +431,7 @@
             .<span class="kw">await
     </span>} {
         <span class="prelude-val">Ok</span>(checksum) <span class="kw">if </span>!dry_run =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = tmp_file.persist(<span class="kw-2">&amp;</span>output_path) {
-                <span class="comment">// Temporary files cannot be persisted across filesystems, so we fallback to a
-                // copy in case it happens.
-                </span>tokio::fs::copy(e.file, <span class="kw-2">&amp;</span>output_path).<span class="kw">await</span><span class="question-mark">?</span>;
-            }
+            tmp_file.persist(<span class="kw-2">&amp;</span>output_path)<span class="question-mark">?</span>;
             <span class="kw">if </span>!skip_checksum {
                 save_checksum(<span class="kw-2">&amp;</span>output_path, checksum).<span class="kw">await</span><span class="question-mark">?</span>;
             }
@@ -475,7 +469,7 @@
     Params(params): Params&lt;ChainReadObjParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainReadObjResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(CidJson(obj_cid),) = params;
@@ -492,7 +486,7 @@
     Params(params): Params&lt;ChainHasObjParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainHasObjResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(CidJson(obj_cid),) = params;
@@ -504,7 +498,7 @@
     Params(params): Params&lt;ChainGetBlockMessagesParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetBlockMessagesResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(CidJson(blk_cid),) = params;
@@ -539,7 +533,7 @@
     Params(params): Params&lt;ChainGetTipsetByHeightParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetTipsetByHeightResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(height, tsk) = params;
@@ -555,7 +549,7 @@
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetGenesisResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>genesis = data.state_manager.chain_store().genesis()<span class="question-mark">?</span>;
@@ -567,7 +561,7 @@
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainHeadResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>heaviest = data.state_manager.chain_store().heaviest_tipset();
@@ -579,7 +573,7 @@
     Params(params): Params&lt;ChainGetBlockParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetBlockResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(CidJson(blk_cid),) = params;
@@ -596,7 +590,7 @@
     Params(params): Params&lt;ChainGetTipSetParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetTipSetResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(TipsetKeysJson(tsk),) = params;
@@ -609,7 +603,7 @@
     Params(params): Params&lt;ChainGetTipSetHashParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetTipSetHashResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>(TipsetKeysJson(tsk),) = params;
@@ -622,7 +616,7 @@
     Params(params): Params&lt;ChainValidateTipSetCheckpointsParams&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainValidateTipSetCheckpointsResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>() = params;
@@ -642,7 +636,7 @@
     data: Data&lt;RPCState&lt;DB, B&gt;&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;ChainGetNameResult, JsonRpcError&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     B: Beacon,
 {
     <span class="kw">let </span>name: String = data.state_manager.chain_config().name.clone();

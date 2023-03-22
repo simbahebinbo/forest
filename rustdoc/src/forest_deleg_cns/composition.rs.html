@@ -43,11 +43,13 @@
 <a href="#43" id="43">43</a>
 <a href="#44" id="44">44</a>
 <a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>forest_chain_sync::consensus::{MessagePoolApi, Proposer, SyncGossipSubmitter};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_key_management::KeyStore;
 <span class="kw">use </span>forest_shim::econ::TokenAmount;
 <span class="kw">use </span>forest_state_manager::StateManager;
@@ -76,7 +78,7 @@
     services: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;,
 ) -&gt; anyhow::Result&lt;FullConsensus&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     MP: MessagePoolApi + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>consensus = DelegatedConsensus::default();

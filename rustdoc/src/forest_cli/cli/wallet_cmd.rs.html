@@ -498,11 +498,6 @@
 <a href="#498" id="498">498</a>
 <a href="#499" id="499">499</a>
 <a href="#500" id="500">500</a>
-<a href="#501" id="501">501</a>
-<a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
-<a href="#505" id="505">505</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -660,8 +655,7 @@
             <span class="self">Self</span>::Default =&gt; {
                 <span class="kw">let </span>response = wallet_default_address((), <span class="kw-2">&amp;</span>config.client.rpc_token)
                     .<span class="kw">await
-                    </span>.map_err(handle_rpc_err)<span class="question-mark">?
-                    </span>.unwrap_or_else(|| <span class="string">&quot;No default wallet address set&quot;</span>.to_string());
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
                 <span class="macro">println!</span>(<span class="string">&quot;{response}&quot;</span>);
                 <span class="prelude-val">Ok</span>(())
             }
@@ -724,11 +718,7 @@
 
                 <span class="kw">for </span>address <span class="kw">in </span>response {
                     <span class="kw">let </span>addr = address.<span class="number">0</span>.to_string();
-                    <span class="kw">let </span>default_address_mark = <span class="kw">if </span>default.as_ref() == <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>addr) {
-                        <span class="string">&quot;X&quot;
-                    </span>} <span class="kw">else </span>{
-                        <span class="string">&quot;&quot;
-                    </span>};
+                    <span class="kw">let </span>default_address_mark = <span class="kw">if </span>addr == default { <span class="string">&quot;X&quot; </span>} <span class="kw">else </span>{ <span class="string">&quot;&quot; </span>};
 
                     <span class="kw">let </span>balance_string = wallet_balance((addr.clone(),), <span class="kw-2">&amp;</span>config.client.rpc_token)
                         .<span class="kw">await

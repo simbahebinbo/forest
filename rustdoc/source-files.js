@@ -12,6 +12,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_daemon":["",[["cli",[],["mod.rs"]]],["lib.rs"]],\
 "forest_db":["",[],["errors.rs","lib.rs","memory.rs","metrics.rs","parity_db.rs","parity_db_config.rs","rocks_config.rs"]],\
 "forest_deleg_cns":["",[],["composition.rs","consensus.rs","lib.rs","proposer.rs","validation.rs"]],\
+"forest_encoding":["",[],["checked_serde_bytes.rs","hash.rs","lib.rs"]],\
 "forest_fil_cns":["",[],["composition.rs","lib.rs","metrics.rs","validation.rs","weight.rs"]],\
 "forest_fil_types":["",[["verifier",[],["mod.rs"]]],["lib.rs"]],\
 "forest_genesis":["",[],["lib.rs"]],\
@@ -34,7 +35,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_state_migration":["",[],["lib.rs"]],\
 "forest_statediff":["",[],["lib.rs","resolve.rs"]],\
 "forest_test_utils":["",[],["chain_structures.rs","lib.rs"]],\
-"forest_utils":["",[["db",[],["file_backed_obj.rs","mod.rs"]],["encoding",[],["mod.rs"]],["io",[],["mod.rs","parser.rs","progress_bar.rs","tempfile.rs","writer_checksum.rs"]],["json",[],["mod.rs"]],["macros",[],["mod.rs"]],["net",[],["download.rs","http.rs","mod.rs"]]],["lib.rs"]],\
+"forest_utils":["",[["db",[],["file_backed_obj.rs","mod.rs"]],["io",[],["mod.rs","parser.rs","progress_bar.rs","tempfile.rs","writer_checksum.rs"]],["json",[],["mod.rs"]],["macros",[],["mod.rs"]],["net",[],["download.rs","http.rs","mod.rs"]]],["lib.rs"]],\
 "serialization_tests":["",[],["lib.rs"]]\
 }');
 createSourceSidebar();

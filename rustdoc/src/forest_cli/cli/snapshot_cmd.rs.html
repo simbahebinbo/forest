@@ -526,7 +526,7 @@
 <span class="kw">use </span>forest_cli_shared::cli::{
     default_snapshot_dir, is_car_or_tmp, snapshot_fetch, SnapshotServer, SnapshotStore,
 };
-<span class="kw">use </span>forest_db::db_engine::open_db;
+<span class="kw">use </span>forest_db::{db_engine::open_db, Store};
 <span class="kw">use </span>forest_genesis::{forest_load_car, read_genesis_header};
 <span class="kw">use </span>forest_ipld::{recurse_links_hash, CidHashSet};
 <span class="kw">use </span>forest_rpc_api::chain_api::ChainExportParams;
@@ -956,7 +956,7 @@
     network: <span class="kw-2">&amp;</span>str,
 ) -&gt; anyhow::Result&lt;()&gt;
 <span class="kw">where
-    </span>DB: fvm_ipld_blockstore::Blockstore + Send + Sync,
+    </span>DB: fvm_ipld_blockstore::Blockstore + Store + Send + Sync,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>seen = CidHashSet::default();
     <span class="kw">let </span>upto = ts.epoch() - recent_stateroots;

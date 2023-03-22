@@ -405,6 +405,7 @@
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{FullTipset, Tipset, TipsetKeys};
+<span class="kw">use </span>forest_encoding::de::DeserializeOwned;
 <span class="kw">use </span>forest_libp2p::{
     chain_exchange::{
         ChainExchangeRequest, ChainExchangeResponse, CompactedMessages, TipsetBundle, HEADERS,
@@ -418,7 +419,6 @@
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>log::{debug, trace, warn};
-<span class="kw">use </span>serde::de::DeserializeOwned;
 <span class="kw">use </span>tokio::task::JoinSet;
 
 <span class="doccomment">/// Timeout for response from an RPC request
