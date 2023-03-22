@@ -142,8 +142,7 @@
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
-<span class="kw">use </span>forest_shim::{
+</span><span class="kw">use </span>forest_shim::{
     address::Address,
     crypto::{Signature, SignatureType},
     econ::TokenAmount,
@@ -152,6 +151,7 @@
 <span class="kw">use </span>fvm_ipld_encoding::{to_vec, Cbor, Error <span class="kw">as </span>CborError};
 <span class="kw">use </span>fvm_ipld_encoding3::RawBytes;
 <span class="kw">use </span>fvm_shared::MethodNum;
+<span class="kw">use </span>serde_tuple::{<span class="self">self</span>, Deserialize_tuple, Serialize_tuple};
 
 <span class="kw">use </span><span class="kw">super</span>::Message <span class="kw">as </span>MessageTrait;
 

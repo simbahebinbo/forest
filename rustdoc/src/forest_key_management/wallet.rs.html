@@ -460,6 +460,8 @@
 <a href="#460" id="460">460</a>
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -622,10 +624,13 @@
 }
 
 <span class="doccomment">/// Return the default address for `KeyStore`
-</span><span class="kw">pub fn </span>get_default(keystore: <span class="kw-2">&amp;</span>KeyStore) -&gt; <span class="prelude-ty">Result</span>&lt;Address, Error&gt; {
-    <span class="kw">let </span>key_info = keystore.get(<span class="string">&quot;default&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>k = Key::try_from(key_info)<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>(k.address)
+</span><span class="kw">pub fn </span>get_default(keystore: <span class="kw-2">&amp;</span>KeyStore) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;Address&gt;, Error&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(key_info) = keystore.get(<span class="string">&quot;default&quot;</span>) {
+        <span class="kw">let </span>k = Key::try_from(key_info)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(k.address))
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+    }
 }
 
 <span class="doccomment">/// Return vector of addresses sorted by their string representation in
@@ -635,11 +640,10 @@
     all.sort();
     <span class="kw">let </span><span class="kw-2">mut </span>out = Vec::new();
     <span class="kw">for </span>i <span class="kw">in </span>all {
-        <span class="kw">if </span>i.starts_with(<span class="string">&quot;wallet-&quot;</span>) {
-            <span class="comment">// TODO replace this with strip_prefix after it has been added to stable rust
-            </span><span class="kw">let </span>name = i.trim_start_matches(<span class="string">&quot;wallet-&quot;</span>);
-            <span class="kw">let </span>addr = Address::from_str(name).map_err(|err| Error::Other(err.to_string()))<span class="question-mark">?</span>;
-            out.push(addr);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(addr_str) = i.strip_prefix(<span class="string">&quot;wallet-&quot;</span>) {
+            <span class="kw">if let </span><span class="prelude-val">Ok</span>(addr) = Address::from_str(addr_str) {
+                out.push(addr);
+            }
         }
     }
     <span class="prelude-val">Ok</span>(out)
@@ -697,7 +701,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use </span>anyhow::ensure;
-    <span class="kw">use </span>forest_encoding::blake2b_256;
+    <span class="kw">use </span>forest_utils::encoding::blake2b_256;
     <span class="kw">use </span>libsecp256k1::{Message <span class="kw">as </span>SecpMessage, SecretKey <span class="kw">as </span>SecpPrivate};
 
     <span class="kw">use super</span>::<span class="kw-2">*</span>;

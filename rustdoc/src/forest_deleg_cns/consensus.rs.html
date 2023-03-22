@@ -149,7 +149,6 @@
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
 <a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::{fmt::Debug, str::FromStr, sync::Arc};
@@ -159,7 +158,6 @@
 <span class="kw">use </span>forest_blocks::{Block, Tipset};
 <span class="kw">use </span>forest_chain::{Error <span class="kw">as </span>ChainStoreError, Scale, Weight};
 <span class="kw">use </span>forest_chain_sync::consensus::Consensus;
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_key_management::KeyStore;
 <span class="kw">use </span>forest_shim::address::Address;
 <span class="kw">use </span>forest_state_manager::{Error <span class="kw">as </span>StateManagerError, StateManager};
@@ -250,7 +248,7 @@
         state_manager: <span class="kw-2">&amp;</span>Arc&lt;StateManager&lt;DB&gt;&gt;,
     ) -&gt; anyhow::Result&lt;<span class="prelude-ty">Option</span>&lt;DelegatedProposer&gt;&gt;
     <span class="kw">where
-        </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+        </span>DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let </span>genesis = state_manager.chain_store().genesis()<span class="question-mark">?</span>;
         <span class="kw">let </span>state_cid = genesis.state_root();
@@ -295,7 +293,7 @@
         block: Arc&lt;Block&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), NonEmpty&lt;<span class="self">Self</span>::Error&gt;&gt;
     <span class="kw">where
-        </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+        </span>DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">crate</span>::validation::validate_block(<span class="kw-2">&amp;</span><span class="self">self</span>.chosen_one, state_manager, block)
             .<span class="kw">await

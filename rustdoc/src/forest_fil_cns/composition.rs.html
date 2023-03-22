@@ -35,14 +35,12 @@
 <a href="#35" id="35">35</a>
 <a href="#36" id="36">36</a>
 <a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">use </span>forest_beacon::DrandBeacon;
 <span class="kw">use </span>forest_chain_sync::consensus::{MessagePoolApi, SyncGossipSubmitter};
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_key_management::KeyStore;
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -67,7 +65,7 @@
     _services: <span class="kw-2">&amp;mut </span>JoinSet&lt;anyhow::Result&lt;()&gt;&gt;,
 ) -&gt; anyhow::Result&lt;FullConsensus&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     MP: MessagePoolApi + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">let </span>consensus = FilecoinConsensus::new(state_manager.beacon_schedule());

@@ -191,10 +191,10 @@ rustup target add wasm32-unknown-unknown
 <li>OpenCL bindings</li>
 </ul>
 <pre><code class="language-shell"># Ubuntu
-sudo apt install build-essential clang ocl-icd-opencl-dev
+sudo apt install build-essential clang
 
 # Archlinux
-sudo pacman -S base-devel clang ocl-icd
+sudo pacman -S base-devel clang
 </code></pre>
 <h3 id="commands"><a class="header" href="#commands">Commands</a></h3>
 <pre><code class="language-bash">make release
@@ -230,7 +230,7 @@ You will need to either set the environment variable <code>FULLNODE_API_INFO</co
 prepend it to the command, like so:</p>
 <p><code>FULLNODE_API_INFO=&quot;...&quot; forest wallet new -s bls</code></p>
 <p>On Linux, you can set the environment variable with the following syntax</p>
-<p><code>export FULLNOPDE_API_INFO=&quot;...&quot;</code></p>
+<p><code>export FULLNODE_API_INFO=&quot;...&quot;</code></p>
 <p>Setting your API info this way will limit the value to your current session.
 Look online for ways to persist this variable if desired.</p>
 <p>The syntax for the <code>FULLNODE_API_INFO</code> variable is as follows:</p>
@@ -243,10 +243,19 @@ create tokens with certain permissions such as read, write, sign, or admin.</p>
 admin token can also be set using <code>--token</code> flag:</p>
 <pre><code>forest-cli --token eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJBbGxvdyI6WyJyZWFkIiwid3JpdGUiLCJzaWduIiwiYWRtaW4iXSwiZXhwIjoxNjczMjEwMTkzfQ.xxhmqtG9O3XNTIrOEB2_TWnVkq0JkqzRdw63BdosV0c &lt;subcommand&gt;
 </code></pre>
-<p>When the Forest daemon is started, an admin token will be displayed
-(alternatively, use <code>--save-token &lt;token&gt;</code> flag to save it on disk).</p>
+<h2 id="sending-filecoin-tokens-from-your-wallet"><a class="header" href="#sending-filecoin-tokens-from-your-wallet">Sending Filecoin tokens from your wallet</a></h2>
+<p>For sending Filecoin tokens, the Forest daemon must be running. You can do so by
+running:</p>
+<p><code>forest --chain calibnet</code></p>
+<p>Next, send Filecoin tokens to a wallet address:</p>
+<p><code>forest-cli --token &lt;admin_token&gt; send &lt;wallet-address&gt; &lt;amount in attoFIL&gt;</code></p>
+<p>where 1 attoFIL = $10^{−18}$ FIL.</p>
 <h2 id="wallet"><a class="header" href="#wallet">Wallet</a></h2>
-<p>All wallet commands require write permissions to interact with the keystore</p>
+<p>Filecoin wallets are stored under the Forest data directory (e.g.,
+<code>~/.local/share/forest</code> in the case of Linux) in a <code>keystore</code> file.</p>
+<p>All wallet commands require write permissions and an admin token (<code>--token</code>) to
+interact with the keystore. The admin token can be retrieved from forest startup
+logs or by running it with <code>--save-token &lt;PATH&gt;</code>.</p>
 <p>Balance Retrieve the FIL balance of a given address Usage:
 <code>forest-cli wallet balance &lt;address&gt;</code></p>
 <p>Default Get the default, persisted address from the keystore Usage:
@@ -264,7 +273,7 @@ to get formatted keys for importing. Usage:
 <code>forest-cli wallet import &lt;hex encoded json key&gt;</code></p>
 <p>Export Export a key by address. Use a wallet address to export a key. Returns a
 formatted key to be used to import on another node, or into a new keystore.
-Usage: <code>forest-cli wallet export &lt;address&gt;</code></p>
+Usage: forest-cli wallet export <address></p>
 <p>Sign Use an address to sign a vector of bytes Usage:
 <code>forest-cli wallet sign -m &lt;hex message&gt; -a &lt;address&gt;</code></p>
 <p>Verify Verify the message's integrity with an address and signature Usage:

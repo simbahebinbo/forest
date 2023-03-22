@@ -856,7 +856,6 @@
 <a href="#856" id="856">856</a>
 <a href="#857" id="857">857</a>
 <a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -872,7 +871,6 @@
 <span class="kw">use </span>flume::Sender;
 <span class="kw">use </span>forest_blocks::GossipBlock;
 <span class="kw">use </span>forest_chain::ChainStore;
-<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_libp2p_bitswap::{
     request_manager::BitswapRequestManager, BitswapStoreRead, BitswapStoreReadWrite,
 };
@@ -1052,7 +1050,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; Libp2pService&lt;DB&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + BitswapStoreReadWrite + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + BitswapStoreReadWrite + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">pub fn </span>new(
         config: Libp2pConfig,
@@ -1533,7 +1531,7 @@
         ChainExchangeResponse,
     )&gt;,
 ) <span class="kw">where
-    </span>DB: Blockstore + Store + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">match </span>ce_event {
         request_response::Event::Message { peer, message } =&gt; {
@@ -1619,7 +1617,7 @@
     pubsub_block_str: <span class="kw-2">&amp;</span>str,
     pubsub_msg_str: <span class="kw-2">&amp;</span>str,
 ) <span class="kw">where
-    </span>DB: Blockstore + Store + BitswapStoreRead + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
+    </span>DB: Blockstore + BitswapStoreRead + Clone + Sync + Send + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">match </span>event {
         ForestBehaviourEvent::Discovery(discovery_out) =&gt; {

@@ -1020,12 +1020,18 @@
 <a href="#1020" id="1020">1020</a>
 <a href="#1021" id="1021">1021</a>
 <a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
 </span><span class="kw">use </span>std::{collections::VecDeque, num::NonZeroUsize, path::Path, sync::Arc, time::SystemTime};
 
-<span class="kw">use </span>ahash::{HashMap, HashMapExt};
+<span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet};
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
@@ -1036,8 +1042,6 @@
 <span class="kw">use </span>digest::Digest;
 <span class="kw">use </span>forest_beacon::{BeaconEntry, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, TipsetKeys, TxMeta};
-<span class="kw">use </span>forest_db::Store;
-<span class="kw">use </span>forest_encoding::de::DeserializeOwned;
 <span class="kw">use </span>forest_interpreter::BlockMessages;
 <span class="kw">use </span>forest_ipld::{recurse_links_hash, CidHashSet};
 <span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
@@ -1054,7 +1058,10 @@
     state_tree::StateTree,
 };
 <span class="kw">use </span>forest_utils::{
-    db::{file_backed_obj::FileBacked, BlockstoreExt},
+    db::{
+        file_backed_obj::{FileBacked, SYNC_PERIOD},
+        BlockstoreExt,
+    },
     io::Checksum,
 };
 <span class="kw">use </span>futures::Future;
@@ -1066,7 +1073,7 @@
 <span class="kw">use </span>log::{debug, info, trace, warn};
 <span class="kw">use </span>lru::LruCache;
 <span class="kw">use </span>parking_lot::Mutex;
-<span class="kw">use </span>serde::Serialize;
+<span class="kw">use </span>serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>tokio::{
     io::AsyncWrite,
     sync::{
@@ -1082,8 +1089,6 @@
     Error,
 };
 <span class="kw">use </span><span class="kw">crate</span>::Scale;
-
-<span class="kw">const </span>BLOCK_VAL_PREFIX: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;block_val/&quot;</span>;
 
 <span class="comment">// A cap on the size of the future_sink
 </span><span class="kw">const </span>SINK_CAP: usize = <span class="number">200</span>;
@@ -1124,6 +1129,9 @@
 
     <span class="doccomment">/// File backed heaviest tipset keys
     </span>file_backed_heaviest_tipset_keys: Mutex&lt;FileBacked&lt;TipsetKeys&gt;&gt;,
+
+    <span class="doccomment">/// File backed validated blocks
+    </span>file_backed_validated_blocks: Mutex&lt;FileBacked&lt;HashSet&lt;Cid&gt;&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;DB&gt; BitswapStoreRead <span class="kw">for </span>ChainStore&lt;DB&gt;
@@ -1152,7 +1160,7 @@
 
 <span class="kw">impl</span>&lt;DB&gt; ChainStore&lt;DB&gt;
 <span class="kw">where
-    </span>DB: Blockstore + Store + Send + Sync,
+    </span>DB: Blockstore + Send + Sync,
 {
     <span class="kw">pub fn </span>new(
         db: DB,
@@ -1169,11 +1177,17 @@
             <span class="kw-2">*</span>genesis_block_header.cid(),
             chain_data_root.join(<span class="string">&quot;GENESIS&quot;</span>),
         ));
-
         <span class="kw">let </span>file_backed_heaviest_tipset_keys = Mutex::new(FileBacked::load_from_file_or_create(
             chain_data_root.join(<span class="string">&quot;HEAD&quot;</span>),
             || TipsetKeys::new(<span class="macro">vec!</span>[<span class="kw-2">*</span>genesis_block_header.cid()]),
+            <span class="prelude-val">None</span>,
         )<span class="question-mark">?</span>);
+        <span class="kw">let </span>file_backed_validated_blocks = Mutex::new(FileBacked::load_from_file_or_create(
+            chain_data_root.join(<span class="string">&quot;VALIDATED_BLOCKS&quot;</span>),
+            HashSet::default,
+            <span class="prelude-val">Some</span>(SYNC_PERIOD),
+        )<span class="question-mark">?</span>);
+
         <span class="kw">let </span>cs = <span class="self">Self </span>{
             publisher,
             chain_index: ChainIndex::new(ts_cache.clone(), db.clone()),
@@ -1182,6 +1196,7 @@
             ts_cache,
             file_backed_genesis,
             file_backed_heaviest_tipset_keys,
+            file_backed_validated_blocks,
         };
 
         cs.set_genesis(genesis_block_header)<span class="question-mark">?</span>;
@@ -1295,20 +1310,25 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Checks store if block has already been validated. Key based on the block
-    /// validation prefix.
+    <span class="doccomment">/// Checks metadata file if block has already been validated.
     </span><span class="kw">pub fn </span>is_block_validated(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt; {
-        <span class="kw">let </span>key = block_validation_key(cid);
-
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.exists(key)<span class="question-mark">?</span>)
+        <span class="kw">let </span>validated = <span class="self">self
+            </span>.file_backed_validated_blocks
+            .lock()
+            .inner()
+            .contains(cid);
+        <span class="kw">if </span>validated {
+            <span class="macro">log::debug!</span>(<span class="string">&quot;Block {cid} was previously validated&quot;</span>);
+        }
+        <span class="prelude-val">Ok</span>(validated)
     }
 
-    <span class="doccomment">/// Marks block as validated in the store. This is retrieved using the block
-    /// validation prefix.
+    <span class="doccomment">/// Marks block as validated in the metadata file.
     </span><span class="kw">pub fn </span>mark_block_as_validated(<span class="kw-2">&amp;</span><span class="self">self</span>, cid: <span class="kw-2">&amp;</span>Cid) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-        <span class="kw">let </span>key = block_validation_key(cid);
-
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.db.write(key, [])<span class="question-mark">?</span>)
+        <span class="kw">let </span><span class="kw-2">mut </span>file = <span class="self">self</span>.file_backed_validated_blocks.lock();
+        <span class="prelude-val">Ok</span>(file.with_inner(|inner| {
+            inner.insert(<span class="kw-2">*</span>cid);
+        })<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Returns the tipset behind `tsk` at a given `height`.
@@ -1703,14 +1723,6 @@
         .with_label_values(<span class="kw-2">&amp;</span>[metrics::values::TIPSET])
         .inc();
     <span class="prelude-val">Ok</span>(ts)
-}
-
-<span class="doccomment">/// Helper to ensure consistent CID to db key translation.
-</span><span class="kw">fn </span>block_validation_key(cid: <span class="kw-2">&amp;</span>Cid) -&gt; Vec&lt;u8&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>key = Vec::new();
-    key.extend_from_slice(BLOCK_VAL_PREFIX);
-    key.extend(cid.to_bytes());
-    key
 }
 
 <span class="doccomment">/// Returns a Tuple of BLS messages of type `UnsignedMessage` and SECP messages

@@ -286,10 +286,10 @@
 
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, BLOCK_MESSAGE_LIMIT};
-<span class="kw">use </span>forest_encoding::tuple::<span class="kw-2">*</span>;
 <span class="kw">use </span>forest_message::SignedMessage;
 <span class="kw">use </span>forest_shim::message::Message;
 <span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize, Serializer};
+<span class="kw">use </span>serde_tuple::{<span class="self">self</span>, Deserialize_tuple, Serialize_tuple};
 
 <span class="doccomment">/// `ChainExchange` Filecoin header set bit.
 </span><span class="kw">pub const </span>HEADERS: u64 = <span class="number">0b01</span>;

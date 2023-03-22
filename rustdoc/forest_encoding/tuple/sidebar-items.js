@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"derive":["Deserialize_tuple","Serialize_tuple"]};
