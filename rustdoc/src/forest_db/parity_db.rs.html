@@ -205,14 +205,6 @@
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -265,8 +257,8 @@
         })
     }
 
-    <span class="kw">pub fn </span>open(path: PathBuf, config: <span class="kw-2">&amp;</span>ParityDbConfig) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>opts = <span class="self">Self</span>::to_options(path, config)<span class="question-mark">?</span>;
+    <span class="kw">pub fn </span>open(path: <span class="kw">impl </span>Into&lt;PathBuf&gt;, config: <span class="kw-2">&amp;</span>ParityDbConfig) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>opts = <span class="self">Self</span>::to_options(path.into(), config)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             db: Arc::new(Db::open_or_create(<span class="kw-2">&amp;</span>opts)<span class="question-mark">?</span>),
             statistics_enabled: opts.stats,
@@ -320,14 +312,6 @@
         // }
         // ```
     </span>}
-
-    <span class="kw">fn </span>delete&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
-    <span class="kw">where
-        </span>K: AsRef&lt;[u8]&gt;,
-    {
-        <span class="kw">let </span>tx = [(<span class="number">0</span>, key.as_ref(), <span class="prelude-val">None</span>)];
-        <span class="self">self</span>.db.commit(tx).map_err(Error::from)
-    }
 
     <span class="kw">fn </span>exists&lt;K&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, key: K) -&gt; <span class="prelude-ty">Result</span>&lt;bool, Error&gt;
     <span class="kw">where

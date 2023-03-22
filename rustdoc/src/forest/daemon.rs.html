@@ -674,6 +674,23 @@
 <a href="#674" id="674">674</a>
 <a href="#675" id="675">675</a>
 <a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -693,7 +710,8 @@
     },
 };
 <span class="kw">use </span>forest_db::{
-    db_engine::{db_path, open_db, Db},
+    db_engine::{db_root, open_proxy_db},
+    rolling::{DbGarbageCollector, RollingDB},
     Store,
 };
 <span class="kw">use </span>forest_genesis::{get_network_name_from_genesis, import_chain, read_genesis_header};
@@ -743,7 +761,7 @@
 }
 
 <span class="doccomment">/// Starts daemon process
-</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>start(opts: CliOpts, config: Config) -&gt; anyhow::Result&lt;Db&gt; {
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>start(opts: CliOpts, config: Config) -&gt; anyhow::Result&lt;RollingDB&gt; {
     <span class="kw">if </span>config.chain.name == <span class="string">&quot;calibnet&quot; </span>{
         forest_shim::address::set_current_network(forest_shim::address::Network::Testnet);
     }
@@ -795,8 +813,7 @@
     <span class="kw">let </span>keystore = Arc::new(RwLock::new(keystore));
 
     <span class="kw">let </span>chain_data_path = chain_path(<span class="kw-2">&amp;</span>config);
-
-    <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span>db_path(<span class="kw-2">&amp;</span>chain_data_path), config.db_config())<span class="question-mark">?</span>;
+    <span class="kw">let </span>db = open_proxy_db(db_root(<span class="kw-2">&amp;</span>chain_data_path), config.db_config().clone())<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>services = JoinSet::new();
 
@@ -809,8 +826,7 @@
             <span class="string">&quot;Prometheus server started at {}&quot;</span>,
             config.client.metrics_address
         );
-
-        <span class="kw">let </span>db_directory = forest_db::db_engine::db_path(<span class="kw-2">&amp;</span>chain_data_path);
+        <span class="kw">let </span>db_directory = forest_db::db_engine::db_root(<span class="kw-2">&amp;</span>chain_path(<span class="kw-2">&amp;</span>config));
         <span class="kw">let </span>db = db.clone();
         services.spawn(<span class="kw">async </span>{
             forest_metrics::init_prometheus(prometheus_listener, db_directory, db)
@@ -838,6 +854,23 @@
     )<span class="question-mark">?</span>);
 
     chain_store.set_genesis(<span class="kw-2">&amp;</span>genesis_header)<span class="question-mark">?</span>;
+    <span class="kw">let </span>db_garbage_collector = {
+        <span class="kw">let </span>db = db.clone();
+        <span class="kw">let </span>chain_store = chain_store.clone();
+        <span class="kw">let </span>get_tipset = <span class="kw">move </span>|| chain_store.heaviest_tipset().as_ref().clone();
+        Arc::new(DbGarbageCollector::new(db, get_tipset))
+    };
+
+    <span class="attr">#[allow(clippy::redundant_async_block)]
+    </span>services.spawn({
+        <span class="kw">let </span>db_garbage_collector = db_garbage_collector.clone();
+        <span class="kw">async move </span>{ db_garbage_collector.collect_loop_passive().<span class="kw">await </span>}
+    });
+    <span class="attr">#[allow(clippy::redundant_async_block)]
+    </span>services.spawn({
+        <span class="kw">let </span>db_garbage_collector = db_garbage_collector.clone();
+        <span class="kw">async move </span>{ db_garbage_collector.collect_loop_event().<span class="kw">await </span>}
+    });
 
     <span class="kw">let </span>publisher = chain_store.publisher();
 
@@ -968,6 +1001,7 @@
         <span class="kw">let </span>rpc_state_manager = Arc::clone(<span class="kw-2">&amp;</span>state_manager);
         <span class="kw">let </span>rpc_chain_store = Arc::clone(<span class="kw-2">&amp;</span>chain_store);
 
+        <span class="kw">let </span>gc_event_tx = db_garbage_collector.get_tx();
         services.spawn(<span class="kw">async move </span>{
             <span class="macro">info!</span>(<span class="string">&quot;JSON-RPC endpoint started at {}&quot;</span>, config.client.rpc_address);
             <span class="comment">// XXX: The JSON error message are a nightmare to print.
@@ -980,11 +1014,11 @@
                     sync_state,
                     network_send,
                     network_name,
-                    beacon: rpc_state_manager.beacon_schedule(), <span class="comment">/* TODO: the RPCState can fetch
-                                                                  * this itself from the
-                                                                  * StateManager */
-                    </span>chain_store: rpc_chain_store,
+                    <span class="comment">// TODO: the RPCState can fetch this itself from the StateManager
+                    </span>beacon: rpc_state_manager.beacon_schedule(),
+                    chain_store: rpc_chain_store,
                     new_mined_block_tx: tipset_sink,
+                    gc_event_tx,
                 }),
                 rpc_listen,
                 FOREST_VERSION_STRING.as_str(),

@@ -203,6 +203,7 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -212,7 +213,10 @@
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_blocks::{BlockHeader, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_state_manager::StateManager;
-<span class="kw">use </span>forest_utils::{db::BlockstoreExt, net::FetchProgress};
+<span class="kw">use </span>forest_utils::{
+    db::{BlockstoreBufferedWriteExt, BlockstoreExt},
+    net::FetchProgress,
+};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::{load_car, CarReader};
 <span class="kw">use </span>log::{debug, info};
@@ -322,12 +326,12 @@
         <span class="macro">info!</span>(<span class="string">&quot;Downloading file...&quot;</span>);
         <span class="kw">let </span>url = Url::parse(path)<span class="question-mark">?</span>;
         <span class="kw">let </span>reader = FetchProgress::fetch_from_url(url).<span class="kw">await</span><span class="question-mark">?</span>;
-        load_and_retrieve_header(sm.blockstore(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
+        load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
         <span class="macro">info!</span>(<span class="string">&quot;Reading file...&quot;</span>);
         <span class="kw">let </span>file = File::open(<span class="kw-2">&amp;</span>path).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span>reader = FetchProgress::fetch_from_file(file).<span class="kw">await</span><span class="question-mark">?</span>;
-        load_and_retrieve_header(sm.blockstore(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
+        load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>};
 
     <span class="macro">info!</span>(<span class="string">&quot;Loaded .car file in {}s&quot;</span>, stopwatch.elapsed().as_secs());
@@ -367,12 +371,12 @@
 <span class="doccomment">/// Loads car file into database, and returns the block header CIDs from the CAR
 /// header.
 </span><span class="kw">async fn </span>load_and_retrieve_header&lt;DB, R&gt;(
-    store: <span class="kw-2">&amp;</span>DB,
+    store: DB,
     reader: FetchProgress&lt;R&gt;,
     skip_load: bool,
 ) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
 <span class="kw">where
-    </span>DB: Blockstore,
+    </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     R: AsyncRead + Send + Unpin,
 {
     <span class="kw">let </span><span class="kw-2">mut </span>compat = reader.compat();
@@ -389,23 +393,21 @@
 <span class="kw">pub async fn </span>forest_load_car&lt;DB, R&gt;(store: DB, reader: R) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
 <span class="kw">where
     </span>R: futures::AsyncRead + Send + Unpin,
-    DB: Blockstore,
+    DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="comment">// 1GB
     </span><span class="kw">const </span>BUFFER_CAPCITY_BYTES: usize = <span class="number">1024 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
 
+    <span class="kw">let </span>(tx, rx) = flume::bounded(<span class="number">100</span>);
+    <span class="attr">#[allow(clippy::redundant_async_block)]
+    </span><span class="kw">let </span>write_task =
+        tokio::spawn(<span class="kw">async move </span>{ store.buffered_write(rx, BUFFER_CAPCITY_BYTES).<span class="kw">await </span>});
     <span class="kw">let </span><span class="kw-2">mut </span>car_reader = CarReader::new(reader).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>estimated_size = <span class="number">0</span>;
-    <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="macro">vec!</span>[];
     <span class="kw">while let </span><span class="prelude-val">Some</span>(block) = car_reader.next_block().<span class="kw">await</span><span class="question-mark">? </span>{
-        estimated_size += <span class="number">64 </span>+ block.data.len();
-        buffer.push((block.cid, block.data));
-        <span class="kw">if </span>estimated_size &gt;= BUFFER_CAPCITY_BYTES {
-            store.put_many_keyed(std::mem::take(<span class="kw-2">&amp;mut </span>buffer))<span class="question-mark">?</span>;
-            estimated_size = <span class="number">0</span>;
-        }
+        tx.send_async((block.cid, block.data)).<span class="kw">await</span><span class="question-mark">?</span>;
     }
-    store.put_many_keyed(buffer)<span class="question-mark">?</span>;
+    drop(tx);
+    write_task.<span class="kw">await</span><span class="question-mark">??</span>;
     <span class="prelude-val">Ok</span>(car_reader.header.roots)
 }
 </code></pre></div>

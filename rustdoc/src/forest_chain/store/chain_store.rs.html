@@ -962,95 +962,27 @@
 <a href="#962" id="962">962</a>
 <a href="#963" id="963">963</a>
 <a href="#964" id="964">964</a>
-<a href="#965" id="965">965</a>
-<a href="#966" id="966">966</a>
-<a href="#967" id="967">967</a>
-<a href="#968" id="968">968</a>
-<a href="#969" id="969">969</a>
-<a href="#970" id="970">970</a>
-<a href="#971" id="971">971</a>
-<a href="#972" id="972">972</a>
-<a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a>
-<a href="#975" id="975">975</a>
-<a href="#976" id="976">976</a>
-<a href="#977" id="977">977</a>
-<a href="#978" id="978">978</a>
-<a href="#979" id="979">979</a>
-<a href="#980" id="980">980</a>
-<a href="#981" id="981">981</a>
-<a href="#982" id="982">982</a>
-<a href="#983" id="983">983</a>
-<a href="#984" id="984">984</a>
-<a href="#985" id="985">985</a>
-<a href="#986" id="986">986</a>
-<a href="#987" id="987">987</a>
-<a href="#988" id="988">988</a>
-<a href="#989" id="989">989</a>
-<a href="#990" id="990">990</a>
-<a href="#991" id="991">991</a>
-<a href="#992" id="992">992</a>
-<a href="#993" id="993">993</a>
-<a href="#994" id="994">994</a>
-<a href="#995" id="995">995</a>
-<a href="#996" id="996">996</a>
-<a href="#997" id="997">997</a>
-<a href="#998" id="998">998</a>
-<a href="#999" id="999">999</a>
-<a href="#1000" id="1000">1000</a>
-<a href="#1001" id="1001">1001</a>
-<a href="#1002" id="1002">1002</a>
-<a href="#1003" id="1003">1003</a>
-<a href="#1004" id="1004">1004</a>
-<a href="#1005" id="1005">1005</a>
-<a href="#1006" id="1006">1006</a>
-<a href="#1007" id="1007">1007</a>
-<a href="#1008" id="1008">1008</a>
-<a href="#1009" id="1009">1009</a>
-<a href="#1010" id="1010">1010</a>
-<a href="#1011" id="1011">1011</a>
-<a href="#1012" id="1012">1012</a>
-<a href="#1013" id="1013">1013</a>
-<a href="#1014" id="1014">1014</a>
-<a href="#1015" id="1015">1015</a>
-<a href="#1016" id="1016">1016</a>
-<a href="#1017" id="1017">1017</a>
-<a href="#1018" id="1018">1018</a>
-<a href="#1019" id="1019">1019</a>
-<a href="#1020" id="1020">1020</a>
-<a href="#1021" id="1021">1021</a>
-<a href="#1022" id="1022">1022</a>
-<a href="#1023" id="1023">1023</a>
-<a href="#1024" id="1024">1024</a>
-<a href="#1025" id="1025">1025</a>
-<a href="#1026" id="1026">1026</a>
-<a href="#1027" id="1027">1027</a>
-<a href="#1028" id="1028">1028</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::{collections::VecDeque, num::NonZeroUsize, path::Path, sync::Arc, time::SystemTime};
+</span><span class="kw">use </span>std::{num::NonZeroUsize, path::Path, sync::Arc, time::SystemTime};
 
 <span class="kw">use </span>ahash::{HashMap, HashMapExt, HashSet};
 <span class="kw">use </span>anyhow::Result;
 <span class="kw">use </span>async_stream::stream;
 <span class="kw">use </span>bls_signatures::Serialize <span class="kw">as </span>SerializeBls;
-<span class="kw">use </span>cid::{
-    multihash::{Code, Code::Blake2b256},
-    Cid,
-};
+<span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
 <span class="kw">use </span>digest::Digest;
 <span class="kw">use </span>forest_beacon::{BeaconEntry, IGNORE_DRAND_VAR};
 <span class="kw">use </span>forest_blocks::{Block, BlockHeader, FullTipset, Tipset, TipsetKeys, TxMeta};
 <span class="kw">use </span>forest_interpreter::BlockMessages;
-<span class="kw">use </span>forest_ipld::{recurse_links_hash, CidHashSet};
+<span class="kw">use </span>forest_ipld::{should_save_block_to_snapshot, walk_snapshot};
 <span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
 <span class="kw">use </span>forest_message::{ChainMessage, Message <span class="kw">as </span>MessageTrait, SignedMessage};
 <span class="kw">use </span>forest_metrics::metrics;
 <span class="kw">use </span>forest_networks::ChainConfig;
 <span class="kw">use </span>forest_shim::{
     address::Address,
-    clock::EPOCHS_IN_DAY,
     crypto::{Signature, SignatureType},
     econ::TokenAmount,
     executor::Receipt,
@@ -1064,7 +996,6 @@
     },
     io::Checksum,
 };
-<span class="kw">use </span>futures::Future;
 <span class="kw">use </span>fvm_ipld_amt::Amtv0 <span class="kw">as </span>Amt;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::CarHeader;
@@ -1590,7 +1521,7 @@
 
         <span class="comment">// Walks over tipset and historical data, sending all blocks visited into the
         // car writer.
-        </span><span class="self">Self</span>::walk_snapshot(tipset, recent_roots, |cid| {
+        </span>walk_snapshot(tipset, recent_roots, |cid| {
             <span class="kw">let </span>tx_clone = tx.clone();
             <span class="kw">async move </span>{
                 <span class="kw">let </span>block = <span class="self">self
@@ -1598,15 +1529,10 @@
                     .get(<span class="kw-2">&amp;</span>cid)<span class="question-mark">?
                     </span>.ok_or_else(|| Error::Other(<span class="macro">format!</span>(<span class="string">&quot;Cid {cid} not found in blockstore&quot;</span>)))<span class="question-mark">?</span>;
 
-                <span class="comment">// Don&#39;t include identity CIDs.
-                // We only include raw and dagcbor, for now.
-                // Raw for &quot;code&quot; CIDs.
-                </span><span class="kw">if </span>u64::from(Code::Identity) != cid.hash().code()
-                    &amp;&amp; (cid.codec() == fvm_shared::IPLD_RAW
-                        || cid.codec() == fvm_ipld_encoding::DAG_CBOR)
-                {
+                <span class="kw">if </span>should_save_block_to_snapshot(<span class="kw-2">&amp;</span>cid) {
                     tx_clone.send_async((cid, block.clone())).<span class="kw">await</span><span class="question-mark">?</span>;
                 }
+
                 <span class="prelude-val">Ok</span>(block)
             }
         })
@@ -1631,60 +1557,6 @@
 
         <span class="kw">let </span>digest = writer.lock().<span class="kw">await</span>.get_mut().finalize();
         <span class="prelude-val">Ok</span>(digest)
-    }
-
-    <span class="doccomment">/// Walks over tipset and state data and loads all blocks not yet seen.
-    /// This is tracked based on the callback function loading blocks.
-    </span><span class="kw">pub async fn </span>walk_snapshot&lt;F, T&gt;(
-        tipset: <span class="kw-2">&amp;</span>Tipset,
-        recent_roots: ChainEpoch,
-        <span class="kw-2">mut </span>load_block: F,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
-    <span class="kw">where
-        </span>F: FnMut(Cid) -&gt; T + Send,
-        T: Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, anyhow::Error&gt;&gt; + Send,
-    {
-        <span class="kw">let </span><span class="kw-2">mut </span>seen = CidHashSet::default();
-        <span class="kw">let </span><span class="kw-2">mut </span>blocks_to_walk: VecDeque&lt;Cid&gt; = tipset.cids().to_vec().into();
-        <span class="kw">let </span><span class="kw-2">mut </span>current_min_height = tipset.epoch();
-        <span class="kw">let </span>incl_roots_epoch = tipset.epoch() - recent_roots;
-
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(next) = blocks_to_walk.pop_front() {
-            <span class="kw">if </span>!seen.insert(<span class="kw-2">&amp;</span>next) {
-                <span class="kw">continue</span>;
-            }
-
-            <span class="kw">let </span>data = load_block(next).<span class="kw">await</span><span class="question-mark">?</span>;
-
-            <span class="kw">let </span>h = BlockHeader::unmarshal_cbor(<span class="kw-2">&amp;</span>data)<span class="question-mark">?</span>;
-
-            <span class="kw">if </span>current_min_height &gt; h.epoch() {
-                current_min_height = h.epoch();
-                <span class="kw">if </span>current_min_height % EPOCHS_IN_DAY == <span class="number">0 </span>{
-                    <span class="macro">info!</span>(target: <span class="string">&quot;chain_api&quot;</span>, <span class="string">&quot;export at: {}&quot;</span>, current_min_height);
-                }
-            }
-
-            <span class="kw">if </span>h.epoch() &gt; incl_roots_epoch {
-                recurse_links_hash(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.messages(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
-            }
-
-            <span class="kw">if </span>h.epoch() &gt; <span class="number">0 </span>{
-                <span class="kw">for </span>p <span class="kw">in </span>h.parents().cids() {
-                    blocks_to_walk.push_back(<span class="kw-2">*</span>p);
-                }
-            } <span class="kw">else </span>{
-                <span class="kw">for </span>p <span class="kw">in </span>h.parents().cids() {
-                    load_block(<span class="kw-2">*</span>p).<span class="kw">await</span><span class="question-mark">?</span>;
-                }
-            }
-
-            <span class="kw">if </span>h.epoch() == <span class="number">0 </span>|| h.epoch() &gt; incl_roots_epoch {
-                recurse_links_hash(<span class="kw-2">&amp;mut </span>seen, <span class="kw-2">*</span>h.state_root(), <span class="kw-2">&amp;mut </span>load_block).<span class="kw">await</span><span class="question-mark">?</span>;
-            }
-        }
-
-        <span class="prelude-val">Ok</span>(())
     }
 }
 

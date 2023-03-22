@@ -10,7 +10,7 @@ var sourcesIndex = JSON.parse('{\
 "forest_cli":["",[["cli",[],["attach_cmd.rs","auth_cmd.rs","chain_cmd.rs","config_cmd.rs","db_cmd.rs","fetch_params_cmd.rs","mod.rs","mpool_cmd.rs","net_cmd.rs","send_cmd.rs","shutdown_cmd.rs","snapshot_cmd.rs","state_cmd.rs","sync_cmd.rs","wallet_cmd.rs"]]],["lib.rs"]],\
 "forest_cli_shared":["",[["cli",[],["client.rs","config.rs","mod.rs","snapshot_fetch.rs"]],["logger",[],["mod.rs"]]],["lib.rs"]],\
 "forest_daemon":["",[["cli",[],["mod.rs"]]],["lib.rs"]],\
-"forest_db":["",[],["errors.rs","lib.rs","memory.rs","metrics.rs","parity_db.rs","parity_db_config.rs","rocks_config.rs"]],\
+"forest_db":["",[["rolling",[],["gc.rs","impls.rs","mod.rs"]]],["errors.rs","lib.rs","memory.rs","metrics.rs","parity_db.rs","parity_db_config.rs","rocks_config.rs"]],\
 "forest_deleg_cns":["",[],["composition.rs","consensus.rs","lib.rs","proposer.rs","validation.rs"]],\
 "forest_fil_cns":["",[],["composition.rs","lib.rs","metrics.rs","validation.rs","weight.rs"]],\
 "forest_fil_types":["",[["verifier",[],["mod.rs"]]],["lib.rs"]],\
@@ -26,9 +26,9 @@ var sourcesIndex = JSON.parse('{\
 "forest_metrics":["",[],["db.rs","lib.rs","metrics.rs"]],\
 "forest_networks":["",[["calibnet",[],["mod.rs"]],["mainnet",[],["mod.rs"]]],["drand.rs","lib.rs"]],\
 "forest_paramfetch":["",[],["lib.rs"]],\
-"forest_rpc":["",[],["auth_api.rs","beacon_api.rs","chain_api.rs","common_api.rs","gas_api.rs","lib.rs","mpool_api.rs","net_api.rs","rpc_http_handler.rs","rpc_util.rs","rpc_ws_handler.rs","state_api.rs","sync_api.rs","wallet_api.rs"]],\
+"forest_rpc":["",[],["auth_api.rs","beacon_api.rs","chain_api.rs","common_api.rs","db_api.rs","gas_api.rs","lib.rs","mpool_api.rs","net_api.rs","rpc_http_handler.rs","rpc_util.rs","rpc_ws_handler.rs","state_api.rs","sync_api.rs","wallet_api.rs"]],\
 "forest_rpc_api":["",[],["data_types.rs","lib.rs"]],\
-"forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","common_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
+"forest_rpc_client":["",[],["auth_ops.rs","chain_ops.rs","common_ops.rs","db_ops.rs","lib.rs","mpool_ops.rs","net_ops.rs","state_ops.rs","sync_ops.rs","wallet_ops.rs"]],\
 "forest_shim":["",[],["address.rs","bigint.rs","clock.rs","crypto.rs","econ.rs","error.rs","executor.rs","gas.rs","lib.rs","message.rs","randomness.rs","sector.rs","state_tree.rs","version.rs"]],\
 "forest_state_manager":["",[],["chain_rand.rs","errors.rs","lib.rs","metrics.rs","utils.rs","vm_circ_supply.rs"]],\
 "forest_state_migration":["",[],["lib.rs"]],\

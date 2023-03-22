@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["file_backed_obj"],"trait":["BlockstoreExt"]};
+window.SIDEBAR_ITEMS = {"constant":["DB_KEY_BYTES"],"mod":["file_backed_obj"],"trait":["BlockstoreBufferedWriteExt","BlockstoreExt"]};

@@ -124,6 +124,7 @@
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -168,6 +169,7 @@
     <span class="kw">pub </span>network_name: String,
     <span class="kw">pub </span>new_mined_block_tx: flume::Sender&lt;Arc&lt;Tipset&gt;&gt;,
     <span class="kw">pub </span>beacon: Arc&lt;BeaconSchedule&lt;B&gt;&gt;,
+    <span class="kw">pub </span>gc_event_tx: flume::Sender&lt;flume::Sender&lt;anyhow::Result&lt;()&gt;&gt;&gt;,
 }
 
 <span class="attr">#[derive(Debug, Serialize, Deserialize)]

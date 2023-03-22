@@ -181,15 +181,6 @@
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -208,7 +199,7 @@
 <span class="kw">mod </span>cli;
 <span class="kw">mod </span>daemon;
 
-<span class="kw">use </span>std::{cmp::max, fs::File, process, sync::Arc, time::Duration};
+<span class="kw">use </span>std::{cmp::max, fs::File, process, time::Duration};
 
 <span class="kw">use </span>anyhow::Context;
 <span class="kw">use </span>clap::Parser;
@@ -218,10 +209,10 @@
     cli::{check_for_unknown_keys, cli_error_and_die, ConfigPath, DaemonConfig},
     logger,
 };
-<span class="kw">use </span>forest_db::{db_engine::Db, Store};
+<span class="kw">use </span>forest_db::Store;
 <span class="kw">use </span>forest_utils::io::ProgressBar;
 <span class="kw">use </span>lazy_static::lazy_static;
-<span class="kw">use </span>log::{error, info, warn};
+<span class="kw">use </span>log::{info, warn};
 <span class="kw">use </span>raw_sync::{
     events::{Event, EventInit},
     Timeout,
@@ -362,21 +353,12 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(loki_task) = loki_task {
                 rt.spawn(loki_task);
             }
-            <span class="kw">let </span>db: Db = rt.block_on(daemon::start(opts, cfg))<span class="question-mark">?</span>;
-
+            <span class="kw">let </span>db = rt.block_on(daemon::start(opts, cfg))<span class="question-mark">?</span>;
             <span class="macro">info!</span>(<span class="string">&quot;Shutting down tokio...&quot;</span>);
             rt.shutdown_timeout(Duration::from_secs(<span class="number">10</span>));
-
             db.flush()<span class="question-mark">?</span>;
-            <span class="kw">let </span>db_weak_ref = Arc::downgrade(<span class="kw-2">&amp;</span>db.db);
             drop(db);
 
-            <span class="kw">if </span>db_weak_ref.strong_count() != <span class="number">0 </span>{
-                <span class="macro">error!</span>(
-                    <span class="string">&quot;Dangling reference to DB detected: {}. Tracking issue: https://github.com/ChainSafe/forest/issues/1891&quot;</span>,
-                    db_weak_ref.strong_count()
-                );
-            }
             <span class="macro">info!</span>(<span class="string">&quot;Forest finish shutdown&quot;</span>);
         }
     }

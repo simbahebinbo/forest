@@ -142,6 +142,9 @@
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -149,6 +152,7 @@
 <span class="kw">mod </span>beacon_api;
 <span class="kw">mod </span>chain_api;
 <span class="kw">mod </span>common_api;
+<span class="kw">mod </span>db_api;
 <span class="kw">mod </span>gas_api;
 <span class="kw">mod </span>mpool_api;
 <span class="kw">mod </span>net_api;
@@ -165,8 +169,8 @@
 <span class="kw">use </span>forest_beacon::Beacon;
 <span class="kw">use </span>forest_chain::Scale;
 <span class="kw">use </span>forest_rpc_api::{
-    auth_api::<span class="kw-2">*</span>, beacon_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, common_api::<span class="kw-2">*</span>, data_types::RPCState, gas_api::<span class="kw-2">*</span>,
-    mpool_api::<span class="kw-2">*</span>, net_api::<span class="kw-2">*</span>, state_api::<span class="kw-2">*</span>, sync_api::<span class="kw-2">*</span>, wallet_api::<span class="kw-2">*</span>,
+    auth_api::<span class="kw-2">*</span>, beacon_api::<span class="kw-2">*</span>, chain_api::<span class="kw-2">*</span>, common_api::<span class="kw-2">*</span>, data_types::RPCState, db_api::<span class="kw-2">*</span>,
+    gas_api::<span class="kw-2">*</span>, mpool_api::<span class="kw-2">*</span>, net_api::<span class="kw-2">*</span>, state_api::<span class="kw-2">*</span>, sync_api::<span class="kw-2">*</span>, wallet_api::<span class="kw-2">*</span>,
 };
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>jsonrpc_v2::{Data, Error <span class="kw">as </span>JSONRPCError, Server};
@@ -270,6 +274,8 @@
             .with_method(NET_PEERS, net_api::net_peers::&lt;DB, B&gt;)
             .with_method(NET_CONNECT, net_api::net_connect::&lt;DB, B&gt;)
             .with_method(NET_DISCONNECT, net_api::net_disconnect::&lt;DB, B&gt;)
+            <span class="comment">// DB API
+            </span>.with_method(DB_GC, db_api::db_gc::&lt;DB, B&gt;)
             .finish_unwrapped(),
     );
 

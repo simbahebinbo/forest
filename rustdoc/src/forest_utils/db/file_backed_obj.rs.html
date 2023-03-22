@@ -242,6 +242,11 @@
 <a href="#242" id="242">242</a>
 <a href="#243" id="243">243</a>
 <a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -268,6 +273,11 @@
     <span class="doccomment">/// Gets a borrow of the inner object
     </span><span class="kw">pub fn </span>inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>T {
         <span class="kw-2">&amp;</span><span class="self">self</span>.inner
+    }
+
+    <span class="doccomment">/// Gets a mutable borrow of the inner object
+    </span><span class="kw">pub fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>T {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 
     <span class="doccomment">/// Sets the inner object and try sync to file
@@ -334,13 +344,13 @@
     }
 
     <span class="doccomment">/// Syncs the object to the file
-    </span><span class="kw">fn </span>sync(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>sync(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>bytes = <span class="self">self</span>.inner().serialize()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(std::fs::write(<span class="kw-2">&amp;</span><span class="self">self</span>.path, bytes)<span class="question-mark">?</span>)
     }
 
     <span class="doccomment">/// Try to sync to file if there is some sync period, otherwise syncs
-    </span><span class="kw">fn </span>try_sync(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
+    </span><span class="kw">pub fn </span>try_sync(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(sync_period) = <span class="self">self</span>.sync_period {
             <span class="kw">let </span>now = SystemTime::now();
             <span class="kw">if let </span><span class="prelude-val">Some</span>(last_sync) = <span class="self">self</span>.last_sync {

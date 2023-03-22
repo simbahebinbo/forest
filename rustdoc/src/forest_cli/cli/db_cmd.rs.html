@@ -60,20 +60,42 @@
 <a href="#60" id="60">60</a>
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>clap::Subcommand;
+</span><span class="kw">use </span>chrono::Utc;
+<span class="kw">use </span>clap::Subcommand;
 <span class="kw">use </span>forest_cli_shared::{chain_path, cli::Config};
-<span class="kw">use </span>forest_db::db_engine::db_path;
+<span class="kw">use </span>forest_db::db_engine::db_root;
+<span class="kw">use </span>forest_rpc_client::db_ops::db_gc;
 <span class="kw">use </span>log::error;
 
-<span class="kw">use </span><span class="kw">crate</span>::cli::prompt_confirm;
+<span class="kw">use </span><span class="kw">crate</span>::cli::{handle_rpc_err, prompt_confirm};
 
 <span class="attr">#[derive(Debug, Subcommand)]
 </span><span class="kw">pub enum </span>DBCommands {
     <span class="doccomment">/// Show DB stats
     </span>Stats,
+    <span class="doccomment">/// Run DB garbage collection
+    </span>GC,
     <span class="doccomment">/// DB Clean up
     </span>Clean {
         <span class="doccomment">/// Answer yes to all forest-cli yes/no questions without prompting
@@ -83,19 +105,33 @@
 }
 
 <span class="kw">impl </span>DBCommands {
-    <span class="kw">pub fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">pub async fn </span>run(<span class="kw-2">&amp;</span><span class="self">self</span>, config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Stats =&gt; {
                 <span class="kw">use </span>human_repr::HumanCount;
 
-                <span class="kw">let </span>dir = db_path(<span class="kw-2">&amp;</span>chain_path(config));
+                <span class="kw">let </span>dir = db_root(<span class="kw-2">&amp;</span>chain_path(config));
                 <span class="macro">println!</span>(<span class="string">&quot;Database path: {}&quot;</span>, dir.display());
                 <span class="kw">let </span>size = fs_extra::dir::get_size(dir).unwrap_or_default();
                 <span class="macro">println!</span>(<span class="string">&quot;Database size: {}&quot;</span>, size.human_count_bytes());
                 <span class="prelude-val">Ok</span>(())
             }
+            <span class="self">Self</span>::GC =&gt; {
+                <span class="kw">let </span>start = Utc::now();
+
+                db_gc((), <span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
+
+                <span class="macro">println!</span>(
+                    <span class="string">&quot;DB GC completed. took {}s&quot;</span>,
+                    (Utc::now() - start).num_seconds()
+                );
+
+                <span class="prelude-val">Ok</span>(())
+            }
             <span class="self">Self</span>::Clean { force } =&gt; {
-                <span class="kw">let </span>dir = db_path(<span class="kw-2">&amp;</span>chain_path(config));
+                <span class="kw">let </span>dir = db_root(<span class="kw-2">&amp;</span>chain_path(config));
                 <span class="kw">if </span>!dir.is_dir() {
                     <span class="macro">println!</span>(
                         <span class="string">&quot;Aborted. Database path {} is not a valid directory&quot;</span>,
