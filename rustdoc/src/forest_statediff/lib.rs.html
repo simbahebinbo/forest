@@ -299,7 +299,6 @@
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -524,10 +523,9 @@
     <span class="kw">use </span>cid::{multihash::Code::Blake2b256, Cid};
     <span class="kw">use </span>fil_actor_account_v10::State <span class="kw">as </span>AccountState;
     <span class="kw">use </span>forest_db::MemoryDB;
-    <span class="kw">use </span>forest_shim::{econ::TokenAmount, state_tree::ActorState};
+    <span class="kw">use </span>forest_shim::{address::Address, econ::TokenAmount, state_tree::ActorState};
     <span class="kw">use </span>forest_utils::db::BlockstoreExt;
     <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
-    <span class="kw">use </span>fvm_shared::address::Address;
 
     <span class="kw">use </span><span class="kw">super</span>::pp_actor_state;
 
@@ -552,7 +550,7 @@
         <span class="kw">let </span>db = MemoryDB::default();
 
         <span class="kw">let </span>account_state = AccountState {
-            address: Address::new_id(<span class="number">0xdeadbeef</span>),
+            address: Address::new_id(<span class="number">0xdeadbeef</span>).into(),
         };
         <span class="kw">let </span>state = mk_account_v10(<span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>account_state);
 
@@ -565,7 +563,7 @@
                     code: Cid(bafk2bzaceampw4romta75hyz5p4cqriypmpbgnkxncgxgqn6zptv5lsp2w2bo), \
                     state: Cid(bafy2bzaceaiws3hdhmfyxyfjzmbaxv5aw6eywwbipeae4n5jjg5smmfxsaeic), \
                     sequence: 0, balance: TokenAmount(0.0), delegated_address: None })\n\
-            V10(State { address: Address { network: Mainnet, payload: ID(3735928559) } })&quot;
+            V10(State { address: Address { payload: ID(3735928559) } })&quot;
         </span>);
     }
 
@@ -576,7 +574,7 @@
         <span class="kw">let </span>db = MemoryDB::default();
 
         <span class="kw">let </span>account_state = AccountState {
-            address: Address::new_id(<span class="number">0xdeadbeef</span>),
+            address: <span class="kw-2">*</span>Address::new_id(<span class="number">0xdeadbeef</span>),
         };
         <span class="kw">let </span><span class="kw-2">mut </span>state = mk_account_v10(<span class="kw-2">&amp;</span>db, <span class="kw-2">&amp;</span>account_state);
         state.code = Cid::default(); <span class="comment">// Use an unknown actor CID to force parsing to fail.
