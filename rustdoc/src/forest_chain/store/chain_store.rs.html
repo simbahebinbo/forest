@@ -1235,7 +1235,7 @@
 
         <span class="kw">if </span>new_weight &gt; curr_weight {
             <span class="comment">// TODO potentially need to deal with re-orgs here
-            </span><span class="macro">info!</span>(<span class="string">&quot;New heaviest tipset: {:?}&quot;</span>, ts.key());
+            </span><span class="macro">info!</span>(<span class="string">&quot;New heaviest tipset! {} (EPOCH = {})&quot;</span>, ts.key(), ts.epoch());
             <span class="self">self</span>.set_heaviest_tipset(ts)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())

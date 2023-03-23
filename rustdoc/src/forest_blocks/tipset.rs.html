@@ -609,10 +609,26 @@
 <a href="#609" id="609">609</a>
 <a href="#610" id="610">610</a>
 <a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>ahash::{HashSet, HashSetExt};
+</span><span class="kw">use </span>std::fmt;
+
+<span class="kw">use </span>ahash::{HashSet, HashSetExt};
 <span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>forest_shim::address::Address;
 <span class="kw">use </span>fvm_ipld_encoding::Cbor;
@@ -642,6 +658,18 @@
     <span class="doccomment">/// Returns tipset header `cids`
     </span><span class="kw">pub fn </span>cids(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Cid] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.cids
+    }
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>TipsetKeys {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter) -&gt; fmt::Result {
+        <span class="kw">let </span>s = <span class="self">self
+            </span>.cids()
+            .iter()
+            .map(|cid| cid.to_string())
+            .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()
+            .join(<span class="string">&quot;, &quot;</span>);
+        <span class="macro">write!</span>(f, <span class="string">&quot;[{}]&quot;</span>, s)
     }
 }
 
@@ -827,9 +855,9 @@
                 ticket.vrfproof &lt; other_ticket.vrfproof
             });
         <span class="kw">if </span>broken {
-            <span class="macro">info!</span>(<span class="string">&quot;weight tie broken in favour of {:?}&quot;</span>, <span class="self">self</span>.key());
+            <span class="macro">info!</span>(<span class="string">&quot;Weight tie broken in favour of {}&quot;</span>, <span class="self">self</span>.key());
         } <span class="kw">else </span>{
-            <span class="macro">info!</span>(<span class="string">&quot;weight tie left unbroken, default to {:?}&quot;</span>, other.key());
+            <span class="macro">info!</span>(<span class="string">&quot;Weight tie left unbroken, default to {}&quot;</span>, other.key());
         }
         broken
     }
