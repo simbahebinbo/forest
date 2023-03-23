@@ -842,7 +842,7 @@
 
     <span class="kw">let </span>read_dir = <span class="kw">match </span>fs::read_dir(snapshot_dir) {
         <span class="prelude-val">Ok</span>(read_dir) =&gt; read_dir,
-        <span class="comment">// basically have the same behaviour as in `rm -f` which doesn&#39;t fail if the target
+        <span class="comment">// basically have the same behavior as in `rm -f` which doesn&#39;t fail if the target
         // directory doesn&#39;t exist.
         </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="kw">if </span>force =&gt; {
             <span class="macro">println!</span>(<span class="string">&quot;Target directory not accessible. Skipping.&quot;</span>);

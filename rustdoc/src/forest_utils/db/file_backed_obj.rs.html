@@ -286,7 +286,7 @@
         <span class="self">self</span>.try_sync()
     }
 
-    <span class="doccomment">/// Calls func with inner mutable reference and try sync to file
+    <span class="doccomment">/// Calls function with inner mutable reference and try sync to file
     </span><span class="kw">pub fn </span>with_inner&lt;F&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, func: F) -&gt; anyhow::Result&lt;()&gt;
     <span class="kw">where
         </span>F: FnOnce(<span class="kw-2">&amp;mut </span>T),
@@ -373,7 +373,7 @@
     <span class="doccomment">/// Serializes into a byte array
     </span><span class="kw">fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; anyhow::Result&lt;Vec&lt;u8&gt;&gt;;
 
-    <span class="doccomment">/// Deserializes from a byte array
+    <span class="doccomment">/// De-serializes from a byte array
     </span><span class="kw">fn </span>deserialize(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt;;
 }
 

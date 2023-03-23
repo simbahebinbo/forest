@@ -85,7 +85,7 @@
     };
 }
 
-<span class="doccomment">/// Retries a function call until max_retries is exceeded with a delay
+<span class="doccomment">/// Retries a function call until `max_retries` is exceeded with a delay
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules! </span>retry {
     (<span class="macro-nonterminal">$func</span>:ident, <span class="macro-nonterminal">$max_retries</span>:expr, <span class="macro-nonterminal">$delay</span>:expr $(, <span class="macro-nonterminal">$arg</span>:expr)<span class="kw-2">*</span>) =&gt; {{

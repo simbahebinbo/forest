@@ -4,10 +4,10 @@ become unreachable over time.</p>
 <p>This module contains a concurrent, semi-space garbage collector. The garbage
 collector is guaranteed to be non-blocking and can be expected to run with a
 fixed memory overhead and require disk space proportional to the size of the
-reachable graph. For example, if the size of the reachable graph is 100GiB,
-expect this garbage collector to use 3x100GiB = 300GiB of storage.</p>
+reachable graph. For example, if the size of the reachable graph is 100 GiB,
+expect this garbage collector to use <code>3x100 GiB = 300 GiB</code> of storage.</p>
 </div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><ul class="item-table"><li><div class="item-name"><a class="struct" href="struct.DbGarbageCollector.html" title="struct forest_db::rolling::DbGarbageCollector">DbGarbageCollector</a></div></li><li><div class="item-name"><a class="struct" href="struct.RollingDB.html" title="struct forest_db::rolling::RollingDB">RollingDB</a></div><div class="desc docblock-short">This DB wrapper is specially designed for supporting the concurrent,
-semi-space GC algorithm that is implemented in <a href="struct.DbGarbageCollector.html" title="struct forest_db::rolling::DbGarbageCollector">DbGarbageCollector</a>,
+semi-space GC algorithm that is implemented in <a href="struct.DbGarbageCollector.html" title="struct forest_db::rolling::DbGarbageCollector"><code>DbGarbageCollector</code></a>,
 containing a reference to the <code>old</code> DB space and a reference to the
 <code>current</code> DB space. Both underlying key-vale DB are supposed to contain only
 block data as value and its content-addressed CID as key</div></li></ul></section></div></main></body></html>

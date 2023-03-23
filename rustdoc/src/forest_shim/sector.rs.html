@@ -267,8 +267,8 @@
 
 <span class="kw">use crate</span>::{version::NetworkVersion, Inner};
 
-<span class="doccomment">/// Represents a shim over RegisteredSealProof from fvm_shared with convenience
-/// methods to convert to an older version of the type
+<span class="doccomment">/// Represents a shim over `RegisteredSealProof` from `fvm_shared` with
+/// convenience methods to convert to an older version of the type
 ///
 /// # Examples
 /// ```
@@ -327,8 +327,8 @@
     }
 }
 
-<span class="doccomment">/// Represents a shim over SectorInfo from fvm_shared with convenience methods
-/// to convert to an older version of the type
+<span class="doccomment">/// Represents a shim over `SectorInfo` from `fvm_shared` with convenience
+/// methods to convert to an older version of the type
 </span><span class="kw">pub struct </span>SectorInfo(SectorInfoV3);
 
 <span class="kw">impl </span>From&lt;SectorInfoV3&gt; <span class="kw">for </span>SectorInfo {
@@ -409,7 +409,7 @@
     }
 }
 
-<span class="doccomment">/// SectorSize indicates one of a set of possible sizes in the network.
+<span class="doccomment">/// `SectorSize` indicates one of a set of possible sizes in the network.
 </span><span class="attr">#[derive(Clone, Debug, PartialEq, Copy, serde::Serialize, serde::Deserialize)]
 </span><span class="kw">pub struct </span>SectorSize(SectorSizeV3);
 

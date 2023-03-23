@@ -43,8 +43,8 @@
 </span><span class="attr">#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(default)]
 </span><span class="kw">pub struct </span>Libp2pConfig {
-    <span class="doccomment">/// Local addresses. Tcp and websocket with dns are supported. By making it
-    /// empty, the libp2p node will not be capable of working as a dialee but
+    <span class="doccomment">/// Local addresses. TCP and WebSocket with DNS are supported. By making it
+    /// empty, the libp2p node will not be capable of working as a callee but
     /// can still work as a dialer
     </span><span class="kw">pub </span>listening_multiaddrs: Vec&lt;Multiaddr&gt;,
     <span class="doccomment">/// Bootstrap peer list.

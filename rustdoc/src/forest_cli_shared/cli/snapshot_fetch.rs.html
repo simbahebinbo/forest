@@ -877,7 +877,7 @@
     ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot; </span>|| ext == <span class="string">&quot;aria2&quot;
 </span>}
 
-<span class="doccomment">/// gets the size of a snapshot from filecoin.
+<span class="doccomment">/// gets the size of a snapshot from Filecoin.
 </span><span class="kw">pub async fn </span>snapshot_fetch_size(config: <span class="kw-2">&amp;</span>Config) -&gt; anyhow::Result&lt;u64&gt; {
     <span class="kw">let </span>service_url = <span class="kw">match </span>config.chain.name.to_lowercase().as_ref() {
         <span class="string">&quot;mainnet&quot; </span>=&gt; config.snapshot_fetch.filecoin.mainnet.clone(),
@@ -1464,7 +1464,7 @@
 
     <span class="doccomment">/// Serves a random file over HTTP.
     /// Returns:
-    /// - url of the served file,
+    /// - URL of the served file,
     /// - service channel,
     /// - expected SHA-256 of the file,
     /// - handle to the temporary directory in which the file is created.

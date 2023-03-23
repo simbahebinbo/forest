@@ -274,7 +274,7 @@
 <span class="kw">where
     </span>S: Blockstore + Clone,
 {
-    <span class="doccomment">/// Constructor for a hamt state tree given an IPLD store
+    <span class="doccomment">/// Constructor for a HAMT state tree given an IPLD store
     </span><span class="kw">pub fn </span>new_from_root(store: S, c: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(st) = StateTreeV3::new_from_root(store.clone(), c) {
             <span class="prelude-val">Ok</span>(StateTree::V3(st))
@@ -369,7 +369,7 @@
     }
 }
 
-<span class="doccomment">/// Newtype to wrap different versions of `fvm::state_tree::ActorState`
+<span class="doccomment">/// `Newtype` to wrap different versions of `fvm::state_tree::ActorState`
 ///
 /// # Examples
 /// ```

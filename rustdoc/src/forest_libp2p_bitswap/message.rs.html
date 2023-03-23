@@ -259,8 +259,8 @@
     Block(Vec&lt;u8&gt;),
 }
 
-<span class="doccomment">/// `Bitswap` message enum type that is either a [BitswapRequest] or a
-/// [BitswapResponse]
+<span class="doccomment">/// `Bitswap` message Enum type that is either a [`BitswapRequest`] or a
+/// [`BitswapResponse`]
 </span><span class="attr">#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 </span><span class="kw">pub enum </span>BitswapMessage {
     Request(BitswapRequest),

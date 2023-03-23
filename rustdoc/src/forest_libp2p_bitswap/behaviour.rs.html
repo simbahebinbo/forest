@@ -207,18 +207,18 @@
 
 <span class="kw">use crate</span>::{codec::<span class="kw-2">*</span>, protocol::<span class="kw-2">*</span>, request_manager::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
 
-<span class="doccomment">/// `libp2p` swarm network behaviour event of `bitswap`
+<span class="doccomment">/// `libp2p` swarm network behavior event of `bitswap`
 </span><span class="kw">pub type </span>BitswapBehaviourEvent = request_response::Event&lt;Vec&lt;BitswapMessage&gt;, ()&gt;;
 
 <span class="doccomment">/// A `go-bitswap` compatible protocol that is built on top of
-/// [request_response::Behaviour].
+/// [`request_response::Behaviour`].
 </span><span class="kw">pub struct </span>BitswapBehaviour {
     inner: request_response::Behaviour&lt;BitswapRequestResponseCodec&gt;,
     request_manager: Arc&lt;BitswapRequestManager&gt;,
 }
 
 <span class="kw">impl </span>BitswapBehaviour {
-    <span class="doccomment">/// Creates a [BitswapBehaviour] instance
+    <span class="doccomment">/// Creates a [`BitswapBehaviour`] instance
     </span><span class="kw">pub fn </span>new(protocols: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]], cfg: request_response::Config) -&gt; <span class="self">Self </span>{
         <span class="macro">assert!</span>(!protocols.is_empty(), <span class="string">&quot;protocols cannot be empty&quot;</span>);
 
@@ -232,12 +232,12 @@
         }
     }
 
-    <span class="doccomment">/// Gets mutable borrow of the inner [request_response::Behaviour]
+    <span class="doccomment">/// Gets mutable borrow of the inner [`request_response::Behaviour`]
     </span><span class="kw">pub fn </span>inner_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>request_response::Behaviour&lt;BitswapRequestResponseCodec&gt; {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.inner
     }
 
-    <span class="doccomment">/// Sends a [BitswapRequest] to a peer
+    <span class="doccomment">/// Sends a [`BitswapRequest`] to a peer
     </span><span class="kw">pub fn </span>send_request(<span class="kw-2">&amp;mut </span><span class="self">self</span>, peer: <span class="kw-2">&amp;</span>PeerId, request: BitswapRequest) -&gt; RequestId {
         <span class="kw">if </span>request.cancel {
             metrics::message_counter_outbound_request_cancel().inc();
@@ -251,7 +251,7 @@
             .send_request(peer, <span class="macro">vec!</span>[BitswapMessage::Request(request)])
     }
 
-    <span class="doccomment">/// Sends a [BitswapResponse] to a peer
+    <span class="doccomment">/// Sends a [`BitswapResponse`] to a peer
     </span><span class="kw">pub fn </span>send_response(<span class="kw-2">&amp;mut </span><span class="self">self</span>, peer: <span class="kw-2">&amp;</span>PeerId, response: (Cid, BitswapResponse)) -&gt; RequestId {
         <span class="kw">match </span>response.<span class="number">1 </span>{
             BitswapResponse::Have(..) =&gt; metrics::message_counter_outbound_response_have().inc(),
@@ -264,12 +264,12 @@
 
 <span class="comment">// Request Manager related API(s)
 </span><span class="kw">impl </span>BitswapBehaviour {
-    <span class="doccomment">/// Gets the associated [BitswapRequestManager]
+    <span class="doccomment">/// Gets the associated [`BitswapRequestManager`]
     </span><span class="kw">pub fn </span>request_manager(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Arc&lt;BitswapRequestManager&gt; {
         <span class="self">self</span>.request_manager.clone()
     }
 
-    <span class="doccomment">/// Hook the `bitswap` network event into its [BitswapRequestManager]
+    <span class="doccomment">/// Hook the `bitswap` network event into its [`BitswapRequestManager`]
     </span><span class="kw">pub fn </span>handle_event&lt;S: BitswapStoreRead&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         store: <span class="kw-2">&amp;</span>S,
