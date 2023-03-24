@@ -131,7 +131,7 @@
                 <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::Clean { force } =&gt; {
-                <span class="kw">let </span>dir = db_root(<span class="kw-2">&amp;</span>chain_path(config));
+                <span class="kw">let </span>dir = chain_path(config);
                 <span class="kw">if </span>!dir.is_dir() {
                     <span class="macro">println!</span>(
                         <span class="string">&quot;Aborted. Database path {} is not a valid directory&quot;</span>,

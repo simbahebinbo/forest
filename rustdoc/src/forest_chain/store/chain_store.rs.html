@@ -962,6 +962,14 @@
 <a href="#962" id="962">962</a>
 <a href="#963" id="963">963</a>
 <a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1108,11 +1116,19 @@
             <span class="kw-2">*</span>genesis_block_header.cid(),
             chain_data_root.join(<span class="string">&quot;GENESIS&quot;</span>),
         ));
-        <span class="kw">let </span>file_backed_heaviest_tipset_keys = Mutex::new(FileBacked::load_from_file_or_create(
-            chain_data_root.join(<span class="string">&quot;HEAD&quot;</span>),
-            || TipsetKeys::new(<span class="macro">vec!</span>[<span class="kw-2">*</span>genesis_block_header.cid()]),
-            <span class="prelude-val">None</span>,
-        )<span class="question-mark">?</span>);
+        <span class="kw">let </span>file_backed_heaviest_tipset_keys = Mutex::new({
+            <span class="kw">let </span><span class="kw-2">mut </span>head_store = FileBacked::load_from_file_or_create(
+                chain_data_root.join(<span class="string">&quot;HEAD&quot;</span>),
+                || TipsetKeys::new(<span class="macro">vec!</span>[<span class="kw-2">*</span>genesis_block_header.cid()]),
+                <span class="prelude-val">None</span>,
+            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>is_valid = tipset_from_keys(<span class="kw-2">&amp;</span>ts_cache, <span class="kw-2">&amp;</span>db, head_store.inner()).is_ok();
+            <span class="kw">if </span>!is_valid {
+                <span class="comment">// If the stored HEAD is invalid, reset it to the genesis tipset.
+                </span>head_store.set_inner(TipsetKeys::new(<span class="macro">vec!</span>[<span class="kw-2">*</span>genesis_block_header.cid()]))<span class="question-mark">?</span>;
+            }
+            head_store
+        });
         <span class="kw">let </span>file_backed_validated_blocks = Mutex::new(FileBacked::load_from_file_or_create(
             chain_data_root.join(<span class="string">&quot;VALIDATED_BLOCKS&quot;</span>),
             HashSet::default,
