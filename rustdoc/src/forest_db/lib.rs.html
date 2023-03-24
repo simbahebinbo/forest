@@ -125,6 +125,10 @@
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -132,13 +136,17 @@
 <span class="kw">mod </span>memory;
 <span class="kw">mod </span>metrics;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-</span><span class="kw">pub mod </span>rocks;
+<span class="macro">cfg_if::cfg_if! </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)] </span>{
+        <span class="kw">pub mod </span>rocks;
+    } <span class="kw">else if </span><span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)] </span>{
+        <span class="kw">pub mod </span>parity_db;
+    }
+}
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
-</span><span class="kw">pub mod </span>parity_db;
-
-<span class="kw">pub mod </span>parity_db_config;
+<span class="comment">// Not using conditional compilation here because DB config types are used in
+// forest config
+</span><span class="kw">pub mod </span>parity_db_config;
 <span class="kw">pub mod </span>rocks_config;
 
 <span class="kw">pub use </span>errors::Error;
@@ -226,19 +234,19 @@
 
     <span class="kw">use </span><span class="kw">crate</span>::rolling::<span class="kw-2">*</span>;
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-    </span><span class="kw">pub type </span>Db = <span class="kw">crate</span>::rocks::RocksDb;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
-    </span><span class="kw">pub type </span>Db = <span class="kw">crate</span>::parity_db::ParityDb;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-    </span><span class="kw">pub type </span>DbConfig = <span class="kw">crate</span>::rocks_config::RocksDbConfig;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
-    </span><span class="kw">pub type </span>DbConfig = <span class="kw">crate</span>::parity_db_config::ParityDbConfig;
-
-    <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-    </span><span class="kw">const </span>DIR_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;rocksdb&quot;</span>;
-    <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
-    </span><span class="kw">const </span>DIR_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;paritydb&quot;</span>;
+    <span class="macro">cfg_if::cfg_if! </span>{
+        <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)] </span>{
+            <span class="kw">pub type </span>Db = <span class="kw">crate</span>::rocks::RocksDb;
+            <span class="kw">pub type </span>DbConfig = <span class="kw">crate</span>::rocks_config::RocksDbConfig;
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>DbError = rocksdb::Error;
+            <span class="kw">const </span>DIR_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;rocksdb&quot;</span>;
+        } <span class="kw">else if </span><span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)] </span>{
+            <span class="kw">pub type </span>Db = <span class="kw">crate</span>::parity_db::ParityDb;
+            <span class="kw">pub type </span>DbConfig = <span class="kw">crate</span>::parity_db_config::ParityDbConfig;
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>DbError = parity_db::Error;
+            <span class="kw">const </span>DIR_NAME: <span class="kw-2">&amp;</span>str = <span class="string">&quot;paritydb&quot;</span>;
+        }
+    }
 
     <span class="kw">pub fn </span>db_root(chain_data_root: <span class="kw-2">&amp;</span>Path) -&gt; PathBuf {
         chain_data_root.join(DIR_NAME)

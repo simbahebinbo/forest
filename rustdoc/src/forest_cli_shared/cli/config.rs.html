@@ -316,6 +316,8 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -505,14 +507,16 @@
 }
 
 <span class="kw">impl </span>Config {
-    <span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)]
-    </span><span class="kw">pub fn </span>db_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DbConfig {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.rocks_db
-    }
-
-    <span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)]
-    </span><span class="kw">pub fn </span>db_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DbConfig {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.parity_db
+    <span class="macro">cfg_if::cfg_if! </span>{
+        <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;rocksdb&quot;</span>)] </span>{
+            <span class="kw">pub fn </span>db_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DbConfig {
+                <span class="kw-2">&amp;</span><span class="self">self</span>.rocks_db
+            }
+        } <span class="kw">else if </span><span class="attr">#[cfg(feature = <span class="string">&quot;paritydb&quot;</span>)] </span>{
+            <span class="kw">pub fn </span>db_config(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>DbConfig {
+                <span class="kw-2">&amp;</span><span class="self">self</span>.parity_db
+            }
+        }
     }
 }
 

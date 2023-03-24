@@ -700,6 +700,9 @@
 <a href="#700" id="700">700</a>
 <a href="#701" id="701">701</a>
 <a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -752,12 +755,15 @@
 </span><span class="attr">#[cfg(not(any(feature = <span class="string">&quot;forest_fil_cns&quot;</span>, feature = <span class="string">&quot;forest_deleg_cns&quot;</span>)))]
 </span><span class="macro">compile_error!</span>(<span class="string">&quot;No consensus feature enabled; use e.g. `--feature forest_fil_cns` to pick one.&quot;</span>);
 
-<span class="comment">// Default consensus
-// Custom consensus.
-</span><span class="attr">#[cfg(feature = <span class="string">&quot;forest_deleg_cns&quot;</span>)]
-</span><span class="kw">use </span>forest_deleg_cns::composition <span class="kw">as </span>cns;
-<span class="attr">#[cfg(all(feature = <span class="string">&quot;forest_fil_cns&quot;</span>, not(any(feature = <span class="string">&quot;forest_deleg_cns&quot;</span>))))]
-</span><span class="kw">use </span>forest_fil_cns::composition <span class="kw">as </span>cns;
+<span class="macro">cfg_if::cfg_if! </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;forest_deleg_cns&quot;</span>)] </span>{
+        <span class="comment">// Custom consensus.
+        </span><span class="kw">use </span>forest_deleg_cns::composition <span class="kw">as </span>cns;
+    } <span class="kw">else </span>{
+        <span class="comment">// Default consensus
+        </span><span class="kw">use </span>forest_fil_cns::composition <span class="kw">as </span>cns;
+    }
+}
 
 <span class="kw">fn </span>unblock_parent_process() -&gt; anyhow::Result&lt;()&gt; {
     <span class="kw">let </span>shmem = <span class="kw">super</span>::ipc_shmem_conf().open()<span class="question-mark">?</span>;
