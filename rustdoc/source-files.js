@@ -13,7 +13,6 @@ var sourcesIndex = JSON.parse('{\
 "forest_db":["",[["rolling",[],["gc.rs","impls.rs","mod.rs"]]],["errors.rs","lib.rs","memory.rs","metrics.rs","parity_db.rs","parity_db_config.rs","rocks_config.rs"]],\
 "forest_deleg_cns":["",[],["composition.rs","consensus.rs","lib.rs","proposer.rs","validation.rs"]],\
 "forest_fil_cns":["",[],["composition.rs","lib.rs","metrics.rs","validation.rs","weight.rs"]],\
-"forest_fil_types":["",[["verifier",[],["mod.rs"]]],["lib.rs"]],\
 "forest_genesis":["",[],["lib.rs"]],\
 "forest_interpreter":["",[],["fvm.rs","fvm3.rs","lib.rs","vm.rs"]],\
 "forest_ipld":["",[["selector",[],["empty_map.rs","mod.rs","walk.rs"]]],["cid_hashset.rs","error.rs","json.rs","lib.rs","util.rs"]],\
