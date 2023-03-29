@@ -703,6 +703,8 @@
 <a href="#703" id="703">703</a>
 <a href="#704" id="704">704</a>
 <a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -885,11 +887,13 @@
         Arc::new(DbGarbageCollector::new(db, get_tipset))
     };
 
-    <span class="attr">#[allow(clippy::redundant_async_block)]
-    </span>services.spawn({
-        <span class="kw">let </span>db_garbage_collector = db_garbage_collector.clone();
-        <span class="kw">async move </span>{ db_garbage_collector.collect_loop_passive().<span class="kw">await </span>}
-    });
+    <span class="kw">if </span>!opts.no_gc {
+        <span class="attr">#[allow(clippy::redundant_async_block)]
+        </span>services.spawn({
+            <span class="kw">let </span>db_garbage_collector = db_garbage_collector.clone();
+            <span class="kw">async move </span>{ db_garbage_collector.collect_loop_passive().<span class="kw">await </span>}
+        });
+    }
     <span class="attr">#[allow(clippy::redundant_async_block)]
     </span>services.spawn({
         <span class="kw">let </span>db_garbage_collector = db_garbage_collector.clone();

@@ -430,6 +430,9 @@
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -573,6 +576,9 @@ OPTIONS:
     <span class="doccomment">/// Track peak physical memory usage and print on exit
     </span><span class="attr">#[arg(long)]
     </span><span class="kw">pub </span>track_peak_rss: bool,
+    <span class="doccomment">/// Disable the automatic database garbage collection.
+    </span><span class="attr">#[arg(long)]
+    </span><span class="kw">pub </span>no_gc: bool,
 }
 
 <span class="kw">impl </span>CliOpts {
