@@ -429,6 +429,7 @@
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -535,8 +536,8 @@ OPTIONS:
     </span><span class="attr">#[arg(long)]
     </span><span class="kw">pub </span>encrypt_keystore: <span class="prelude-ty">Option</span>&lt;bool&gt;,
     <span class="doccomment">/// Choose network chain to sync to
-    </span><span class="attr">#[arg(long, default_value = <span class="string">&quot;mainnet&quot;</span>)]
-    </span><span class="kw">pub </span>chain: String,
+    </span><span class="attr">#[arg(long)]
+    </span><span class="kw">pub </span>chain: <span class="prelude-ty">Option</span>&lt;String&gt;,
     <span class="doccomment">/// Daemonize Forest process
     </span><span class="attr">#[arg(long)]
     </span><span class="kw">pub </span>detach: bool,
@@ -587,9 +588,10 @@ OPTIONS:
             <span class="prelude-val">None </span>=&gt; Config::default(),
         };
 
-        <span class="kw">if </span><span class="self">self</span>.chain == <span class="string">&quot;calibnet&quot; </span>{
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.chain {
             <span class="comment">// override the chain configuration
-            </span>cfg.chain = Arc::new(ChainConfig::calibnet());
+            </span><span class="prelude-val">Some</span>(name) <span class="kw">if </span>name == <span class="string">&quot;calibnet&quot; </span>=&gt; cfg.chain = Arc::new(ChainConfig::calibnet()),
+            <span class="kw">_ </span>=&gt; cfg.chain = Arc::new(ChainConfig::mainnet()),
         }
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(genesis_file) = <span class="kw-2">&amp;</span><span class="self">self</span>.genesis {
