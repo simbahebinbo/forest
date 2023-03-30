@@ -1,0 +1,311 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>State migration spike NV17-NV18</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="../introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_usage.html"><strong aria-hidden="true">1.1.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="../cli.html"><strong aria-hidden="true">1.2.</strong> Command-line interface</a></li><li class="chapter-item expanded "><a href="../configuration.html"><strong aria-hidden="true">1.3.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="../docker.html"><strong aria-hidden="true">1.4.</strong> Docker</a></li><li class="chapter-item expanded "><a href="../js_console.html"><strong aria-hidden="true">1.5.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="../trouble_shooting.html"><strong aria-hidden="true">1.6.</strong> Troubleshooting</a></li><li class="chapter-item expanded "><a href="../glossary.html"><strong aria-hidden="true">1.7.</strong> Glossary</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Developer documentation</li><li class="chapter-item expanded "><a href="../developer_documentation/introduction.html"><strong aria-hidden="true">2.</strong> Developer documentation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../developer_documentation/contributing.html"><strong aria-hidden="true">2.1.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="../developer_documentation/mainnet_compatibility.html"><strong aria-hidden="true">2.2.</strong> Mainnet compatibility</a></li><li class="chapter-item expanded "><a href="../developer_documentation/memory-analysis.html"><strong aria-hidden="true">2.3.</strong> Memory analysis</a></li><li class="chapter-item expanded "><a href="../developer_documentation/release_checklist.html"><strong aria-hidden="true">2.4.</strong> Release checklist</a></li><li class="chapter-item expanded "><a href="../developer_documentation/smoke_testing.html"><strong aria-hidden="true">2.5.</strong> Smoke testing</a></li><li class="chapter-item expanded "><a href="../developer_documentation/state_migration.html"><strong aria-hidden="true">2.6.</strong> State migration</a></li><li class="chapter-item expanded "><a href="../developer_documentation/state_migration_spike.html" class="active"><strong aria-hidden="true">2.7.</strong> State migration spike NV17-NV18</a></li><li class="chapter-item expanded "><a href="../developer_documentation/test_plan.html"><strong aria-hidden="true">2.8.</strong> Test plan</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h2 id="state-migration-spike-"><a class="header" href="#state-migration-spike-">State migration spike 🛂</a></h2>
+<h3 id="what-is-state-migration"><a class="header" href="#what-is-state-migration">What is state migration?</a></h3>
+<p>State migration is a process where the <code>StateTree</code> contents are transformed from
+an older form to a newer form. Certain Actors may need to be created or migrated as well.</p>
+<h3 id="why-do-we-need-to-migrate"><a class="header" href="#why-do-we-need-to-migrate">Why do we need to migrate?</a></h3>
+<p>Migration is required when the structure of the state changes. This happens when
+new fields are added or existing ones are modified. Migration is <strong>not</strong>
+required in case of new behaviour.</p>
+<p>In case of NV18, the <code>StateTree</code> changed from version 4 to version 5. See
+https://github.com/filecoin-project/ref-fvm/pull/1062</p>
+<h3 id="what-to-upgrade"><a class="header" href="#what-to-upgrade">What to upgrade?</a></h3>
+<p>We need to upgrade the <code>StateTree</code> which is represented as
+<code>HAMT&lt;Cid, ActorState&gt;</code> to the latest version.</p>
+<p>On top of that, we need to migrate certain actors. In the case of NV18 upgrade, it's the <a href="https://github.com/filecoin-project/go-state-types/blob/d8fdbda2ad86de55bcde7f567c6da9c5f430c7a1/builtin/v10/migration/init.go#L32">init</a> and <a href="https://github.com/filecoin-project/go-state-types/blob/master/builtin/v10/migration/system.go#L24">system</a> actor.
+<a href="https://github.com/filecoin-project/go-state-types/blob/master/builtin/v10/migration/eam.go">EAM</a> actor needs to be created.</p>
+<h3 id="when-to-upgrade"><a class="header" href="#when-to-upgrade">When to upgrade?</a></h3>
+<p>There is a separate upgrade schedule for each network. In Lotus, it is defined
+in
+<a href="https://github.com/filecoin-project/lotus/blob/dbbcf4b2ee9626796e23a096c66e67ff350810e4/chain/consensus/filcns/upgrades.go#L83">upgrades.go</a>.
+In Venus, in
+<a href="https://github.com/filecoin-project/venus/blob/master/pkg/fork/fork.go">fork.go</a>
+which has the same structure.</p>
+<p>For the case of NV18, it is defined as</p>
+<pre><code class="language-go">Height:    build.UpgradeHyggeHeight,
+Network:   network.Version18,
+Migration: UpgradeActorsV10,
+PreMigrations: []stmgr.PreMigration{{
+	PreMigration:    PreUpgradeActorsV10,
+	StartWithin:     60,
+	DontStartWithin: 10,
+	StopWithin:      5,
+}},
+Expensive: true,
+</code></pre>
+<h3 id="how-to-upgrade"><a class="header" href="#how-to-upgrade">How to upgrade?</a></h3>
+<p>Iterate over the state of each actor at the given epoch and write the new state
+along with any specific changes to the respective state. This involves iterating
+over each of the HAMT nodes storing the state and writing them to the database.</p>
+<p><a href="https://github.com/filecoin-project/lotus/blob/58900a70333a11a903cf9fe3f29e6a5c309cb000/chain/consensus/filcns/upgrades.go#L1591-L1612">Lotus upgrade method</a>
+and the
+<a href="https://github.com/filecoin-project/go-state-types/tree/master/builtin/v10/migration">module</a>
+dedicated to Actors <code>v10</code> migration. The core logic is
+<a href="https://github.com/filecoin-project/go-state-types/blob/master/builtin/v10/migration/top.go#L28">here</a>.
+The same module is used by Venus.</p>
+<p>Forks migrations: handled by
+<a href="https://github.com/filecoin-project/lotus/blob/58900a70333a11a903cf9fe3f29e6a5c309cb000/chain/stmgr/forks.go#L42-L53">fork.go</a>
+entities.</p>
+<h3 id="where-to-upgrade"><a class="header" href="#where-to-upgrade">Where to upgrade?</a></h3>
+<p>It should be done most likely in the apply blocks method.</p>
+<p><a href="https://github.com/filecoin-project/lotus/blob/74d94af03418c799350fc0f40d3758c23cd82ab8/chain/consensus/compute_state.go#L178">Lotus</a>:</p>
+<pre><code class="language-go">// handle state forks
+// XXX: The state tree
+pstate, err = sm.HandleStateForks(ctx, pstate, i, em, ts)
+if err != nil {
+	return cid.Undef, cid.Undef, xerrors.Errorf(&quot;error handling state forks: %w&quot;, err)
+}
+</code></pre>
+<p>In
+<a href="https://github.com/ChainSafe/forest/blob/main/blockchain/state_manager/src/lib.rs#L421-L424">Forest</a>
+we already have a hint from the past:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>if epoch_i == turbo_height {
+    todo!(&quot;cannot migrate state when using FVM - see https://github.com/ChainSafe/forest/issues/1454 for updates&quot;);
+}
+<span class="boring">}</span></code></pre></pre>
+<p>We can try with something simplistic to get it running, it's not an issue.
+Afterwards we can implement a proper schedule with functors.</p>
+<h3 id="challenges"><a class="header" href="#challenges">Challenges</a></h3>
+<ul>
+<li>Doing the state migration efficiently; we need to traverse every entry in the
+state trie. Lotus does pre-migration which are filling relevant caches to
+speed up the eventual full migration at the upgrade epoch. We might need to do
+something like this as well; it might not be necessary for the first
+iteration - depends on how performant the migration process would be in the
+Forest itself.</li>
+<li>No test network. While we can use existing snapshots from before the upgrade
+to test state migration, it is not sustainable if we want to continuously
+support calibration network. We either require a local devnet for testing
+migration <strong>before</strong> they actually happen on real networks or we can try
+supporting more bleeding-edge networks. The former approach is more solid, but
+the latter might be easier to implement at first (and would give Forest more
+testnets support which is always welcome).</li>
+<li>There may be forks, so we probably need to keep the pre-migration and
+post-migration state in two caches for some back and forths. This in Lotus is
+handled with
+<a href="https://github.com/filecoin-project/lotus/blob/f641139bf237e6e955a9a2f33cfc05ba52430b1b/chain/stmgr/forks.go#L175">HandleStateForks</a>.</li>
+<li>For EAM Actor we may need some Ethereum methods we have not yet implemented.
+Perhaps what <code>builtin-actors</code> and <code>ref-fvm</code> expose will be enough.</li>
+</ul>
+<h3 id="current-forest-implementation"><a class="header" href="#current-forest-implementation">Current Forest implementation</a></h3>
+<p>For the moment Forest does not support migrations. The
+<a href="https://github.com/ChainSafe/forest/blob/state-migration-spike/vm/state_migration/src/lib.rs">code</a>
+that was meant for this is not used at the moment. Most probably we will be able
+to utilise it.</p>
+<h3 id="plan"><a class="header" href="#plan">Plan</a></h3>
+<p>We should start by adding an <code>nv18</code> to the state migration
+<a href="https://github.com/ChainSafe/forest/tree/state-migration-spike/vm/state_migration/src">crate</a>,
+along the lines of the
+<a href="https://github.com/filecoin-project/go-state-types/blob/master/builtin/v10/migration/init.go">Go equivalent</a>.
+Most likely this would mean adding some missing structures, related to the <code>v10</code>
+actors (Ethereum ones).</p>
+<p>Then try to plug it in
+<a href="https://github.com/ChainSafe/forest/blob/main/blockchain/state_manager/src/lib.rs#L421-L424">apply_blocks</a>.
+This may work for calibration network. Afterwards, we will most likely need to
+iterate to achieve acceptable performance for mainnet. Some ideas on how to
+achieve this can be taken from Lotus/Venus, e.g., pre-migration caching.</p>
+<h3 id="sources"><a class="header" href="#sources">Sources</a></h3>
+<ul>
+<li>Rahul's article: https://hackmd.io/@tbdrqGmwSXiPjxgteK3hMg/r1D6cVM_u</li>
+<li>Lotus codebase - https://github.com/filecoin-project/lotus</li>
+<li>Venus codebase - https://github.com/filecoin-project/venus</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../developer_documentation/state_migration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../developer_documentation/test_plan.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../developer_documentation/state_migration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../developer_documentation/test_plan.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
