@@ -318,6 +318,8 @@
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -391,8 +393,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>map = HashMap::new();
         <span class="kw">const </span>CALIBNET_CHECKPOINT_41000: TipsetKeyHash = <span class="string">&quot;1a11a07d427348cc14eaa901de1ba9c6a4e18400bb557f5a0fabbcb22352319e31a7bc988a92525339f84275c0ef6dfbffcb50bb9d9843701875eecfa3ccb069&quot;</span>;
         <span class="kw">const </span>CALIBNET_CHECKPOINT_84000: TipsetKeyHash = <span class="string">&quot;326a645e679bc590118c80778588ff8d4e4a13eb7db25fe7a2fc3fbdcd97cf751fc4ee6c11f9f2ee97717eb15cb98771b944581ef329cb0dc6802dc81190e017&quot;</span>;
+        <span class="kw">const </span>CALIBNET_CHECKPOINT_424000: TipsetKeyHash = <span class="string">&quot;8cab45fd441c1fb68d2fd7e45d5e9ef9a5d3b45f68b414ab3e244233dd8e37fc4dacffc8966b2dc8804d4abf92c8a57efda743e26db6805a77a4feac19478293&quot;</span>;
         <span class="macro">add_calibnet!</span>(map, CALIBNET_CHECKPOINT_41000);
         <span class="macro">add_calibnet!</span>(map, CALIBNET_CHECKPOINT_84000);
+        <span class="macro">add_calibnet!</span>(map, CALIBNET_CHECKPOINT_424000);
         map
     });
 
