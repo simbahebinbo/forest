@@ -336,6 +336,12 @@
 <a href="#336" id="336">336</a>
 <a href="#337" id="337">337</a>
 <a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -528,8 +534,9 @@
 
     <span class="doccomment">/// Sets `current` as `old`, and sets a new DB as `current`, finally delete
     /// the dangling `old` DB.
-    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>next_current(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; anyhow::Result&lt;()&gt; {
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>next_current(<span class="kw-2">&amp;</span><span class="self">self</span>, current_epoch: i64) -&gt; anyhow::Result&lt;()&gt; {
         <span class="kw">let </span>new_db_name = Uuid::new_v4().simple().to_string();
+        <span class="macro">info!</span>(<span class="string">&quot;Setting {new_db_name} as current db&quot;</span>);
         <span class="kw">let </span>db = open_db(<span class="kw-2">&amp;</span><span class="self">self</span>.db_root.join(<span class="kw-2">&amp;</span>new_db_name), <span class="kw-2">&amp;</span><span class="self">self</span>.db_config)<span class="question-mark">?</span>;
         <span class="kw-2">*</span><span class="self">self</span>.old.write() = <span class="self">self</span>.current.read().clone();
         <span class="kw-2">*</span><span class="self">self</span>.current.write() = db;
@@ -538,10 +545,15 @@
         <span class="kw">let </span>old_db_path = <span class="self">self</span>.db_root.join(<span class="kw-2">&amp;</span>db_index_inner_mut.old);
         db_index_inner_mut.old = db_index_inner_mut.current.clone();
         db_index_inner_mut.current = new_db_name;
+        db_index_inner_mut.current_creation_epoch = current_epoch;
         db_index.sync()<span class="question-mark">?</span>;
         delete_db(<span class="kw-2">&amp;</span>old_db_path);
 
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>current_creation_epoch(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; i64 {
+        <span class="self">self</span>.db_index.read().inner().current_creation_epoch
     }
 
     <span class="kw">pub fn </span>total_size_in_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; anyhow::Result&lt;u64&gt; {
@@ -636,7 +648,7 @@
             <span class="kw">if </span>i == split_index {
                 sleep(Duration::from_millis(<span class="number">1</span>));
                 <span class="macro">println!</span>(<span class="string">&quot;Creating a new current db&quot;</span>);
-                rolling_db.next_current()<span class="question-mark">?</span>;
+                rolling_db.next_current(<span class="number">0</span>)<span class="question-mark">?</span>;
                 <span class="macro">println!</span>(<span class="string">&quot;Created a new current db&quot;</span>);
             }
             rolling_db.put_keyed(k, block)<span class="question-mark">?</span>;
@@ -650,7 +662,7 @@
             </span>);
         }
 
-        rolling_db.next_current()<span class="question-mark">?</span>;
+        rolling_db.next_current(<span class="number">0</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for </span>(i, (k, <span class="kw">_</span>)) <span class="kw">in </span>pairs.iter().enumerate() {
             <span class="kw">if </span>i &lt; split_index {
