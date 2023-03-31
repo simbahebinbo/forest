@@ -434,15 +434,6 @@
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
-<a href="#444" id="444">444</a>
-<a href="#445" id="445">445</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -461,10 +452,7 @@
     kad::{record::store::MemoryStore, Kademlia, KademliaConfig, KademliaEvent, QueryId},
     mdns::{tokio::Behaviour <span class="kw">as </span>Mdns, Event <span class="kw">as </span>MdnsEvent},
     multiaddr::Protocol,
-    swarm::{
-        behaviour::toggle::Toggle, derive_prelude::<span class="kw-2">*</span>, NetworkBehaviour, NetworkBehaviourAction,
-        PollParameters,
-    },
+    swarm::{behaviour::toggle::Toggle, derive_prelude::<span class="kw-2">*</span>, NetworkBehaviour, PollParameters},
 };
 <span class="kw">use </span>log::{debug, error, trace, warn};
 <span class="kw">use </span>tokio::time::Interval;
@@ -761,10 +749,10 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         cx: <span class="kw-2">&amp;mut </span>Context,
         params: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PollParameters,
-    ) -&gt; Poll&lt;NetworkBehaviourAction&lt;<span class="self">Self</span>::OutEvent, libp2p::swarm::THandlerInEvent&lt;<span class="self">Self</span>&gt;&gt;&gt; {
+    ) -&gt; Poll&lt;ToSwarm&lt;<span class="self">Self</span>::OutEvent, libp2p::swarm::THandlerInEvent&lt;<span class="self">Self</span>&gt;&gt;&gt; {
         <span class="comment">// Immediately process the content of `discovered`.
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(ev) = <span class="self">self</span>.pending_events.pop_front() {
-            <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::GenerateEvent(ev));
+            <span class="kw">return </span>Poll::Ready(ToSwarm::GenerateEvent(ev));
         }
 
         <span class="comment">// Poll the stream that fires when we need to start a random Kademlia query.
@@ -794,7 +782,7 @@
         <span class="comment">// Poll Kademlia.
         </span><span class="kw">while let </span>Poll::Ready(ev) = <span class="self">self</span>.kademlia.poll(cx, params) {
             <span class="kw">match </span>ev {
-                NetworkBehaviourAction::GenerateEvent(ev) =&gt; <span class="kw">match </span>ev {
+                ToSwarm::GenerateEvent(ev) =&gt; <span class="kw">match </span>ev {
                     <span class="comment">// Adding to Kademlia buckets is automatic with our config,
                     // no need to do manually.
                     </span>KademliaEvent::RoutingUpdated { .. } =&gt; {}
@@ -806,31 +794,28 @@
                         <span class="macro">trace!</span>(<span class="string">&quot;Libp2p =&gt; Unhandled Kademlia event: {:?}&quot;</span>, other)
                     }
                 },
-                NetworkBehaviourAction::Dial { opts } =&gt; {
-                    <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::Dial { opts });
+                ToSwarm::Dial { opts } =&gt; {
+                    <span class="kw">return </span>Poll::Ready(ToSwarm::Dial { opts });
                 }
-                NetworkBehaviourAction::NotifyHandler {
+                ToSwarm::NotifyHandler {
                     peer_id,
                     handler,
                     event,
                 } =&gt; {
-                    <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::NotifyHandler {
+                    <span class="kw">return </span>Poll::Ready(ToSwarm::NotifyHandler {
                         peer_id,
                         handler,
                         event,
                     })
                 }
-                NetworkBehaviourAction::ReportObservedAddr { address, score } =&gt; {
-                    <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::ReportObservedAddr {
-                        address,
-                        score,
-                    })
+                ToSwarm::ReportObservedAddr { address, score } =&gt; {
+                    <span class="kw">return </span>Poll::Ready(ToSwarm::ReportObservedAddr { address, score })
                 }
-                NetworkBehaviourAction::CloseConnection {
+                ToSwarm::CloseConnection {
                     peer_id,
                     connection,
                 } =&gt; {
-                    <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::CloseConnection {
+                    <span class="kw">return </span>Poll::Ready(ToSwarm::CloseConnection {
                         peer_id,
                         connection,
                     })
@@ -841,7 +826,7 @@
         <span class="comment">// Poll mdns.
         </span><span class="kw">while let </span>Poll::Ready(ev) = <span class="self">self</span>.mdns.poll(cx, params) {
             <span class="kw">match </span>ev {
-                NetworkBehaviourAction::GenerateEvent(event) =&gt; <span class="kw">match </span>event {
+                ToSwarm::GenerateEvent(event) =&gt; <span class="kw">match </span>event {
                     MdnsEvent::Discovered(list) =&gt; {
                         <span class="kw">if </span><span class="self">self</span>.n_node_connected &gt;= <span class="self">self</span>.target_peer_count {
                             <span class="comment">// Already over discovery max, don&#39;t add discovered peers.
@@ -859,20 +844,17 @@
                     }
                     MdnsEvent::Expired(<span class="kw">_</span>) =&gt; {}
                 },
-                NetworkBehaviourAction::Dial { .. } =&gt; {}
+                ToSwarm::Dial { .. } =&gt; {}
                 <span class="comment">// Nothing to notify handler
-                </span>NetworkBehaviourAction::NotifyHandler { event, .. } =&gt; <span class="kw">match </span>event {},
-                NetworkBehaviourAction::ReportObservedAddr { address, score } =&gt; {
-                    <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::ReportObservedAddr {
-                        address,
-                        score,
-                    })
+                </span>ToSwarm::NotifyHandler { event, .. } =&gt; <span class="kw">match </span>event {},
+                ToSwarm::ReportObservedAddr { address, score } =&gt; {
+                    <span class="kw">return </span>Poll::Ready(ToSwarm::ReportObservedAddr { address, score })
                 }
-                NetworkBehaviourAction::CloseConnection {
+                ToSwarm::CloseConnection {
                     peer_id,
                     connection,
                 } =&gt; {
-                    <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::CloseConnection {
+                    <span class="kw">return </span>Poll::Ready(ToSwarm::CloseConnection {
                         peer_id,
                         connection,
                     })
@@ -882,7 +864,7 @@
 
         <span class="comment">// Poll pending events
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(ev) = <span class="self">self</span>.pending_events.pop_front() {
-            <span class="kw">return </span>Poll::Ready(NetworkBehaviourAction::GenerateEvent(ev));
+            <span class="kw">return </span>Poll::Ready(ToSwarm::GenerateEvent(ev));
         }
 
         Poll::Pending

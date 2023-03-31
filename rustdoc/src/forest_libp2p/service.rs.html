@@ -856,6 +856,8 @@
 <a href="#856" id="856">856</a>
 <a href="#857" id="857">857</a>
 <a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -882,13 +884,14 @@
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">pub use </span>libp2p::gossipsub::{IdentTopic, Topic};
 <span class="kw">use </span>libp2p::{
+    connection_limits::ConnectionLimits,
     core::{<span class="self">self</span>, identity::Keypair, muxing::StreamMuxerBox, transport::Boxed, Multiaddr},
     gossipsub,
     metrics::{Metrics, Recorder},
     multiaddr::Protocol,
     noise, ping,
     request_response::{<span class="self">self</span>, RequestId, ResponseChannel},
-    swarm::{ConnectionLimits, SwarmBuilder, SwarmEvent},
+    swarm::{SwarmBuilder, SwarmEvent},
     yamux::YamuxConfig,
     PeerId, Swarm, Transport,
 };
@@ -1065,7 +1068,7 @@
         <span class="kw">let </span>transport =
             build_transport(net_keypair.clone()).expect(<span class="string">&quot;Failed to build libp2p transport&quot;</span>);
 
-        <span class="kw">let </span>limits = ConnectionLimits::default()
+        <span class="kw">let </span>connection_limits = ConnectionLimits::default()
             .with_max_pending_incoming(<span class="prelude-val">Some</span>(<span class="number">10</span>))
             .with_max_pending_outgoing(<span class="prelude-val">Some</span>(<span class="number">30</span>))
             .with_max_established_incoming(<span class="prelude-val">Some</span>(config.target_peer_count))
@@ -1074,10 +1077,9 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>swarm = SwarmBuilder::with_tokio_executor(
             transport,
-            ForestBehaviour::new(<span class="kw-2">&amp;</span>net_keypair, <span class="kw-2">&amp;</span>config, network_name),
+            ForestBehaviour::new(<span class="kw-2">&amp;</span>net_keypair, <span class="kw-2">&amp;</span>config, network_name, connection_limits),
             peer_id,
         )
-        .connection_limits(limits)
         .notify_handler_buffer_size(std::num::NonZeroUsize::new(<span class="number">20</span>).expect(<span class="string">&quot;Not zero&quot;</span>))
         .per_connection_event_buffer_size(<span class="number">64</span>)
         .build();
@@ -1216,11 +1218,11 @@
     <span class="kw">match </span>peer_ops {
         Ban(peer_id, reason) =&gt; {
             <span class="macro">warn!</span>(<span class="string">&quot;Banning {peer_id}, reason: {reason}&quot;</span>);
-            swarm.ban_peer_id(peer_id);
+            swarm.behaviour_mut().blocked_peers.block_peer(peer_id);
         }
         Unban(peer_id) =&gt; {
             <span class="macro">info!</span>(<span class="string">&quot;Unbanning {peer_id}&quot;</span>);
-            swarm.unban_peer_id(peer_id);
+            swarm.behaviour_mut().blocked_peers.unblock_peer(peer_id);
         }
     }
 }
@@ -1657,6 +1659,8 @@
             )
             .<span class="kw">await
         </span>}
+        ForestBehaviourEvent::ConnectionLimits(<span class="kw">_</span>) =&gt; {}
+        ForestBehaviourEvent::BlockedPeers(<span class="kw">_</span>) =&gt; {}
     }
 }
 
