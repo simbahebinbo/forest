@@ -18,12 +18,12 @@ use super::Error;
 #[derive(Default)]
 pub(crate) struct TipsetTracker<DB> {
     entries: Mutex<BTreeMap<ChainEpoch, Vec<Cid>>>,
-    db: DB,
+    db: Arc<DB>,
     chain_config: Arc<ChainConfig>,
 }
 
 impl<DB: Blockstore> TipsetTracker<DB> {
-    pub fn new(db: DB, chain_config: Arc<ChainConfig>) -> Self {
+    pub fn new(db: Arc<DB>, chain_config: Arc<ChainConfig>) -> Self {
         Self {
             entries: Default::default(),
             db,
@@ -127,7 +127,7 @@ mod test {
 
     #[test]
     fn ensure_tipset_is_bounded() {
-        let db = MemoryDB::default();
+        let db = Arc::new(MemoryDB::default());
         let chain_config = Arc::new(ChainConfig::default());
 
         let head_epoch = 2023;

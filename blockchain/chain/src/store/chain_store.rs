@@ -80,7 +80,7 @@ pub struct ChainStore<DB> {
     publisher: Publisher<HeadChange>,
 
     /// key-value `datastore`.
-    pub db: DB,
+    pub db: Arc<DB>,
 
     /// Caches loaded tipsets for fast retrieval.
     ts_cache: Arc<TipsetCache>,
@@ -130,7 +130,7 @@ where
     DB: Blockstore + Send + Sync,
 {
     pub fn new(
-        db: DB,
+        db: Arc<DB>,
         chain_config: Arc<ChainConfig>,
         genesis_block_header: &BlockHeader,
         chain_data_root: &Path,
@@ -250,6 +250,11 @@ where
     /// Returns key-value store instance.
     pub fn blockstore(&self) -> &DB {
         &self.db
+    }
+
+    /// Returns key-value store instance.
+    pub fn blockstore_arc(&self) -> Arc<DB> {
+        Arc::clone(&self.db)
     }
 
     /// Returns Tipset from key-value store from provided CIDs
@@ -933,7 +938,7 @@ mod tests {
 
     #[test]
     fn genesis_test() {
-        let db = forest_db::MemoryDB::default();
+        let db = Arc::new(forest_db::MemoryDB::default());
         let chain_config = Arc::new(ChainConfig::default());
 
         let gen_block = BlockHeader::builder()
@@ -953,7 +958,7 @@ mod tests {
 
     #[test]
     fn block_validation_cache_basic() {
-        let db = forest_db::MemoryDB::default();
+        let db = Arc::new(forest_db::MemoryDB::default());
         let chain_config = Arc::new(ChainConfig::default());
         let gen_block = BlockHeader::builder()
             .miner_address(Address::new_id(0))

@@ -149,11 +149,11 @@ pub(crate) struct ChainIndex<BS> {
     ts_cache: Arc<TipsetCache>,
 
     /// `Blockstore` pointer needed to load tipsets from cold storage.
-    db: BS,
+    db: Arc<BS>,
 }
 
 impl<BS: Blockstore> ChainIndex<BS> {
-    pub(crate) fn new(ts_cache: Arc<TipsetCache>, db: BS) -> Self {
+    pub(crate) fn new(ts_cache: Arc<TipsetCache>, db: Arc<BS>) -> Self {
         Self {
             skip_cache: Mutex::new(LruCache::new(DEFAULT_CHAIN_INDEX_CACHE_SIZE)),
             ts_cache,

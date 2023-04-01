@@ -166,7 +166,7 @@ pub(super) async fn start(opts: CliOpts, config: Config) -> anyhow::Result<Rolli
 
     // Initialize ChainStore
     let chain_store = Arc::new(ChainStore::new(
-        db.clone(),
+        Arc::new(db.clone()),
         config.chain.clone(),
         &genesis_header,
         chain_data_path.as_path(),
@@ -657,7 +657,7 @@ mod test {
     }
 
     async fn import_snapshot_from_file(file_path: &str) -> anyhow::Result<()> {
-        let db = MemoryDB::default();
+        let db = Arc::new(MemoryDB::default());
         let chain_config = Arc::new(ChainConfig::default());
 
         let genesis_header = BlockHeader::builder()
@@ -683,7 +683,7 @@ mod test {
 
     #[tokio::test]
     async fn import_chain_from_file() -> anyhow::Result<()> {
-        let db = MemoryDB::default();
+        let db = Arc::new(MemoryDB::default());
         let chain_config = Arc::new(ChainConfig::default());
         let genesis_header = BlockHeader::builder()
             .miner_address(Address::new_id(0))

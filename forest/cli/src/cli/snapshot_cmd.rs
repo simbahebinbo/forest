@@ -401,7 +401,7 @@ async fn validate(
         .await?;
 
         let chain_store = Arc::new(ChainStore::new(
-            db,
+            Arc::new(db),
             config.chain.clone(),
             &genesis,
             tmp_chain_data_path.path(),
@@ -410,7 +410,7 @@ async fn validate(
         let cids = {
             let file = tokio::fs::File::open(&snapshot).await?;
             let reader = FetchProgress::fetch_from_file(file).await?;
-            forest_load_car(chain_store.blockstore().clone(), reader.compat()).await?
+            forest_load_car(Arc::new(chain_store.blockstore().clone()), reader.compat()).await?
         };
 
         let ts = chain_store.tipset_from_keys(&TipsetKeys::new(cids))?;

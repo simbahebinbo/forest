@@ -263,6 +263,11 @@ where
         self.cs.blockstore()
     }
 
+    /// Returns a reference to the state manager's [`Blockstore`].
+    pub fn blockstore_arc(&self) -> Arc<DB> {
+        self.cs.blockstore_arc()
+    }
+
     /// Returns reference to the state manager's [`ChainStore`].
     pub fn chain_store(&self) -> &Arc<ChainStore<DB>> {
         &self.cs

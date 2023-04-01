@@ -120,12 +120,12 @@ where
         info!("Downloading file...");
         let url = Url::parse(path)?;
         let reader = FetchProgress::fetch_from_url(url).await?;
-        load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).await?
+        load_and_retrieve_header(sm.blockstore_arc(), reader, skip_load).await?
     } else {
         info!("Reading file...");
         let file = File::open(&path).await?;
         let reader = FetchProgress::fetch_from_file(file).await?;
-        load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).await?
+        load_and_retrieve_header(sm.blockstore_arc(), reader, skip_load).await?
     };
 
     info!("Loaded .car file in {}s", stopwatch.elapsed().as_secs());
@@ -165,7 +165,7 @@ where
 /// Loads car file into database, and returns the block header CIDs from the CAR
 /// header.
 async fn load_and_retrieve_header<DB, R>(
-    store: DB,
+    store: Arc<DB>,
     reader: FetchProgress<R>,
     skip_load: bool,
 ) -> anyhow::Result<Vec<Cid>>
@@ -184,7 +184,7 @@ where
     Ok(result)
 }
 
-pub async fn forest_load_car<DB, R>(store: DB, reader: R) -> anyhow::Result<Vec<Cid>>
+pub async fn forest_load_car<DB, R>(store: Arc<DB>, reader: R) -> anyhow::Result<Vec<Cid>>
 where
     R: futures::AsyncRead + Send + Unpin,
     DB: Blockstore + Send + Sync + 'static,

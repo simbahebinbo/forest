@@ -497,9 +497,9 @@ where
 
         // Store block messages in the block store
         for block in tipset.blocks() {
-            forest_chain::persist_objects(&chain_store.db, &[block.header()])?;
-            forest_chain::persist_objects(&chain_store.db, block.bls_msgs())?;
-            forest_chain::persist_objects(&chain_store.db, block.secp_msgs())?;
+            forest_chain::persist_objects(chain_store.blockstore(), &[block.header()])?;
+            forest_chain::persist_objects(chain_store.blockstore(), block.bls_msgs())?;
+            forest_chain::persist_objects(chain_store.blockstore(), block.secp_msgs())?;
         }
 
         // Update the peer head
