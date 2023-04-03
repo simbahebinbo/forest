@@ -84,7 +84,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">1.1.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="cli.html"><strong aria-hidden="true">1.2.</strong> Command-line interface</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">1.3.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="docker.html"><strong aria-hidden="true">1.4.</strong> Docker</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">1.5.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">1.6.</strong> Troubleshooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">1.7.</strong> Glossary</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Developer documentation</li><li class="chapter-item expanded "><a href="developer_documentation/introduction.html"><strong aria-hidden="true">2.</strong> Developer documentation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developer_documentation/contributing.html"><strong aria-hidden="true">2.1.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="developer_documentation/mainnet_compatibility.html"><strong aria-hidden="true">2.2.</strong> Mainnet compatibility</a></li><li class="chapter-item expanded "><a href="developer_documentation/memory-analysis.html"><strong aria-hidden="true">2.3.</strong> Memory analysis</a></li><li class="chapter-item expanded "><a href="developer_documentation/release_checklist.html"><strong aria-hidden="true">2.4.</strong> Release checklist</a></li><li class="chapter-item expanded "><a href="developer_documentation/smoke_testing.html"><strong aria-hidden="true">2.5.</strong> Smoke testing</a></li><li class="chapter-item expanded "><a href="developer_documentation/state_migration.html"><strong aria-hidden="true">2.6.</strong> State migration</a></li><li class="chapter-item expanded "><a href="developer_documentation/state_migration_spike.html"><strong aria-hidden="true">2.7.</strong> State migration spike NV17-NV18</a></li><li class="chapter-item expanded "><a href="developer_documentation/test_plan.html"><strong aria-hidden="true">2.8.</strong> Test plan</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><li class="part-title">User Guide</li><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="basic_usage.html"><strong aria-hidden="true">1.1.</strong> Basic Usage</a></li><li class="chapter-item expanded "><a href="cli.html"><strong aria-hidden="true">1.2.</strong> Command-line interface</a></li><li class="chapter-item expanded "><a href="configuration.html"><strong aria-hidden="true">1.3.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="docker.html"><strong aria-hidden="true">1.4.</strong> Docker</a></li><li class="chapter-item expanded "><a href="js_console.html"><strong aria-hidden="true">1.5.</strong> JavaScript Console</a></li><li class="chapter-item expanded "><a href="trouble_shooting.html"><strong aria-hidden="true">1.6.</strong> Troubleshooting</a></li><li class="chapter-item expanded "><a href="glossary.html"><strong aria-hidden="true">1.7.</strong> Glossary</a></li></ol></li><li class="chapter-item expanded "><li class="part-title">Developer documentation</li><li class="chapter-item expanded "><a href="developer_documentation/introduction.html"><strong aria-hidden="true">2.</strong> Developer documentation</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="developer_documentation/contributing.html"><strong aria-hidden="true">2.1.</strong> Contributing</a></li><li class="chapter-item expanded "><a href="developer_documentation/mainnet_compatibility.html"><strong aria-hidden="true">2.2.</strong> Mainnet compatibility</a></li><li class="chapter-item expanded "><a href="developer_documentation/memory-analysis.html"><strong aria-hidden="true">2.3.</strong> Memory analysis</a></li><li class="chapter-item expanded "><a href="developer_documentation/release_checklist.html"><strong aria-hidden="true">2.4.</strong> Release checklist</a></li><li class="chapter-item expanded "><a href="developer_documentation/smoke_testing.html"><strong aria-hidden="true">2.5.</strong> Smoke testing</a></li><li class="chapter-item expanded "><a href="developer_documentation/state_migration.html"><strong aria-hidden="true">2.6.</strong> State migration</a></li><li class="chapter-item expanded "><a href="developer_documentation/state_migration_spike.html"><strong aria-hidden="true">2.7.</strong> State migration spike NV17-NV18</a></li><li class="chapter-item expanded "><a href="developer_documentation/test_plan.html"><strong aria-hidden="true">2.8.</strong> Test plan</a></li><li class="chapter-item expanded "><a href="developer_documentation/devnet_notes.html"><strong aria-hidden="true">2.9.</strong> Devnet Notes</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -1190,6 +1190,54 @@ testing will be degraded.</li>
 identifying root causes. Finding bugs <em>before</em> syncing to mainnet is always to
 be preferred.</li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="cleaning"><a class="header" href="#cleaning">Cleaning</a></h1>
+<pre><code>rm -rf ~/.genesis-sectors/ ~/.lotus-local-net/ ~/.lotus-miner-local-net/
+</code></pre>
+<h1 id="running-the-node"><a class="header" href="#running-the-node">Running the node:</a></h1>
+<pre><code>export LOTUS_PATH=~/.lotus-local-net
+export LOTUS_MINER_PATH=~/.lotus-miner-local-net
+export LOTUS_SKIP_GENESIS_CHECK=_yes_
+export CGO_CFLAGS_ALLOW=&quot;-D__BLST_PORTABLE__&quot;
+export CGO_CFLAGS=&quot;-D__BLST_PORTABLE__&quot;
+make 2k
+./lotus fetch-params 2048
+./lotus-seed pre-seal --sector-size 2KiB --num-sectors 2
+./lotus-seed genesis new localnet.json
+./lotus-seed genesis add-miner localnet.json ~/.genesis-sectors/pre-seal-t01000.json
+./lotus daemon --lotus-make-genesis=devgen.car --genesis-template=localnet.json --bootstrap=false
+# Keep this terminal open
+</code></pre>
+<h1 id="running-the-miner"><a class="header" href="#running-the-miner">Running the miner:</a></h1>
+<pre><code>export LOTUS_PATH=~/.lotus-local-net
+export LOTUS_MINER_PATH=~/.lotus-miner-local-net
+export LOTUS_SKIP_GENESIS_CHECK=_yes_
+export CGO_CFLAGS_ALLOW=&quot;-D__BLST_PORTABLE__&quot;
+export CGO_CFLAGS=&quot;-D__BLST_PORTABLE__&quot;
+./lotus wallet import --as-default ~/.genesis-sectors/pre-seal-t01000.key
+./lotus-miner init --genesis-miner --actor=t01000 --sector-size=2KiB --pre-sealed-sectors=~/.genesis-sectors --pre-sealed-metadata=~/.genesis-sectors/pre-seal-t01000.json --nosync
+./lotus-miner run --nosync
+# Keep this terminal open
+</code></pre>
+<h1 id="helpers-1"><a class="header" href="#helpers-1">Helpers:</a></h1>
+<pre><code>./lotus-miner info
+./lotus-miner sectors list
+</code></pre>
+<h1 id="send-data-to-miner"><a class="header" href="#send-data-to-miner">Send data to miner:</a></h1>
+<pre><code>./lotus client query-ask t01000
+./lotus client import LICENSE-APACHE
+./lotus client deal
+./lotus client retrieve [CID from import] test.txt # data has to be on chain first
+</code></pre>
+<h1 id="get-data-on-chain"><a class="header" href="#get-data-on-chain">Get data on chain:</a></h1>
+<pre><code>./lotus-miner storage-deals pending-publish --publish-now
+./lotus-miner sectors seal 2
+./lotus-miner sectors batching precommit --publish-now
+./lotus-miner sectors batching commit --publish-now
+</code></pre>
+<h1 id="retrieve"><a class="header" href="#retrieve">Retrieve:</a></h1>
+<pre><code>./lotus client local
+./lotus client retrieve --provider t01000 [CID from import] outputfile.txt
+</code></pre>
 
                     </main>
 
