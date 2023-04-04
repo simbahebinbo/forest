@@ -201,9 +201,6 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -217,13 +214,11 @@
     db::{BlockstoreBufferedWriteExt, BlockstoreExt},
     net::FetchProgress,
 };
+<span class="kw">use </span>futures::AsyncRead;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
 <span class="kw">use </span>fvm_ipld_car::{load_car, CarReader};
 <span class="kw">use </span>log::{debug, info};
-<span class="kw">use </span>tokio::{
-    fs::File,
-    io::{AsyncRead, BufReader},
-};
+<span class="kw">use </span>tokio::{fs::File, io::BufReader};
 <span class="kw">use </span>tokio_util::compat::TokioAsyncReadCompatExt;
 <span class="kw">use </span>url::Url;
 
@@ -244,14 +239,14 @@
         <span class="prelude-val">Some</span>(path) =&gt; {
             <span class="kw">let </span>file = File::open(path).<span class="kw">await</span><span class="question-mark">?</span>;
             <span class="kw">let </span>reader = BufReader::new(file);
-            process_car(reader, db).<span class="kw">await</span><span class="question-mark">?
+            process_car(reader.compat(), db).<span class="kw">await</span><span class="question-mark">?
         </span>}
         <span class="prelude-val">None </span>=&gt; {
             <span class="macro">debug!</span>(<span class="string">&quot;No specified genesis in config. Using default genesis.&quot;</span>);
             <span class="kw">let </span>genesis_bytes =
                 genesis_bytes.ok_or_else(|| <span class="macro">anyhow::anyhow!</span>(<span class="string">&quot;No default genesis.&quot;</span>))<span class="question-mark">?</span>;
             <span class="kw">let </span>reader = BufReader::&lt;<span class="kw-2">&amp;</span>[u8]&gt;::new(genesis_bytes);
-            process_car(reader, db).<span class="kw">await</span><span class="question-mark">?
+            process_car(reader.compat(), db).<span class="kw">await</span><span class="question-mark">?
         </span>}
     };
 
@@ -294,7 +289,7 @@
     BS: Blockstore + Send + Sync,
 {
     <span class="comment">// Load genesis state into the database and get the Cid
-    </span><span class="kw">let </span>genesis_cids: Vec&lt;Cid&gt; = load_car(db, reader.compat()).<span class="kw">await</span><span class="question-mark">?</span>;
+    </span><span class="kw">let </span>genesis_cids: Vec&lt;Cid&gt; = load_car(db, reader).<span class="kw">await</span><span class="question-mark">?</span>;
     <span class="kw">if </span>genesis_cids.len() != <span class="number">1 </span>{
         <span class="macro">panic!</span>(<span class="string">&quot;Invalid Genesis. Genesis Tipset must have only 1 Block.&quot;</span>);
     }
@@ -329,7 +324,7 @@
         load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
         <span class="macro">info!</span>(<span class="string">&quot;Reading file...&quot;</span>);
-        <span class="kw">let </span>file = File::open(<span class="kw-2">&amp;</span>path).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>file = async_fs::File::open(<span class="kw-2">&amp;</span>path).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let </span>reader = FetchProgress::fetch_from_file(file).<span class="kw">await</span><span class="question-mark">?</span>;
         load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>};
@@ -372,20 +367,19 @@
 /// header.
 </span><span class="kw">async fn </span>load_and_retrieve_header&lt;DB, R&gt;(
     store: DB,
-    reader: FetchProgress&lt;R&gt;,
+    <span class="kw-2">mut </span>reader: FetchProgress&lt;R&gt;,
     skip_load: bool,
 ) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
 <span class="kw">where
     </span>DB: Blockstore + Send + Sync + <span class="lifetime">&#39;static</span>,
     R: AsyncRead + Send + Unpin,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>compat = reader.compat();
     <span class="kw">let </span>result = <span class="kw">if </span>skip_load {
-        CarReader::new(<span class="kw-2">&amp;mut </span>compat).<span class="kw">await</span><span class="question-mark">?</span>.header.roots
+        CarReader::new(<span class="kw-2">&amp;mut </span>reader).<span class="kw">await</span><span class="question-mark">?</span>.header.roots
     } <span class="kw">else </span>{
-        forest_load_car(store, <span class="kw-2">&amp;mut </span>compat).<span class="kw">await</span><span class="question-mark">?
+        forest_load_car(store, <span class="kw-2">&amp;mut </span>reader).<span class="kw">await</span><span class="question-mark">?
     </span>};
-    compat.into_inner().finish();
+    reader.finish();
 
     <span class="prelude-val">Ok</span>(result)
 }

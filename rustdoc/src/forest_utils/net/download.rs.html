@@ -107,17 +107,6 @@
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -128,16 +117,12 @@
 };
 
 <span class="kw">use </span>futures::{
+    io::BufReader,
     stream::{IntoAsyncRead, MapErr},
-    TryStreamExt,
+    AsyncRead, TryStreamExt,
 };
 <span class="kw">use </span>pin_project_lite::pin_project;
 <span class="kw">use </span>thiserror::Error;
-<span class="kw">use </span>tokio::{
-    fs::File,
-    io::{AsyncRead, BufReader, ReadBuf},
-};
-<span class="kw">use </span>tokio_util::compat::{Compat, FuturesAsyncReadCompatExt};
 <span class="kw">use </span>url::Url;
 
 <span class="kw">use </span><span class="kw">super</span>::https_client;
@@ -168,20 +153,17 @@
     <span class="kw">fn </span>poll_read(
         <span class="kw-2">mut </span><span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;,
         cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">&#39;_</span>&gt;,
-        buf: <span class="kw-2">&amp;mut </span>ReadBuf&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; Poll&lt;std::io::Result&lt;()&gt;&gt; {
-        <span class="kw">let </span>prev_len = buf.filled().len();
+        buf: <span class="kw-2">&amp;mut </span>[u8],
+    ) -&gt; Poll&lt;std::io::Result&lt;usize&gt;&gt; {
         <span class="kw">let </span>r = Pin::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.inner).poll_read(cx, buf);
-        <span class="kw">if let </span>Poll::Ready(<span class="prelude-val">Ok</span>(())) = r {
-            <span class="self">self</span>.progress_bar
-                .add((buf.filled().len() - prev_len) <span class="kw">as </span>u64);
+        <span class="kw">if let </span>Poll::Ready(<span class="prelude-val">Ok</span>(size)) = r {
+            <span class="self">self</span>.progress_bar.add(size <span class="kw">as </span>u64);
         }
         r
     }
 }
 
-<span class="kw">type </span>DownloadStream =
-    Compat&lt;IntoAsyncRead&lt;MapErr&lt;hyper::Body, <span class="kw">fn</span>(hyper::Error) -&gt; futures::io::Error&gt;&gt;&gt;;
+<span class="kw">type </span>DownloadStream = IntoAsyncRead&lt;MapErr&lt;hyper::Body, <span class="kw">fn</span>(hyper::Error) -&gt; futures::io::Error&gt;&gt;;
 
 <span class="kw">impl </span>FetchProgress&lt;DownloadStream&gt; {
     <span class="kw">pub async fn </span>fetch_from_url(url: Url) -&gt; anyhow::Result&lt;FetchProgress&lt;DownloadStream&gt;&gt; {
@@ -210,11 +192,7 @@
 
         <span class="kw">let </span>map_err: <span class="kw">fn</span>(hyper::Error) -&gt; futures::io::Error =
             |e| futures::io::Error::new(futures::io::ErrorKind::Other, e);
-        <span class="kw">let </span>stream = response
-            .into_body()
-            .map_err(map_err)
-            .into_async_read()
-            .compat();
+        <span class="kw">let </span>stream = response.into_body().map_err(map_err).into_async_read();
 
         <span class="prelude-val">Ok</span>(FetchProgress {
             progress_bar: pb,
@@ -223,8 +201,8 @@
     }
 }
 
-<span class="kw">impl </span>FetchProgress&lt;BufReader&lt;File&gt;&gt; {
-    <span class="kw">pub async fn </span>fetch_from_file(file: File) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+<span class="kw">impl </span>FetchProgress&lt;BufReader&lt;async_fs::File&gt;&gt; {
+    <span class="kw">pub async fn </span>fetch_from_file(file: async_fs::File) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>total_size = file.metadata().<span class="kw">await</span><span class="question-mark">?</span>.len();
 
         <span class="kw">let </span>pb = ProgressBar::new(total_size);
