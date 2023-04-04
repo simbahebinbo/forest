@@ -97,16 +97,23 @@
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
 <a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use </span>std::str::FromStr;
-
-<span class="kw">use </span>cid::Cid;
+</span><span class="kw">use </span>cid::Cid;
 <span class="kw">use </span>clap::Subcommand;
-<span class="kw">use </span>forest_blocks::TipsetKeys;
 <span class="kw">use </span>forest_json::cid::CidJson;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
+<span class="kw">use </span>forest_shim::clock::ChainEpoch;
 
 <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
@@ -125,9 +132,9 @@
     <span class="doccomment">/// Prints out the canonical head of the chain
     </span>Head,
 
-    <span class="doccomment">/// Prints a BLAKE2b hash of the tipset given its keys. Useful for setting
-    /// checkpoints to speed up boot times from a snapshot
-    </span>TipsetHash { cids: Vec&lt;String&gt; },
+    <span class="doccomment">/// Prints the checksum hash for a given epoch. This is used internally to
+    /// improve performance when loading a snapshot.
+    </span>TipsetHash { epoch: <span class="prelude-ty">Option</span>&lt;ChainEpoch&gt; },
 
     <span class="doccomment">/// Runs through all epochs back to 0 and validates the tipset checkpoint
     /// hashes
@@ -163,21 +170,32 @@
                 print_rpc_res_pretty(chain_get_genesis(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>)
             }
             <span class="self">Self</span>::Head =&gt; print_rpc_res_cids(chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>),
-            <span class="self">Self</span>::TipsetHash { cids } =&gt; {
+            <span class="self">Self</span>::TipsetHash { epoch } =&gt; {
                 <span class="kw">use </span>forest_blocks::tipset_keys_json::TipsetKeysJson;
 
-                <span class="kw">let </span>tipset_keys = TipsetKeys::new(
-                    cids.iter()
-                        .map(|s| Cid::from_str(s).expect(<span class="string">&quot;invalid cid&quot;</span>))
-                        .collect(),
-                );
+                <span class="kw">let </span>TipsetJson(head) = chain_head(<span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
+                <span class="comment">// Use the given epoch or HEAD-1. We can&#39;t use HEAD since more
+                // blocks are likely to be received (changing the checkpoint hash)
+                </span><span class="kw">let </span>target_epoch = epoch.unwrap_or(head.epoch() - <span class="number">1</span>);
+                <span class="kw">let </span>TipsetJson(target) = chain_get_tipset_by_height(
+                    (target_epoch, head.key().clone()),
+                    <span class="kw-2">&amp;</span>config.client.rpc_token,
+                )
+                .<span class="kw">await
+                </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
+                <span class="kw">let </span>tipset_keys = target.key().clone();
 
                 <span class="kw">let </span>tsk_json = TipsetKeysJson(tipset_keys);
-                print_rpc_res(
-                    chain_get_tipset_hash((tsk_json,), <span class="kw-2">&amp;</span>config.client.rpc_token)
-                        .<span class="kw">await
-                        </span>.map(|s| <span class="macro">format!</span>(<span class="string">&quot;blake2b hash: {s}&quot;</span>)),
-                )
+
+                <span class="kw">let </span>checkpoint_hash = chain_get_tipset_hash((tsk_json,), <span class="kw-2">&amp;</span>config.client.rpc_token)
+                    .<span class="kw">await
+                    </span>.map_err(handle_rpc_err)<span class="question-mark">?</span>;
+                <span class="macro">println!</span>(<span class="string">&quot;Chain:           {}&quot;</span>, config.chain.name);
+                <span class="macro">println!</span>(<span class="string">&quot;Epoch:           {}&quot;</span>, target_epoch);
+                <span class="macro">println!</span>(<span class="string">&quot;Checkpoint hash: {}&quot;</span>, checkpoint_hash);
+                <span class="prelude-val">Ok</span>(())
             }
             <span class="self">Self</span>::ValidateTipsetCheckpoints =&gt; {
                 <span class="kw">let </span>result = chain_validate_tipset_checkpoints((), <span class="kw-2">&amp;</span>config.client.rpc_token).<span class="kw">await</span>;

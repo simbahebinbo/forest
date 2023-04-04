@@ -1356,7 +1356,7 @@
             </span>)));
         }
 
-        <span class="kw">if </span>!checkpoint_tipsets::validate_genesis_cid(ts.key(), <span class="kw-2">&amp;</span>network) {
+        <span class="kw">if </span>!checkpoint_tipsets::validate_genesis_cid(<span class="kw-2">&amp;</span>ts, <span class="kw-2">&amp;</span>network) {
             <span class="kw">return </span><span class="prelude-val">Err</span>(Error::Other(<span class="macro">format!</span>(
                 <span class="string">&quot;Genesis cid {:?} on {network} network does not match with one stored in checkpoint registry&quot;</span>,
                 ts.key().cid()

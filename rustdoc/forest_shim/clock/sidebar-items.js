@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["EPOCHS_IN_DAY","SECONDS_IN_DAY"]};
+window.SIDEBAR_ITEMS = {"constant":["EPOCHS_IN_DAY","SECONDS_IN_DAY"],"type":["ChainEpoch"]};
