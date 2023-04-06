@@ -527,7 +527,7 @@
 <span class="kw">use </span>forest_ipld::{recurse_links_hash, CidHashSet, DEFAULT_RECENT_STATE_ROOTS};
 <span class="kw">use </span>forest_rpc_api::chain_api::ChainExportParams;
 <span class="kw">use </span>forest_rpc_client::chain_ops::<span class="kw-2">*</span>;
-<span class="kw">use </span>forest_utils::{io::parser::parse_duration, net::FetchProgress, retry};
+<span class="kw">use </span>forest_utils::{io::parser::parse_duration, net::get_fetch_progress_from_file, retry};
 <span class="kw">use </span>fvm_shared::clock::ChainEpoch;
 <span class="kw">use </span>log::info;
 <span class="kw">use </span>strfmt::strfmt;
@@ -918,8 +918,7 @@
         )<span class="question-mark">?</span>);
 
         <span class="kw">let </span>cids = {
-            <span class="kw">let </span>file = async_fs::File::open(<span class="kw-2">&amp;</span>snapshot).<span class="kw">await</span><span class="question-mark">?</span>;
-            <span class="kw">let </span>reader = FetchProgress::fetch_from_file(file).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="kw">let </span>reader = get_fetch_progress_from_file(<span class="kw-2">&amp;</span>snapshot).<span class="kw">await</span><span class="question-mark">?</span>;
             forest_load_car(chain_store.blockstore().clone(), reader).<span class="kw">await</span><span class="question-mark">?
         </span>};
 
@@ -1002,7 +1001,8 @@
         pb.set((ts.epoch() - tipset.epoch()) <span class="kw">as </span>u64);
     }
 
-    pb.finish();
+    drop(pb);
+
     <span class="macro">println!</span>(<span class="string">&quot;Snapshot is valid&quot;</span>);
 
     <span class="prelude-val">Ok</span>(())

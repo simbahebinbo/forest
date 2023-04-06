@@ -199,8 +199,6 @@
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -212,7 +210,7 @@
 <span class="kw">use </span>forest_state_manager::StateManager;
 <span class="kw">use </span>forest_utils::{
     db::{BlockstoreBufferedWriteExt, BlockstoreExt},
-    net::FetchProgress,
+    net::{get_fetch_progress_from_file, FetchProgress},
 };
 <span class="kw">use </span>futures::AsyncRead;
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
@@ -324,8 +322,7 @@
         load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
         <span class="macro">info!</span>(<span class="string">&quot;Reading file...&quot;</span>);
-        <span class="kw">let </span>file = async_fs::File::open(<span class="kw-2">&amp;</span>path).<span class="kw">await</span><span class="question-mark">?</span>;
-        <span class="kw">let </span>reader = FetchProgress::fetch_from_file(file).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let </span>reader = get_fetch_progress_from_file(<span class="kw-2">&amp;</span>path).<span class="kw">await</span><span class="question-mark">?</span>;
         load_and_retrieve_header(sm.blockstore().clone(), reader, skip_load).<span class="kw">await</span><span class="question-mark">?
     </span>};
 
@@ -367,7 +364,7 @@
 /// header.
 </span><span class="kw">async fn </span>load_and_retrieve_header&lt;DB, R&gt;(
     store: DB,
-    <span class="kw-2">mut </span>reader: FetchProgress&lt;R&gt;,
+    <span class="kw-2">mut </span>reader: R,
     skip_load: bool,
 ) -&gt; anyhow::Result&lt;Vec&lt;Cid&gt;&gt;
 <span class="kw">where
@@ -379,7 +376,6 @@
     } <span class="kw">else </span>{
         forest_load_car(store, <span class="kw-2">&amp;mut </span>reader).<span class="kw">await</span><span class="question-mark">?
     </span>};
-    reader.finish();
 
     <span class="prelude-val">Ok</span>(result)
 }

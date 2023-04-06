@@ -709,6 +709,14 @@
 <a href="#709" id="709">709</a>
 <a href="#710" id="710">710</a>
 <a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -1341,6 +1349,14 @@
     <span class="attr">#[tokio::test]
     </span><span class="kw">async fn </span>import_snapshot_from_file_valid() -&gt; anyhow::Result&lt;()&gt; {
         <span class="macro">anyhow::ensure!</span>(import_snapshot_from_file(<span class="string">&quot;test_files/chain4.car&quot;</span>)
+            .<span class="kw">await
+            </span>.is_ok());
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>import_snapshot_from_compressed_file_valid() -&gt; anyhow::Result&lt;()&gt; {
+        <span class="macro">anyhow::ensure!</span>(import_snapshot_from_file(<span class="string">&quot;test_files/chain4.car.zst&quot;</span>)
             .<span class="kw">await
             </span>.is_ok());
         <span class="prelude-val">Ok</span>(())

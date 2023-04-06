@@ -119,6 +119,12 @@
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::{cell::RefCell, io::Stdout, str::FromStr, time::Duration};
@@ -203,7 +209,7 @@
         </span>}
     }
 
-    <span class="kw">pub fn </span>finish(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+    <span class="kw">pub</span>(<span class="self">self</span>) <span class="kw">fn </span>finish(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.display {
             <span class="self">self</span>.inner.borrow_mut().finish();
         }
@@ -227,6 +233,12 @@
             ProgressBarVisibility::Auto =&gt; atty::is(atty::Stream::Stdout),
             ProgressBarVisibility::Never =&gt; <span class="bool-val">false</span>,
         }
+    }
+}
+
+<span class="kw">impl </span>Drop <span class="kw">for </span>ProgressBar {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.finish()
     }
 }
 

@@ -4,7 +4,7 @@
     T: <a class="trait" href="trait.Beacon.html" title="trait forest_beacon::Beacon">Beacon</a>,</span></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.with_capacity" class="method"><a class="srclink rightside" href="../src/forest_beacon/drand.rs.html#67-69">source</a><h4 class="code-header">pub fn <a href="#method.with_capacity" class="fn">with_capacity</a>(capacity: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; Self</h4></section></summary><div class="docblock"><p>Constructs a new, empty <code>BeaconSchedule&lt;T&gt;</code> with the specified capacity.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.beacon_entries_for_block" class="method"><a class="srclink rightside" href="../src/forest_beacon/drand.rs.html#74-115">source</a><h4 class="code-header">pub async fn <a href="#method.beacon_entries_for_block" class="fn">beacon_entries_for_block</a>(
     &amp;self,
-    network_version: NetworkVersion,
+    network_version: <a class="struct" href="../forest_shim/version/struct.NetworkVersion.html" title="struct forest_shim::version::NetworkVersion">NetworkVersion</a>,
     epoch: ChainEpoch,
     parent_epoch: ChainEpoch,
     prev: &amp;<a class="struct" href="beacon_entries/struct.BeaconEntry.html" title="struct forest_beacon::beacon_entries::BeaconEntry">BeaconEntry</a>
