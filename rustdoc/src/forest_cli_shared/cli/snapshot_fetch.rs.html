@@ -757,6 +757,81 @@
 <a href="#757" id="757">757</a>
 <a href="#758" id="758">758</a>
 <a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::{
@@ -791,10 +866,21 @@
 <span class="kw">use </span><span class="kw">crate</span>::cli::to_size_string;
 
 <span class="doccomment">/// Snapshot fetch service provider
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>SnapshotServer {
     Forest,
     Filecoin,
+}
+
+<span class="kw">impl </span>SnapshotServer {
+    <span class="kw">pub fn </span>try_get_default(chain: <span class="kw">impl </span>AsRef&lt;str&gt;) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>chain = chain.as_ref();
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>chain.to_lowercase().as_str() {
+            <span class="string">&quot;mainnet&quot; </span>=&gt; SnapshotServer::Filecoin,
+            <span class="string">&quot;calibnet&quot; </span>=&gt; SnapshotServer::Forest,
+            <span class="kw">_ </span>=&gt; <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Fetch not supported for chain {chain}&quot;</span>),
+        })
+    }
 }
 
 <span class="kw">impl </span>FromStr <span class="kw">for </span>SnapshotServer {
@@ -828,12 +914,12 @@
     <span class="kw">pub fn </span>new(config: <span class="kw-2">&amp;</span>Config, snapshot_dir: <span class="kw-2">&amp;</span>PathBuf) -&gt; SnapshotStore {
         <span class="kw">let </span><span class="kw-2">mut </span>snapshots = Vec::new();
         <span class="kw">let </span>pattern = Regex::new(
-            <span class="string">r&quot;^([^_]+?)_snapshot_(?P&lt;network&gt;[^_]+?)_(?P&lt;date&gt;\d{4}-\d{2}-\d{2})_height_(?P&lt;height&gt;\d+).car(.tmp|.aria2)?$&quot;</span>,
+            <span class="string">r&quot;^([^_]+?)_snapshot_(?P&lt;network&gt;[^_]+?)_(?P&lt;date&gt;\d{4}-\d{2}-\d{2})_height_(?P&lt;height&gt;\d+)\.car(\.zst)?(\.tmp|\.aria2)?$&quot;</span>,
         ).unwrap();
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(dir) = std::fs::read_dir(snapshot_dir) {
             dir.flatten()
                 .map(|entry| entry.path())
-                .filter(|p| is_car_or_tmp(p))
+                .filter(|p| is_car_or_zst_or_tmp(p))
                 .for_each(|path| {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = path.file_name().and_then(|n| n.to_str()) {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(captures) = pattern.captures(filename) {
@@ -872,9 +958,9 @@
     }
 }
 
-<span class="kw">pub fn </span>is_car_or_tmp(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
+<span class="kw">pub fn </span>is_car_or_zst_or_tmp(path: <span class="kw-2">&amp;</span>Path) -&gt; bool {
     <span class="kw">let </span>ext = path.extension().unwrap_or_default();
-    ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;tmp&quot; </span>|| ext == <span class="string">&quot;aria2&quot;
+    ext == <span class="string">&quot;car&quot; </span>|| ext == <span class="string">&quot;zst&quot; </span>|| ext == <span class="string">&quot;tmp&quot; </span>|| ext == <span class="string">&quot;aria2&quot;
 </span>}
 
 <span class="doccomment">/// gets the size of a snapshot from Filecoin.
@@ -914,20 +1000,19 @@
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
     provider: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;SnapshotServer&gt;,
+    use_compressed: bool,
     use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
     <span class="kw">let </span>server = <span class="kw">match </span>provider {
-        <span class="prelude-val">Some</span>(s) =&gt; s,
-        <span class="prelude-val">None </span>=&gt; <span class="kw">match </span>config.chain.name.to_lowercase().as_str() {
-            <span class="string">&quot;mainnet&quot; </span>=&gt; <span class="kw-2">&amp;</span>SnapshotServer::Filecoin,
-            <span class="string">&quot;calibnet&quot; </span>=&gt; <span class="kw-2">&amp;</span>SnapshotServer::Forest,
-            <span class="kw">_ </span>=&gt; <span class="macro">anyhow::bail!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name),
-        },
+        <span class="prelude-val">Some</span>(s) =&gt; <span class="kw-2">*</span>s,
+        <span class="prelude-val">None </span>=&gt; SnapshotServer::try_get_default(<span class="kw-2">&amp;</span>config.chain.name)<span class="question-mark">?</span>,
     };
     <span class="kw">match </span>server {
-        SnapshotServer::Forest =&gt; snapshot_fetch_forest(snapshot_out_dir, config, use_aria2).<span class="kw">await</span>,
+        SnapshotServer::Forest =&gt; {
+            snapshot_fetch_forest(snapshot_out_dir, config, use_compressed, use_aria2).<span class="kw">await
+        </span>}
         SnapshotServer::Filecoin =&gt; {
-            snapshot_fetch_filecoin(snapshot_out_dir, config, use_aria2).<span class="kw">await
+            snapshot_fetch_filecoin(snapshot_out_dir, config, use_compressed, use_aria2).<span class="kw">await
         </span>}
     }
 }
@@ -943,8 +1028,15 @@
 </span><span class="kw">async fn </span>snapshot_fetch_forest(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
+    use_compressed: bool,
     use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
+    <span class="kw">if </span>use_compressed {
+        <span class="macro">anyhow::bail!</span>(
+            <span class="string">&quot;It is not yet supported by the forest provider to download zstd compressed snapshots&quot;
+        </span>);
+    }
+
     <span class="kw">let </span>snapshot_fetch_config = <span class="kw">match </span>config.chain.name.to_lowercase().as_str() {
         <span class="string">&quot;mainnet&quot; </span>=&gt; <span class="macro">bail!</span>(
             <span class="string">&quot;Mainnet snapshot fetch service not provided by Forest yet. Suggestion: use `--provider=filecoin` to fetch from Filecoin server.&quot;
@@ -987,7 +1079,13 @@
     <span class="kw">let </span>snapshot_response = client.get(url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">if </span>use_aria2 {
-        download_snapshot_and_validate_checksum_with_aria2(client, url, <span class="kw-2">&amp;</span>snapshot_path).<span class="kw">await</span><span class="question-mark">?
+        download_snapshot_and_validate_checksum_if_needed_with_aria2(
+            client,
+            url,
+            <span class="kw-2">&amp;</span>snapshot_path,
+            use_compressed,
+        )
+        .<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
         <span class="kw">let </span>total_size = last_modified.size;
         download_snapshot_and_validate_checksum(
@@ -1009,13 +1107,27 @@
 </span><span class="kw">async fn </span>snapshot_fetch_filecoin(
     snapshot_out_dir: <span class="kw-2">&amp;</span>Path,
     config: <span class="kw-2">&amp;</span>Config,
+    use_compressed: bool,
     use_aria2: bool,
 ) -&gt; anyhow::Result&lt;PathBuf&gt; {
     <span class="kw">let </span>service_url = <span class="kw">match </span>config.chain.name.to_lowercase().as_ref() {
-        <span class="string">&quot;mainnet&quot; </span>=&gt; config.snapshot_fetch.filecoin.mainnet.clone(),
-        <span class="string">&quot;calibnet&quot; </span>=&gt; config.snapshot_fetch.filecoin.calibnet.clone(),
+        <span class="string">&quot;mainnet&quot; </span>=&gt; {
+            <span class="kw">if </span>use_compressed {
+                config.snapshot_fetch.filecoin.mainnet_compressed.clone()
+            } <span class="kw">else </span>{
+                config.snapshot_fetch.filecoin.mainnet.clone()
+            }
+        }
+        <span class="string">&quot;calibnet&quot; </span>=&gt; {
+            <span class="kw">if </span>use_compressed {
+                config.snapshot_fetch.filecoin.calibnet_compressed.clone()
+            } <span class="kw">else </span>{
+                config.snapshot_fetch.filecoin.calibnet.clone()
+            }
+        }
         <span class="kw">_ </span>=&gt; <span class="macro">bail!</span>(<span class="string">&quot;Fetch not supported for chain {}&quot;</span>, config.chain.name,),
     };
+    <span class="macro">info!</span>(<span class="string">&quot;Snapshot url: {service_url}&quot;</span>);
     <span class="kw">let </span>client = https_client();
 
     <span class="kw">let </span>snapshot_url = {
@@ -1040,8 +1152,13 @@
     <span class="kw">let </span>snapshot_path = snapshot_out_dir.join(<span class="kw-2">&amp;</span>snapshot_name);
     <span class="comment">// Download the file
     </span><span class="kw">if </span>use_aria2 {
-        download_snapshot_and_validate_checksum_with_aria2(client, snapshot_url, <span class="kw-2">&amp;</span>snapshot_path)
-            .<span class="kw">await</span><span class="question-mark">?
+        download_snapshot_and_validate_checksum_if_needed_with_aria2(
+            client,
+            snapshot_url,
+            <span class="kw-2">&amp;</span>snapshot_path,
+            use_compressed,
+        )
+        .<span class="kw">await</span><span class="question-mark">?
     </span>} <span class="kw">else </span>{
         <span class="kw">let </span>total_size = snapshot_response
             .headers()
@@ -1115,10 +1232,11 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async fn </span>download_snapshot_and_validate_checksum_with_aria2&lt;C&gt;(
+<span class="kw">async fn </span>download_snapshot_and_validate_checksum_if_needed_with_aria2&lt;C&gt;(
     client: hyper::Client&lt;C&gt;,
     url: Url,
     snapshot_path: <span class="kw-2">&amp;</span>Path,
+    use_compressed: bool,
 ) -&gt; anyhow::Result&lt;()&gt;
 <span class="kw">where
     </span>C: Connect + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
@@ -1130,16 +1248,22 @@
         <span class="macro">bail!</span>(<span class="string">&quot;Command aria2c is not in PATH. To install aria2, refer to instructions on https://aria2.github.io/&quot;</span>);
     }
 
-    <span class="kw">let </span>checksum_url = replace_extension_url(url.clone(), <span class="string">&quot;sha256sum&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>checksum_response = client.get(checksum_url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
-    <span class="kw">if </span>!checksum_response.status().is_success() {
-        <span class="macro">bail!</span>(<span class="string">&quot;Unable to get the checksum file. Url: {checksum_url}&quot;</span>);
-    }
-    <span class="kw">let </span>checksum_bytes = hyper::body::to_bytes(checksum_response.into_body()).<span class="kw">await</span><span class="question-mark">?
-        </span>[..Sha256::output_size() * <span class="number">2</span>]
-        .to_vec();
-    <span class="kw">let </span>checksum_expected = String::from_utf8(checksum_bytes)<span class="question-mark">?</span>;
-    <span class="macro">info!</span>(<span class="string">&quot;Expected sha256 checksum: {checksum_expected}&quot;</span>);
+    <span class="kw">let </span>checksum_expected = <span class="kw">if </span>use_compressed {
+        <span class="prelude-val">None
+    </span>} <span class="kw">else </span>{
+        <span class="kw">let </span>checksum_url = replace_extension_url(url.clone(), <span class="string">&quot;sha256sum&quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>checksum_response = client.get(checksum_url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">if </span>!checksum_response.status().is_success() {
+            <span class="macro">bail!</span>(<span class="string">&quot;Unable to get the checksum file. Url: {checksum_url}&quot;</span>);
+        }
+        <span class="kw">let </span>checksum_bytes = hyper::body::to_bytes(checksum_response.into_body()).<span class="kw">await</span><span class="question-mark">?
+            </span>[..Sha256::output_size() * <span class="number">2</span>]
+            .to_vec();
+        <span class="kw">let </span>checksum = String::from_utf8(checksum_bytes)<span class="question-mark">?</span>;
+        <span class="macro">info!</span>(<span class="string">&quot;Expected sha256 checksum: {checksum}&quot;</span>);
+        <span class="prelude-val">Some</span>(checksum)
+    };
+
     download_with_aria2(
         url.as_str(),
         snapshot_path
@@ -1150,23 +1274,30 @@
             .file_name()
             .and_then(|f| f.to_str())
             .unwrap_or_default(),
-        <span class="macro">format!</span>(<span class="string">&quot;sha-256={checksum_expected}&quot;</span>).as_str(),
+        checksum_expected.map(|checksum| <span class="macro">format!</span>(<span class="string">&quot;sha-256={checksum}&quot;</span>)),
     )
 }
 
-<span class="kw">fn </span>download_with_aria2(url: <span class="kw-2">&amp;</span>str, dir: <span class="kw-2">&amp;</span>str, out: <span class="kw-2">&amp;</span>str, checksum: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;()&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>child = Command::new(<span class="string">&quot;aria2c&quot;</span>)
-        .args([
-            <span class="string">&quot;--continue=true&quot;</span>,
-            <span class="string">&quot;--max-connection-per-server=5&quot;</span>,
-            <span class="string">&quot;--split=5&quot;</span>,
-            <span class="string">&quot;--max-tries=0&quot;</span>,
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--checksum={checksum}&quot;</span>),
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--dir={dir}&quot;</span>,),
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;--out={out}&quot;</span>,),
-            url,
-        ])
-        .spawn()<span class="question-mark">?</span>;
+<span class="kw">fn </span>download_with_aria2(
+    url: <span class="kw-2">&amp;</span>str,
+    dir: <span class="kw-2">&amp;</span>str,
+    out: <span class="kw-2">&amp;</span>str,
+    checksum: <span class="prelude-ty">Option</span>&lt;String&gt;,
+) -&gt; anyhow::Result&lt;()&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>args = <span class="macro">vec!</span>[
+        <span class="string">&quot;--continue=true&quot;</span>.into(),
+        <span class="string">&quot;--max-connection-per-server=5&quot;</span>.into(),
+        <span class="string">&quot;--split=5&quot;</span>.into(),
+        <span class="string">&quot;--max-tries=0&quot;</span>.into(),
+        <span class="macro">format!</span>(<span class="string">&quot;--dir={dir}&quot;</span>,),
+        <span class="macro">format!</span>(<span class="string">&quot;--out={out}&quot;</span>,),
+        url.into(),
+    ];
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(checksum) = checksum {
+        args.insert(<span class="number">0</span>, <span class="macro">format!</span>(<span class="string">&quot;--checksum={checksum}&quot;</span>));
+    }
+
+    <span class="kw">let </span><span class="kw-2">mut </span>child = Command::new(<span class="string">&quot;aria2c&quot;</span>).args(args).spawn()<span class="question-mark">?</span>;
 
     <span class="kw">let </span>exit_code = child.wait()<span class="question-mark">?</span>;
     <span class="kw">if </span>exit_code.success() {
@@ -1210,7 +1341,7 @@
 /// ```
 </span><span class="kw">pub fn </span>normalize_filecoin_snapshot_name(network: <span class="kw-2">&amp;</span>str, filename: <span class="kw-2">&amp;</span>str) -&gt; anyhow::Result&lt;String&gt; {
     <span class="kw">let </span>pattern = Regex::new(
-        <span class="string">r&quot;(?P&lt;height&gt;\d+)_(?P&lt;date&gt;\d{4}_\d{2}_\d{2})T(?P&lt;time&gt;\d{2}_\d{2}_\d{2})Z.car$&quot;</span>,
+        <span class="string">r&quot;(?P&lt;height&gt;\d+)_(?P&lt;date&gt;\d{4}_\d{2}_\d{2})T(?P&lt;time&gt;\d{2}_\d{2}_\d{2})Z(?P&lt;ext&gt;\.car(\.zst)?)$&quot;</span>,
     )
     .unwrap();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(captures) = pattern.captures(filename) {
@@ -1219,8 +1350,9 @@
             <span class="kw-2">&amp;</span>format_description::parse(<span class="string">&quot;[year]_[month]_[day]&quot;</span>).unwrap(),
         )<span class="question-mark">?</span>;
         <span class="kw">let </span>height = captures.name(<span class="string">&quot;height&quot;</span>).unwrap().as_str().parse::&lt;i64&gt;()<span class="question-mark">?</span>;
+        <span class="kw">let </span>ext = captures.name(<span class="string">&quot;ext&quot;</span>).unwrap().as_str();
         <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;filecoin_snapshot_{network}_{}_height_{height}.car&quot;</span>,
+            <span class="string">&quot;filecoin_snapshot_{network}_{}_height_{height}{ext}&quot;</span>,
             date.format(<span class="kw-2">&amp;</span>format_description::parse(<span class="string">&quot;[year]-[month]-[day]&quot;</span>).unwrap())<span class="question-mark">?
         </span>))
     } <span class="kw">else </span>{
@@ -1426,6 +1558,24 @@
     }
 
     <span class="attr">#[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>)]
+    </span><span class="kw">async fn </span>download_with_aria2_test_no_checksum() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+        <span class="kw">if </span>!is_github_action() &amp;&amp; !is_aria2_installed() {
+            <span class="kw">return </span><span class="prelude-val">Ok</span>(());
+        }
+
+        <span class="kw">let </span>(url, shutdown_tx, <span class="kw">_</span>, _data_dir) = serve_random_file()<span class="question-mark">?</span>;
+        <span class="kw">let </span>r = download_with_aria2(
+            <span class="kw-2">&amp;</span>url,
+            temp_dir().as_os_str().to_str().unwrap_or_default(),
+            <span class="string">&quot;test_no_checksum&quot;</span>,
+            <span class="prelude-val">None</span>,
+        );
+        <span class="macro">ensure!</span>(r.is_ok());
+        shutdown_tx.send(()).unwrap();
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attr">#[tokio::test(flavor = <span class="string">&quot;multi_thread&quot;</span>)]
     </span><span class="kw">async fn </span>download_with_aria2_test_wrong_checksum() -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
         <span class="kw">if </span>!is_github_action() &amp;&amp; !is_aria2_installed() {
             <span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -1435,8 +1585,8 @@
         <span class="kw">let </span>r = download_with_aria2(
             <span class="kw-2">&amp;</span>url,
             temp_dir().as_os_str().to_str().unwrap_or_default(),
-            <span class="string">&quot;test&quot;</span>,
-            <span class="string">&quot;sha-256=f640a228f127a7ad7c3d7c8fa4a9e95c5a2eb8d32561905d97191178ab383a64&quot;</span>,
+            <span class="string">&quot;test_wrong_checksum&quot;</span>,
+            <span class="prelude-val">Some</span>(<span class="string">&quot;sha-256=f640a228f127a7ad7c3d7c8fa4a9e95c5a2eb8d32561905d97191178ab383a64&quot;</span>.into()),
         );
         <span class="macro">ensure!</span>(r.is_err());
         <span class="kw">let </span>err = r.unwrap_err().to_string();
@@ -1455,8 +1605,8 @@
         download_with_aria2(
             <span class="kw-2">&amp;</span>url,
             temp_dir().as_os_str().to_str().unwrap_or_default(),
-            <span class="string">&quot;test&quot;</span>,
-            <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;sha-256={}&quot;</span>, hex::encode(shasum)),
+            <span class="string">&quot;test_good_checksum&quot;</span>,
+            <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;sha-256={}&quot;</span>, hex::encode(shasum))),
         )<span class="question-mark">?</span>;
         shutdown_tx.send(()).unwrap();
         <span class="prelude-val">Ok</span>(())

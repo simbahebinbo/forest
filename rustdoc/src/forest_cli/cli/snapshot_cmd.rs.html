@@ -509,6 +509,12 @@
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -520,7 +526,7 @@
 <span class="kw">use </span>forest_blocks::{tipset_keys_json::TipsetKeysJson, Tipset, TipsetKeys};
 <span class="kw">use </span>forest_chain::ChainStore;
 <span class="kw">use </span>forest_cli_shared::cli::{
-    default_snapshot_dir, is_car_or_tmp, snapshot_fetch, SnapshotServer, SnapshotStore,
+    default_snapshot_dir, is_car_or_zst_or_tmp, snapshot_fetch, SnapshotServer, SnapshotStore,
 };
 <span class="kw">use </span>forest_db::db_engine::{db_root, open_proxy_db};
 <span class="kw">use </span>forest_genesis::{forest_load_car, read_genesis_header};
@@ -574,6 +580,10 @@
         <span class="doccomment">/// Snapshot trusted source
         </span><span class="attr">#[arg(short, long, value_enum)]
         </span>provider: <span class="prelude-ty">Option</span>&lt;SnapshotServer&gt;,
+        <span class="doccomment">/// Download zstd compressed snapshot, only supported by the Filecoin
+        /// provider for now. default is false.
+        </span><span class="attr">#[arg(long)]
+        </span>compressed: bool,
         <span class="doccomment">/// Use [`aria2`](https://aria2.github.io/) for downloading, default is false. Requires `aria2c` in PATH.
         </span><span class="attr">#[arg(long)]
         </span>aria2: bool,
@@ -715,6 +725,7 @@
             <span class="self">Self</span>::Fetch {
                 snapshot_dir,
                 provider,
+                compressed: use_compressed,
                 aria2: use_aria2,
                 max_retries,
                 delay,
@@ -729,6 +740,7 @@
                     <span class="kw-2">&amp;</span>snapshot_dir,
                     <span class="kw-2">&amp;</span>config,
                     provider,
+                    <span class="kw-2">*</span>use_compressed,
                     <span class="kw-2">*</span>use_aria2
                 ) {
                     <span class="prelude-val">Ok</span>(out) =&gt; {
@@ -792,7 +804,7 @@
         .clone()
         .unwrap_or_else(|| default_snapshot_dir(config));
     <span class="kw">let </span>snapshot_path = snapshot_dir.join(filename);
-    <span class="kw">if </span>snapshot_path.exists() &amp;&amp; snapshot_path.is_file() &amp;&amp; is_car_or_tmp(<span class="kw-2">&amp;</span>snapshot_path) {
+    <span class="kw">if </span>snapshot_path.exists() &amp;&amp; snapshot_path.is_file() &amp;&amp; is_car_or_zst_or_tmp(<span class="kw-2">&amp;</span>snapshot_path) {
         <span class="macro">println!</span>(<span class="string">&quot;Deleting {}&quot;</span>, snapshot_path.display());
         <span class="kw">if </span>!force &amp;&amp; !prompt_confirm() {
             <span class="macro">println!</span>(<span class="string">&quot;Aborted.&quot;</span>);
@@ -852,7 +864,7 @@
     <span class="kw">let </span>snapshots_to_delete: Vec&lt;<span class="kw">_</span>&gt; = read_dir
         .flatten()
         .map(|entry| entry.path())
-        .filter(|p| is_car_or_tmp(p))
+        .filter(|p| is_car_or_zst_or_tmp(p))
         .collect();
 
     <span class="kw">if </span>snapshots_to_delete.is_empty() {

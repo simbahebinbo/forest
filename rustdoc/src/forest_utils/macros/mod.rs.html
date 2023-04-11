@@ -52,6 +52,7 @@
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -99,6 +100,7 @@
                         <span class="macro">info!</span>(<span class="string">&quot;Maximum retries exceeded.&quot;</span>);
                         <span class="kw">break </span><span class="prelude-val">Err</span>(err);
                     }
+                    <span class="macro">log::warn!</span>(<span class="string">&quot;{err:?}&quot;</span>);
                     <span class="macro">info!</span>(<span class="string">&quot;Retry attempt {} started with delay {:#?}.&quot;</span>, retry_count, <span class="macro-nonterminal">$delay</span>);
                     sleep(<span class="macro-nonterminal">$delay</span>).<span class="kw">await</span>;
                 }

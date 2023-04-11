@@ -717,6 +717,11 @@
 <a href="#717" id="717">717</a>
 <a href="#718" id="718">718</a>
 <a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -732,7 +737,7 @@
     chain_path,
     cli::{
         default_snapshot_dir, is_aria2_installed, snapshot_fetch, snapshot_fetch_size,
-        to_size_string, CliOpts, Client, Config, FOREST_VERSION_STRING,
+        to_size_string, CliOpts, Client, Config, SnapshotServer, FOREST_VERSION_STRING,
     },
 };
 <span class="kw">use </span>forest_db::{
@@ -1183,13 +1188,18 @@
 ) -&gt; anyhow::Result&lt;Config&gt; {
     <span class="kw">if </span>should_fetch_snapshot {
         <span class="kw">let </span>snapshot_path = default_snapshot_dir(<span class="kw-2">&amp;</span>config);
+        <span class="kw">let </span>provider = SnapshotServer::try_get_default(<span class="kw-2">&amp;</span>config.chain.name)<span class="question-mark">?</span>;
+        <span class="comment">// FIXME: change this to `true` once zstd compressed snapshots is supported by
+        // the forest provider
+        </span><span class="kw">let </span>use_compressed = provider == SnapshotServer::Filecoin;
         <span class="kw">let </span>path = <span class="macro">retry!</span>(
             snapshot_fetch,
             config.daemon.default_retry,
             config.daemon.default_delay,
             <span class="kw-2">&amp;</span>snapshot_path,
             <span class="kw-2">&amp;</span>config,
-            <span class="kw-2">&amp;</span><span class="prelude-val">None</span>,
+            <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(provider),
+            use_compressed,
             is_aria2_installed()
         )<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(Config {
