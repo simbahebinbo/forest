@@ -434,6 +434,8 @@
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -452,7 +454,9 @@
     kad::{record::store::MemoryStore, Kademlia, KademliaConfig, KademliaEvent, QueryId},
     mdns::{tokio::Behaviour <span class="kw">as </span>Mdns, Event <span class="kw">as </span>MdnsEvent},
     multiaddr::Protocol,
-    swarm::{behaviour::toggle::Toggle, derive_prelude::<span class="kw-2">*</span>, NetworkBehaviour, PollParameters},
+    swarm::{
+        behaviour::toggle::Toggle, derive_prelude::<span class="kw-2">*</span>, NetworkBehaviour, PollParameters, ToSwarm,
+    },
 };
 <span class="kw">use </span>log::{debug, error, trace, warn};
 <span class="kw">use </span>tokio::time::Interval;

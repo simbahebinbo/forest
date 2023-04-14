@@ -105,9 +105,6 @@
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
 <a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -121,12 +118,7 @@
 };
 <span class="kw">use </span>forest_libp2p_bitswap::{BitswapStoreRead, BitswapStoreReadWrite};
 <span class="kw">use </span>libipld::Block;
-<span class="kw">use </span>libp2p::{
-    futures::StreamExt,
-    multiaddr::Protocol,
-    swarm::{SwarmBuilder, SwarmEvent},
-    Swarm,
-};
+<span class="kw">use </span>libp2p::{futures::StreamExt, multiaddr::Protocol, swarm::SwarmEvent, Swarm};
 <span class="kw">use </span>parking_lot::RwLock;
 <span class="kw">use </span>rand::{rngs::OsRng, Rng};
 <span class="kw">use </span>tokio::select;
@@ -138,7 +130,9 @@
     <span class="kw">let </span>(transport, <span class="kw">_</span>, local_peer_id) = TransportBuilder::new().build()<span class="question-mark">?</span>;
     <span class="kw">let </span>behaviour = DemoBehaviour::default();
     <span class="kw">let </span>bitswap_request_manager = behaviour.bitswap.request_manager();
-    <span class="kw">let </span><span class="kw-2">mut </span>swarm = SwarmBuilder::with_tokio_executor(transport, behaviour, local_peer_id).build();
+    <span class="comment">// https://github.com/ChainSafe/forest/issues/2762
+    </span><span class="attr">#[allow(deprecated)]
+    </span><span class="kw">let </span><span class="kw-2">mut </span>swarm = Swarm::with_tokio_executor(transport, behaviour, local_peer_id);
     swarm.listen_on(<span class="string">&quot;/ip4/127.0.0.1/tcp/0/ws&quot;</span>.parse()<span class="question-mark">?</span>)<span class="question-mark">?</span>;
     <span class="kw">let </span>local_peer_addr = <span class="kw">loop </span>{
         <span class="kw">let </span>event = swarm.select_next_some().<span class="kw">await</span>;
