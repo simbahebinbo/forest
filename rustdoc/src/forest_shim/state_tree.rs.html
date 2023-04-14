@@ -244,6 +244,93 @@
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
 <a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 </span><span class="kw">use </span>std::ops::{Deref, DerefMut};
@@ -253,10 +340,80 @@
 <span class="kw">use </span>fvm::state_tree::{ActorState <span class="kw">as </span>ActorStateV2, StateTree <span class="kw">as </span>StateTreeV2};
 <span class="kw">use </span>fvm3::state_tree::{ActorState <span class="kw">as </span>ActorStateV3, StateTree <span class="kw">as </span>StateTreeV3};
 <span class="kw">use </span>fvm_ipld_blockstore::Blockstore;
+<span class="kw">use </span>fvm_ipld_encoding::repr::{Deserialize_repr, Serialize_repr};
+<span class="kw">use </span>fvm_shared::state::StateTreeVersion <span class="kw">as </span>StateTreeVersionV2;
+<span class="kw">use </span>fvm_shared3::state::StateTreeVersion <span class="kw">as </span>StateTreeVersionV3;
 <span class="kw">pub use </span>fvm_shared3::ActorID;
+<span class="kw">use </span>num::FromPrimitive;
+<span class="kw">use </span>num_derive::FromPrimitive;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 
 <span class="kw">use crate</span>::{address::Address, econ::TokenAmount, Inner};
+
+<span class="attr">#[derive(
+    Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Serialize_repr, Deserialize_repr, FromPrimitive,
+)]
+#[repr(u64)]
+</span><span class="kw">pub enum </span>StateTreeVersion {
+    V0,
+    V1,
+    V2,
+    V3,
+    V4,
+    V5,
+}
+
+<span class="kw">impl </span>TryFrom&lt;StateTreeVersionV3&gt; <span class="kw">for </span>StateTreeVersion {
+    <span class="kw">type </span>Error = anyhow::Error;
+    <span class="kw">fn </span>try_from(value: StateTreeVersionV3) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = FromPrimitive::from_u32(value <span class="kw">as </span>u32) {
+            <span class="prelude-val">Ok</span>(v)
+        } <span class="kw">else </span>{
+            <span class="macro">bail!</span>(<span class="string">&quot;Invalid conversion&quot;</span>);
+        }
+    }
+}
+
+<span class="kw">impl </span>TryFrom&lt;StateTreeVersionV2&gt; <span class="kw">for </span>StateTreeVersion {
+    <span class="kw">type </span>Error = anyhow::Error;
+    <span class="kw">fn </span>try_from(value: StateTreeVersionV2) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(v) = FromPrimitive::from_u32(value <span class="kw">as </span>u32) {
+            <span class="prelude-val">Ok</span>(v)
+        } <span class="kw">else </span>{
+            <span class="macro">bail!</span>(<span class="string">&quot;Invalid conversion&quot;</span>);
+        }
+    }
+}
+
+<span class="kw">impl </span>TryFrom&lt;StateTreeVersion&gt; <span class="kw">for </span>StateTreeVersionV2 {
+    <span class="kw">type </span>Error = anyhow::Error;
+
+    <span class="kw">fn </span>try_from(value: StateTreeVersion) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>value {
+            StateTreeVersion::V0 =&gt; StateTreeVersionV2::V0,
+            StateTreeVersion::V1 =&gt; StateTreeVersionV2::V1,
+            StateTreeVersion::V2 =&gt; StateTreeVersionV2::V2,
+            StateTreeVersion::V3 =&gt; StateTreeVersionV2::V3,
+            StateTreeVersion::V4 =&gt; StateTreeVersionV2::V4,
+            StateTreeVersion::V5 =&gt; <span class="macro">bail!</span>(<span class="string">&quot;Impossible conversion&quot;</span>),
+        })
+    }
+}
+
+<span class="kw">impl </span>TryFrom&lt;StateTreeVersion&gt; <span class="kw">for </span>StateTreeVersionV3 {
+    <span class="kw">type </span>Error = anyhow::Error;
+
+    <span class="kw">fn </span>try_from(value: StateTreeVersion) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="prelude-val">Ok</span>(<span class="kw">match </span>value {
+            StateTreeVersion::V0 =&gt; StateTreeVersionV3::V0,
+            StateTreeVersion::V1 =&gt; StateTreeVersionV3::V1,
+            StateTreeVersion::V2 =&gt; StateTreeVersionV3::V2,
+            StateTreeVersion::V3 =&gt; StateTreeVersionV3::V3,
+            StateTreeVersion::V4 =&gt; StateTreeVersionV3::V4,
+            StateTreeVersion::V5 =&gt; StateTreeVersionV3::V5,
+        })
+    }
+}
 
 <span class="doccomment">/// FVM `StateTree` variant. The `new_from_root` constructor will try to resolve
 /// to a valid `StateTree` version or fail if we don&#39;t support it at the moment.
@@ -275,7 +432,17 @@
     </span>S: Blockstore + Clone,
 {
     <span class="doccomment">/// Constructor for a HAMT state tree given an IPLD store
-    </span><span class="kw">pub fn </span>new_from_root(store: S, c: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+    </span><span class="kw">pub fn </span>new(store: S, version: StateTreeVersion) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(st) = StateTreeV3::new(store.clone(), version.try_into()<span class="question-mark">?</span>) {
+            <span class="prelude-val">Ok</span>(StateTree::V3(st))
+        } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(st) = StateTreeV2::new(store, version.try_into()<span class="question-mark">?</span>) {
+            <span class="prelude-val">Ok</span>(StateTree::V2(st))
+        } <span class="kw">else </span>{
+            <span class="macro">bail!</span>(<span class="string">&quot;Can&#39;t create a valid state tree for the given version.&quot;</span>);
+        }
+    }
+
+    <span class="kw">pub fn </span>new_from_root(store: S, c: <span class="kw-2">&amp;</span>Cid) -&gt; anyhow::Result&lt;<span class="self">Self</span>&gt; {
         <span class="kw">if let </span><span class="prelude-val">Ok</span>(st) = StateTreeV3::new_from_root(store.clone(), c) {
             <span class="prelude-val">Ok</span>(StateTree::V3(st))
         } <span class="kw">else if let </span><span class="prelude-val">Ok</span>(st) = StateTreeV2::new_from_root(store, c) {
@@ -406,6 +573,13 @@
             balance.into(),
             sequence,
             address.map(Into::into),
+        ))
+    }
+    <span class="doccomment">/// Construct a new empty actor with the specified code.
+    </span><span class="kw">pub fn </span>new_empty(code: Cid, delegated_address: <span class="prelude-ty">Option</span>&lt;Address&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(ActorStateV3::new_empty(
+            code,
+            delegated_address.map(Into::into),
         ))
     }
 }

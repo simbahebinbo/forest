@@ -188,6 +188,19 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -246,6 +259,19 @@
 <span class="kw">impl </span>FetchProgress&lt;DownloadStream&gt; {
     <span class="kw">pub async fn </span>fetch_from_url(url: Url) -&gt; anyhow::Result&lt;FetchProgress&lt;DownloadStream&gt;&gt; {
         <span class="kw">let </span>client = https_client();
+
+        <span class="kw">let </span>url = {
+            <span class="kw">let </span>head_response = client
+                .request(hyper::Request::head(url.as_str()).body(<span class="string">&quot;&quot;</span>.into())<span class="question-mark">?</span>)
+                .<span class="kw">await</span><span class="question-mark">?</span>;
+
+            <span class="comment">// Use the redirect if available.
+            </span><span class="kw">match </span>head_response.headers().get(<span class="string">&quot;location&quot;</span>) {
+                <span class="prelude-val">Some</span>(url) =&gt; url.to_str()<span class="question-mark">?</span>.try_into()<span class="question-mark">?</span>,
+                <span class="prelude-val">None </span>=&gt; url,
+            }
+        };
+
         <span class="kw">let </span>total_size = {
             <span class="kw">let </span>resp = client
                 .request(hyper::Request::head(url.as_str()).body(<span class="string">&quot;&quot;</span>.into())<span class="question-mark">?</span>)
@@ -264,7 +290,7 @@
         <span class="kw">let </span>response = client.get(url.as_str().try_into()<span class="question-mark">?</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="kw">let </span>pb = ProgressBar::new(total_size);
-        pb.message(<span class="string">&quot;Downloading/Importing snapshot &quot;</span>);
+        pb.message(<span class="string">&quot;Downloading/Importing&quot;</span>);
         pb.set_units(<span class="kw">crate</span>::io::progress_bar::Units::Bytes);
         pb.set_max_refresh_rate(<span class="prelude-val">Some</span>(Duration::from_millis(<span class="number">500</span>)));
 

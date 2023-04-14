@@ -100,10 +100,44 @@
 <a href="#100" id="100">100</a>
 <a href="#101" id="101">101</a>
 <a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
-</span><span class="kw">use super</span>::{drand::DRAND_MAINNET, DrandPoint, Height, HeightInfo};
+</span><span class="kw">use </span>cid::Cid;
+<span class="kw">use </span>lazy_static::lazy_static;
+<span class="kw">use </span>url::Url;
+
+<span class="kw">use super</span>::{drand::DRAND_MAINNET, DrandPoint, Height, HeightInfo};
+<span class="kw">use </span><span class="kw">crate</span>::ActorBundleInfo;
 
 <span class="doccomment">/// Default genesis car file bytes.
 </span><span class="kw">pub const </span>DEFAULT_GENESIS: <span class="kw-2">&amp;</span>[u8] = <span class="macro">include_bytes!</span>(<span class="string">&quot;genesis.car&quot;</span>);
@@ -118,85 +152,109 @@
     <span class="string">&quot;/dns4/bootstrap-3.calibration.fildev.network/tcp/1347/p2p/12D3KooWFWUqE9jgXvcKHWieYs9nhyp6NF4ftwLGAHm4sCv73jjK&quot;</span>,
 ];
 
+<span class="macro">lazy_static! </span>{
 <span class="doccomment">/// Height epochs.
-</span><span class="kw">pub const </span>HEIGHT_INFOS: [HeightInfo; <span class="number">19</span>] = [
+</span><span class="kw">pub static </span><span class="kw-2">ref </span>HEIGHT_INFOS: [HeightInfo; <span class="number">19</span>] = [
     HeightInfo {
         height: Height::Breeze,
         epoch: -<span class="number">1</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Smoke,
         epoch: -<span class="number">2</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Ignition,
         epoch: -<span class="number">3</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::ActorsV2,
         epoch: <span class="number">30</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Tape,
         epoch: <span class="number">60</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Liftoff,
         epoch: -<span class="number">5</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Kumquat,
         epoch: <span class="number">90</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Calico,
         epoch: <span class="number">120</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Persian,
         epoch: <span class="number">130</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Orange,
         epoch: <span class="number">300</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Trust,
         epoch: <span class="number">330</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Norwegian,
         epoch: <span class="number">360</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Turbo,
         epoch: <span class="number">390</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Hyperdrive,
         epoch: <span class="number">420</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Chocolate,
         epoch: <span class="number">450</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::OhSnap,
         epoch: <span class="number">480</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Skyr,
         epoch: <span class="number">510</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Shark,
         epoch: <span class="number">16_800</span>,
+        bundle: <span class="prelude-val">None</span>,
     },
     HeightInfo {
         height: Height::Hygge,
         epoch: <span class="number">322_354</span>,
+        bundle: <span class="prelude-val">Some</span>(ActorBundleInfo {
+            manifest: Cid::try_from(<span class="string">&quot;bafy2bzaced25ta3j6ygs34roprilbtb3f6mxifyfnm7z7ndquaruxzdq3y7lo&quot;</span>).unwrap(),
+            url: Url::parse(<span class="string">&quot;https://github.com/filecoin-project/builtin-actors/releases/download/v10.0.0-rc.1/builtin-actors-calibrationnet.car&quot;</span>).unwrap()
+    }),
     },
 ];
+}
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static </span>DRAND_SCHEDULE: [DrandPoint&lt;<span class="lifetime">&#39;static</span>&gt;; <span class="number">1</span>] = [DrandPoint {
     height: <span class="number">0</span>,

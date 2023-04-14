@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["NEWEST_NETWORK_VERSION"],"enum":["Height"],"fn":["default_network_version","sort_by_epoch"],"mod":["calibnet","de_network_version","mainnet"],"struct":["ChainConfig","HeightInfo","UpgradeInfo"]};
+window.SIDEBAR_ITEMS = {"constant":["NEWEST_NETWORK_VERSION"],"enum":["Height"],"fn":["sort_by_epoch"],"mod":["calibnet","mainnet"],"struct":["ActorBundleInfo","ChainConfig","HeightInfo"]};

@@ -722,6 +722,9 @@
 <a href="#722" id="722">722</a>
 <a href="#723" id="723">723</a>
 <a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2023 ChainSafe Systems
 // SPDX-License-Identifier: Apache-2.0, MIT
 
@@ -740,6 +743,7 @@
         to_size_string, CliOpts, Client, Config, SnapshotServer, FOREST_VERSION_STRING,
     },
 };
+<span class="kw">use </span>forest_daemon::bundle::load_bundles;
 <span class="kw">use </span>forest_db::{
     db_engine::{db_root, open_proxy_db},
     rolling::{DbGarbageCollector, RollingDB},
@@ -978,6 +982,8 @@
     </span>} <span class="kw">else </span>{
         <span class="bool-val">false
     </span>};
+
+    load_bundles(epoch, <span class="kw-2">&amp;</span>config, db.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let </span>peer_manager = Arc::new(PeerManager::default());
     services.spawn(peer_manager.clone().peer_operation_event_loop_task());
